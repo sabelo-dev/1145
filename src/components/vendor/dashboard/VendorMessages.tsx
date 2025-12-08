@@ -59,18 +59,23 @@ const VendorMessages = () => {
     try {
       setLoading(true);
       
-      const { data: vendor } = await supabase
+      const { data: vendor, error: vendorError } = await supabase
         .from('vendors')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .single();
 
-      const { data: stores } = await supabase
+      if (vendorError || !vendor) {
+        setConversations([]);
+        return;
+      }
+
+      const { data: stores, error: storesError } = await supabase
         .from('stores')
         .select('id')
         .eq('vendor_id', vendor.id);
 
-      if (stores.length === 0) {
+      if (storesError || !stores || stores.length === 0) {
         setConversations([]);
         return;
       }
