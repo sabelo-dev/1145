@@ -13,11 +13,21 @@ import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface Order {
+  id: string;
+  created_at: string;
+  status: string;
+  total: number;
+  itemCount: number;
+}
+
 const AccountPage: React.FC = () => {
   const { user, isVendor, refreshUserProfile } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
   
   // Profile state
   const [name, setName] = useState("");
@@ -36,8 +46,51 @@ const AccountPage: React.FC = () => {
     if (user) {
       setName(user.name || "");
       setPhone(user.phone || "");
+      fetchOrders();
     }
   }, [user]);
+
+  const fetchOrders = async () => {
+    if (!user) return;
+    
+    setOrdersLoading(true);
+    try {
+      // Fetch orders
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select("id, created_at, status, total")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      // Fetch item counts for each order
+      const ordersWithItems = await Promise.all(
+        (ordersData || []).map(async (order) => {
+          const { count } = await supabase
+            .from("order_items")
+            .select("*", { count: "exact", head: true })
+            .eq("order_id", order.id);
+          
+          return {
+            ...order,
+            itemCount: count || 0,
+          };
+        })
+      );
+
+      setOrders(ordersWithItems);
+    } catch (error: any) {
+      console.error("Error fetching orders:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load orders",
+        variant: "destructive",
+      });
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -118,23 +171,20 @@ const AccountPage: React.FC = () => {
     }
   };
 
-  // Mock order data
-  const orders = [
-    {
-      id: "ORD-001",
-      date: "2024-01-15",
-      status: "Delivered",
-      total: "R1,299.99",
-      items: 3
-    },
-    {
-      id: "ORD-002", 
-      date: "2024-01-10",
-      status: "Processing",
-      total: "R599.50",
-      items: 1
+  const getStatusVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "delivered":
+        return "default";
+      case "shipped":
+        return "secondary";
+      case "processing":
+        return "outline";
+      case "cancelled":
+        return "destructive";
+      default:
+        return "secondary";
     }
-  ];
+  };
 
   // Mock addresses
   const addresses = [
@@ -280,29 +330,48 @@ const AccountPage: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {orders.map((order) => (
-                        <div key={order.id} className="border rounded-lg p-4">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                              <h3 className="font-semibold">Order {order.id}</h3>
-                              <p className="text-sm text-gray-600">
-                                {order.date} • {order.items} item(s)
-                              </p>
-                            </div>
-                            <div className="mt-2 md:mt-0 flex items-center gap-4">
-                              <Badge variant={order.status === 'Delivered' ? 'default' : 'secondary'}>
-                                {order.status}
-                              </Badge>
-                              <span className="font-semibold">{order.total}</span>
-                              <Button variant="outline" size="sm">
-                                View Details
-                              </Button>
+                    {ordersLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : orders.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="font-medium text-lg mb-2">No orders yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          You haven't placed any orders yet. Start shopping to see your orders here.
+                        </p>
+                        <Link to="/shop">
+                          <Button className="bg-wwe-navy hover:bg-wwe-navy/90">
+                            Browse Products
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {orders.map((order) => (
+                          <div key={order.id} className="border rounded-lg p-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between">
+                              <div>
+                                <h3 className="font-semibold">Order #{order.id.slice(0, 8)}</h3>
+                                <p className="text-sm text-gray-600">
+                                  {new Date(order.created_at).toLocaleDateString()} • {order.itemCount} item(s)
+                                </p>
+                              </div>
+                              <div className="mt-2 md:mt-0 flex items-center gap-4">
+                                <Badge variant={getStatusVariant(order.status)}>
+                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </Badge>
+                                <span className="font-semibold">R{order.total.toFixed(2)}</span>
+                                <Button variant="outline" size="sm">
+                                  View Details
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
