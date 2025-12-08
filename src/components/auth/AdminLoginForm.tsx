@@ -32,10 +32,14 @@ const AdminLoginForm: React.FC = () => {
       const result = await login(data.email, data.password);
       if (result?.redirectPath) {
         navigate(result.redirectPath);
+      } else {
+        // Fallback to admin dashboard for admin users
+        navigate('/admin/dashboard');
       }
     } catch (error) {
-      setIsLoading(false);
       // Error toast is already handled in AuthContext
+    } finally {
+      setIsLoading(false);
     }
   };
 
