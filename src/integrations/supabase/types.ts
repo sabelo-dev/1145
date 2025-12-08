@@ -1584,6 +1584,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
+      is_vendor: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "consumer" | "vendor" | "admin"
