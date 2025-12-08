@@ -74,12 +74,23 @@ export const NewMessageDialog: React.FC<NewMessageDialogProps> = ({
 
       if (convError) throw convError;
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "You must be logged in to send messages"
+        });
+        return;
+      }
+
       // Create first message
       const { error: messageError } = await supabase
         .from('messages')
         .insert([{
           conversation_id: conversation.id,
-          sender_id: (await supabase.auth.getUser()).data.user?.id,
+          sender_id: user.id,
           sender_type: 'vendor',
           content: formData.message,
           read: false
