@@ -12,6 +12,8 @@ import { User, Package, MapPin, Settings, Store, Loader2 } from "lucide-react";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AddressFormDialog from "@/components/account/AddressFormDialog";
+import DeleteAddressDialog from "@/components/account/DeleteAddressDialog";
 
 interface Order {
   id: string;
@@ -21,6 +23,22 @@ interface Order {
   itemCount: number;
 }
 
+interface Address {
+  id: string;
+  user_id: string;
+  label: string;
+  name: string;
+  street: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+  phone: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 const AccountPage: React.FC = () => {
   const { user, isVendor, refreshUserProfile } = useAuth();
   const { toast } = useToast();
@@ -28,6 +46,14 @@ const AccountPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
+  
+  // Address state
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addressesLoading, setAddressesLoading] = useState(true);
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [addressFormLoading, setAddressFormLoading] = useState(false);
   
   // Profile state
   const [name, setName] = useState("");
@@ -47,6 +73,7 @@ const AccountPage: React.FC = () => {
       setName(user.name || "");
       setPhone(user.phone || "");
       fetchOrders();
+      fetchAddresses();
     }
   }, [user]);
 
@@ -55,7 +82,6 @@ const AccountPage: React.FC = () => {
     
     setOrdersLoading(true);
     try {
-      // Fetch orders
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select("id, created_at, status, total")
@@ -64,7 +90,6 @@ const AccountPage: React.FC = () => {
 
       if (ordersError) throw ordersError;
 
-      // Fetch item counts for each order
       const ordersWithItems = await Promise.all(
         (ordersData || []).map(async (order) => {
           const { count } = await supabase
@@ -89,6 +114,158 @@ const AccountPage: React.FC = () => {
       });
     } finally {
       setOrdersLoading(false);
+    }
+  };
+
+  const fetchAddresses = async () => {
+    if (!user) return;
+    
+    setAddressesLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("user_addresses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setAddresses(data || []);
+    } catch (error: any) {
+      console.error("Error fetching addresses:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load addresses",
+        variant: "destructive",
+      });
+    } finally {
+      setAddressesLoading(false);
+    }
+  };
+
+  const handleAddAddress = () => {
+    setSelectedAddress(null);
+    setAddressDialogOpen(true);
+  };
+
+  const handleEditAddress = (address: Address) => {
+    setSelectedAddress(address);
+    setAddressDialogOpen(true);
+  };
+
+  const handleDeleteClick = (address: Address) => {
+    setSelectedAddress(address);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleAddressSubmit = async (data: {
+    label: string;
+    name: string;
+    street: string;
+    city: string;
+    province: string;
+    postal_code: string;
+    phone: string;
+    is_default: boolean;
+  }) => {
+    if (!user) return;
+    
+    setAddressFormLoading(true);
+    try {
+      // If setting as default, first unset other defaults
+      if (data.is_default) {
+        await supabase
+          .from("user_addresses")
+          .update({ is_default: false })
+          .eq("user_id", user.id);
+      }
+
+      if (selectedAddress) {
+        // Update existing address
+        const { error } = await supabase
+          .from("user_addresses")
+          .update({
+            label: data.label,
+            name: data.name,
+            street: data.street,
+            city: data.city,
+            province: data.province,
+            postal_code: data.postal_code,
+            phone: data.phone || null,
+            is_default: data.is_default,
+          })
+          .eq("id", selectedAddress.id);
+
+        if (error) throw error;
+        toast({
+          title: "Success",
+          description: "Address updated successfully",
+        });
+      } else {
+        // Create new address
+        const { error } = await supabase
+          .from("user_addresses")
+          .insert({
+            user_id: user.id,
+            label: data.label,
+            name: data.name,
+            street: data.street,
+            city: data.city,
+            province: data.province,
+            postal_code: data.postal_code,
+            phone: data.phone || null,
+            is_default: data.is_default || addresses.length === 0, // First address is default
+          });
+
+        if (error) throw error;
+        toast({
+          title: "Success",
+          description: "Address added successfully",
+        });
+      }
+
+      setAddressDialogOpen(false);
+      fetchAddresses();
+    } catch (error: any) {
+      console.error("Error saving address:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save address",
+        variant: "destructive",
+      });
+    } finally {
+      setAddressFormLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = async () => {
+    if (!selectedAddress) return;
+    
+    setAddressFormLoading(true);
+    try {
+      const { error } = await supabase
+        .from("user_addresses")
+        .delete()
+        .eq("id", selectedAddress.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Address deleted successfully",
+      });
+      
+      setDeleteDialogOpen(false);
+      fetchAddresses();
+    } catch (error: any) {
+      console.error("Error deleting address:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete address",
+        variant: "destructive",
+      });
+    } finally {
+      setAddressFormLoading(false);
     }
   };
 
@@ -185,20 +362,6 @@ const AccountPage: React.FC = () => {
         return "secondary";
     }
   };
-
-  // Mock addresses
-  const addresses = [
-    {
-      id: 1,
-      type: "Home",
-      name: "John Doe",
-      street: "123 Main Street",
-      city: "Cape Town",
-      province: "Western Cape",
-      postal: "8001",
-      isDefault: true
-    }
-  ];
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -387,37 +550,67 @@ const AccountPage: React.FC = () => {
                           Manage your shipping and billing addresses
                         </CardDescription>
                       </div>
-                      <Button className="bg-wwe-navy hover:bg-wwe-navy/90">
+                      <Button onClick={handleAddAddress} className="bg-wwe-navy hover:bg-wwe-navy/90">
                         Add Address
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {addresses.map((address) => (
-                        <div key={address.id} className="border rounded-lg p-4">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-semibold">{address.type}</h3>
-                                {address.isDefault && (
-                                  <Badge variant="outline">Default</Badge>
-                                )}
+                    {addressesLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : addresses.length === 0 ? (
+                      <div className="text-center py-8">
+                        <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="font-medium text-lg mb-2">No addresses saved</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Add a shipping address to make checkout faster.
+                        </p>
+                        <Button onClick={handleAddAddress} className="bg-wwe-navy hover:bg-wwe-navy/90">
+                          Add Your First Address
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {addresses.map((address) => (
+                          <div key={address.id} className="border rounded-lg p-4">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-semibold">{address.label}</h3>
+                                  {address.is_default && (
+                                    <Badge variant="outline">Default</Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600">
+                                  {address.name}<br/>
+                                  {address.street}<br/>
+                                  {address.city}, {address.province} {address.postal_code}
+                                  {address.phone && <><br/>{address.phone}</>}
+                                </p>
                               </div>
-                              <p className="text-sm text-gray-600">
-                                {address.name}<br/>
-                                {address.street}<br/>
-                                {address.city}, {address.province} {address.postal}
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm">Edit</Button>
-                              <Button variant="outline" size="sm">Delete</Button>
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleEditAddress(address)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleDeleteClick(address)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -517,6 +710,24 @@ const AccountPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Address Form Dialog */}
+      <AddressFormDialog
+        open={addressDialogOpen}
+        onOpenChange={setAddressDialogOpen}
+        onSubmit={handleAddressSubmit}
+        address={selectedAddress}
+        loading={addressFormLoading}
+      />
+
+      {/* Delete Address Confirmation Dialog */}
+      <DeleteAddressDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteAddress}
+        loading={addressFormLoading}
+        addressLabel={selectedAddress?.label}
+      />
     </div>
   );
 };
