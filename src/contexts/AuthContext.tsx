@@ -13,6 +13,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isVendor: boolean;
   isAdmin: boolean;
+  isDriver: boolean;
   refreshUserProfile: () => Promise<void>;
 }
 
@@ -23,11 +24,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isVendor, setIsVendor] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDriver, setIsDriver] = useState(false);
   const { toast } = useToast();
   const loadingManager = useLoadingManager();
 
-  const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isLogin: boolean = true): string => {
+  const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isDriverUser: boolean, isLogin: boolean = true): string => {
     if (userRole === 'admin') return '/admin/dashboard';
+    if (isDriverUser) return '/driver/dashboard';
     if (userRole === 'vendor') {
       // For login: always go to dashboard if vendor exists, onboarding will redirect if needed
       // For register: redirect to login page so they can sign in after email confirmation
@@ -41,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     setIsVendor(false);
     setIsAdmin(false);
+    setIsDriver(false);
   };
 
   const checkVendorStatus = async (userId: string): Promise<boolean> => {
@@ -60,6 +64,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return isVendor;
     } catch (error) {
       console.error('Error checking vendor status:', error);
+      return false;
+    }
+  };
+
+  const checkDriverStatus = async (userId: string): Promise<boolean> => {
+    try {
+      console.log('Checking driver status for user:', userId);
+      const { data: driver } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      const isDriver = !!driver;
+      console.log('Is driver:', isDriver);
+      return isDriver;
+    } catch (error) {
+      console.error('Error checking driver status:', error);
       return false;
     }
   };
@@ -107,10 +129,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Set role flags based on user_roles table
         setIsAdmin(userRoles.includes('admin'));
         
-        // Check vendor status
-        const vendorStatus = await checkVendorStatus(profile.id);
+        // Check vendor and driver status
+        const [vendorStatus, driverStatus] = await Promise.all([
+          checkVendorStatus(profile.id),
+          checkDriverStatus(profile.id)
+        ]);
         console.log('Setting vendor status to:', vendorStatus);
+        console.log('Setting driver status to:', driverStatus);
         setIsVendor(vendorStatus);
+        setIsDriver(driverStatus);
       } else {
         // Create basic user data from session if no profile exists
         const userData: User = {
@@ -123,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         setIsAdmin(false);
         setIsVendor(false);
+        setIsDriver(false);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -231,16 +259,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (data.user) {
-        // Get user roles from user_roles table and vendor status for redirect
-        const [rolesResult, vendorResult] = await Promise.all([
+        // Get user roles from user_roles table and vendor/driver status for redirect
+        const [rolesResult, vendorResult, driverResult] = await Promise.all([
           supabase.from('user_roles').select('role').eq('user_id', data.user.id),
-          checkVendorStatus(data.user.id)
+          checkVendorStatus(data.user.id),
+          checkDriverStatus(data.user.id)
         ]);
         
         const userRoles = rolesResult.data?.map(r => r.role) || [];
         const userRole = userRoles.includes('admin') ? 'admin' : 
                         userRoles.includes('vendor') ? 'vendor' : 'consumer';
-        const redirectPath = getRedirectPathForRole(userRole, vendorResult, true);
+        const redirectPath = getRedirectPathForRole(userRole, vendorResult, driverResult, true);
         
         toast({
           title: "Login Successful",
@@ -382,7 +411,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isVendor, isAdmin, refreshUserProfile }}>
+    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isVendor, isAdmin, isDriver, refreshUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

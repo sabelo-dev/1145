@@ -10,18 +10,19 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Store, Shield, ChevronDown } from "lucide-react";
+import { User, Store, Shield, ChevronDown, Truck } from "lucide-react";
 import { User as UserType } from "@/types";
 
 interface UserMenuProps {
   user: UserType | null;
   isAdmin: boolean;
   isVendor: boolean;
+  isDriver: boolean;
   logout: () => Promise<void>;
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, logout }) => {
-  console.log('UserMenu props:', { user: !!user, isAdmin, isVendor, userRole: user?.role });
+const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, isDriver, logout }) => {
+  console.log('UserMenu props:', { user: !!user, isAdmin, isVendor, isDriver, userRole: user?.role });
   
   if (!user) {
     return (
@@ -56,12 +57,21 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, logout }) 
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">
-        <DropdownMenuItem asChild>
-          <Link to="/account" className="flex items-center">
-            <User className="h-4 w-4 mr-2" />
-            Account Settings
-          </Link>
-        </DropdownMenuItem>
+        {isDriver ? (
+          <DropdownMenuItem asChild>
+            <Link to="/driver/dashboard" className="flex items-center">
+              <Truck className="h-4 w-4 mr-2" />
+              Driver Dashboard
+            </Link>
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem asChild>
+            <Link to="/account" className="flex items-center">
+              <User className="h-4 w-4 mr-2" />
+              Account Settings
+            </Link>
+          </DropdownMenuItem>
+        )}
         
         {!isVendor && user?.role === 'consumer' && (
           <DropdownMenuItem asChild>
