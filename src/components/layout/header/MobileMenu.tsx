@@ -28,8 +28,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   logout,
 }) => {
   return (
-    <div className={cn("md:hidden", mobileMenuOpen ? "block" : "hidden")}>
-      <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+    <div className={cn("md:hidden bg-background border-t border-border shadow-lg", mobileMenuOpen ? "block" : "hidden")}>
+      <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background">
         <Link
           to="/"
           className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
