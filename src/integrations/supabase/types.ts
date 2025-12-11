@@ -294,6 +294,72 @@ export type Database = {
           },
         ]
       }
+      delivery_jobs: {
+        Row: {
+          actual_delivery_time: string | null
+          created_at: string
+          delivery_address: Json
+          distance_km: number | null
+          driver_id: string | null
+          earnings: number | null
+          estimated_delivery_time: string | null
+          id: string
+          notes: string | null
+          order_id: string | null
+          pickup_address: Json
+          pickup_time: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_delivery_time?: string | null
+          created_at?: string
+          delivery_address: Json
+          distance_km?: number | null
+          driver_id?: string | null
+          earnings?: number | null
+          estimated_delivery_time?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          pickup_address: Json
+          pickup_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_delivery_time?: string | null
+          created_at?: string
+          delivery_address?: Json
+          distance_km?: number | null
+          driver_id?: string | null
+          earnings?: number | null
+          estimated_delivery_time?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          pickup_address?: Json
+          pickup_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_jobs_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_jobs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       downloadable_files: {
         Row: {
           created_at: string
@@ -334,6 +400,95 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      driver_analytics: {
+        Row: {
+          average_delivery_time_mins: number | null
+          created_at: string
+          date: string
+          deliveries_completed: number | null
+          driver_id: string
+          id: string
+          total_distance_km: number | null
+          total_earnings: number | null
+        }
+        Insert: {
+          average_delivery_time_mins?: number | null
+          created_at?: string
+          date?: string
+          deliveries_completed?: number | null
+          driver_id: string
+          id?: string
+          total_distance_km?: number | null
+          total_earnings?: number | null
+        }
+        Update: {
+          average_delivery_time_mins?: number | null
+          created_at?: string
+          date?: string
+          deliveries_completed?: number | null
+          driver_id?: string
+          id?: string
+          total_distance_km?: number | null
+          total_earnings?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_analytics_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drivers: {
+        Row: {
+          created_at: string
+          current_location: Json | null
+          id: string
+          license_number: string | null
+          name: string
+          phone: string | null
+          rating: number | null
+          status: string
+          total_deliveries: number | null
+          updated_at: string
+          user_id: string
+          vehicle_registration: string | null
+          vehicle_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_location?: Json | null
+          id?: string
+          license_number?: string | null
+          name: string
+          phone?: string | null
+          rating?: number | null
+          status?: string
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id: string
+          vehicle_registration?: string | null
+          vehicle_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_location?: Json | null
+          id?: string
+          license_number?: string | null
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          status?: string
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id?: string
+          vehicle_registration?: string | null
+          vehicle_type?: string | null
+        }
+        Relationships: []
       }
       import_jobs: {
         Row: {
@@ -1631,11 +1786,12 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_driver: { Args: { _user_id: string }; Returns: boolean }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "consumer" | "vendor" | "admin"
+      app_role: "consumer" | "vendor" | "admin" | "driver"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1763,7 +1919,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["consumer", "vendor", "admin"],
+      app_role: ["consumer", "vendor", "admin", "driver"],
     },
   },
 } as const
