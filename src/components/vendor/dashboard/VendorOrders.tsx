@@ -163,8 +163,34 @@ const VendorOrders = () => {
     return `WWE-TRK-${timestamp}-${random}`;
   };
 
+  const sendOrderStatusEmail = async (order: any, newStatus: string, trackingNumber?: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('send-order-status-email', {
+        body: {
+          orderId: order.id,
+          newStatus,
+          customerEmail: order.email,
+          customerName: order.customer,
+          trackingNumber: trackingNumber || order.trackingNumber,
+          courierCompany: order.courierCompany,
+          estimatedDelivery: order.estimatedDelivery
+        }
+      });
+
+      if (error) {
+        console.error('Failed to send status email:', error);
+      } else {
+        console.log('Order status email sent successfully');
+      }
+    } catch (error) {
+      console.error('Error sending order status email:', error);
+    }
+  };
+
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
+      const order = orders.find(o => o.id === orderId);
+      
       // Generate tracking number if shipping
       let trackingNumber = null;
       if (newStatus === 'shipped') {
@@ -182,6 +208,16 @@ const VendorOrders = () => {
         if (orderError) throw orderError;
       }
 
+      // Update order status in orders table for out_for_delivery and delivered
+      if (newStatus === 'out_for_delivery' || newStatus === 'delivered') {
+        const { error: orderError } = await supabase
+          .from('orders')
+          .update({ status: newStatus })
+          .eq('id', orderId);
+
+        if (orderError) throw orderError;
+      }
+
       // Update order items vendor status
       const { error } = await supabase
         .from('order_items')
@@ -191,11 +227,16 @@ const VendorOrders = () => {
       if (error) throw error;
 
       // Update local state
-      setOrders(orders.map(order => 
-        order.id === orderId 
-          ? { ...order, status: newStatus, trackingNumber: trackingNumber || order.trackingNumber } 
-          : order
+      setOrders(orders.map(o => 
+        o.id === orderId 
+          ? { ...o, status: newStatus, trackingNumber: trackingNumber || o.trackingNumber } 
+          : o
       ));
+
+      // Send email notification for shipped, out_for_delivery, and delivered statuses
+      if (['shipped', 'out_for_delivery', 'delivered'].includes(newStatus) && order) {
+        sendOrderStatusEmail(order, newStatus, trackingNumber || undefined);
+      }
 
       toast({
         title: "Order Updated",
