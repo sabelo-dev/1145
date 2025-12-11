@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ import {
   LogOut,
   User,
   Truck,
+  Bell,
 } from "lucide-react";
 import DriverOverview from "./DriverOverview";
 import DriverAvailableJobs from "./DriverAvailableJobs";
@@ -36,13 +37,56 @@ const DriverDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [driver, setDriver] = useState<Driver | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newJobCount, setNewJobCount] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const previousJobCountRef = useRef<number>(0);
 
   useEffect(() => {
     fetchDriverData();
+    
+    // Global realtime subscription for new job notifications
+    const channel = supabase
+      .channel("driver_notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "delivery_jobs",
+        },
+        (payload) => {
+          if (payload.new && (payload.new as any).status === "pending") {
+            setNewJobCount(prev => prev + 1);
+            // Request browser notification permission
+            requestNotificationPermission();
+            showBrowserNotification(payload.new as any);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
+
+  const requestNotificationPermission = async () => {
+    if ("Notification" in window && Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+  };
+
+  const showBrowserNotification = (job: any) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("New Delivery Job Available!", {
+        body: `Delivery to ${job.delivery_address?.city || 'nearby location'}${job.earnings ? ` - R${job.earnings}` : ''}`,
+        icon: "/favicon.ico",
+        tag: `job-${job.id}`,
+      });
+    }
+  };
 
   const fetchDriverData = async () => {
     if (!user) return;
@@ -212,9 +256,17 @@ const DriverDashboard: React.FC = () => {
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="available" className="gap-2">
+            <TabsTrigger value="available" className="gap-2 relative">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Jobs</span>
+              {newJobCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                >
+                  {newJobCount > 9 ? "9+" : newJobCount}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="active" className="gap-2">
               <MapPin className="h-4 w-4" />
@@ -234,7 +286,7 @@ const DriverDashboard: React.FC = () => {
             <DriverOverview driver={driver} />
           </TabsContent>
           <TabsContent value="available">
-            <DriverAvailableJobs driver={driver} onJobAccepted={fetchDriverData} />
+            <DriverAvailableJobs driver={driver} onJobAccepted={() => { fetchDriverData(); setNewJobCount(0); }} />
           </TabsContent>
           <TabsContent value="active">
             <DriverActiveDeliveries driver={driver} onStatusUpdate={fetchDriverData} />

@@ -39,10 +39,43 @@ const DriverAvailableJobs: React.FC<DriverAvailableJobsProps> = ({
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "delivery_jobs",
-          filter: "status=eq.pending",
+        },
+        (payload) => {
+          console.log("New job received:", payload);
+          // Show notification for new job
+          if (payload.new && (payload.new as any).status === "pending") {
+            const newJob = payload.new as any;
+            toast({
+              title: "🚚 New Job Available!",
+              description: `Delivery to ${newJob.delivery_address?.city || 'nearby'} - ${newJob.earnings ? `R${newJob.earnings}` : 'Check details'}`,
+              duration: 10000,
+            });
+            // Play notification sound if available
+            playNotificationSound();
+          }
+          fetchAvailableJobs();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "delivery_jobs",
+        },
+        () => {
+          fetchAvailableJobs();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "delivery_jobs",
         },
         () => {
           fetchAvailableJobs();
@@ -54,6 +87,40 @@ const DriverAvailableJobs: React.FC<DriverAvailableJobsProps> = ({
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const playNotificationSound = () => {
+    try {
+      // Create a simple notification beep using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      gainNode.gain.value = 0.3;
+      
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.2);
+      
+      // Play second beep
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.frequency.value = 1000;
+        osc2.type = 'sine';
+        gain2.gain.value = 0.3;
+        osc2.start();
+        osc2.stop(audioContext.currentTime + 0.2);
+      }, 250);
+    } catch (error) {
+      console.log("Audio notification not supported");
+    }
+  };
 
   const fetchAvailableJobs = async () => {
     try {
