@@ -442,6 +442,68 @@ export type Database = {
           },
         ]
       }
+      driver_payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          deliveries_count: number | null
+          driver_id: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          period_end: string
+          period_start: string
+          processed_at: string | null
+          processed_by: string | null
+          status: string
+          total_distance_km: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          deliveries_count?: number | null
+          driver_id: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          period_end: string
+          period_start: string
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          total_distance_km?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          deliveries_count?: number | null
+          driver_id?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          period_end?: string
+          period_start?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          total_distance_km?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_payouts_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           created_at: string
