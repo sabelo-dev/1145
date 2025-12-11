@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, Store, Shield } from "lucide-react";
+import { Search, Store, Shield, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User as UserType } from "@/types";
 import {
@@ -16,6 +16,7 @@ interface MobileMenuProps {
   user: UserType | null;
   isAdmin: boolean;
   isVendor: boolean;
+  isDriver: boolean;
   logout: () => Promise<void>;
 }
 
@@ -25,6 +26,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   user,
   isAdmin,
   isVendor,
+  isDriver,
   logout,
 }) => {
   return (
@@ -157,6 +159,16 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             Become a Vendor
           </Link>
         )}
+        {isDriver && (
+          <Link
+            to="/driver/dashboard"
+            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <Truck className="h-4 w-4 inline-block mr-2" />
+            Driver Dashboard
+          </Link>
+        )}
         {isVendor && (
           <Link
             to="/vendor/dashboard"
@@ -198,13 +210,23 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             <div className="font-medium text-gray-800 mb-2">
               {user.name || user.email}
             </div>
-            <Link
-              to="/account"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Account
-            </Link>
+            {isDriver ? (
+              <Link
+                to="/driver/dashboard"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Driver Dashboard
+              </Link>
+            ) : (
+              <Link
+                to="/account"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Account
+              </Link>
+            )}
             <button
               onClick={async () => {
                 await logout();
