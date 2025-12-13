@@ -36,11 +36,6 @@ import VendorLoginPage from "@/pages/VendorLoginPage";
 import VendorRegisterPage from "@/pages/VendorRegisterPage";
 import VendorOnboardingPage from "@/pages/VendorOnboardingPage";
 import VendorDashboardPage from "@/pages/VendorDashboardPage";
-
-// Driver pages
-import DriverLoginPage from "@/pages/driver/DriverLoginPage";
-import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
-
 // Subcategory pages
 import SubcategoryPage from "@/pages/SubcategoryPage";
 
@@ -133,13 +128,6 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* Driver pages */}
-              <Route path="driver/login" element={<DriverLoginPage />} />
-              <Route path="driver/dashboard" element={
-                <ProtectedRoute requireAuth requireDriver>
-                  <DriverDashboardPage />
-                </ProtectedRoute>
-              } />
               
               {/* 404 page */}
               <Route path="*" element={<NotFound />} />

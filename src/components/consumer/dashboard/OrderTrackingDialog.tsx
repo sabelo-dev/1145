@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,20 +9,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import {
   Package,
   Truck,
   MapPin,
-  Calendar,
   CheckCircle,
   Clock,
-  User,
-  Phone,
   Navigation,
-  RefreshCw,
 } from "lucide-react";
 
 interface OrderProduct {
@@ -47,20 +41,6 @@ interface Order {
   courier_company?: string | null;
 }
 
-interface DeliveryJob {
-  id: string;
-  status: string;
-  pickup_time: string | null;
-  estimated_delivery_time: string | null;
-  actual_delivery_time: string | null;
-  driver?: {
-    name: string;
-    phone: string | null;
-    vehicle_type: string | null;
-    rating: number | null;
-  } | null;
-}
-
 interface OrderTrackingDialogProps {
   order: Order | null;
   open: boolean;
@@ -72,79 +52,6 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
   open,
   onOpenChange,
 }) => {
-  const [deliveryJob, setDeliveryJob] = useState<DeliveryJob | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (open && order) {
-      fetchDeliveryJob();
-      
-      // Set up real-time subscription
-      const channel = supabase
-        .channel(`order_tracking_${order.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "delivery_jobs",
-            filter: `order_id=eq.${order.id}`,
-          },
-          (payload) => {
-            console.log("Delivery update received:", payload);
-            fetchDeliveryJob();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [open, order]);
-
-  const fetchDeliveryJob = async () => {
-    if (!order) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("delivery_jobs")
-        .select(`
-          id,
-          status,
-          pickup_time,
-          estimated_delivery_time,
-          actual_delivery_time,
-          driver_id
-        `)
-        .eq("order_id", order.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data && data.driver_id) {
-        // Fetch driver info
-        const { data: driverData } = await supabase
-          .from("drivers")
-          .select("name, phone, vehicle_type, rating")
-          .eq("id", data.driver_id)
-          .single();
-
-        setDeliveryJob({
-          ...data,
-          driver: driverData,
-        });
-      } else {
-        setDeliveryJob(data);
-      }
-    } catch (error) {
-      console.error("Error fetching delivery job:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (!order) return null;
 
   const getStatusBadge = (status: string) => {
@@ -167,36 +74,16 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
     );
   };
 
-  const getDeliveryStatusBadge = (status: string) => {
-    const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
-      pending: { variant: "secondary" },
-      accepted: { variant: "default", className: "bg-blue-500" },
-      picked_up: { variant: "default", className: "bg-amber-500" },
-      in_transit: { variant: "default", className: "bg-purple-500" },
-      delivered: { variant: "default", className: "bg-green-500" },
-      cancelled: { variant: "destructive" },
-    };
-
-    const { variant, className } = config[status] || { variant: "secondary" };
-
-    return (
-      <Badge variant={variant} className={className}>
-        {status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-      </Badge>
-    );
-  };
-
-  // Timeline steps
+  // Timeline steps based on order status
   const getTimelineSteps = () => {
     const orderStatus = order.status;
-    const deliveryStatus = deliveryJob?.status;
 
     const steps = [
       { id: "ordered", label: "Order Placed", icon: Package, completed: true },
-      { id: "processing", label: "Processing", icon: Clock, completed: ["processing", "shipped", "in_transit", "delivered"].includes(orderStatus) },
-      { id: "shipped", label: "Shipped", icon: Truck, completed: ["shipped", "in_transit", "delivered"].includes(orderStatus) || !!deliveryJob },
-      { id: "in_transit", label: "In Transit", icon: Navigation, completed: deliveryStatus === "in_transit" || deliveryStatus === "picked_up" || orderStatus === "delivered" },
-      { id: "delivered", label: "Delivered", icon: CheckCircle, completed: orderStatus === "delivered" || deliveryStatus === "delivered" },
+      { id: "processing", label: "Processing", icon: Clock, completed: ["processing", "shipped", "in_transit", "out_for_delivery", "delivered"].includes(orderStatus) },
+      { id: "shipped", label: "Shipped", icon: Truck, completed: ["shipped", "in_transit", "out_for_delivery", "delivered"].includes(orderStatus) },
+      { id: "in_transit", label: "In Transit", icon: Navigation, completed: ["in_transit", "out_for_delivery", "delivered"].includes(orderStatus) },
+      { id: "delivered", label: "Delivered", icon: CheckCircle, completed: orderStatus === "delivered" },
     ];
 
     return steps;
@@ -213,7 +100,7 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
             <span>Track Order - {order.id}</span>
             {getStatusBadge(order.status)}
           </DialogTitle>
-          <DialogDescription>Real-time tracking for your order</DialogDescription>
+          <DialogDescription>Tracking information for your order</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -261,11 +148,6 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
                             {format(new Date(order.date), "PPP 'at' p")}
                           </p>
                         )}
-                        {step.id === "delivered" && deliveryJob?.actual_delivery_time && (
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(deliveryJob.actual_delivery_time), "PPP 'at' p")}
-                          </p>
-                        )}
                       </div>
                     </div>
                   );
@@ -273,58 +155,6 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
               </div>
             </CardContent>
           </Card>
-
-          {/* Driver Information */}
-          {deliveryJob?.driver && (
-            <Card className="border-primary/50">
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  Driver Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{deliveryJob.driver.name}</p>
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {deliveryJob.driver.vehicle_type || "Vehicle"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-amber-500">
-                        <span>⭐</span>
-                        <span className="font-medium">{deliveryJob.driver.rating?.toFixed(1) || "5.0"}</span>
-                      </div>
-                      {getDeliveryStatusBadge(deliveryJob.status)}
-                    </div>
-                  </div>
-
-                  {deliveryJob.driver.phone && (
-                    <Button variant="outline" className="w-full" asChild>
-                      <a href={`tel:${deliveryJob.driver.phone}`}>
-                        <Phone className="h-4 w-4 mr-2" />
-                        Contact Driver: {deliveryJob.driver.phone}
-                      </a>
-                    </Button>
-                  )}
-
-                  {deliveryJob.estimated_delivery_time && (
-                    <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg">
-                      <span className="text-sm font-medium">Estimated Delivery</span>
-                      <span className="font-semibold text-green-600">
-                        {format(new Date(deliveryJob.estimated_delivery_time), "p")}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Delivery Address */}
           {order.shipping_address && (
@@ -420,26 +250,6 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
               </div>
             </div>
           </div>
-
-          {/* Refresh Button */}
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={fetchDeliveryJob}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Tracking
-              </>
-            )}
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
