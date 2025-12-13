@@ -134,8 +134,8 @@ function App() {
               } />
               
               {/* Driver pages */}
-              <Route path="/driver/login" element={<DriverLoginPage />} />
-              <Route path="/driver/dashboard" element={
+              <Route path="driver/login" element={<DriverLoginPage />} />
+              <Route path="driver/dashboard" element={
                 <ProtectedRoute requireAuth requireDriver>
                   <DriverDashboardPage />
                 </ProtectedRoute>
