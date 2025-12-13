@@ -35,8 +35,6 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminAuditLogs from "@/components/admin/AdminAuditLogs";
 import AdminSettings from "@/components/admin/AdminSettings";
 import { AdminShipping } from "@/components/admin/AdminShipping";
-import AdminDrivers from "@/components/admin/AdminDrivers";
-import AdminDriverPayouts from "@/components/admin/AdminDriverPayouts";
 import {
   LayoutDashboard,
   Users,
@@ -53,9 +51,7 @@ import {
   Shield,
   LogOut,
   User,
-  Truck,
-  Car,
-  Wallet
+  Truck
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -74,8 +70,6 @@ const AdminDashboard = () => {
     { id: "overview", title: "Overview", icon: LayoutDashboard },
     { id: "users", title: "User Management", icon: Users },
     { id: "vendors", title: "Vendor Management", icon: Store },
-    { id: "drivers", title: "Driver Management", icon: Car },
-    { id: "driver-payouts", title: "Driver Payouts", icon: Wallet },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
     { id: "products", title: "Products (All)", icon: Package },
     { id: "categories", title: "Categories", icon: FileText },
@@ -174,12 +168,6 @@ const AdminDashboard = () => {
                 </TabsContent>
                 <TabsContent value="vendors" className="mt-0">
                   <AdminVendors />
-                </TabsContent>
-                <TabsContent value="drivers" className="mt-0">
-                  <AdminDrivers />
-                </TabsContent>
-                <TabsContent value="driver-payouts" className="mt-0">
-                  <AdminDriverPayouts />
                 </TabsContent>
                 <TabsContent value="products" className="mt-0">
                   <AdminProducts />
