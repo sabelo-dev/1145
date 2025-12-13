@@ -28,7 +28,85 @@ const AuctionsPage = () => {
 
   useEffect(() => {
     fetchAuctions();
+
+    // Subscribe to real-time auction updates
+    const auctionsChannel = supabase
+      .channel('auctions-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'auctions'
+        },
+        (payload) => {
+          console.log('Auction update:', payload);
+          fetchAuctions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(auctionsChannel);
+    };
   }, []);
+
+  // Subscribe to bids for selected auction
+  useEffect(() => {
+    if (!selectedAuction) return;
+
+    const bidsChannel = supabase
+      .channel(`auction-bids-${selectedAuction.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'auction_bids',
+          filter: `auction_id=eq.${selectedAuction.id}`
+        },
+        async (payload) => {
+          console.log('New bid received:', payload);
+          
+          // Fetch updated bids
+          const { data: bidsData } = await supabase
+            .from("auction_bids")
+            .select(`*, profiles(name, email)`)
+            .eq("auction_id", selectedAuction.id)
+            .order("bid_amount", { ascending: false });
+          
+          setBids((bidsData as unknown as AuctionBid[]) || []);
+
+          // Fetch updated auction to get new current_bid
+          const { data: auctionData } = await supabase
+            .from("auctions")
+            .select(`*, product:products(id, name, description, price, store_id, product_images(image_url))`)
+            .eq("id", selectedAuction.id)
+            .single();
+
+          if (auctionData) {
+            setSelectedAuction(auctionData as unknown as Auction);
+            // Update minimum bid amount
+            const newMinBid = ((auctionData.current_bid || auctionData.starting_bid_price || 0) + 50);
+            setBidAmount(newMinBid.toString());
+          }
+
+          // Show notification for new bid (if not from current user)
+          const newBid = payload.new as AuctionBid;
+          if (user && newBid.user_id !== user.id) {
+            toast({
+              title: "New Bid!",
+              description: `Someone placed a bid of R${newBid.bid_amount}`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(bidsChannel);
+    };
+  }, [selectedAuction?.id, user]);
 
   const fetchAuctions = async () => {
     try {
