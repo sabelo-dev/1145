@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,19 +9,18 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Store, Shield, ChevronDown } from "lucide-react";
+import { User, Store, Shield, ChevronDown, Truck } from "lucide-react";
 import { User as UserType } from "@/types";
 
 interface UserMenuProps {
   user: UserType | null;
   isAdmin: boolean;
   isVendor: boolean;
+  isDriver: boolean;
   logout: () => Promise<void>;
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, logout }) => {
-  console.log('UserMenu props:', { user: !!user, isAdmin, isVendor, userRole: user?.role });
-  
+const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, isDriver, logout }) => {
   if (!user) {
     return (
       <Link to="/login">
@@ -77,6 +75,15 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, logout }) 
             <Link to="/vendor/dashboard" className="flex items-center">
               <Store className="h-4 w-4 mr-2" />
               Vendor Dashboard
+            </Link>
+          </DropdownMenuItem>
+        )}
+        
+        {isDriver && (
+          <DropdownMenuItem asChild>
+            <Link to="/driver/dashboard" className="flex items-center">
+              <Truck className="h-4 w-4 mr-2" />
+              Driver Dashboard
             </Link>
           </DropdownMenuItem>
         )}
