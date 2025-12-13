@@ -33,6 +33,7 @@ import VendorPayouts from "./dashboard/VendorPayouts";
 import VendorMessages from "./dashboard/VendorMessages";
 import VendorSettings from "./dashboard/VendorSettings";
 import VendorSupport from "./dashboard/VendorSupport";
+import VendorAuctions from "./dashboard/VendorAuctions";
 import SubscriptionBanner from "./SubscriptionBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -48,7 +49,8 @@ import {
   Settings, 
   Headphones,
   LogOut,
-  User
+  User,
+  Gavel
 } from "lucide-react";
 
 const VendorDashboard = () => {
@@ -103,6 +105,7 @@ const VendorDashboard = () => {
     { id: "overview", title: "Dashboard Home", icon: LayoutDashboard },
     { id: "shopfront", title: "Shopfront", icon: Store },
     { id: "products", title: "Products", icon: Package },
+    { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "orders", title: "Orders", icon: ShoppingCart },
     { id: "reviews", title: "Reviews", icon: Star },
     { id: "inventory", title: "Inventory Manager", icon: Warehouse },
@@ -213,6 +216,9 @@ const VendorDashboard = () => {
                 </TabsContent>
                 <TabsContent value="products" className="mt-0">
                   <VendorProducts />
+                </TabsContent>
+                <TabsContent value="auctions" className="mt-0">
+                  <VendorAuctions />
                 </TabsContent>
                 <TabsContent value="orders" className="mt-0">
                   <VendorOrders />
