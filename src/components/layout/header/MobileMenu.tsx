@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, Store, Shield } from "lucide-react";
+import { Search, Store, Shield, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User as UserType } from "@/types";
 import {
@@ -16,6 +15,7 @@ interface MobileMenuProps {
   user: UserType | null;
   isAdmin: boolean;
   isVendor: boolean;
+  isDriver: boolean;
   logout: () => Promise<void>;
 }
 
@@ -25,6 +25,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   user,
   isAdmin,
   isVendor,
+  isDriver,
   logout,
 }) => {
   return (
@@ -147,7 +148,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         </Link>
 
         {/* User-specific links */}
-        {user?.role === 'consumer' && (
+        {user?.role === 'consumer' && !isVendor && (
           <Link
             to="/vendor/register"
             className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
@@ -165,6 +166,16 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           >
             <Store className="h-4 w-4 inline-block mr-2" />
             Vendor Dashboard
+          </Link>
+        )}
+        {isDriver && (
+          <Link
+            to="/driver/dashboard"
+            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <Truck className="h-4 w-4 inline-block mr-2" />
+            Driver Dashboard
           </Link>
         )}
         {isAdmin && (

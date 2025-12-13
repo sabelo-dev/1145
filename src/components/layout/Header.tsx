@@ -11,7 +11,7 @@ import Navigation from "./header/Navigation";
 import MobileMenu from "./header/MobileMenu";
 
 const Header: React.FC = () => {
-  const { user, logout, isAdmin, isVendor } = useAuth();
+  const { user, logout, isAdmin, isVendor, isDriver } = useAuth();
   const { cart, toggleCart, isCartOpen, setCartOpen } = useCart();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,7 +43,7 @@ const Header: React.FC = () => {
             </Button>
 
             {/* User Menu */}
-            <UserMenu user={user} isAdmin={isAdmin} isVendor={isVendor} logout={logout} />
+            <UserMenu user={user} isAdmin={isAdmin} isVendor={isVendor} isDriver={isDriver} logout={logout} />
 
             {/* Cart Button */}
             <Button onClick={toggleCart} variant="ghost" size="icon" className="relative">
@@ -88,6 +88,7 @@ const Header: React.FC = () => {
         user={user}
         isAdmin={isAdmin}
         isVendor={isVendor}
+        isDriver={isDriver}
         logout={logout}
       />
 
