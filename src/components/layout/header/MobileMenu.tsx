@@ -126,6 +126,13 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           Deals
         </Link>
         <Link
+          to="/auctions"
+          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          Auctions
+        </Link>
+        <Link
           to="/new-arrivals"
           className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
           onClick={() => setMobileMenuOpen(false)}

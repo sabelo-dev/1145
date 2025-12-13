@@ -49,6 +49,7 @@ import NewArrivalsPage from "@/pages/NewArrivalsPage";
 import DealsPage from "@/pages/DealsPage";
 import PopularPage from "@/pages/PopularPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import AuctionsPage from "@/pages/AuctionsPage";
 
 // Policy pages
 import ShippingPage from "@/pages/ShippingPage";
@@ -96,6 +97,7 @@ function App() {
                 <Route path="new-arrivals" element={<NewArrivalsPage />} />
                 <Route path="deals" element={<DealsPage />} />
                 <Route path="popular" element={<PopularPage />} />
+                <Route path="auctions" element={<AuctionsPage />} />
                 
                 
                 {/* Policy pages */}
