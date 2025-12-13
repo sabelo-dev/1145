@@ -26,7 +26,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
   const { toast } = useToast();
-  const { toast } = useToast();
   const loadingManager = useLoadingManager();
 
   const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isDriverUser: boolean, isLogin: boolean = true): string => {
