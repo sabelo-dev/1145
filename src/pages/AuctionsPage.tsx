@@ -15,6 +15,7 @@ import { Auction, AuctionBid, AuctionRegistration } from "@/types/auction";
 import { isFuture } from "date-fns";
 import SEO from "@/components/SEO";
 import AuctionCountdown from "@/components/auction/AuctionCountdown";
+import BidHistoryChart from "@/components/auction/BidHistoryChart";
 
 const AuctionsPage = () => {
   const { user } = useAuth();
@@ -474,10 +475,19 @@ const AuctionsPage = () => {
                 </div>
               )}
 
+              {/* Bid History Chart */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3">Bid History</h4>
+                <BidHistoryChart 
+                  bids={bids} 
+                  startingBid={selectedAuction?.starting_bid_price || 0} 
+                />
+              </div>
+
               {bids.length > 0 && (
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-2">Recent Bids</h4>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
                     {bids.slice(0, 10).map((bid) => (
                       <div key={bid.id} className="flex justify-between text-sm">
                         <span>{bid.profiles?.name || "Anonymous"}</span>
