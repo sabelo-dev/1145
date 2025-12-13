@@ -12,8 +12,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Clock, Users } from "lucide-react";
 import { Auction, AuctionBid, AuctionRegistration } from "@/types/auction";
-import { format, formatDistanceToNow, isPast, isFuture } from "date-fns";
+import { isFuture } from "date-fns";
 import SEO from "@/components/SEO";
+import AuctionCountdown from "@/components/auction/AuctionCountdown";
 
 const AuctionsPage = () => {
   const { user } = useAuth();
@@ -338,16 +339,20 @@ const AuctionsPage = () => {
                   <CardHeader>
                     <CardTitle className="line-clamp-1">{auction.product?.name}</CardTitle>
                     {auction.start_date && status === "upcoming" && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        Starts {formatDistanceToNow(new Date(auction.start_date), { addSuffix: true })}
-                      </p>
+                      <AuctionCountdown 
+                        targetDate={auction.start_date} 
+                        type="start" 
+                        compact 
+                        className="text-muted-foreground"
+                      />
                     )}
                     {status === "live" && auction.end_date && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        Ends {formatDistanceToNow(new Date(auction.end_date), { addSuffix: true })}
-                      </p>
+                      <AuctionCountdown 
+                        targetDate={auction.end_date} 
+                        type="end" 
+                        compact 
+                        className="text-destructive"
+                      />
                     )}
                   </CardHeader>
                   <CardContent>
@@ -395,6 +400,24 @@ const AuctionsPage = () => {
               <DialogTitle>{selectedAuction?.product?.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Countdown Timer */}
+              {selectedAuction?.status === "active" && selectedAuction?.end_date && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <AuctionCountdown 
+                    targetDate={selectedAuction.end_date} 
+                    type="end"
+                  />
+                </div>
+              )}
+              {selectedAuction?.start_date && isFuture(new Date(selectedAuction.start_date)) && (
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <AuctionCountdown 
+                    targetDate={selectedAuction.start_date} 
+                    type="start"
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Starting Bid</p>
