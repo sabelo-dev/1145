@@ -225,6 +225,21 @@ const AuctionsPage = () => {
 
       if (error) throw error;
 
+      // Send outbid notification to previous highest bidder
+      try {
+        await supabase.functions.invoke("send-outbid-notification", {
+          body: {
+            auctionId: selectedAuction.id,
+            newBidAmount: amount,
+            newBidderId: user.id,
+            productName: selectedAuction.product?.name || "Auction Item",
+          },
+        });
+      } catch (notifyError) {
+        console.error("Failed to send outbid notification:", notifyError);
+        // Don't fail the bid if notification fails
+      }
+
       // Anti-sniping: extend auction by 2 minutes if bid placed in final minute
       if (selectedAuction.end_date) {
         const endTime = new Date(selectedAuction.end_date).getTime();
