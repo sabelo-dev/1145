@@ -225,6 +225,26 @@ const AuctionsPage = () => {
 
       if (error) throw error;
 
+      // Anti-sniping: extend auction by 2 minutes if bid placed in final minute
+      if (selectedAuction.end_date) {
+        const endTime = new Date(selectedAuction.end_date).getTime();
+        const now = Date.now();
+        const timeRemaining = endTime - now;
+        
+        if (timeRemaining > 0 && timeRemaining <= 60000) {
+          const newEndDate = new Date(endTime + 2 * 60000).toISOString();
+          await supabase
+            .from("auctions")
+            .update({ end_date: newEndDate })
+            .eq("id", selectedAuction.id);
+          
+          toast({
+            title: "Auction Extended!",
+            description: "Anti-sniping: Auction extended by 2 minutes",
+          });
+        }
+      }
+
       toast({
         title: "Bid Placed",
         description: `Your bid of R${amount} has been placed`,
