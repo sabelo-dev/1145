@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.send-order-status-email]
 verify_jwt = false
+
+[functions.send-outbid-notification]
+verify_jwt = false
