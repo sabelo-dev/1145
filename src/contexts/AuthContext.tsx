@@ -13,6 +13,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isVendor: boolean;
   isAdmin: boolean;
+  isDriver: boolean;
   refreshUserProfile: () => Promise<void>;
 }
 
@@ -23,17 +24,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isVendor, setIsVendor] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDriver, setIsDriver] = useState(false);
   const { toast } = useToast();
   const loadingManager = useLoadingManager();
 
-  const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isLogin: boolean = true): string => {
+  const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isDriverUser: boolean, isLogin: boolean = true): string => {
     if (userRole === 'admin') return '/admin/dashboard';
+    if (isDriverUser) return '/driver/dashboard';
     if (userRole === 'vendor') {
-      // For login: always go to dashboard if vendor exists, onboarding will redirect if needed
-      // For register: redirect to login page so they can sign in after email confirmation
       return isLogin ? '/vendor/dashboard' : '/login';
     }
-    return '/'; // Consumer goes to home page
+    return '/';
   };
 
   const clearAuthState = () => {
@@ -41,6 +42,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     setIsVendor(false);
     setIsAdmin(false);
+    setIsDriver(false);
+  };
+
+  const checkDriverStatus = async (userId: string): Promise<boolean> => {
+    try {
+      const { data: driver } = await supabase
+        .from('drivers')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      return !!driver;
+    } catch (error) {
+      return false;
+    }
   };
 
   const checkVendorStatus = async (userId: string): Promise<boolean> => {
@@ -64,10 +79,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loadUserProfile = async (session: Session | null) => {
+
+  const loadUserProfile = async (session: Session | null, operation: string = 'auth') => {
     if (!session?.user) {
       clearAuthState();
-      loadingManager.stopLoading('auth');
+      loadingManager.stopLoading(operation);
       return;
     }
 
@@ -81,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profileResult.error) {
         console.error('Error fetching profile:', profileResult.error);
         clearAuthState();
-        loadingManager.stopLoading('auth');
+        loadingManager.stopLoading(operation);
         return;
       }
       
@@ -107,10 +123,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Set role flags based on user_roles table
         setIsAdmin(userRoles.includes('admin'));
         
-        // Check vendor status
-        const vendorStatus = await checkVendorStatus(profile.id);
-        console.log('Setting vendor status to:', vendorStatus);
+        // Check vendor and driver status
+        const [vendorStatus, driverStatus] = await Promise.all([
+          checkVendorStatus(profile.id),
+          checkDriverStatus(profile.id)
+        ]);
         setIsVendor(vendorStatus);
+        setIsDriver(driverStatus);
       } else {
         // Create basic user data from session if no profile exists
         const userData: User = {
@@ -123,19 +142,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         setIsAdmin(false);
         setIsVendor(false);
+        setIsDriver(false);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
       clearAuthState();
     } finally {
-      loadingManager.stopLoading('auth');
+      loadingManager.stopLoading(operation);
     }
   };
 
   const refreshUserProfile = async () => {
     if (session?.user) {
       loadingManager.startLoading('refresh');
-      await loadUserProfile(session);
+      await loadUserProfile(session, 'refresh');
     }
   };
 
@@ -232,15 +252,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (data.user) {
         // Get user roles from user_roles table and vendor status for redirect
-        const [rolesResult, vendorResult] = await Promise.all([
+        const [rolesResult, vendorResult, driverResult] = await Promise.all([
           supabase.from('user_roles').select('role').eq('user_id', data.user.id),
-          checkVendorStatus(data.user.id)
+          checkVendorStatus(data.user.id),
+          checkDriverStatus(data.user.id)
         ]);
         
         const userRoles = rolesResult.data?.map(r => r.role) || [];
         const userRole = userRoles.includes('admin') ? 'admin' : 
                         userRoles.includes('vendor') ? 'vendor' : 'consumer';
-        const redirectPath = getRedirectPathForRole(userRole, vendorResult, true);
+        const redirectPath = getRedirectPathForRole(userRole, vendorResult, driverResult, true);
         
         toast({
           title: "Login Successful",
@@ -382,7 +403,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isVendor, isAdmin, refreshUserProfile }}>
+    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isVendor, isAdmin, isDriver, refreshUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

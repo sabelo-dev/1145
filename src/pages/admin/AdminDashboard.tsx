@@ -35,7 +35,8 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminAuditLogs from "@/components/admin/AdminAuditLogs";
 import AdminSettings from "@/components/admin/AdminSettings";
 import { AdminShipping } from "@/components/admin/AdminShipping";
-import { 
+import AdminAuctions from "@/components/admin/AdminAuctions";
+import {
   LayoutDashboard,
   Users,
   Store,
@@ -51,7 +52,8 @@ import {
   Shield,
   LogOut,
   User,
-  Truck
+  Truck,
+  Gavel
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -72,6 +74,7 @@ const AdminDashboard = () => {
     { id: "vendors", title: "Vendor Management", icon: Store },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
     { id: "products", title: "Products (All)", icon: Package },
+    { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "categories", title: "Categories", icon: FileText },
     { id: "analytics", title: "Reports & Analytics", icon: BarChart3 },
     { id: "settings", title: "System Settings", icon: Settings },
@@ -171,6 +174,9 @@ const AdminDashboard = () => {
                 </TabsContent>
                 <TabsContent value="products" className="mt-0">
                   <AdminProducts />
+                </TabsContent>
+                <TabsContent value="auctions" className="mt-0">
+                  <AdminAuctions />
                 </TabsContent>
                 <TabsContent value="orders" className="mt-0">
                   <AdminOrders />

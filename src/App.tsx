@@ -37,6 +37,9 @@ import VendorRegisterPage from "@/pages/VendorRegisterPage";
 import VendorOnboardingPage from "@/pages/VendorOnboardingPage";
 import VendorDashboardPage from "@/pages/VendorDashboardPage";
 
+// Driver pages
+import DriverLoginPage from "@/pages/driver/DriverLoginPage";
+import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
 // Subcategory pages
 import SubcategoryPage from "@/pages/SubcategoryPage";
 
@@ -46,6 +49,7 @@ import NewArrivalsPage from "@/pages/NewArrivalsPage";
 import DealsPage from "@/pages/DealsPage";
 import PopularPage from "@/pages/PopularPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import AuctionsPage from "@/pages/AuctionsPage";
 
 // Policy pages
 import ShippingPage from "@/pages/ShippingPage";
@@ -93,6 +97,7 @@ function App() {
                 <Route path="new-arrivals" element={<NewArrivalsPage />} />
                 <Route path="deals" element={<DealsPage />} />
                 <Route path="popular" element={<PopularPage />} />
+                <Route path="auctions" element={<AuctionsPage />} />
                 
                 
                 {/* Policy pages */}
@@ -126,6 +131,14 @@ function App() {
               <Route path="vendor/dashboard" element={
                 <ProtectedRoute requireAuth requireVendor>
                   <VendorDashboardPage />
+                </ProtectedRoute>
+              } />
+              
+              {/* Driver pages */}
+              <Route path="driver/login" element={<DriverLoginPage />} />
+              <Route path="driver/dashboard" element={
+                <ProtectedRoute requireAuth requireDriver>
+                  <DriverDashboardPage />
                 </ProtectedRoute>
               } />
               

@@ -26,6 +26,9 @@ const SEO = ({
 
   return (
     <Helmet>
+      {/* Google Site Verification */}
+      <meta name="google-site-verification" content="-vvnQNYKVZL8QHHAzbtV_Rv9KsEC1G-VV7N7rmyBy7c" />
+      
       {/* Primary Meta Tags */}
       <title>{fullTitle}</title>
       <meta name="title" content={fullTitle} />

@@ -81,6 +81,15 @@ const Navigation: React.FC = () => {
             Deals
           </Link>
         </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link
+            to="/auctions"
+            className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2"
+          >
+            Auctions
+          </Link>
+        </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
   );

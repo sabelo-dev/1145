@@ -5,7 +5,7 @@ export interface User {
   name?: string;
   avatar_url?: string;
   phone?: string;
-  role: 'consumer' | 'vendor' | 'admin';
+  role: 'consumer' | 'vendor' | 'admin' | 'driver';
 }
 
 export interface Profile {
@@ -13,7 +13,7 @@ export interface Profile {
   email: string;
   name?: string;
   avatar_url?: string;
-  role: 'consumer' | 'vendor' | 'admin';
+  role: 'consumer' | 'vendor' | 'admin' | 'driver';
   created_at: string;
   updated_at: string;
 }

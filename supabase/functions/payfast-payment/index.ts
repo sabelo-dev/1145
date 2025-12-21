@@ -108,8 +108,8 @@ serve(async (req) => {
     const merchantKey = Deno.env.get("PAYFAST_MERCHANT_KEY") || "46f0cd694581a";
     const passphrase = Deno.env.get("PAYFAST_PASSPHRASE") || "jt7NOE43FZPn";
 
-    // Use sandbox for testing, production URL should be set in env
-    const payfastUrl = Deno.env.get("PAYFAST_URL") || "https://sandbox.payfast.co.za/eng/process";
+    // Use live PayFast URL for production
+    const payfastUrl = "https://www.payfast.co.za/eng/process";
 
     if (!merchantId || !merchantKey || !passphrase) {
       console.error("PayFast credentials not configured");
