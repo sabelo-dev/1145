@@ -11,8 +11,36 @@ import {
   Navigation,
   Package,
   RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
+
+// Helper function to build Google Maps directions URL
+const buildGoogleMapsUrl = (address: any): string => {
+  let addressString = "";
+  if (!address) return "";
+  if (typeof address === "string") {
+    addressString = address;
+  } else {
+    addressString = [
+      address.street,
+      address.city,
+      address.province,
+      address.postal_code,
+      address.country || "South Africa"
+    ].filter(Boolean).join(", ");
+  }
+  
+  const encoded = encodeURIComponent(addressString);
+  return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+};
+
+const openGoogleMaps = (address: any) => {
+  const url = buildGoogleMapsUrl(address);
+  if (url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+};
 
 interface Driver {
   id: string;
@@ -180,9 +208,19 @@ const DriverAvailableJobs: React.FC<DriverAvailableJobsProps> = ({ driver, onJob
                       <div className="p-2 bg-green-100 rounded-lg">
                         <MapPin className="h-4 w-4 text-green-600" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-xs text-muted-foreground">Pickup</p>
                         <p className="font-medium">{formatAddress(job.pickup_address)}</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mt-1 h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          onClick={() => openGoogleMaps(job.pickup_address)}
+                        >
+                          <Navigation className="h-3 w-3 mr-1" />
+                          View on Map
+                          <ExternalLink className="h-3 w-3 ml-1" />
+                        </Button>
                       </div>
                     </div>
 
@@ -190,9 +228,19 @@ const DriverAvailableJobs: React.FC<DriverAvailableJobsProps> = ({ driver, onJob
                       <div className="p-2 bg-blue-100 rounded-lg">
                         <Navigation className="h-4 w-4 text-blue-600" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-xs text-muted-foreground">Deliver to</p>
                         <p className="font-medium">{formatAddress(job.delivery_address)}</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mt-1 h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => openGoogleMaps(job.delivery_address)}
+                        >
+                          <Navigation className="h-3 w-3 mr-1" />
+                          View on Map
+                          <ExternalLink className="h-3 w-3 ml-1" />
+                        </Button>
                       </div>
                     </div>
 
