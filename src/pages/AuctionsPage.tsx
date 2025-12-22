@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -312,22 +310,16 @@ const AuctionsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 container py-8">Loading auctions...</main>
-        <Footer />
-      </div>
+      <div className="container py-8">Loading auctions...</div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <>
       <SEO 
         title="Auctions | 1145 Lifestyle"
         description="Bid on exclusive products in our live auctions"
       />
-      <main className="flex-1" role="main">
         <div className="container py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -535,10 +527,8 @@ const AuctionsPage = () => {
             </div>
           </DialogContent>
         </Dialog>
-        </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 };
 
