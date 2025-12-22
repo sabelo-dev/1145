@@ -1,5 +1,8 @@
 project_id = "hipomusjocacncjsvgfa"
 
+[functions.auth-email-hook]
+verify_jwt = false
+
 [functions.create-storage-bucket]
 verify_jwt = false
 
