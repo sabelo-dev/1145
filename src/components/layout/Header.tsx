@@ -31,7 +31,7 @@ const Header: React.FC = () => {
           <Link to="/" className="flex-shrink-0 flex items-center">
             <span className="text-xl font-bold">
               <span className="text-black">1145</span>
-              <span className="text-amber-500"> Lifestyle</span>
+              <span className="text-amber-500 animate-pulse"> Lifestyle</span>
             </span>
           </Link>
 
