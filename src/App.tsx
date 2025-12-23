@@ -50,6 +50,10 @@ import DealsPage from "@/pages/DealsPage";
 import PopularPage from "@/pages/PopularPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import AuctionsPage from "@/pages/AuctionsPage";
+import AuctionRegistrationPage from "@/pages/AuctionRegistrationPage";
+import AuctionRegistrationSuccessPage from "@/pages/AuctionRegistrationSuccessPage";
+import AuctionCheckoutPage from "@/pages/AuctionCheckoutPage";
+import AuctionCheckoutSuccessPage from "@/pages/AuctionCheckoutSuccessPage";
 
 // Policy pages
 import ShippingPage from "@/pages/ShippingPage";
@@ -98,7 +102,10 @@ function App() {
                 <Route path="deals" element={<DealsPage />} />
                 <Route path="popular" element={<PopularPage />} />
                 <Route path="auctions" element={<AuctionsPage />} />
-                
+                <Route path="auction-registration" element={<AuctionRegistrationPage />} />
+                <Route path="auction-registration/success" element={<AuctionRegistrationSuccessPage />} />
+                <Route path="auction-checkout" element={<AuctionCheckoutPage />} />
+                <Route path="auction-checkout/success" element={<AuctionCheckoutSuccessPage />} />
                 
                 {/* Policy pages */}
                 <Route path="shipping" element={<ShippingPage />} />

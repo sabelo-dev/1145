@@ -24,6 +24,7 @@ import {
   Wallet,
   Bell,
   HelpCircle,
+  Gavel,
 } from "lucide-react";
 
 // Import dashboard components
@@ -36,6 +37,7 @@ import ConsumerMessages from "@/components/consumer/dashboard/ConsumerMessages";
 import ConsumerWallet from "@/components/consumer/dashboard/ConsumerWallet";
 import ConsumerNotifications from "@/components/consumer/dashboard/ConsumerNotifications";
 import ConsumerSupport from "@/components/consumer/dashboard/ConsumerSupport";
+import ConsumerAuctionWatchlist from "@/components/consumer/dashboard/ConsumerAuctionWatchlist";
 
 const ConsumerDashboard: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -68,6 +70,12 @@ const ConsumerDashboard: React.FC = () => {
       title: "Wishlist",
       icon: Heart,
       description: "Save products for later"
+    },
+    {
+      id: "auction-watchlist",
+      title: "Auction Watchlist",
+      icon: Gavel,
+      description: "Track auctions you're interested in"
     },
     {
       id: "addresses",
@@ -119,6 +127,8 @@ const ConsumerDashboard: React.FC = () => {
         return <ConsumerOrders />;
       case "wishlist":
         return <ConsumerWishlist />;
+      case "auction-watchlist":
+        return <ConsumerAuctionWatchlist />;
       case "addresses":
         return <ConsumerAddresses />;
       case "profile":

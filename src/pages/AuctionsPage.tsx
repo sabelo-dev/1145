@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,23 +9,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Gavel, Clock, Users } from "lucide-react";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { Gavel, Clock, Users, Trophy, Medal, Award, Heart } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Auction, AuctionBid, AuctionRegistration } from "@/types/auction";
 import { isFuture } from "date-fns";
 import SEO from "@/components/SEO";
 import AuctionCountdown from "@/components/auction/AuctionCountdown";
 import BidHistoryChart from "@/components/auction/BidHistoryChart";
+import WatchlistButton from "@/components/auction/WatchlistButton";
+import ProxyBidForm from "@/components/auction/ProxyBidForm";
 
 const AuctionsPage = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { playSound } = useNotificationSound();
   const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [bids, setBids] = useState<AuctionBid[]>([]);
   const [userRegistration, setUserRegistration] = useState<AuctionRegistration | null>(null);
+  const [userRegistrations, setUserRegistrations] = useState<Record<string, boolean>>({});
+  const [userWonAuctions, setUserWonAuctions] = useState<Record<string, boolean>>({});
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
+  
+  // Track user's highest bids per auction to detect outbids
+  const userHighestBidsRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     fetchAuctions();
@@ -41,15 +54,95 @@ const AuctionsPage = () => {
         },
         (payload) => {
           console.log('Auction update:', payload);
-          fetchAuctions();
+          // Update the specific auction in state without full refetch for smoother UX
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedAuction = payload.new as any;
+            setAuctions(prev => prev.map(a => 
+              a.id === updatedAuction.id 
+                ? { ...a, ...updatedAuction }
+                : a
+            ));
+          } else {
+            fetchAuctions();
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to all auction bids for real-time updates on cards
+    const allBidsChannel = supabase
+      .channel('all-auction-bids')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'auction_bids'
+        },
+        async (payload) => {
+          console.log('Global bid update:', payload);
+          const newBid = payload.new as any;
+          
+          // Update the auction's current bid in state
+          setAuctions(prev => prev.map(a => 
+            a.id === newBid.auction_id 
+              ? { ...a, current_bid: newBid.bid_amount }
+              : a
+          ));
+          
+          // Update bid count
+          setBidCounts(prev => ({
+            ...prev,
+            [newBid.auction_id]: (prev[newBid.auction_id] || 0) + 1
+          }));
+          
+          // Check if user was outbid (someone else bid higher than user's highest bid)
+          if (user && newBid.user_id !== user.id) {
+            const userHighestBid = userHighestBidsRef.current[newBid.auction_id];
+            if (userHighestBid && newBid.bid_amount > userHighestBid) {
+              // User was outbid!
+              playSound('outbid');
+              toast({
+                title: "You've been outbid!",
+                description: `Someone placed a higher bid of R${newBid.bid_amount} on an auction you're participating in.`,
+                variant: "destructive",
+              });
+            }
+          }
         }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(auctionsChannel);
+      supabase.removeChannel(allBidsChannel);
     };
-  }, []);
+  }, [user, playSound, toast]);
+
+  // Fetch user's existing bids to track for outbid notifications
+  useEffect(() => {
+    const fetchUserBids = async () => {
+      if (!user) return;
+      
+      const { data: userBids } = await supabase
+        .from("auction_bids")
+        .select("auction_id, bid_amount")
+        .eq("user_id", user.id);
+      
+      if (userBids) {
+        const highestBids: Record<string, number> = {};
+        userBids.forEach(bid => {
+          highestBids[bid.auction_id] = Math.max(
+            highestBids[bid.auction_id] || 0,
+            bid.bid_amount
+          );
+        });
+        userHighestBidsRef.current = highestBids;
+      }
+    };
+    
+    fetchUserBids();
+  }, [user]);
 
   // Subscribe to bids for selected auction
   useEffect(() => {
@@ -122,10 +215,74 @@ const AuctionsPage = () => {
 
       if (error) throw error;
       setAuctions((data as unknown as Auction[]) || []);
+      
+      // Fetch bid counts for all auctions
+      if (data && data.length > 0) {
+        const auctionIds = data.map(a => a.id);
+        const { data: bidCountsData } = await supabase
+          .from("auction_bids")
+          .select("auction_id")
+          .in("auction_id", auctionIds);
+        
+        if (bidCountsData) {
+          const counts: Record<string, number> = {};
+          bidCountsData.forEach(bid => {
+            counts[bid.auction_id] = (counts[bid.auction_id] || 0) + 1;
+          });
+          setBidCounts(counts);
+        }
+        
+        // Fetch user registrations for all auctions
+        if (user) {
+          const { data: userRegs } = await supabase
+            .from("auction_registrations")
+            .select("auction_id")
+            .eq("user_id", user.id)
+            .eq("payment_status", "paid")
+            .in("auction_id", auctionIds);
+          
+          if (userRegs) {
+            const regs: Record<string, boolean> = {};
+            userRegs.forEach(reg => {
+              regs[reg.auction_id] = true;
+            });
+            setUserRegistrations(regs);
+          }
+          
+          // Fetch user's won auctions that need checkout
+          const { data: wonAuctions } = await supabase
+            .from("auctions")
+            .select("id")
+            .eq("winner_id", user.id)
+            .eq("status", "sold");
+          
+          if (wonAuctions) {
+            const won: Record<string, boolean> = {};
+            wonAuctions.forEach(a => {
+              won[a.id] = true;
+            });
+            setUserWonAuctions(won);
+          }
+        }
+      }
     } catch (error: any) {
       console.error("Error fetching auctions:", error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  // Process ended auctions automatically
+  const processEndedAuction = async (auctionId: string) => {
+    try {
+      console.log(`Processing ended auction: ${auctionId}`);
+      await supabase.functions.invoke("process-ended-auctions", {
+        body: { auctionId },
+      });
+      // Refresh auctions after processing
+      setTimeout(() => fetchAuctions(), 2000);
+    } catch (error) {
+      console.error("Failed to process ended auction:", error);
     }
   };
 
@@ -158,47 +315,21 @@ const AuctionsPage = () => {
     setBidDialogOpen(true);
   };
 
-  const handleRegister = async () => {
-    if (!user || !selectedAuction) {
+  const handleRegister = () => {
+    if (!user) {
       toast({
         title: "Please login",
         description: "You need to be logged in to register for auctions",
         variant: "destructive",
       });
+      navigate(`/login?redirect=/auction-registration?auctionId=${selectedAuction?.id}`);
       return;
     }
 
-    try {
-      const { error } = await supabase.from("auction_registrations").insert({
-        auction_id: selectedAuction.id,
-        user_id: user.id,
-        registration_fee_paid: selectedAuction.registration_fee,
-        payment_status: "paid", // In production, this would go through payment flow
-      });
+    if (!selectedAuction) return;
 
-      if (error) throw error;
-
-      toast({
-        title: "Registration Successful",
-        description: `You've registered for this auction. Registration fee: R${selectedAuction.registration_fee}`,
-      });
-      
-      // Refresh registration status
-      const { data: regData } = await supabase
-        .from("auction_registrations")
-        .select("*")
-        .eq("auction_id", selectedAuction.id)
-        .eq("user_id", user.id)
-        .single();
-      
-      setUserRegistration(regData as AuctionRegistration | null);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    // Redirect to auction registration checkout page
+    navigate(`/auction-registration?auctionId=${selectedAuction.id}`);
   };
 
   const handlePlaceBid = async () => {
@@ -261,6 +392,12 @@ const AuctionsPage = () => {
           });
         }
       }
+
+      // Track user's highest bid for this auction
+      userHighestBidsRef.current[selectedAuction.id] = Math.max(
+        userHighestBidsRef.current[selectedAuction.id] || 0,
+        amount
+      );
 
       toast({
         title: "Bid Placed",
@@ -363,11 +500,15 @@ const AuctionsPage = () => {
                       </div>
                     )}
                     <Badge 
-                      className="absolute top-2 right-2"
+                      className={`absolute top-2 right-2 ${status === "live" ? "animate-pulse" : ""}`}
                       variant={status === "live" ? "default" : status === "buy-now" ? "secondary" : "outline"}
                     >
+                      {status === "live" && <span className="mr-1 h-2 w-2 rounded-full bg-white inline-block animate-ping" />}
                       {status === "live" ? "LIVE" : status === "buy-now" ? "BUY NOW" : "UPCOMING"}
                     </Badge>
+                    <div className="absolute top-2 left-2">
+                      <WatchlistButton auctionId={auction.id} variant="icon" className="bg-background/80 backdrop-blur-sm hover:bg-background" />
+                    </div>
                   </div>
                   <CardHeader>
                     <CardTitle className="line-clamp-1">{auction.product?.name}</CardTitle>
@@ -377,6 +518,7 @@ const AuctionsPage = () => {
                         type="start" 
                         compact 
                         className="text-muted-foreground"
+                        onExpire={fetchAuctions}
                       />
                     )}
                     {status === "live" && auction.end_date && (
@@ -385,6 +527,7 @@ const AuctionsPage = () => {
                         type="end" 
                         compact 
                         className="text-destructive"
+                        onExpire={() => processEndedAuction(auction.id)}
                       />
                     )}
                   </CardHeader>
@@ -403,21 +546,61 @@ const AuctionsPage = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Total Bids</span>
+                          <span className="flex items-center gap-1">
+                            <Gavel className="h-3 w-3" />
+                            {bidCounts[auction.id] || 0}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Registration Fee</span>
                           <span>R{auction.registration_fee}</span>
                         </div>
                       </div>
                     )}
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="flex-col gap-2">
                     {status === "buy-now" ? (
                       <Button className="w-full" onClick={() => handleBuyNow(auction)}>
                         Buy Now
                       </Button>
                     ) : (
-                      <Button className="w-full" onClick={() => openBidDialog(auction)}>
-                        {status === "live" ? "Place Bid" : "View Details"}
-                      </Button>
+                      <>
+                        {/* Show Register button if user is not registered for live/upcoming auctions */}
+                        {(status === "live" || status === "upcoming") && !userRegistrations[auction.id] && (
+                          <Button 
+                            className="w-full" 
+                            variant="default"
+                            onClick={() => {
+                              if (!user) {
+                                toast({
+                                  title: "Please login",
+                                  description: "You need to be logged in to register for auctions",
+                                  variant: "destructive",
+                                });
+                                navigate(`/login?redirect=/auction-registration?auctionId=${auction.id}`);
+                                return;
+                              }
+                              navigate(`/auction-registration?auctionId=${auction.id}`);
+                            }}
+                          >
+                            <Users className="mr-2 h-4 w-4" />
+                            Register to Bid (R{auction.registration_fee})
+                          </Button>
+                        )}
+                        {/* Show Place Bid button for registered users or View Details for all */}
+                        <Button 
+                          className="w-full" 
+                          variant={userRegistrations[auction.id] ? "default" : "outline"}
+                          onClick={() => openBidDialog(auction)}
+                        >
+                          {status === "live" && userRegistrations[auction.id] 
+                            ? "Place Bid" 
+                            : status === "live" 
+                              ? "View Auction"
+                              : "View Details"}
+                        </Button>
+                      </>
                     )}
                   </CardFooter>
                 </Card>
@@ -433,6 +616,38 @@ const AuctionsPage = () => {
               <DialogTitle>{selectedAuction?.product?.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Product Image Thumbnail */}
+              {(() => {
+                const imageUrl = selectedAuction?.product?.product_images?.[0]?.image_url;
+                return (
+                  <div className="flex gap-4">
+                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={selectedAuction?.product?.name || "Auction item"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Gavel className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {selectedAuction?.product?.description || "No description available"}
+                      </p>
+                      {selectedAuction?.bid_increment && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Minimum increment: R{selectedAuction.bid_increment}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Countdown Timer */}
               {selectedAuction?.status === "active" && selectedAuction?.end_date && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
@@ -483,10 +698,16 @@ const AuctionsPage = () => {
                 </div>
               ) : selectedAuction?.status === "active" ? (
                 <div className="space-y-3">
-                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg flex items-center justify-between">
                     <p className="text-sm text-green-700 dark:text-green-300">
                       ✓ You are registered for this auction
                     </p>
+                    <ProxyBidForm
+                      auctionId={selectedAuction.id}
+                      currentBid={selectedAuction.current_bid || selectedAuction.starting_bid_price || 0}
+                      bidIncrement={selectedAuction.bid_increment || 50}
+                      productName={selectedAuction.product?.name}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Your Bid (R)</Label>
@@ -518,15 +739,87 @@ const AuctionsPage = () => {
 
               {bids.length > 0 && (
                 <div className="border-t pt-4">
-                  <h4 className="font-medium mb-2">Recent Bids</h4>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {bids.slice(0, 10).map((bid) => (
-                      <div key={bid.id} className="flex justify-between text-sm">
-                        <span>{bid.profiles?.name || "Anonymous"}</span>
-                        <span className="font-medium">R{bid.bid_amount}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-yellow-500" />
+                    Bidder Leaderboard
+                  </h4>
+                  <ScrollArea className="h-48">
+                    <div className="space-y-2">
+                      {(() => {
+                        // Group bids by user and get their highest bid
+                        const bidderMap = new Map<string, { name: string; amount: number; odId: string }>();
+                        bids.forEach(bid => {
+                          const existing = bidderMap.get(bid.user_id);
+                          if (!existing || bid.bid_amount > existing.amount) {
+                            bidderMap.set(bid.user_id, {
+                              name: bid.profiles?.name || "Anonymous",
+                              amount: bid.bid_amount,
+                              odId: bid.user_id
+                            });
+                          }
+                        });
+                        
+                        // Sort by highest bid
+                        const leaderboard = Array.from(bidderMap.entries())
+                          .sort((a, b) => b[1].amount - a[1].amount);
+                        
+                        return leaderboard.map(([odId, bidder], index) => {
+                          const isCurrentUser = user?.id === odId;
+                          const rank = index + 1;
+                          
+                          return (
+                            <div 
+                              key={odId} 
+                              className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                                isCurrentUser 
+                                  ? "bg-primary/10 border border-primary/20" 
+                                  : rank <= 3 
+                                    ? "bg-muted/50" 
+                                    : ""
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 flex items-center justify-center">
+                                  {rank === 1 ? (
+                                    <Trophy className="h-5 w-5 text-yellow-500" />
+                                  ) : rank === 2 ? (
+                                    <Medal className="h-5 w-5 text-gray-400" />
+                                  ) : rank === 3 ? (
+                                    <Award className="h-5 w-5 text-amber-600" />
+                                  ) : (
+                                    <span className="text-sm font-medium text-muted-foreground">
+                                      #{rank}
+                                    </span>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className={`text-sm font-medium ${isCurrentUser ? "text-primary" : ""}`}>
+                                    {bidder.name}
+                                    {isCurrentUser && (
+                                      <span className="ml-2 text-xs text-primary">(You)</span>
+                                    )}
+                                  </p>
+                                  {rank === 1 && (
+                                    <p className="text-xs text-green-600">Leading</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className={`font-bold ${rank === 1 ? "text-green-600" : ""}`}>
+                                  R{bidder.amount}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </ScrollArea>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    {bids.length} total bid{bids.length !== 1 ? "s" : ""} from {
+                      new Set(bids.map(b => b.user_id)).size
+                    } bidder{new Set(bids.map(b => b.user_id)).size !== 1 ? "s" : ""}
+                  </p>
                 </div>
               )}
             </div>

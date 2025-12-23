@@ -193,6 +193,41 @@ export type Database = {
           },
         ]
       }
+      auction_watchlist: {
+        Row: {
+          auction_id: string
+          created_at: string
+          id: string
+          notify_on_bid: boolean | null
+          notify_on_ending: boolean | null
+          user_id: string
+        }
+        Insert: {
+          auction_id: string
+          created_at?: string
+          id?: string
+          notify_on_bid?: boolean | null
+          notify_on_ending?: boolean | null
+          user_id: string
+        }
+        Update: {
+          auction_id?: string
+          created_at?: string
+          id?: string
+          notify_on_bid?: boolean | null
+          notify_on_ending?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_watchlist_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auctions: {
         Row: {
           bid_increment: number | null
@@ -1348,6 +1383,44 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proxy_bids: {
+        Row: {
+          auction_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          max_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auction_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auction_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proxy_bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
             referencedColumns: ["id"]
           },
         ]
