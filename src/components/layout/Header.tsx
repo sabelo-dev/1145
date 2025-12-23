@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import CartSheet from "@/components/shop/CartSheet";
+import AuctionNotificationCenter from "@/components/auction/AuctionNotificationCenter";
 import { Search, ShoppingCart, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import UserMenu from "./header/UserMenu";
@@ -44,6 +45,9 @@ const Header: React.FC = () => {
             <Button variant="ghost" size="icon">
               <Search className="h-5 w-5" />
             </Button>
+
+            {/* Auction Notifications */}
+            {user && <AuctionNotificationCenter />}
 
             {/* User Menu */}
             <UserMenu user={user} isAdmin={isAdmin} isVendor={isVendor} isDriver={isDriver} logout={logout} />
