@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { Toaster } from "@/components/ui/toaster";
+import TrackOrderPage from "./pages/TrackOrderPage";
 import StorefrontPage from "@/pages/StorefrontPage";
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -113,6 +114,9 @@ function App() {
                 <Route path="terms" element={<TermsPage />} />
                 <Route path="privacy" element={<PrivacyPage />} />
               </Route>
+              
+              {/* Track Order page */}
+              <Route path="track-order" element={<TrackOrderPage />} />
               
               {/* Auth pages without layout */}
               <Route path="login" element={<LoginPage />} />
