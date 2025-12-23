@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Gavel, Pencil, X } from "lucide-react";
+import { Plus, Gavel, Pencil, X, History } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Auction } from "@/types/auction";
 import { format } from "date-fns";
 
@@ -21,6 +22,15 @@ interface Product {
   price: number;
   status: string;
   product_images: { image_url: string }[];
+}
+
+interface StatusHistoryItem {
+  id: string;
+  old_status: string | null;
+  new_status: string;
+  changed_by: string | null;
+  notes: string | null;
+  created_at: string;
 }
 
 const VendorAuctions = () => {
@@ -33,7 +43,10 @@ const VendorAuctions = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
+  const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [baseAmount, setBaseAmount] = useState("");
 
@@ -240,6 +253,39 @@ const VendorAuctions = () => {
     return ["pending", "approved"].includes(status);
   };
 
+  const handleViewHistory = async (auction: Auction) => {
+    setSelectedAuction(auction);
+    setHistoryDialogOpen(true);
+    setHistoryLoading(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from("auction_status_history")
+        .select("*")
+        .eq("auction_id", auction.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setStatusHistory(data || []);
+    } catch (error: any) {
+      console.error("Error fetching status history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load status history",
+        variant: "destructive",
+      });
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const formatStatusChange = (oldStatus: string | null, newStatus: string) => {
+    if (!oldStatus) {
+      return `Created as "${newStatus}"`;
+    }
+    return `${oldStatus} → ${newStatus}`;
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       pending: "secondary",
@@ -384,26 +430,34 @@ const VendorAuctions = () => {
                     </TableCell>
                     <TableCell>{getStatusBadge(auction.status)}</TableCell>
                     <TableCell className="text-right">
-                      {canEditOrCancel(auction.status) ? (
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditAuction(auction)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleCancelAuction(auction)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewHistory(auction)}
+                          title="View Status History"
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+                        {canEditOrCancel(auction.status) && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditAuction(auction)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleCancelAuction(auction)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -463,6 +517,60 @@ const VendorAuctions = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Status History Dialog */}
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Status History
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              {selectedAuction?.product?.name || "Auction"}
+            </p>
+            {historyLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Loading history...
+              </div>
+            ) : statusHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No status history available
+              </div>
+            ) : (
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-4">
+                  {statusHistory.map((item, index) => (
+                    <div 
+                      key={item.id} 
+                      className="relative pl-6 pb-4 border-l-2 border-muted last:border-transparent"
+                    >
+                      <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-primary" />
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">
+                            {formatStatusChange(item.old_status, item.new_status)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(item.created_at), "PPp")}
+                        </p>
+                        {item.notes && (
+                          <p className="text-xs text-muted-foreground italic">
+                            {item.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

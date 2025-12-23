@@ -155,6 +155,44 @@ export type Database = {
           },
         ]
       }
+      auction_status_history: {
+        Row: {
+          auction_id: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          notes: string | null
+          old_status: string | null
+        }
+        Insert: {
+          auction_id: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          notes?: string | null
+          old_status?: string | null
+        }
+        Update: {
+          auction_id?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          notes?: string | null
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_status_history_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auctions: {
         Row: {
           created_at: string
