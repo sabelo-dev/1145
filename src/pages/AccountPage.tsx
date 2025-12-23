@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { User, Package, MapPin, Settings, Store, Loader2 } from "lucide-react";
+import { User, Package, MapPin, Settings, Store, Loader2, Truck } from "lucide-react";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,7 @@ interface Address {
 }
 
 const AccountPage: React.FC = () => {
-  const { user, isVendor, refreshUserProfile } = useAuth();
+  const { user, isVendor, isDriver, refreshUserProfile } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
@@ -455,19 +455,40 @@ const AccountPage: React.FC = () => {
                     </div>
                     
                     {user.role === 'consumer' && (
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center gap-3">
-                          <Store className="h-6 w-6 text-blue-600" />
-                          <div>
-                            <h3 className="font-semibold text-blue-900">Become a Vendor</h3>
-                            <p className="text-blue-700 text-sm">Start selling your products on our platform</p>
+                      <div className="space-y-4">
+                        {!isVendor && (
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center gap-3">
+                              <Store className="h-6 w-6 text-blue-600" />
+                              <div>
+                                <h3 className="font-semibold text-blue-900">Become a Vendor</h3>
+                                <p className="text-blue-700 text-sm">Start selling your products on our platform</p>
+                              </div>
+                            </div>
+                            <Link to="/vendor/register" className="mt-3 inline-block">
+                              <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                                Apply Now
+                              </Button>
+                            </Link>
                           </div>
-                        </div>
-                        <Link to="/vendor/register" className="mt-3 inline-block">
-                          <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
-                            Apply Now
-                          </Button>
-                        </Link>
+                        )}
+                        
+                        {!isDriver && (
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center gap-3">
+                              <Truck className="h-6 w-6 text-green-600" />
+                              <div>
+                                <h3 className="font-semibold text-green-900">Become a Driver</h3>
+                                <p className="text-green-700 text-sm">Deliver orders and earn money on your schedule</p>
+                              </div>
+                            </div>
+                            <Link to="/driver/register" className="mt-3 inline-block">
+                              <Button variant="outline" className="border-green-300 text-green-700 hover:bg-green-100">
+                                Apply to Drive
+                              </Button>
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     )}
                     

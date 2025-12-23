@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { Toaster } from "@/components/ui/toaster";
+import TrackOrderPage from "./pages/TrackOrderPage";
 import StorefrontPage from "@/pages/StorefrontPage";
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -40,6 +41,7 @@ import VendorDashboardPage from "@/pages/VendorDashboardPage";
 // Driver pages
 import DriverLoginPage from "@/pages/driver/DriverLoginPage";
 import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
+import DriverRegisterPage from "@/pages/driver/DriverRegisterPage";
 // Subcategory pages
 import SubcategoryPage from "@/pages/SubcategoryPage";
 
@@ -114,6 +116,9 @@ function App() {
                 <Route path="privacy" element={<PrivacyPage />} />
               </Route>
               
+              {/* Track Order page */}
+              <Route path="track-order" element={<TrackOrderPage />} />
+              
               {/* Auth pages without layout */}
               <Route path="login" element={<LoginPage />} />
               <Route path="register" element={<RegisterPage />} />
@@ -143,6 +148,7 @@ function App() {
               
               {/* Driver pages */}
               <Route path="driver/login" element={<DriverLoginPage />} />
+              <Route path="driver/register" element={<DriverRegisterPage />} />
               <Route path="driver/dashboard" element={
                 <ProtectedRoute requireAuth requireDriver>
                   <DriverDashboardPage />
