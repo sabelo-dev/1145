@@ -19,6 +19,7 @@ const AuctionsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [bids, setBids] = useState<AuctionBid[]>([]);
@@ -76,6 +77,12 @@ const AuctionsPage = () => {
               ? { ...a, current_bid: newBid.bid_amount }
               : a
           ));
+          
+          // Update bid count
+          setBidCounts(prev => ({
+            ...prev,
+            [newBid.auction_id]: (prev[newBid.auction_id] || 0) + 1
+          }));
         }
       )
       .subscribe();
@@ -157,6 +164,23 @@ const AuctionsPage = () => {
 
       if (error) throw error;
       setAuctions((data as unknown as Auction[]) || []);
+      
+      // Fetch bid counts for all auctions
+      if (data && data.length > 0) {
+        const auctionIds = data.map(a => a.id);
+        const { data: bidCountsData } = await supabase
+          .from("auction_bids")
+          .select("auction_id")
+          .in("auction_id", auctionIds);
+        
+        if (bidCountsData) {
+          const counts: Record<string, number> = {};
+          bidCountsData.forEach(bid => {
+            counts[bid.auction_id] = (counts[bid.auction_id] || 0) + 1;
+          });
+          setBidCounts(counts);
+        }
+      }
     } catch (error: any) {
       console.error("Error fetching auctions:", error);
     } finally {
@@ -436,6 +460,13 @@ const AuctionsPage = () => {
                           <span className="text-sm text-muted-foreground">Current Bid</span>
                           <span className="font-bold">
                             R{auction.current_bid || auction.starting_bid_price || 0}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Total Bids</span>
+                          <span className="flex items-center gap-1">
+                            <Gavel className="h-3 w-3" />
+                            {bidCounts[auction.id] || 0}
                           </span>
                         </div>
                         <div className="flex justify-between">
