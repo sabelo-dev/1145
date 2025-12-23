@@ -12,7 +12,7 @@ Parent Company: Lifestyle Solutions & Innovations [LSI] (established in 2016)
 Mission: To bridge businesses and customers through a robust digital commerce ecosystem.
 
 About LSI
-Founded in 2016, LSI has grown into a trusted name in technology and logistics. With nearly a decade of experience, LSI’s mission is to simplify commerce by building smart, scalable solutions that power digital transformation. wwecommerce (weapp) is the latest product in LSI’s portfolio, designed to redefine how vendors and buyers interact online.
+Founded in 2016, LSI has grown into a trusted name in technology and logistics. With nearly a decade of experience, LSI’s mission is to simplify commerce by building smart, scalable solutions that power digital transformation.1145 is the latest product in LSI’s portfolio, designed to redefine how vendors and buyers interact online.
 
 Key Features
 ✅ Multivendor Architecture – Multiple sellers, one powerful platform
