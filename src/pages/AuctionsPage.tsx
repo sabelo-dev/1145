@@ -41,13 +41,48 @@ const AuctionsPage = () => {
         },
         (payload) => {
           console.log('Auction update:', payload);
-          fetchAuctions();
+          // Update the specific auction in state without full refetch for smoother UX
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedAuction = payload.new as any;
+            setAuctions(prev => prev.map(a => 
+              a.id === updatedAuction.id 
+                ? { ...a, ...updatedAuction }
+                : a
+            ));
+          } else {
+            fetchAuctions();
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to all auction bids for real-time updates on cards
+    const allBidsChannel = supabase
+      .channel('all-auction-bids')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'auction_bids'
+        },
+        async (payload) => {
+          console.log('Global bid update:', payload);
+          const newBid = payload.new as any;
+          
+          // Update the auction's current bid in state
+          setAuctions(prev => prev.map(a => 
+            a.id === newBid.auction_id 
+              ? { ...a, current_bid: newBid.bid_amount }
+              : a
+          ));
         }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(auctionsChannel);
+      supabase.removeChannel(allBidsChannel);
     };
   }, []);
 
@@ -363,9 +398,10 @@ const AuctionsPage = () => {
                       </div>
                     )}
                     <Badge 
-                      className="absolute top-2 right-2"
+                      className={`absolute top-2 right-2 ${status === "live" ? "animate-pulse" : ""}`}
                       variant={status === "live" ? "default" : status === "buy-now" ? "secondary" : "outline"}
                     >
+                      {status === "live" && <span className="mr-1 h-2 w-2 rounded-full bg-white inline-block animate-ping" />}
                       {status === "live" ? "LIVE" : status === "buy-now" ? "BUY NOW" : "UPCOMING"}
                     </Badge>
                   </div>
