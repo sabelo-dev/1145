@@ -37,6 +37,7 @@ import AdminAuditLogs from "@/components/admin/AdminAuditLogs";
 import AdminSettings from "@/components/admin/AdminSettings";
 import { AdminShipping } from "@/components/admin/AdminShipping";
 import AdminAuctions from "@/components/admin/AdminAuctions";
+import AdminDrivers from "@/components/admin/AdminDrivers";
 import {
   LayoutDashboard,
   Users,
@@ -86,6 +87,7 @@ const AdminDashboard = () => {
     { id: "notifications", title: "Notifications", icon: Megaphone },
     { id: "audit", title: "Logs / Audit Trail", icon: AuditIcon },
     { id: "shipping", title: "Shipping Management", icon: Truck },
+    { id: "drivers", title: "Driver Management", icon: Truck },
   ];
 
   return (
@@ -210,6 +212,9 @@ const AdminDashboard = () => {
                 </TabsContent>
                 <TabsContent value="shipping" className="mt-0">
                   <AdminShipping />
+                </TabsContent>
+                <TabsContent value="drivers" className="mt-0">
+                  <AdminDrivers />
                 </TabsContent>
               </Tabs>
             </main>
