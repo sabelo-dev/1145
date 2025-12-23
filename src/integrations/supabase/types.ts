@@ -195,6 +195,7 @@ export type Database = {
       }
       auctions: {
         Row: {
+          bid_increment: number | null
           created_at: string
           current_bid: number | null
           end_date: string | null
@@ -210,6 +211,7 @@ export type Database = {
           winning_bid: number | null
         }
         Insert: {
+          bid_increment?: number | null
           created_at?: string
           current_bid?: number | null
           end_date?: string | null
@@ -225,6 +227,7 @@ export type Database = {
           winning_bid?: number | null
         }
         Update: {
+          bid_increment?: number | null
           created_at?: string
           current_bid?: number | null
           end_date?: string | null

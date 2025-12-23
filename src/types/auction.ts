@@ -5,6 +5,7 @@ export interface Auction {
   starting_bid_price: number | null;
   current_bid: number | null;
   registration_fee: number;
+  bid_increment: number | null;
   start_date: string | null;
   end_date: string | null;
   status: 'pending' | 'approved' | 'active' | 'ended' | 'sold' | 'unsold';
