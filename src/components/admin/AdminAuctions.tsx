@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Settings, Users, History, BarChart3 } from "lucide-react";
 import { Auction, AuctionRegistration, AuctionBid } from "@/types/auction";
@@ -34,6 +35,9 @@ const AdminAuctions = () => {
   const [registrationsDialogOpen, setRegistrationsDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [bidChartDialogOpen, setBidChartDialogOpen] = useState(false);
+  const [statusChangeDialogOpen, setStatusChangeDialogOpen] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ auctionId: string; newStatus: string } | null>(null);
+  const [statusChangeNotes, setStatusChangeNotes] = useState("");
   const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [auctionBids, setAuctionBids] = useState<AuctionBid[]>([]);
@@ -258,8 +262,21 @@ const AdminAuctions = () => {
     }
   };
 
-  const handleStatusChange = async (auctionId: string, newStatus: string) => {
+  const openStatusChangeDialog = (auctionId: string, newStatus: string) => {
+    setPendingStatusChange({ auctionId, newStatus });
+    setStatusChangeNotes("");
+    setStatusChangeDialogOpen(true);
+  };
+
+  const handleStatusChange = async (auctionId: string, newStatus: string, notes?: string) => {
     try {
+      // Get current user for audit trail
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get current auction status
+      const auction = auctions.find(a => a.id === auctionId);
+      const oldStatus = auction?.status;
+
       const { error } = await supabase
         .from("auctions")
         .update({ status: newStatus })
@@ -267,8 +284,20 @@ const AdminAuctions = () => {
 
       if (error) throw error;
 
+      // Insert status history with notes
+      if (notes || oldStatus !== newStatus) {
+        await supabase
+          .from("auction_status_history")
+          .insert({
+            auction_id: auctionId,
+            old_status: oldStatus,
+            new_status: newStatus,
+            notes: notes || null,
+            changed_by: user?.id || null,
+          });
+      }
+
       // Find the auction and send email notification
-      const auction = auctions.find(a => a.id === auctionId);
       if (auction) {
         sendAuctionStatusEmail(auction, newStatus);
       }
@@ -285,6 +314,14 @@ const AdminAuctions = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const confirmStatusChange = async () => {
+    if (!pendingStatusChange) return;
+    await handleStatusChange(pendingStatusChange.auctionId, pendingStatusChange.newStatus, statusChangeNotes);
+    setStatusChangeDialogOpen(false);
+    setPendingStatusChange(null);
+    setStatusChangeNotes("");
   };
 
   const sendWinnerNotificationEmail = async (auction: Auction, winnerId: string, winningBidAmount: number) => {
@@ -423,7 +460,7 @@ const AdminAuctions = () => {
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
             onViewBidChart={handleViewBidChart}
-            onStatusChange={handleStatusChange}
+            onStatusChange={openStatusChangeDialog}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
           />
@@ -435,7 +472,7 @@ const AdminAuctions = () => {
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
             onViewBidChart={handleViewBidChart}
-            onStatusChange={handleStatusChange}
+            onStatusChange={openStatusChangeDialog}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
           />
@@ -447,7 +484,7 @@ const AdminAuctions = () => {
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
             onViewBidChart={handleViewBidChart}
-            onStatusChange={handleStatusChange}
+            onStatusChange={openStatusChangeDialog}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
           />
@@ -459,7 +496,7 @@ const AdminAuctions = () => {
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
             onViewBidChart={handleViewBidChart}
-            onStatusChange={handleStatusChange}
+            onStatusChange={openStatusChangeDialog}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
           />
@@ -650,9 +687,9 @@ const AdminAuctions = () => {
                           {format(new Date(item.created_at), "MMM d, yyyy 'at' h:mm a")}
                         </p>
                         {item.notes && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {item.notes}
-                          </p>
+                          <div className="mt-2 p-2 bg-muted rounded-md">
+                            <p className="text-sm italic">"{item.notes}"</p>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -707,6 +744,44 @@ const AdminAuctions = () => {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Change Dialog */}
+      <Dialog open={statusChangeDialogOpen} onOpenChange={setStatusChangeDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Auction Status</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                You are about to change the auction status to{" "}
+                <span className="font-medium text-foreground">{pendingStatusChange?.newStatus?.toUpperCase()}</span>
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status-notes">Notes (optional)</Label>
+              <Textarea
+                id="status-notes"
+                placeholder="Add notes for this status change (e.g., reason for change, special circumstances...)"
+                value={statusChangeNotes}
+                onChange={(e) => setStatusChangeNotes(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                Notes will be saved to the audit trail for this auction.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusChangeDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmStatusChange}>
+              Confirm Change
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
