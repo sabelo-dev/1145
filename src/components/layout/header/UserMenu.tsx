@@ -70,6 +70,15 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, isDriver, 
           </DropdownMenuItem>
         )}
         
+        {!isDriver && user?.role === 'consumer' && (
+          <DropdownMenuItem asChild>
+            <Link to="/driver/register" className="flex items-center">
+              <Truck className="h-4 w-4 mr-2" />
+              Become a Driver
+            </Link>
+          </DropdownMenuItem>
+        )}
+        
         {isVendor && (
           <DropdownMenuItem asChild>
             <Link to="/vendor/dashboard" className="flex items-center">

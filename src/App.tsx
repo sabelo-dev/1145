@@ -41,6 +41,7 @@ import VendorDashboardPage from "@/pages/VendorDashboardPage";
 // Driver pages
 import DriverLoginPage from "@/pages/driver/DriverLoginPage";
 import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
+import DriverRegisterPage from "@/pages/driver/DriverRegisterPage";
 // Subcategory pages
 import SubcategoryPage from "@/pages/SubcategoryPage";
 
@@ -147,6 +148,7 @@ function App() {
               
               {/* Driver pages */}
               <Route path="driver/login" element={<DriverLoginPage />} />
+              <Route path="driver/register" element={<DriverRegisterPage />} />
               <Route path="driver/dashboard" element={
                 <ProtectedRoute requireAuth requireDriver>
                   <DriverDashboardPage />
