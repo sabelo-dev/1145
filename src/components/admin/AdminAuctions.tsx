@@ -4,14 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Gavel, Settings, Users } from "lucide-react";
+import { Gavel, Settings, Users, History } from "lucide-react";
 import { Auction, AuctionRegistration } from "@/types/auction";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface StatusHistoryItem {
+  id: string;
+  old_status: string | null;
+  new_status: string;
+  notes: string | null;
+  created_at: string;
+  changed_by: string | null;
+}
 
 const AdminAuctions = () => {
   const { toast } = useToast();
@@ -21,6 +31,9 @@ const AdminAuctions = () => {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [registrationsDialogOpen, setRegistrationsDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   
   // Config form state
   const [startingBid, setStartingBid] = useState("");
@@ -94,6 +107,35 @@ const AdminAuctions = () => {
     setSelectedAuction(auction);
     await fetchRegistrations(auction.id);
     setRegistrationsDialogOpen(true);
+  };
+
+  const fetchStatusHistory = async (auctionId: string) => {
+    setHistoryLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("auction_status_history")
+        .select("*")
+        .eq("auction_id", auctionId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setStatusHistory(data || []);
+    } catch (error: any) {
+      console.error("Error fetching status history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch status history",
+        variant: "destructive",
+      });
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleViewHistory = async (auction: Auction) => {
+    setSelectedAuction(auction);
+    await fetchStatusHistory(auction.id);
+    setHistoryDialogOpen(true);
   };
 
   const handleSaveConfig = async () => {
@@ -251,6 +293,7 @@ const AdminAuctions = () => {
             auctions={auctions} 
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
+            onViewHistory={handleViewHistory}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -261,6 +304,7 @@ const AdminAuctions = () => {
             auctions={auctions.filter(a => a.status === "pending")} 
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
+            onViewHistory={handleViewHistory}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -271,6 +315,7 @@ const AdminAuctions = () => {
             auctions={auctions.filter(a => a.status === "active")} 
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
+            onViewHistory={handleViewHistory}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -281,6 +326,7 @@ const AdminAuctions = () => {
             auctions={auctions.filter(a => ["ended", "sold", "unsold"].includes(a.status))} 
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
+            onViewHistory={handleViewHistory}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -411,6 +457,68 @@ const AdminAuctions = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Status History Dialog */}
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Status History
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              {selectedAuction?.product?.name}
+            </p>
+            {historyLoading ? (
+              <p className="text-center py-4 text-muted-foreground">Loading history...</p>
+            ) : statusHistory.length === 0 ? (
+              <p className="text-center py-4 text-muted-foreground">No status history available</p>
+            ) : (
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-4">
+                  {statusHistory.map((item, index) => (
+                    <div 
+                      key={item.id} 
+                      className="relative pl-6 pb-4 border-l-2 border-muted last:border-l-0"
+                    >
+                      <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-primary" />
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          {item.old_status ? (
+                            <>
+                              <Badge variant="outline" className="text-xs">
+                                {item.old_status.toUpperCase()}
+                              </Badge>
+                              <span className="text-muted-foreground">→</span>
+                              <Badge variant="default" className="text-xs">
+                                {item.new_status.toUpperCase()}
+                              </Badge>
+                            </>
+                          ) : (
+                            <Badge variant="default" className="text-xs">
+                              {item.new_status.toUpperCase()} (Created)
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(item.created_at), "MMM d, yyyy 'at' h:mm a")}
+                        </p>
+                        {item.notes && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {item.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -419,6 +527,7 @@ interface AuctionTableProps {
   auctions: Auction[];
   onConfigure: (auction: Auction) => void;
   onViewRegistrations: (auction: Auction) => void;
+  onViewHistory: (auction: Auction) => void;
   onStatusChange: (id: string, status: string) => void;
   onEndAuction: (auction: Auction) => void;
   getStatusBadge: (status: string) => JSX.Element;
@@ -428,6 +537,7 @@ const AuctionTable = ({
   auctions, 
   onConfigure, 
   onViewRegistrations,
+  onViewHistory,
   onStatusChange, 
   onEndAuction,
   getStatusBadge 
@@ -488,6 +598,13 @@ const AuctionTable = ({
                       onClick={() => onViewRegistrations(auction)}
                     >
                       <Users className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onViewHistory(auction)}
+                    >
+                      <History className="h-4 w-4" />
                     </Button>
                     {auction.status === "approved" && (
                       <Button
