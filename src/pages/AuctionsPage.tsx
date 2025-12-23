@@ -433,6 +433,38 @@ const AuctionsPage = () => {
               <DialogTitle>{selectedAuction?.product?.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Product Image Thumbnail */}
+              {(() => {
+                const imageUrl = selectedAuction?.product?.product_images?.[0]?.image_url;
+                return (
+                  <div className="flex gap-4">
+                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={selectedAuction?.product?.name || "Auction item"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Gavel className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {selectedAuction?.product?.description || "No description available"}
+                      </p>
+                      {selectedAuction?.bid_increment && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Minimum increment: R{selectedAuction.bid_increment}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Countdown Timer */}
               {selectedAuction?.status === "active" && selectedAuction?.end_date && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
