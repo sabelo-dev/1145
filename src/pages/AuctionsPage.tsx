@@ -10,13 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
-import { Gavel, Clock, Users, Trophy, Medal, Award } from "lucide-react";
+import { Gavel, Clock, Users, Trophy, Medal, Award, Heart } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Auction, AuctionBid, AuctionRegistration } from "@/types/auction";
 import { isFuture } from "date-fns";
 import SEO from "@/components/SEO";
 import AuctionCountdown from "@/components/auction/AuctionCountdown";
 import BidHistoryChart from "@/components/auction/BidHistoryChart";
+import WatchlistButton from "@/components/auction/WatchlistButton";
 
 const AuctionsPage = () => {
   const navigate = useNavigate();
@@ -504,6 +505,9 @@ const AuctionsPage = () => {
                       {status === "live" && <span className="mr-1 h-2 w-2 rounded-full bg-white inline-block animate-ping" />}
                       {status === "live" ? "LIVE" : status === "buy-now" ? "BUY NOW" : "UPCOMING"}
                     </Badge>
+                    <div className="absolute top-2 left-2">
+                      <WatchlistButton auctionId={auction.id} variant="icon" className="bg-background/80 backdrop-blur-sm hover:bg-background" />
+                    </div>
                   </div>
                   <CardHeader>
                     <CardTitle className="line-clamp-1">{auction.product?.name}</CardTitle>
