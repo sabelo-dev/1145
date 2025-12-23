@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import AuctionCountdown from "@/components/auction/AuctionCountdown";
 import BidHistoryChart from "@/components/auction/BidHistoryChart";
 
 const AuctionsPage = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const { playSound } = useNotificationSound();
@@ -27,6 +29,7 @@ const AuctionsPage = () => {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [bids, setBids] = useState<AuctionBid[]>([]);
   const [userRegistration, setUserRegistration] = useState<AuctionRegistration | null>(null);
+  const [userRegistrations, setUserRegistrations] = useState<Record<string, boolean>>({});
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   
@@ -225,6 +228,24 @@ const AuctionsPage = () => {
           });
           setBidCounts(counts);
         }
+        
+        // Fetch user registrations for all auctions
+        if (user) {
+          const { data: userRegs } = await supabase
+            .from("auction_registrations")
+            .select("auction_id")
+            .eq("user_id", user.id)
+            .eq("payment_status", "paid")
+            .in("auction_id", auctionIds);
+          
+          if (userRegs) {
+            const regs: Record<string, boolean> = {};
+            userRegs.forEach(reg => {
+              regs[reg.auction_id] = true;
+            });
+            setUserRegistrations(regs);
+          }
+        }
       }
     } catch (error: any) {
       console.error("Error fetching auctions:", error);
@@ -262,47 +283,21 @@ const AuctionsPage = () => {
     setBidDialogOpen(true);
   };
 
-  const handleRegister = async () => {
-    if (!user || !selectedAuction) {
+  const handleRegister = () => {
+    if (!user) {
       toast({
         title: "Please login",
         description: "You need to be logged in to register for auctions",
         variant: "destructive",
       });
+      navigate(`/login?redirect=/auction-registration?auctionId=${selectedAuction?.id}`);
       return;
     }
 
-    try {
-      const { error } = await supabase.from("auction_registrations").insert({
-        auction_id: selectedAuction.id,
-        user_id: user.id,
-        registration_fee_paid: selectedAuction.registration_fee,
-        payment_status: "paid", // In production, this would go through payment flow
-      });
+    if (!selectedAuction) return;
 
-      if (error) throw error;
-
-      toast({
-        title: "Registration Successful",
-        description: `You've registered for this auction. Registration fee: R${selectedAuction.registration_fee}`,
-      });
-      
-      // Refresh registration status
-      const { data: regData } = await supabase
-        .from("auction_registrations")
-        .select("*")
-        .eq("auction_id", selectedAuction.id)
-        .eq("user_id", user.id)
-        .single();
-      
-      setUserRegistration(regData as AuctionRegistration | null);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    // Redirect to auction registration checkout page
+    navigate(`/auction-registration?auctionId=${selectedAuction.id}`);
   };
 
   const handlePlaceBid = async () => {
@@ -529,15 +524,48 @@ const AuctionsPage = () => {
                       </div>
                     )}
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="flex-col gap-2">
                     {status === "buy-now" ? (
                       <Button className="w-full" onClick={() => handleBuyNow(auction)}>
                         Buy Now
                       </Button>
                     ) : (
-                      <Button className="w-full" onClick={() => openBidDialog(auction)}>
-                        {status === "live" ? "Place Bid" : "View Details"}
-                      </Button>
+                      <>
+                        {/* Show Register button if user is not registered for live/upcoming auctions */}
+                        {(status === "live" || status === "upcoming") && !userRegistrations[auction.id] && (
+                          <Button 
+                            className="w-full" 
+                            variant="default"
+                            onClick={() => {
+                              if (!user) {
+                                toast({
+                                  title: "Please login",
+                                  description: "You need to be logged in to register for auctions",
+                                  variant: "destructive",
+                                });
+                                navigate(`/login?redirect=/auction-registration?auctionId=${auction.id}`);
+                                return;
+                              }
+                              navigate(`/auction-registration?auctionId=${auction.id}`);
+                            }}
+                          >
+                            <Users className="mr-2 h-4 w-4" />
+                            Register to Bid (R{auction.registration_fee})
+                          </Button>
+                        )}
+                        {/* Show Place Bid button for registered users or View Details for all */}
+                        <Button 
+                          className="w-full" 
+                          variant={userRegistrations[auction.id] ? "default" : "outline"}
+                          onClick={() => openBidDialog(auction)}
+                        >
+                          {status === "live" && userRegistrations[auction.id] 
+                            ? "Place Bid" 
+                            : status === "live" 
+                              ? "View Auction"
+                              : "View Details"}
+                        </Button>
+                      </>
                     )}
                   </CardFooter>
                 </Card>
