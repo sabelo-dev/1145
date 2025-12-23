@@ -8,15 +8,14 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Package, Eye, RotateCcw, X, MapPin, RefreshCw, Truck } from "lucide-react";
 import OrderTrackingDialog from "./OrderTrackingDialog";
+import OrderDetailsModal from "./OrderDetailsModal";
 
-interface OrderItem {
+interface OrderProduct {
   id: string;
-  product_id: string;
+  name: string;
   quantity: number;
   price: number;
-  product?: {
-    name: string;
-  };
+  image_url?: string;
 }
 
 interface Order {
@@ -27,11 +26,7 @@ interface Order {
   items: number;
   vendor: string;
   trackingNumber: string | null;
-  products: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-  }>;
+  products: OrderProduct[];
   shipping_address?: any;
   estimated_delivery?: string | null;
   courier_name?: string | null;
@@ -42,6 +37,7 @@ interface Order {
 const ConsumerOrders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -107,15 +103,27 @@ const ConsumerOrders: React.FC = () => {
               quantity,
               price,
               product_id,
-              products (name)
+              products (
+                name,
+                product_images (image_url, position)
+              )
             `)
             .eq("order_id", order.id);
 
-          const products = (itemsData || []).map((item: any) => ({
-            name: item.products?.name || "Unknown Product",
-            quantity: item.quantity,
-            price: Number(item.price),
-          }));
+          const products: OrderProduct[] = (itemsData || []).map((item: any) => {
+            // Get the first image (sorted by position)
+            const images = item.products?.product_images || [];
+            const sortedImages = [...images].sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+            const firstImage = sortedImages[0]?.image_url;
+
+            return {
+              id: item.id,
+              name: item.products?.name || "Unknown Product",
+              quantity: item.quantity,
+              price: Number(item.price),
+              image_url: firstImage,
+            };
+          });
 
           // Get store name from first item
           let vendor = "Unknown Vendor";
@@ -190,6 +198,11 @@ const ConsumerOrders: React.FC = () => {
   const handleTrackOrder = (order: Order) => {
     setSelectedOrder(order);
     setTrackingDialogOpen(true);
+  };
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setDetailsModalOpen(true);
   };
 
   const handleCancelOrder = async (orderId: string) => {
@@ -327,7 +340,7 @@ const ConsumerOrders: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleTrackOrder(order)}
+                      onClick={() => handleViewDetails(order)}
                     >
                       <Eye className="h-4 w-4 mr-1" />
                       View Details
@@ -362,6 +375,12 @@ const ConsumerOrders: React.FC = () => {
         order={selectedOrder}
         open={trackingDialogOpen}
         onOpenChange={setTrackingDialogOpen}
+      />
+
+      <OrderDetailsModal
+        order={selectedOrder}
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
       />
     </div>
   );
