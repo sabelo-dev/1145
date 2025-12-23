@@ -555,6 +555,7 @@ const AuctionTable = ({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Image</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Vendor</TableHead>
               <TableHead>Base Amount</TableHead>
@@ -566,11 +567,26 @@ const AuctionTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {auctions.map((auction) => (
-              <TableRow key={auction.id}>
-                <TableCell className="font-medium">
-                  {auction.product?.name || "Unknown"}
-                </TableCell>
+            {auctions.map((auction) => {
+              const imageUrl = auction.product?.product_images?.[0]?.image_url;
+              return (
+                <TableRow key={auction.id}>
+                  <TableCell>
+                    <div className="h-12 w-12 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                      {imageUrl ? (
+                        <img 
+                          src={imageUrl} 
+                          alt={auction.product?.name || "Product"} 
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Gavel className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {auction.product?.name || "Unknown"}
+                  </TableCell>
                 <TableCell>
                   {auction.product?.stores?.vendors?.business_name || "Unknown"}
                 </TableCell>
@@ -626,7 +642,8 @@ const AuctionTable = ({
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       )}
