@@ -19,6 +19,7 @@ interface Product {
   name: string;
   price: number;
   status: string;
+  product_images: { image_url: string }[];
 }
 
 const VendorAuctions = () => {
@@ -86,10 +87,10 @@ const VendorAuctions = () => {
         return;
       }
 
-      // Fetch all products for this store (include pending, approved, active)
+      // Fetch all products for this store (include pending, approved, active) with images
       const { data: productsData, error: productsError } = await supabase
         .from("products")
-        .select("id, name, price, status")
+        .select("id, name, price, status, product_images(image_url)")
         .eq("store_id", storeData.id)
         .in("status", ["pending", "approved", "active"]);
 
@@ -205,11 +206,34 @@ const VendorAuctions = () => {
                       <SelectValue placeholder="Choose a product" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          {product.name} (R{product.price}) - {product.status}
-                        </SelectItem>
-                      ))}
+                      {products.map((product) => {
+                        const imageUrl = product.product_images?.[0]?.image_url;
+                        return (
+                          <SelectItem key={product.id} value={product.id}>
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                                {imageUrl ? (
+                                  <img 
+                                    src={imageUrl} 
+                                    alt={product.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="h-full w-full flex items-center justify-center text-muted-foreground text-xs">
+                                    No img
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{product.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  R{product.price} • {product.status}
+                                </span>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 )}
