@@ -8,11 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Gavel, Settings, Users, History } from "lucide-react";
-import { Auction, AuctionRegistration } from "@/types/auction";
+import { Gavel, Settings, Users, History, BarChart3 } from "lucide-react";
+import { Auction, AuctionRegistration, AuctionBid } from "@/types/auction";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import BidHistoryChart from "@/components/auction/BidHistoryChart";
 
 interface StatusHistoryItem {
   id: string;
@@ -32,12 +33,16 @@ const AdminAuctions = () => {
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [registrationsDialogOpen, setRegistrationsDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [bidChartDialogOpen, setBidChartDialogOpen] = useState(false);
   const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [auctionBids, setAuctionBids] = useState<AuctionBid[]>([]);
+  const [bidsLoading, setBidsLoading] = useState(false);
   
   // Config form state
   const [startingBid, setStartingBid] = useState("");
   const [registrationFee, setRegistrationFee] = useState("");
+  const [bidIncrement, setBidIncrement] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -90,6 +95,7 @@ const AdminAuctions = () => {
     setSelectedAuction(auction);
     setStartingBid(auction.starting_bid_price?.toString() || "");
     setRegistrationFee(auction.registration_fee?.toString() || "0");
+    setBidIncrement(auction.bid_increment?.toString() || "50");
     if (auction.start_date) {
       const start = new Date(auction.start_date);
       setStartDate(format(start, "yyyy-MM-dd"));
@@ -138,6 +144,72 @@ const AdminAuctions = () => {
     setHistoryDialogOpen(true);
   };
 
+  const handleViewBidChart = async (auction: Auction) => {
+    setSelectedAuction(auction);
+    setBidChartDialogOpen(true);
+    setBidsLoading(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from("auction_bids")
+        .select("*")
+        .eq("auction_id", auction.id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setAuctionBids((data as AuctionBid[]) || []);
+    } catch (error: any) {
+      console.error("Error fetching bids:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load bid history",
+        variant: "destructive",
+      });
+    } finally {
+      setBidsLoading(false);
+    }
+  };
+
+  const sendAuctionStatusEmail = async (auction: Auction, newStatus: string) => {
+    try {
+      // Get the vendor's email
+      const vendorUserId = auction.product?.stores?.vendors?.user_id;
+      if (!vendorUserId) {
+        console.log("No vendor user ID found for auction email");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, name")
+        .eq("id", vendorUserId)
+        .single();
+
+      if (!profile?.email) {
+        console.log("No email found for vendor");
+        return;
+      }
+
+      await supabase.functions.invoke("send-auction-status-email", {
+        body: {
+          userEmail: profile.email,
+          userName: profile.name || auction.product?.stores?.vendors?.business_name,
+          productName: auction.product?.name || "Unknown Product",
+          auctionId: auction.id,
+          newStatus,
+          currentBid: auction.current_bid,
+          winningBid: auction.winning_bid,
+          startDate: auction.start_date,
+          endDate: auction.end_date,
+        },
+      });
+
+      console.log("Auction status email sent successfully");
+    } catch (error) {
+      console.error("Error sending auction status email:", error);
+    }
+  };
+
   const handleSaveConfig = async () => {
     if (!selectedAuction) return;
 
@@ -154,6 +226,7 @@ const AdminAuctions = () => {
         .update({
           starting_bid_price: parseFloat(startingBid) || null,
           registration_fee: parseFloat(registrationFee) || 0,
+          bid_increment: parseFloat(bidIncrement) || 50,
           start_date: startDateTime,
           end_date: endDateTime,
           status: "approved",
@@ -161,6 +234,14 @@ const AdminAuctions = () => {
         .eq("id", selectedAuction.id);
 
       if (error) throw error;
+
+      // Send email notification for approval
+      const updatedAuction = {
+        ...selectedAuction,
+        start_date: startDateTime,
+        end_date: endDateTime,
+      };
+      sendAuctionStatusEmail(updatedAuction, "approved");
 
       toast({
         title: "Auction Updated",
@@ -186,6 +267,12 @@ const AdminAuctions = () => {
 
       if (error) throw error;
 
+      // Find the auction and send email notification
+      const auction = auctions.find(a => a.id === auctionId);
+      if (auction) {
+        sendAuctionStatusEmail(auction, newStatus);
+      }
+
       toast({
         title: "Status Updated",
         description: `Auction status changed to ${newStatus}`,
@@ -197,6 +284,37 @@ const AdminAuctions = () => {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const sendWinnerNotificationEmail = async (auction: Auction, winnerId: string, winningBidAmount: number) => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, name")
+        .eq("id", winnerId)
+        .single();
+
+      if (!profile?.email) {
+        console.log("No email found for winner");
+        return;
+      }
+
+      await supabase.functions.invoke("send-auction-status-email", {
+        body: {
+          userEmail: profile.email,
+          userName: profile.name || "Winner",
+          productName: auction.product?.name || "Unknown Product",
+          auctionId: auction.id,
+          newStatus: "sold",
+          winningBid: winningBidAmount,
+          isWinnerNotification: true,
+        },
+      });
+
+      console.log("Winner notification email sent successfully");
+    } catch (error) {
+      console.error("Error sending winner notification email:", error);
     }
   };
 
@@ -230,9 +348,16 @@ const AdminAuctions = () => {
           .eq("auction_id", auction.id)
           .eq("user_id", winningBid.user_id);
 
+        // Send email notification for sold auction (to vendor)
+        const updatedAuction = { ...auction, winning_bid: winningBid.bid_amount };
+        sendAuctionStatusEmail(updatedAuction, "sold");
+
+        // Send email notification to the winner
+        sendWinnerNotificationEmail(auction, winningBid.user_id, winningBid.bid_amount);
+
         toast({
           title: "Auction Ended",
-          description: "Winner has been determined and deposit applied",
+          description: "Winner has been determined and notified via email",
         });
       } else {
         // No bids - mark as unsold
@@ -240,6 +365,9 @@ const AdminAuctions = () => {
           .from("auctions")
           .update({ status: "unsold" })
           .eq("id", auction.id);
+
+        // Send email notification for unsold auction
+        sendAuctionStatusEmail(auction, "unsold");
 
         toast({
           title: "Auction Ended",
@@ -294,6 +422,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -305,6 +434,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -316,6 +446,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -327,6 +458,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -367,6 +499,18 @@ const AdminAuctions = () => {
               />
               <p className="text-sm text-muted-foreground">
                 Fee consumers pay to participate (used as deposit for winner)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Bid Increment</Label>
+              <Input
+                type="number"
+                placeholder="Enter minimum bid increment"
+                value={bidIncrement}
+                onChange={(e) => setBidIncrement(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                Minimum amount each new bid must exceed the current bid (default: R50)
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -519,6 +663,52 @@ const AdminAuctions = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bid Chart Dialog */}
+      <Dialog open={bidChartDialogOpen} onOpenChange={setBidChartDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Bid Activity - {selectedAuction?.product?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {bidsLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Loading bid history...
+              </div>
+            ) : auctionBids.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No bids have been placed on this auction yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <BidHistoryChart 
+                  bids={auctionBids} 
+                  startingBid={selectedAuction?.starting_bid_price || 0} 
+                />
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Total Bids</p>
+                    <p className="text-xl font-bold">{auctionBids.length}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Starting Bid</p>
+                    <p className="text-xl font-bold">R{selectedAuction?.starting_bid_price || 0}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Highest Bid</p>
+                    <p className="text-xl font-bold text-primary">
+                      R{selectedAuction?.current_bid || selectedAuction?.starting_bid_price || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -528,6 +718,7 @@ interface AuctionTableProps {
   onConfigure: (auction: Auction) => void;
   onViewRegistrations: (auction: Auction) => void;
   onViewHistory: (auction: Auction) => void;
+  onViewBidChart: (auction: Auction) => void;
   onStatusChange: (id: string, status: string) => void;
   onEndAuction: (auction: Auction) => void;
   getStatusBadge: (status: string) => JSX.Element;
@@ -538,6 +729,7 @@ const AuctionTable = ({
   onConfigure, 
   onViewRegistrations,
   onViewHistory,
+  onViewBidChart,
   onStatusChange, 
   onEndAuction,
   getStatusBadge 
@@ -622,6 +814,16 @@ const AuctionTable = ({
                     >
                       <History className="h-4 w-4" />
                     </Button>
+                    {(auction.status === "active" || auction.status === "ended" || auction.status === "sold") && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onViewBidChart(auction)}
+                        title="View Bid Activity"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </Button>
+                    )}
                     {auction.status === "approved" && (
                       <Button
                         size="sm"
