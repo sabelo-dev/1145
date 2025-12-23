@@ -7,10 +7,11 @@ interface AuctionCountdownProps {
   type: "start" | "end";
   className?: string;
   compact?: boolean;
+  onExpire?: () => void;
 }
 
-const AuctionCountdown = ({ targetDate, type, className, compact = false }: AuctionCountdownProps) => {
-  const { days, hours, minutes, seconds, isExpired, formatted } = useCountdown(targetDate);
+const AuctionCountdown = ({ targetDate, type, className, compact = false, onExpire }: AuctionCountdownProps) => {
+  const { days, hours, minutes, seconds, isExpired, formatted } = useCountdown(targetDate, { onExpire });
 
   if (!targetDate) return null;
 

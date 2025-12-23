@@ -488,6 +488,7 @@ const AuctionsPage = () => {
                         type="start" 
                         compact 
                         className="text-muted-foreground"
+                        onExpire={fetchAuctions}
                       />
                     )}
                     {status === "live" && auction.end_date && (
@@ -496,6 +497,7 @@ const AuctionsPage = () => {
                         type="end" 
                         compact 
                         className="text-destructive"
+                        onExpire={fetchAuctions}
                       />
                     )}
                   </CardHeader>
