@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Gavel, Settings, Users, History, BarChart3 } from "lucide-react";
+import { Gavel, Settings, Users, History, BarChart3, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Auction, AuctionRegistration, AuctionBid } from "@/types/auction";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +44,12 @@ const AdminAuctions = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [auctionBids, setAuctionBids] = useState<AuctionBid[]>([]);
   const [bidsLoading, setBidsLoading] = useState(false);
+  
+  // Bulk selection state
+  const [selectedAuctionIds, setSelectedAuctionIds] = useState<Set<string>>(new Set());
+  const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
+  const [bulkNewStatus, setBulkNewStatus] = useState("");
+  const [bulkStatusNotes, setBulkStatusNotes] = useState("");
   
   // Config form state
   const [startingBid, setStartingBid] = useState("");
@@ -324,6 +332,101 @@ const AdminAuctions = () => {
     setStatusChangeNotes("");
   };
 
+  // Bulk selection handlers
+  const toggleAuctionSelection = (auctionId: string) => {
+    setSelectedAuctionIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(auctionId)) {
+        newSet.delete(auctionId);
+      } else {
+        newSet.add(auctionId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = (auctionsList: Auction[]) => {
+    const allIds = auctionsList.map(a => a.id);
+    const allSelected = allIds.every(id => selectedAuctionIds.has(id));
+    
+    if (allSelected) {
+      setSelectedAuctionIds(prev => {
+        const newSet = new Set(prev);
+        allIds.forEach(id => newSet.delete(id));
+        return newSet;
+      });
+    } else {
+      setSelectedAuctionIds(prev => {
+        const newSet = new Set(prev);
+        allIds.forEach(id => newSet.add(id));
+        return newSet;
+      });
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedAuctionIds(new Set());
+  };
+
+  const openBulkStatusDialog = () => {
+    setBulkNewStatus("");
+    setBulkStatusNotes("");
+    setBulkStatusDialogOpen(true);
+  };
+
+  const handleBulkStatusChange = async () => {
+    if (!bulkNewStatus || selectedAuctionIds.size === 0) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      for (const auctionId of selectedAuctionIds) {
+        const auction = auctions.find(a => a.id === auctionId);
+        const oldStatus = auction?.status;
+
+        const { error } = await supabase
+          .from("auctions")
+          .update({ status: bulkNewStatus })
+          .eq("id", auctionId);
+
+        if (error) throw error;
+
+        // Insert status history with notes
+        await supabase
+          .from("auction_status_history")
+          .insert({
+            auction_id: auctionId,
+            old_status: oldStatus,
+            new_status: bulkNewStatus,
+            notes: bulkStatusNotes || `Bulk status change (${selectedAuctionIds.size} auctions)`,
+            changed_by: user?.id || null,
+          });
+
+        // Send email notification
+        if (auction) {
+          sendAuctionStatusEmail(auction, bulkNewStatus);
+        }
+      }
+
+      toast({
+        title: "Bulk Status Update Complete",
+        description: `${selectedAuctionIds.size} auction(s) updated to ${bulkNewStatus}`,
+      });
+
+      setBulkStatusDialogOpen(false);
+      setBulkNewStatus("");
+      setBulkStatusNotes("");
+      setSelectedAuctionIds(new Set());
+      fetchAuctions();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendWinnerNotificationEmail = async (auction: Auction, winnerId: string, winningBidAmount: number) => {
     try {
       const { data: profile } = await supabase
@@ -445,6 +548,30 @@ const AdminAuctions = () => {
         <p className="text-muted-foreground">Configure and manage all auctions</p>
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedAuctionIds.size > 0 && (
+        <Card className="border-primary bg-primary/5">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckSquare className="h-5 w-5 text-primary" />
+                <span className="font-medium">
+                  {selectedAuctionIds.size} auction(s) selected
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={clearSelection}>
+                  Clear Selection
+                </Button>
+                <Button size="sm" onClick={openBulkStatusDialog}>
+                  Change Status
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs defaultValue="all">
         <TabsList>
           <TabsTrigger value="all">All Auctions</TabsTrigger>
@@ -456,6 +583,9 @@ const AdminAuctions = () => {
         <TabsContent value="all">
           <AuctionTable 
             auctions={auctions} 
+            selectedIds={selectedAuctionIds}
+            onToggleSelect={toggleAuctionSelection}
+            onToggleSelectAll={toggleSelectAll}
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
@@ -468,6 +598,9 @@ const AdminAuctions = () => {
         <TabsContent value="pending">
           <AuctionTable 
             auctions={auctions.filter(a => a.status === "pending")} 
+            selectedIds={selectedAuctionIds}
+            onToggleSelect={toggleAuctionSelection}
+            onToggleSelectAll={toggleSelectAll}
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
@@ -480,6 +613,9 @@ const AdminAuctions = () => {
         <TabsContent value="active">
           <AuctionTable 
             auctions={auctions.filter(a => a.status === "active")} 
+            selectedIds={selectedAuctionIds}
+            onToggleSelect={toggleAuctionSelection}
+            onToggleSelectAll={toggleSelectAll}
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
@@ -492,6 +628,9 @@ const AdminAuctions = () => {
         <TabsContent value="ended">
           <AuctionTable 
             auctions={auctions.filter(a => ["ended", "sold", "unsold"].includes(a.status))} 
+            selectedIds={selectedAuctionIds}
+            onToggleSelect={toggleAuctionSelection}
+            onToggleSelectAll={toggleSelectAll}
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
@@ -784,12 +923,72 @@ const AdminAuctions = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Status Change Dialog */}
+      <Dialog open={bulkStatusDialogOpen} onOpenChange={setBulkStatusDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckSquare className="h-5 w-5" />
+              Bulk Status Change
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                You are about to change the status of{" "}
+                <span className="font-medium text-foreground">{selectedAuctionIds.size} auction(s)</span>
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bulk-new-status">New Status</Label>
+              <Select value={bulkNewStatus} onValueChange={setBulkNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select new status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="ended">Ended</SelectItem>
+                  <SelectItem value="sold">Sold</SelectItem>
+                  <SelectItem value="unsold">Unsold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bulk-status-notes">Notes (optional)</Label>
+              <Textarea
+                id="bulk-status-notes"
+                placeholder="Add notes for this bulk status change..."
+                value={bulkStatusNotes}
+                onChange={(e) => setBulkStatusNotes(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                Notes will be saved to the audit trail for all selected auctions.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkStatusDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkStatusChange} disabled={!bulkNewStatus}>
+              Update {selectedAuctionIds.size} Auction(s)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 interface AuctionTableProps {
   auctions: Auction[];
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onToggleSelectAll: (auctions: Auction[]) => void;
   onConfigure: (auction: Auction) => void;
   onViewRegistrations: (auction: Auction) => void;
   onViewHistory: (auction: Auction) => void;
@@ -801,6 +1000,9 @@ interface AuctionTableProps {
 
 const AuctionTable = ({ 
   auctions, 
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
   onConfigure, 
   onViewRegistrations,
   onViewHistory,
@@ -808,124 +1010,145 @@ const AuctionTable = ({
   onStatusChange, 
   onEndAuction,
   getStatusBadge 
-}: AuctionTableProps) => (
-  <Card className="mt-4">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <Gavel className="h-5 w-5" /> Auctions
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      {auctions.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">No auctions found</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[80px]">Image</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead>Vendor</TableHead>
-              <TableHead>Base Amount</TableHead>
-              <TableHead>Starting Bid</TableHead>
-              <TableHead>Current Bid</TableHead>
-              <TableHead>Reg. Fee</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {auctions.map((auction) => {
-              const imageUrl = auction.product?.product_images?.[0]?.image_url;
-              return (
-                <TableRow key={auction.id}>
-                  <TableCell>
-                    <div className="h-12 w-12 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                      {imageUrl ? (
-                        <img 
-                          src={imageUrl} 
-                          alt={auction.product?.name || "Product"} 
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Gavel className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {auction.product?.name || "Unknown"}
-                  </TableCell>
-                <TableCell>
-                  {auction.product?.stores?.vendors?.business_name || "Unknown"}
-                </TableCell>
-                <TableCell>R{auction.vendor_base_amount}</TableCell>
-                <TableCell>
-                  {auction.starting_bid_price ? `R${auction.starting_bid_price}` : "-"}
-                </TableCell>
-                <TableCell>
-                  {auction.current_bid ? `R${auction.current_bid}` : "-"}
-                </TableCell>
-                <TableCell>R{auction.registration_fee || 0}</TableCell>
-                <TableCell>{getStatusBadge(auction.status)}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onConfigure(auction)}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onViewRegistrations(auction)}
-                    >
-                      <Users className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onViewHistory(auction)}
-                    >
-                      <History className="h-4 w-4" />
-                    </Button>
-                    {(auction.status === "active" || auction.status === "ended" || auction.status === "sold") && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onViewBidChart(auction)}
-                        title="View Bid Activity"
-                      >
-                        <BarChart3 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {auction.status === "approved" && (
-                      <Button
-                        size="sm"
-                        onClick={() => onStatusChange(auction.id, "active")}
-                      >
-                        Start
-                      </Button>
-                    )}
-                    {auction.status === "active" && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => onEndAuction(auction)}
-                      >
-                        End
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
+}: AuctionTableProps) => {
+  const allSelected = auctions.length > 0 && auctions.every(a => selectedIds.has(a.id));
+  const someSelected = auctions.some(a => selectedIds.has(a.id));
+  
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Gavel className="h-5 w-5" /> Auctions
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {auctions.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">No auctions found</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]">
+                  <Checkbox 
+                    checked={allSelected}
+                    onCheckedChange={() => onToggleSelectAll(auctions)}
+                    aria-label="Select all auctions"
+                    className={someSelected && !allSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                  />
+                </TableHead>
+                <TableHead className="w-[80px]">Image</TableHead>
+                <TableHead>Product</TableHead>
+                <TableHead>Vendor</TableHead>
+                <TableHead>Base Amount</TableHead>
+                <TableHead>Starting Bid</TableHead>
+                <TableHead>Current Bid</TableHead>
+                <TableHead>Reg. Fee</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      )}
-    </CardContent>
-  </Card>
-);
+            </TableHeader>
+            <TableBody>
+              {auctions.map((auction) => {
+                const imageUrl = auction.product?.product_images?.[0]?.image_url;
+                const isSelected = selectedIds.has(auction.id);
+                return (
+                  <TableRow key={auction.id} className={isSelected ? "bg-primary/5" : ""}>
+                    <TableCell>
+                      <Checkbox 
+                        checked={isSelected}
+                        onCheckedChange={() => onToggleSelect(auction.id)}
+                        aria-label={`Select ${auction.product?.name}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-12 w-12 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                        {imageUrl ? (
+                          <img 
+                            src={imageUrl} 
+                            alt={auction.product?.name || "Product"} 
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Gavel className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {auction.product?.name || "Unknown"}
+                    </TableCell>
+                    <TableCell>
+                      {auction.product?.stores?.vendors?.business_name || "Unknown"}
+                    </TableCell>
+                    <TableCell>R{auction.vendor_base_amount}</TableCell>
+                    <TableCell>
+                      {auction.starting_bid_price ? `R${auction.starting_bid_price}` : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {auction.current_bid ? `R${auction.current_bid}` : "-"}
+                    </TableCell>
+                    <TableCell>R{auction.registration_fee || 0}</TableCell>
+                    <TableCell>{getStatusBadge(auction.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onConfigure(auction)}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onViewRegistrations(auction)}
+                        >
+                          <Users className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onViewHistory(auction)}
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+                        {(auction.status === "active" || auction.status === "ended" || auction.status === "sold") && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onViewBidChart(auction)}
+                            title="View Bid Activity"
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {auction.status === "approved" && (
+                          <Button
+                            size="sm"
+                            onClick={() => onStatusChange(auction.id, "active")}
+                          >
+                            Start
+                          </Button>
+                        )}
+                        {auction.status === "active" && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => onEndAuction(auction)}
+                          >
+                            End
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default AdminAuctions;
