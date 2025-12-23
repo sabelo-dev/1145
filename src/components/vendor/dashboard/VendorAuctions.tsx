@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Gavel } from "lucide-react";
+import { Plus, Gavel, Pencil, X } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Auction } from "@/types/auction";
 import { format } from "date-fns";
 
@@ -30,6 +31,9 @@ const VendorAuctions = () => {
   const [loading, setLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [baseAmount, setBaseAmount] = useState("");
 
@@ -158,6 +162,84 @@ const VendorAuctions = () => {
     }
   };
 
+  const handleEditAuction = (auction: Auction) => {
+    setSelectedAuction(auction);
+    setBaseAmount(auction.vendor_base_amount.toString());
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateAuction = async () => {
+    if (!selectedAuction || !baseAmount) {
+      toast({
+        title: "Error",
+        description: "Please enter a base amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("auctions")
+        .update({ vendor_base_amount: parseFloat(baseAmount) })
+        .eq("id", selectedAuction.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Auction Updated",
+        description: "Your auction has been updated successfully",
+      });
+      setEditDialogOpen(false);
+      setSelectedAuction(null);
+      setBaseAmount("");
+      fetchAuctions();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelAuction = (auction: Auction) => {
+    setSelectedAuction(auction);
+    setCancelDialogOpen(true);
+  };
+
+  const confirmCancelAuction = async () => {
+    if (!selectedAuction) return;
+
+    try {
+      const { error } = await supabase
+        .from("auctions")
+        .delete()
+        .eq("id", selectedAuction.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Auction Cancelled",
+        description: "Your auction has been cancelled and removed",
+      });
+      setCancelDialogOpen(false);
+      setSelectedAuction(null);
+      fetchAuctions();
+      fetchProducts();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const canEditOrCancel = (status: string) => {
+    return ["pending", "approved"].includes(status);
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       pending: "secondary",
@@ -279,6 +361,7 @@ const VendorAuctions = () => {
                   <TableHead>Current Bid</TableHead>
                   <TableHead>Start Date</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,6 +383,28 @@ const VendorAuctions = () => {
                         : "Not scheduled"}
                     </TableCell>
                     <TableCell>{getStatusBadge(auction.status)}</TableCell>
+                    <TableCell className="text-right">
+                      {canEditOrCancel(auction.status) ? (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditAuction(auction)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleCancelAuction(auction)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -307,6 +412,57 @@ const VendorAuctions = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Auction Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Auction</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Product</Label>
+              <div className="text-sm text-muted-foreground py-2 px-3 bg-muted rounded-md">
+                {selectedAuction?.product?.name || "Unknown Product"}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Base Amount (Minimum you require)</Label>
+              <Input
+                type="number"
+                placeholder="Enter base amount"
+                value={baseAmount}
+                onChange={(e) => setBaseAmount(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                This is the minimum amount you're willing to accept for the product
+              </p>
+            </div>
+            <Button onClick={handleUpdateAuction} className="w-full">
+              Update Auction
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Auction Alert Dialog */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Auction</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this auction for "{selectedAuction?.product?.name}"? 
+              This action cannot be undone and the auction will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Auction</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCancelAuction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Cancel Auction
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
