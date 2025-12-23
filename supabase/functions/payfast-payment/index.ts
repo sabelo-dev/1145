@@ -13,8 +13,10 @@ interface PayFastPaymentData {
   cancelUrl: string;
   notifyUrl: string;
   customerEmail: string;
-  customerFirstName: string;
-  customerLastName: string;
+  customerFirstName?: string;
+  customerLastName?: string;
+  customStr1?: string; // For passing registration ID
+  customStr2?: string; // For payment type identification
 }
 
 // MD5 hash implementation using Deno's built-in crypto
@@ -126,14 +128,14 @@ serve(async (req) => {
     }
 
     // Create payment form data
-    const formData = {
+    const formData: Record<string, any> = {
       merchant_id: merchantId,
       merchant_key: merchantKey,
       return_url: paymentData.returnUrl,
       cancel_url: paymentData.cancelUrl,
       notify_url: paymentData.notifyUrl,
-      name_first: paymentData.customerFirstName,
-      name_last: paymentData.customerLastName,
+      name_first: paymentData.customerFirstName || "",
+      name_last: paymentData.customerLastName || "",
       email_address: paymentData.customerEmail,
       m_payment_id: `WWE-${Date.now()}-${user.id}`, // Unique payment ID with user
       amount: paymentData.amount.toFixed(2),
@@ -142,6 +144,14 @@ serve(async (req) => {
       email_confirmation: 1,
       confirmation_address: paymentData.customerEmail,
     };
+    
+    // Add custom fields if provided (for auction registrations)
+    if (paymentData.customStr1) {
+      formData.custom_str1 = paymentData.customStr1;
+    }
+    if (paymentData.customStr2) {
+      formData.custom_str2 = paymentData.customStr2;
+    }
 
     // Generate proper MD5 signature
     const signature = await generatePayFastSignature(formData, passphrase);

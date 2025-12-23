@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.payfast-payment]
 verify_jwt = true
 
+[functions.payfast-itn]
+verify_jwt = false
+
 [functions.send-order-status-email]
 verify_jwt = false
 
