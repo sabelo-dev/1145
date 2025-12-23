@@ -30,6 +30,7 @@ const AuctionsPage = () => {
   const [bids, setBids] = useState<AuctionBid[]>([]);
   const [userRegistration, setUserRegistration] = useState<AuctionRegistration | null>(null);
   const [userRegistrations, setUserRegistrations] = useState<Record<string, boolean>>({});
+  const [userWonAuctions, setUserWonAuctions] = useState<Record<string, boolean>>({});
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   
@@ -245,12 +246,41 @@ const AuctionsPage = () => {
             });
             setUserRegistrations(regs);
           }
+          
+          // Fetch user's won auctions that need checkout
+          const { data: wonAuctions } = await supabase
+            .from("auctions")
+            .select("id")
+            .eq("winner_id", user.id)
+            .eq("status", "sold");
+          
+          if (wonAuctions) {
+            const won: Record<string, boolean> = {};
+            wonAuctions.forEach(a => {
+              won[a.id] = true;
+            });
+            setUserWonAuctions(won);
+          }
         }
       }
     } catch (error: any) {
       console.error("Error fetching auctions:", error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  // Process ended auctions automatically
+  const processEndedAuction = async (auctionId: string) => {
+    try {
+      console.log(`Processing ended auction: ${auctionId}`);
+      await supabase.functions.invoke("process-ended-auctions", {
+        body: { auctionId },
+      });
+      // Refresh auctions after processing
+      setTimeout(() => fetchAuctions(), 2000);
+    } catch (error) {
+      console.error("Failed to process ended auction:", error);
     }
   };
 
@@ -492,7 +522,7 @@ const AuctionsPage = () => {
                         type="end" 
                         compact 
                         className="text-destructive"
-                        onExpire={fetchAuctions}
+                        onExpire={() => processEndedAuction(auction.id)}
                       />
                     )}
                   </CardHeader>
