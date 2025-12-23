@@ -18,6 +18,7 @@ import SEO from "@/components/SEO";
 import AuctionCountdown from "@/components/auction/AuctionCountdown";
 import BidHistoryChart from "@/components/auction/BidHistoryChart";
 import WatchlistButton from "@/components/auction/WatchlistButton";
+import ProxyBidForm from "@/components/auction/ProxyBidForm";
 
 const AuctionsPage = () => {
   const navigate = useNavigate();
@@ -697,10 +698,16 @@ const AuctionsPage = () => {
                 </div>
               ) : selectedAuction?.status === "active" ? (
                 <div className="space-y-3">
-                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg flex items-center justify-between">
                     <p className="text-sm text-green-700 dark:text-green-300">
                       ✓ You are registered for this auction
                     </p>
+                    <ProxyBidForm
+                      auctionId={selectedAuction.id}
+                      currentBid={selectedAuction.current_bid || selectedAuction.starting_bid_price || 0}
+                      bidIncrement={selectedAuction.bid_increment || 50}
+                      productName={selectedAuction.product?.name}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Your Bid (R)</Label>

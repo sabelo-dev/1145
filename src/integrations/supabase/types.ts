@@ -1387,6 +1387,44 @@ export type Database = {
           },
         ]
       }
+      proxy_bids: {
+        Row: {
+          auction_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          max_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auction_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auction_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proxy_bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string | null
