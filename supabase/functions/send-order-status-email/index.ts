@@ -17,6 +17,7 @@ interface OrderStatusEmailRequest {
   trackingNumber?: string;
   courierCompany?: string;
   estimatedDelivery?: string;
+  siteUrl?: string;
 }
 
 const getStatusDetails = (status: string) => {
@@ -58,8 +59,13 @@ const generateEmailHtml = (
   customerName: string,
   trackingNumber?: string,
   courierCompany?: string,
-  estimatedDelivery?: string
+  estimatedDelivery?: string,
+  siteUrl?: string
 ) => {
+  const trackingUrl = trackingNumber && siteUrl 
+    ? `${siteUrl}/track-order?tracking=${encodeURIComponent(trackingNumber)}`
+    : null;
+
   return `
     <!DOCTYPE html>
     <html>
@@ -84,6 +90,17 @@ const generateEmailHtml = (
           ${courierCompany ? `<p style="margin: 5px 0;"><strong>Courier:</strong> ${courierCompany}</p>` : ''}
           ${estimatedDelivery ? `<p style="margin: 5px 0;"><strong>Estimated Delivery:</strong> ${new Date(estimatedDelivery).toLocaleDateString('en-ZA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>` : ''}
         </div>
+        
+        ${trackingUrl ? `
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="${trackingUrl}" style="display: inline-block; background: ${statusDetails.color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Track Your Order
+          </a>
+        </div>
+        <p style="text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 20px;">
+          Or copy this link: <a href="${trackingUrl}" style="color: ${statusDetails.color};">${trackingUrl}</a>
+        </p>
+        ` : ''}
         
         <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">
           Thank you for shopping with us!<br>
@@ -114,10 +131,12 @@ const handler = async (req: Request): Promise<Response> => {
       customerName,
       trackingNumber,
       courierCompany,
-      estimatedDelivery
+      estimatedDelivery,
+      siteUrl
     }: OrderStatusEmailRequest = await req.json();
 
     console.log(`Processing email for order ${orderId} with status ${newStatus}`);
+    console.log(`Site URL: ${siteUrl}, Tracking Number: ${trackingNumber}`);
 
     if (!customerEmail) {
       throw new Error("Customer email is required");
@@ -131,7 +150,8 @@ const handler = async (req: Request): Promise<Response> => {
       customerName || 'Valued Customer',
       trackingNumber,
       courierCompany,
-      estimatedDelivery
+      estimatedDelivery,
+      siteUrl || 'https://hipomusjocacncjsvgfa.lovableproject.com'
     );
 
     const emailResponse = await resend.emails.send({

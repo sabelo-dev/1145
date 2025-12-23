@@ -173,7 +173,8 @@ const VendorOrders = () => {
           customerName: order.customer,
           trackingNumber: trackingNumber || order.trackingNumber,
           courierCompany: order.courierCompany,
-          estimatedDelivery: order.estimatedDelivery
+          estimatedDelivery: order.estimatedDelivery,
+          siteUrl: window.location.origin
         }
       });
 
