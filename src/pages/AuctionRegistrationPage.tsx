@@ -112,14 +112,14 @@ const AuctionRegistrationPage: React.FC = () => {
 
       if (regError) throw regError;
 
-      // Invoke PayFast payment
+      // Invoke PayFast payment with ITN webhook URL
       const { data: paymentData, error } = await supabase.functions.invoke('payfast-payment', {
         body: {
           amount: auction.registration_fee,
           itemName: `Auction Registration: ${auction.product?.name || 'Auction Item'}`,
           returnUrl: `${window.location.origin}/auction-registration/success?auctionId=${auction.id}&registrationId=${registration.id}`,
           cancelUrl: `${window.location.origin}/auction-registration?auctionId=${auction.id}`,
-          notifyUrl: `${window.location.origin}/api/auction/registration-notify`,
+          notifyUrl: `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/payfast-itn`,
           customerEmail: user.email,
           customStr1: registration.id, // Pass registration ID for webhook
           customStr2: "auction_registration",
