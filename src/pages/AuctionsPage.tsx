@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
-import { Gavel, Clock, Users } from "lucide-react";
+import { Gavel, Clock, Users, Trophy, Medal, Award } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Auction, AuctionBid, AuctionRegistration } from "@/types/auction";
 import { isFuture } from "date-fns";
 import SEO from "@/components/SEO";
@@ -667,15 +668,87 @@ const AuctionsPage = () => {
 
               {bids.length > 0 && (
                 <div className="border-t pt-4">
-                  <h4 className="font-medium mb-2">Recent Bids</h4>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {bids.slice(0, 10).map((bid) => (
-                      <div key={bid.id} className="flex justify-between text-sm">
-                        <span>{bid.profiles?.name || "Anonymous"}</span>
-                        <span className="font-medium">R{bid.bid_amount}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-yellow-500" />
+                    Bidder Leaderboard
+                  </h4>
+                  <ScrollArea className="h-48">
+                    <div className="space-y-2">
+                      {(() => {
+                        // Group bids by user and get their highest bid
+                        const bidderMap = new Map<string, { name: string; amount: number; odId: string }>();
+                        bids.forEach(bid => {
+                          const existing = bidderMap.get(bid.user_id);
+                          if (!existing || bid.bid_amount > existing.amount) {
+                            bidderMap.set(bid.user_id, {
+                              name: bid.profiles?.name || "Anonymous",
+                              amount: bid.bid_amount,
+                              odId: bid.user_id
+                            });
+                          }
+                        });
+                        
+                        // Sort by highest bid
+                        const leaderboard = Array.from(bidderMap.entries())
+                          .sort((a, b) => b[1].amount - a[1].amount);
+                        
+                        return leaderboard.map(([odId, bidder], index) => {
+                          const isCurrentUser = user?.id === odId;
+                          const rank = index + 1;
+                          
+                          return (
+                            <div 
+                              key={odId} 
+                              className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                                isCurrentUser 
+                                  ? "bg-primary/10 border border-primary/20" 
+                                  : rank <= 3 
+                                    ? "bg-muted/50" 
+                                    : ""
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 flex items-center justify-center">
+                                  {rank === 1 ? (
+                                    <Trophy className="h-5 w-5 text-yellow-500" />
+                                  ) : rank === 2 ? (
+                                    <Medal className="h-5 w-5 text-gray-400" />
+                                  ) : rank === 3 ? (
+                                    <Award className="h-5 w-5 text-amber-600" />
+                                  ) : (
+                                    <span className="text-sm font-medium text-muted-foreground">
+                                      #{rank}
+                                    </span>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className={`text-sm font-medium ${isCurrentUser ? "text-primary" : ""}`}>
+                                    {bidder.name}
+                                    {isCurrentUser && (
+                                      <span className="ml-2 text-xs text-primary">(You)</span>
+                                    )}
+                                  </p>
+                                  {rank === 1 && (
+                                    <p className="text-xs text-green-600">Leading</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className={`font-bold ${rank === 1 ? "text-green-600" : ""}`}>
+                                  R{bidder.amount}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </ScrollArea>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    {bids.length} total bid{bids.length !== 1 ? "s" : ""} from {
+                      new Set(bids.map(b => b.user_id)).size
+                    } bidder{new Set(bids.map(b => b.user_id)).size !== 1 ? "s" : ""}
+                  </p>
                 </div>
               )}
             </div>
