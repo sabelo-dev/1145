@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { Gavel, Clock, Users } from "lucide-react";
 import { Auction, AuctionBid, AuctionRegistration } from "@/types/auction";
 import { isFuture } from "date-fns";
@@ -18,6 +19,7 @@ import BidHistoryChart from "@/components/auction/BidHistoryChart";
 const AuctionsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { playSound } = useNotificationSound();
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,9 @@ const AuctionsPage = () => {
   const [userRegistration, setUserRegistration] = useState<AuctionRegistration | null>(null);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
+  
+  // Track user's highest bids per auction to detect outbids
+  const userHighestBidsRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     fetchAuctions();
@@ -83,6 +88,20 @@ const AuctionsPage = () => {
             ...prev,
             [newBid.auction_id]: (prev[newBid.auction_id] || 0) + 1
           }));
+          
+          // Check if user was outbid (someone else bid higher than user's highest bid)
+          if (user && newBid.user_id !== user.id) {
+            const userHighestBid = userHighestBidsRef.current[newBid.auction_id];
+            if (userHighestBid && newBid.bid_amount > userHighestBid) {
+              // User was outbid!
+              playSound('outbid');
+              toast({
+                title: "You've been outbid!",
+                description: `Someone placed a higher bid of R${newBid.bid_amount} on an auction you're participating in.`,
+                variant: "destructive",
+              });
+            }
+          }
         }
       )
       .subscribe();
@@ -91,7 +110,32 @@ const AuctionsPage = () => {
       supabase.removeChannel(auctionsChannel);
       supabase.removeChannel(allBidsChannel);
     };
-  }, []);
+  }, [user, playSound, toast]);
+
+  // Fetch user's existing bids to track for outbid notifications
+  useEffect(() => {
+    const fetchUserBids = async () => {
+      if (!user) return;
+      
+      const { data: userBids } = await supabase
+        .from("auction_bids")
+        .select("auction_id, bid_amount")
+        .eq("user_id", user.id);
+      
+      if (userBids) {
+        const highestBids: Record<string, number> = {};
+        userBids.forEach(bid => {
+          highestBids[bid.auction_id] = Math.max(
+            highestBids[bid.auction_id] || 0,
+            bid.bid_amount
+          );
+        });
+        userHighestBidsRef.current = highestBids;
+      }
+    };
+    
+    fetchUserBids();
+  }, [user]);
 
   // Subscribe to bids for selected auction
   useEffect(() => {
@@ -320,6 +364,12 @@ const AuctionsPage = () => {
           });
         }
       }
+
+      // Track user's highest bid for this auction
+      userHighestBidsRef.current[selectedAuction.id] = Math.max(
+        userHighestBidsRef.current[selectedAuction.id] || 0,
+        amount
+      );
 
       toast({
         title: "Bid Placed",
