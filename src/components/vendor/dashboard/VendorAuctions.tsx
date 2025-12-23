@@ -18,6 +18,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  status: string;
 }
 
 const VendorAuctions = () => {
@@ -26,6 +27,7 @@ const VendorAuctions = () => {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [baseAmount, setBaseAmount] = useState("");
@@ -57,34 +59,65 @@ const VendorAuctions = () => {
   };
 
   const fetchProducts = async () => {
+    setProductsLoading(true);
     try {
       // Get vendor's store products that are not already in auction
-      const { data: vendorData } = await supabase
+      const { data: vendorData, error: vendorError } = await supabase
         .from("vendors")
         .select("id")
         .eq("user_id", user?.id)
         .single();
 
-      if (!vendorData) return;
+      if (vendorError || !vendorData) {
+        console.error("Error fetching vendor:", vendorError);
+        setProductsLoading(false);
+        return;
+      }
 
-      const { data: storeData } = await supabase
+      const { data: storeData, error: storeError } = await supabase
         .from("stores")
         .select("id")
         .eq("vendor_id", vendorData.id)
         .single();
 
-      if (!storeData) return;
+      if (storeError || !storeData) {
+        console.error("Error fetching store:", storeError);
+        setProductsLoading(false);
+        return;
+      }
 
-      const { data, error } = await supabase
+      // Fetch all products for this store (include pending, approved, active)
+      const { data: productsData, error: productsError } = await supabase
         .from("products")
-        .select("id, name, price")
+        .select("id, name, price, status")
         .eq("store_id", storeData.id)
-        .in("status", ["approved", "active"]);
+        .in("status", ["pending", "approved", "active"]);
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (productsError) throw productsError;
+
+      // Get existing auction product IDs to filter them out
+      const { data: existingAuctions } = await supabase
+        .from("auctions")
+        .select("product_id")
+        .not("status", "in", '("sold","unsold")');
+
+      const auctionProductIds = new Set(existingAuctions?.map(a => a.product_id) || []);
+      
+      // Filter out products that are already in an active auction
+      const availableProducts = (productsData || []).filter(
+        product => !auctionProductIds.has(product.id)
+      );
+
+      setProducts(availableProducts);
     } catch (error: any) {
       console.error("Error fetching products:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setProductsLoading(false);
     }
   };
 
@@ -160,18 +193,26 @@ const VendorAuctions = () => {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Select Product</Label>
-                <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} (R{product.price})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {productsLoading ? (
+                  <div className="text-sm text-muted-foreground py-2">Loading products...</div>
+                ) : products.length === 0 ? (
+                  <div className="text-sm text-muted-foreground py-2">
+                    No available products. Add products to your store first or all products are already in auctions.
+                  </div>
+                ) : (
+                  <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name} (R{product.price}) - {product.status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Base Amount (Minimum you require)</Label>
