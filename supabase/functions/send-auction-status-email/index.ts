@@ -19,9 +19,19 @@ interface AuctionStatusEmailRequest {
   winningBid?: number;
   startDate?: string;
   endDate?: string;
+  isWinnerNotification?: boolean;
 }
 
-const getStatusDetails = (status: string) => {
+const getStatusDetails = (status: string, isWinnerNotification?: boolean) => {
+  if (isWinnerNotification) {
+    return {
+      subject: "Congratulations! You Won the Auction!",
+      heading: "You're the Winner!",
+      message: "Congratulations! You have won this auction. Your registration deposit will be applied to your purchase. Please proceed to complete the payment for the remaining amount.",
+      color: "#22c55e",
+    };
+  }
+
   switch (status) {
     case "approved":
       return {
@@ -82,7 +92,8 @@ const generateEmailHtml = (
   currentBid?: number,
   winningBid?: number,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  isWinnerNotification?: boolean
 ) => {
   const bidInfo = winningBid
     ? `<p style="font-size: 16px; color: #333; margin: 10px 0;"><strong>Winning Bid:</strong> R${winningBid.toLocaleString()}</p>`
@@ -122,9 +133,9 @@ const generateEmailHtml = (
         ${dateInfo}
         
         <div style="margin-top: 30px; text-align: center;">
-          <a href="${Deno.env.get("SITE_URL") || "https://your-site.com"}/vendor/dashboard" 
+          <a href="${Deno.env.get("SITE_URL") || "https://your-site.com"}${isWinnerNotification ? "/dashboard" : "/vendor/dashboard"}" 
              style="display: inline-block; background-color: ${statusDetails.color}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600;">
-            View Dashboard
+            ${isWinnerNotification ? "Complete Purchase" : "View Dashboard"}
           </a>
         </div>
         
@@ -157,9 +168,10 @@ const handler = async (req: Request): Promise<Response> => {
       winningBid,
       startDate,
       endDate,
+      isWinnerNotification,
     }: AuctionStatusEmailRequest = await req.json();
 
-    console.log(`Processing auction status email for auction ${auctionId}, status: ${newStatus}, email: ${userEmail}`);
+    console.log(`Processing auction status email for auction ${auctionId}, status: ${newStatus}, email: ${userEmail}, isWinner: ${isWinnerNotification}`);
 
     if (!userEmail) {
       console.error("No email provided");
@@ -169,7 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const statusDetails = getStatusDetails(newStatus);
+    const statusDetails = getStatusDetails(newStatus, isWinnerNotification);
     const html = generateEmailHtml(
       userName,
       productName,
@@ -177,7 +189,8 @@ const handler = async (req: Request): Promise<Response> => {
       currentBid,
       winningBid,
       startDate,
-      endDate
+      endDate,
+      isWinnerNotification
     );
 
     const emailResponse = await resend.emails.send({

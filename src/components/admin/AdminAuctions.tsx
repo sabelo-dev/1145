@@ -254,6 +254,37 @@ const AdminAuctions = () => {
     }
   };
 
+  const sendWinnerNotificationEmail = async (auction: Auction, winnerId: string, winningBidAmount: number) => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, name")
+        .eq("id", winnerId)
+        .single();
+
+      if (!profile?.email) {
+        console.log("No email found for winner");
+        return;
+      }
+
+      await supabase.functions.invoke("send-auction-status-email", {
+        body: {
+          userEmail: profile.email,
+          userName: profile.name || "Winner",
+          productName: auction.product?.name || "Unknown Product",
+          auctionId: auction.id,
+          newStatus: "sold",
+          winningBid: winningBidAmount,
+          isWinnerNotification: true,
+        },
+      });
+
+      console.log("Winner notification email sent successfully");
+    } catch (error) {
+      console.error("Error sending winner notification email:", error);
+    }
+  };
+
   const handleEndAuction = async (auction: Auction) => {
     try {
       // Get highest bid
@@ -284,13 +315,16 @@ const AdminAuctions = () => {
           .eq("auction_id", auction.id)
           .eq("user_id", winningBid.user_id);
 
-        // Send email notification for sold auction
+        // Send email notification for sold auction (to vendor)
         const updatedAuction = { ...auction, winning_bid: winningBid.bid_amount };
         sendAuctionStatusEmail(updatedAuction, "sold");
 
+        // Send email notification to the winner
+        sendWinnerNotificationEmail(auction, winningBid.user_id, winningBid.bid_amount);
+
         toast({
           title: "Auction Ended",
-          description: "Winner has been determined and deposit applied",
+          description: "Winner has been determined and notified via email",
         });
       } else {
         // No bids - mark as unsold
