@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface CountdownResult {
   days: number;
@@ -9,7 +9,14 @@ interface CountdownResult {
   formatted: string;
 }
 
-export const useCountdown = (targetDate: Date | string | null): CountdownResult => {
+interface UseCountdownOptions {
+  onExpire?: () => void;
+}
+
+export const useCountdown = (
+  targetDate: Date | string | null,
+  options?: UseCountdownOptions
+): CountdownResult => {
   const [timeLeft, setTimeLeft] = useState<CountdownResult>({
     days: 0,
     hours: 0,
@@ -18,8 +25,17 @@ export const useCountdown = (targetDate: Date | string | null): CountdownResult 
     isExpired: true,
     formatted: "00:00:00",
   });
+  
+  const hasExpiredRef = useRef(false);
+  const onExpireRef = useRef(options?.onExpire);
+  
+  // Keep the callback ref updated
+  onExpireRef.current = options?.onExpire;
 
   useEffect(() => {
+    // Reset expired flag when target date changes
+    hasExpiredRef.current = false;
+    
     if (!targetDate) {
       setTimeLeft({
         days: 0,
@@ -38,6 +54,13 @@ export const useCountdown = (targetDate: Date | string | null): CountdownResult 
       const difference = target.getTime() - now.getTime();
 
       if (difference <= 0) {
+        // Only trigger onExpire once per target date
+        if (!hasExpiredRef.current && onExpireRef.current) {
+          hasExpiredRef.current = true;
+          // Use setTimeout to avoid calling during render
+          setTimeout(() => onExpireRef.current?.(), 0);
+        }
+        
         return {
           days: 0,
           hours: 0,
