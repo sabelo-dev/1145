@@ -8,11 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Gavel, Settings, Users, History } from "lucide-react";
-import { Auction, AuctionRegistration } from "@/types/auction";
+import { Gavel, Settings, Users, History, BarChart3 } from "lucide-react";
+import { Auction, AuctionRegistration, AuctionBid } from "@/types/auction";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import BidHistoryChart from "@/components/auction/BidHistoryChart";
 
 interface StatusHistoryItem {
   id: string;
@@ -32,8 +33,11 @@ const AdminAuctions = () => {
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [registrationsDialogOpen, setRegistrationsDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [bidChartDialogOpen, setBidChartDialogOpen] = useState(false);
   const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [auctionBids, setAuctionBids] = useState<AuctionBid[]>([]);
+  const [bidsLoading, setBidsLoading] = useState(false);
   
   // Config form state
   const [startingBid, setStartingBid] = useState("");
@@ -138,6 +142,32 @@ const AdminAuctions = () => {
     setSelectedAuction(auction);
     await fetchStatusHistory(auction.id);
     setHistoryDialogOpen(true);
+  };
+
+  const handleViewBidChart = async (auction: Auction) => {
+    setSelectedAuction(auction);
+    setBidChartDialogOpen(true);
+    setBidsLoading(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from("auction_bids")
+        .select("*")
+        .eq("auction_id", auction.id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setAuctionBids((data as AuctionBid[]) || []);
+    } catch (error: any) {
+      console.error("Error fetching bids:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load bid history",
+        variant: "destructive",
+      });
+    } finally {
+      setBidsLoading(false);
+    }
   };
 
   const sendAuctionStatusEmail = async (auction: Auction, newStatus: string) => {
@@ -392,6 +422,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -403,6 +434,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -414,6 +446,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -425,6 +458,7 @@ const AdminAuctions = () => {
             onConfigure={openConfigDialog}
             onViewRegistrations={openRegistrationsDialog}
             onViewHistory={handleViewHistory}
+            onViewBidChart={handleViewBidChart}
             onStatusChange={handleStatusChange}
             onEndAuction={handleEndAuction}
             getStatusBadge={getStatusBadge}
@@ -629,6 +663,52 @@ const AdminAuctions = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bid Chart Dialog */}
+      <Dialog open={bidChartDialogOpen} onOpenChange={setBidChartDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Bid Activity - {selectedAuction?.product?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {bidsLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Loading bid history...
+              </div>
+            ) : auctionBids.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No bids have been placed on this auction yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <BidHistoryChart 
+                  bids={auctionBids} 
+                  startingBid={selectedAuction?.starting_bid_price || 0} 
+                />
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Total Bids</p>
+                    <p className="text-xl font-bold">{auctionBids.length}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Starting Bid</p>
+                    <p className="text-xl font-bold">R{selectedAuction?.starting_bid_price || 0}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Highest Bid</p>
+                    <p className="text-xl font-bold text-primary">
+                      R{selectedAuction?.current_bid || selectedAuction?.starting_bid_price || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -638,6 +718,7 @@ interface AuctionTableProps {
   onConfigure: (auction: Auction) => void;
   onViewRegistrations: (auction: Auction) => void;
   onViewHistory: (auction: Auction) => void;
+  onViewBidChart: (auction: Auction) => void;
   onStatusChange: (id: string, status: string) => void;
   onEndAuction: (auction: Auction) => void;
   getStatusBadge: (status: string) => JSX.Element;
@@ -648,6 +729,7 @@ const AuctionTable = ({
   onConfigure, 
   onViewRegistrations,
   onViewHistory,
+  onViewBidChart,
   onStatusChange, 
   onEndAuction,
   getStatusBadge 
@@ -732,6 +814,16 @@ const AuctionTable = ({
                     >
                       <History className="h-4 w-4" />
                     </Button>
+                    {(auction.status === "active" || auction.status === "ended" || auction.status === "sold") && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onViewBidChart(auction)}
+                        title="View Bid Activity"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </Button>
+                    )}
                     {auction.status === "approved" && (
                       <Button
                         size="sm"
