@@ -2,13 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, TrendingUp, Shield, Truck } from "lucide-react";
-import Header from "@/components/layout/Header";
 
 const HomeHero: React.FC = () => {
   return (
     <section className="relative bg-gradient-to-br from-primary/10 via-background to-primary/5 overflow-hidden">
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      <Header />
       
       <div className="wwe-container relative py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8">

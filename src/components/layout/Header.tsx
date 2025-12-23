@@ -29,7 +29,10 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 flex items-center">
-            <img src="/uploads/logo.png" alt="1145 Lifestyle" className="h-10" />
+            <span className="text-xl font-bold">
+              <span className="text-black">1145</span>
+              <span className="text-amber-500 animate-pulse"> Lifestyle</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

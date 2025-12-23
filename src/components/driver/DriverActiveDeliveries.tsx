@@ -12,8 +12,39 @@ import {
   Truck,
   Phone,
   RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
+
+// Helper function to build Google Maps directions URL
+const buildGoogleMapsUrl = (address: any, isDirections: boolean = true): string => {
+  let addressString = "";
+  if (!address) return "";
+  if (typeof address === "string") {
+    addressString = address;
+  } else {
+    addressString = [
+      address.street,
+      address.city,
+      address.province,
+      address.postal_code,
+      address.country || "South Africa"
+    ].filter(Boolean).join(", ");
+  }
+  
+  const encoded = encodeURIComponent(addressString);
+  if (isDirections) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+};
+
+const openGoogleMaps = (address: any) => {
+  const url = buildGoogleMapsUrl(address, true);
+  if (url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+};
 
 interface Driver {
   id: string;
@@ -177,7 +208,7 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
                         <MapPin className="h-5 w-5 text-green-600 mt-0.5" />
-                        <div>
+                        <div className="flex-1">
                           <p className="text-xs font-medium text-green-700">PICKUP</p>
                           <p className="text-sm">{formatAddress(job.pickup_address)}</p>
                           {job.pickup_time && (
@@ -185,18 +216,42 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
                               Picked up at {format(new Date(job.pickup_time), "p")}
                             </p>
                           )}
+                          {job.status === "accepted" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-2 text-green-600 border-green-300 hover:bg-green-100"
+                              onClick={() => openGoogleMaps(job.pickup_address)}
+                            >
+                              <Navigation className="h-3 w-3 mr-1" />
+                              Get Directions
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </Button>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                         <Navigation className="h-5 w-5 text-blue-600 mt-0.5" />
-                        <div>
+                        <div className="flex-1">
                           <p className="text-xs font-medium text-blue-700">DELIVER TO</p>
                           <p className="text-sm">{formatAddress(job.delivery_address)}</p>
                           {job.estimated_delivery_time && (
                             <p className="text-xs text-muted-foreground mt-1">
                               ETA: {format(new Date(job.estimated_delivery_time), "p")}
                             </p>
+                          )}
+                          {(job.status === "picked_up" || job.status === "in_transit") && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-2 text-blue-600 border-blue-300 hover:bg-blue-100"
+                              onClick={() => openGoogleMaps(job.delivery_address)}
+                            >
+                              <Navigation className="h-3 w-3 mr-1" />
+                              Get Directions
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </Button>
                           )}
                         </div>
                       </div>
