@@ -86,8 +86,9 @@ const AuctionsPage = () => {
 
           if (auctionData) {
             setSelectedAuction(auctionData as unknown as Auction);
-            // Update minimum bid amount
-            const newMinBid = ((auctionData.current_bid || auctionData.starting_bid_price || 0) + 50);
+            // Update minimum bid amount based on bid increment
+            const increment = auctionData.bid_increment || 50;
+            const newMinBid = ((auctionData.current_bid || auctionData.starting_bid_price || 0) + increment);
             setBidAmount(newMinBid.toString());
           }
 
@@ -130,7 +131,8 @@ const AuctionsPage = () => {
 
   const openBidDialog = async (auction: Auction) => {
     setSelectedAuction(auction);
-    setBidAmount(((auction.current_bid || auction.starting_bid_price || 0) + 50).toString());
+    const increment = auction.bid_increment || 50;
+    setBidAmount(((auction.current_bid || auction.starting_bid_price || 0) + increment).toString());
     
     // Fetch bids
     const { data: bidsData } = await supabase
@@ -203,12 +205,14 @@ const AuctionsPage = () => {
     if (!user || !selectedAuction || !userRegistration) return;
 
     const amount = parseFloat(bidAmount);
-    const minBid = (selectedAuction.current_bid || selectedAuction.starting_bid_price || 0) + 1;
+    const increment = selectedAuction.bid_increment || 50;
+    const currentBid = selectedAuction.current_bid || selectedAuction.starting_bid_price || 0;
+    const minBid = currentBid + increment;
 
     if (amount < minBid) {
       toast({
         title: "Invalid Bid",
-        description: `Bid must be at least R${minBid}`,
+        description: `Bid must be at least R${minBid} (minimum increment: R${increment})`,
         variant: "destructive",
       });
       return;
@@ -271,7 +275,8 @@ const AuctionsPage = () => {
         .order("bid_amount", { ascending: false });
       
       setBids((bidsData as unknown as AuctionBid[]) || []);
-      setBidAmount((amount + 50).toString());
+      const increment = selectedAuction.bid_increment || 50;
+      setBidAmount((amount + increment).toString());
       
       // Refresh auction data
       fetchAuctions();

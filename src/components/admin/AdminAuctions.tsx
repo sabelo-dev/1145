@@ -38,6 +38,7 @@ const AdminAuctions = () => {
   // Config form state
   const [startingBid, setStartingBid] = useState("");
   const [registrationFee, setRegistrationFee] = useState("");
+  const [bidIncrement, setBidIncrement] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -90,6 +91,7 @@ const AdminAuctions = () => {
     setSelectedAuction(auction);
     setStartingBid(auction.starting_bid_price?.toString() || "");
     setRegistrationFee(auction.registration_fee?.toString() || "0");
+    setBidIncrement(auction.bid_increment?.toString() || "50");
     if (auction.start_date) {
       const start = new Date(auction.start_date);
       setStartDate(format(start, "yyyy-MM-dd"));
@@ -194,6 +196,7 @@ const AdminAuctions = () => {
         .update({
           starting_bid_price: parseFloat(startingBid) || null,
           registration_fee: parseFloat(registrationFee) || 0,
+          bid_increment: parseFloat(bidIncrement) || 50,
           start_date: startDateTime,
           end_date: endDateTime,
           status: "approved",
@@ -462,6 +465,18 @@ const AdminAuctions = () => {
               />
               <p className="text-sm text-muted-foreground">
                 Fee consumers pay to participate (used as deposit for winner)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Bid Increment</Label>
+              <Input
+                type="number"
+                placeholder="Enter minimum bid increment"
+                value={bidIncrement}
+                onChange={(e) => setBidIncrement(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                Minimum amount each new bid must exceed the current bid (default: R50)
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
