@@ -138,6 +138,46 @@ const AdminAuctions = () => {
     setHistoryDialogOpen(true);
   };
 
+  const sendAuctionStatusEmail = async (auction: Auction, newStatus: string) => {
+    try {
+      // Get the vendor's email
+      const vendorUserId = auction.product?.stores?.vendors?.user_id;
+      if (!vendorUserId) {
+        console.log("No vendor user ID found for auction email");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, name")
+        .eq("id", vendorUserId)
+        .single();
+
+      if (!profile?.email) {
+        console.log("No email found for vendor");
+        return;
+      }
+
+      await supabase.functions.invoke("send-auction-status-email", {
+        body: {
+          userEmail: profile.email,
+          userName: profile.name || auction.product?.stores?.vendors?.business_name,
+          productName: auction.product?.name || "Unknown Product",
+          auctionId: auction.id,
+          newStatus,
+          currentBid: auction.current_bid,
+          winningBid: auction.winning_bid,
+          startDate: auction.start_date,
+          endDate: auction.end_date,
+        },
+      });
+
+      console.log("Auction status email sent successfully");
+    } catch (error) {
+      console.error("Error sending auction status email:", error);
+    }
+  };
+
   const handleSaveConfig = async () => {
     if (!selectedAuction) return;
 
@@ -162,6 +202,14 @@ const AdminAuctions = () => {
 
       if (error) throw error;
 
+      // Send email notification for approval
+      const updatedAuction = {
+        ...selectedAuction,
+        start_date: startDateTime,
+        end_date: endDateTime,
+      };
+      sendAuctionStatusEmail(updatedAuction, "approved");
+
       toast({
         title: "Auction Updated",
         description: "Auction configuration has been saved",
@@ -185,6 +233,12 @@ const AdminAuctions = () => {
         .eq("id", auctionId);
 
       if (error) throw error;
+
+      // Find the auction and send email notification
+      const auction = auctions.find(a => a.id === auctionId);
+      if (auction) {
+        sendAuctionStatusEmail(auction, newStatus);
+      }
 
       toast({
         title: "Status Updated",
@@ -230,6 +284,10 @@ const AdminAuctions = () => {
           .eq("auction_id", auction.id)
           .eq("user_id", winningBid.user_id);
 
+        // Send email notification for sold auction
+        const updatedAuction = { ...auction, winning_bid: winningBid.bid_amount };
+        sendAuctionStatusEmail(updatedAuction, "sold");
+
         toast({
           title: "Auction Ended",
           description: "Winner has been determined and deposit applied",
@@ -240,6 +298,9 @@ const AdminAuctions = () => {
           .from("auctions")
           .update({ status: "unsold" })
           .eq("id", auction.id);
+
+        // Send email notification for unsold auction
+        sendAuctionStatusEmail(auction, "unsold");
 
         toast({
           title: "Auction Ended",
