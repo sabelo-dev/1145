@@ -204,6 +204,89 @@ serve(async (req) => {
       }
     }
     
+    // Handle auction winner payments
+    if (customStr2 === "auction_winner_payment" && customStr1) {
+      const auctionId = customStr1;
+      
+      if (paymentStatus === "COMPLETE") {
+        console.log(`Processing auction winner payment for auction: ${auctionId}`);
+        
+        // Update auction status to completed
+        const { data: auction, error: auctionError } = await supabaseAdmin
+          .from("auctions")
+          .update({ status: "completed" })
+          .eq("id", auctionId)
+          .select(`
+            *,
+            product:products(id, name, store_id)
+          `)
+          .single();
+        
+        if (auctionError) {
+          console.error("Failed to update auction:", auctionError);
+        } else {
+          console.log(`Auction ${auctionId} marked as completed`);
+          
+          // Mark deposit as applied
+          await supabaseAdmin
+            .from("auction_registrations")
+            .update({ deposit_applied: true })
+            .eq("auction_id", auctionId)
+            .eq("user_id", auction.winner_id);
+          
+          // Get user's default address
+          const { data: address } = await supabaseAdmin
+            .from("user_addresses")
+            .select("*")
+            .eq("user_id", auction.winner_id)
+            .eq("is_default", true)
+            .maybeSingle();
+          
+          const shippingAddress = address ? {
+            name: address.name,
+            street: address.street,
+            city: address.city,
+            province: address.province,
+            postal_code: address.postal_code,
+            country: address.country,
+            phone: address.phone,
+          } : {};
+          
+          // Create order
+          const { data: order, error: orderError } = await supabaseAdmin
+            .from("orders")
+            .insert({
+              user_id: auction.winner_id,
+              total: auction.winning_bid,
+              status: "processing",
+              payment_status: "paid",
+              payment_method: "payfast",
+              shipping_address: shippingAddress,
+              notes: `Auction win: ${auction.product?.name}`,
+            })
+            .select()
+            .single();
+          
+          if (!orderError && order) {
+            // Create order item
+            await supabaseAdmin
+              .from("order_items")
+              .insert({
+                order_id: order.id,
+                product_id: auction.product?.id,
+                store_id: auction.product?.store_id,
+                quantity: 1,
+                price: auction.winning_bid,
+                status: "pending",
+                vendor_status: "pending",
+              });
+            
+            console.log(`Order ${order.id} created for auction winner`);
+          }
+        }
+      }
+    }
+    
     // Handle regular order payments
     if (paymentId && paymentId.startsWith("WWE-")) {
       // Extract order info from payment ID
