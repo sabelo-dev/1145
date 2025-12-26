@@ -107,9 +107,12 @@ const DriverDashboard: React.FC = () => {
 
   const sidebarItems = [
     { id: "overview", title: "Overview", icon: LayoutDashboard },
+    { id: "smart-matching", title: "Smart Matching", icon: Target },
     { id: "available-jobs", title: "Available Jobs", icon: MapPin },
     { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
+    { id: "live-tracking", title: "Live Tracking", icon: Navigation },
     { id: "analytics", title: "My Analytics", icon: BarChart3 },
+    { id: "verification", title: "Verification", icon: Shield },
     { id: "settings", title: "Settings", icon: Settings },
   ];
 
@@ -208,14 +211,23 @@ const DriverDashboard: React.FC = () => {
               <TabsContent value="overview" className="mt-0">
                 <DriverOverview driver={driver} onRefresh={fetchDriverInfo} />
               </TabsContent>
+              <TabsContent value="smart-matching" className="mt-0">
+                <DriverJobMatching driver={driver} onJobClaimed={fetchDriverInfo} />
+              </TabsContent>
               <TabsContent value="available-jobs" className="mt-0">
                 <DriverAvailableJobs driver={driver} onJobClaimed={fetchDriverInfo} />
               </TabsContent>
               <TabsContent value="active-deliveries" className="mt-0">
                 <DriverActiveDeliveries driver={driver} onStatusUpdate={fetchDriverInfo} />
               </TabsContent>
+              <TabsContent value="live-tracking" className="mt-0">
+                <DriverLiveTracking driver={driver} />
+              </TabsContent>
               <TabsContent value="analytics" className="mt-0">
                 <DriverAnalytics driver={driver} />
+              </TabsContent>
+              <TabsContent value="verification" className="mt-0">
+                <DriverVerification driver={driver} />
               </TabsContent>
               <TabsContent value="settings" className="mt-0">
                 <DriverSettings driver={driver} onUpdate={fetchDriverInfo} />
