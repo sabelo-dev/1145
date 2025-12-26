@@ -71,8 +71,8 @@ const HomePage: React.FC = () => {
         keywords="online marketplace, ecommerce, shop online, vendors, products, best deals"
         structuredData={structuredData}
       />
-      <HomeHero />
       <HomeNavMenu />
+      <HomeHero />
       {loading ? (
         <div className="py-12 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
