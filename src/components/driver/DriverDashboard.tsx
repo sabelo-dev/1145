@@ -28,6 +28,9 @@ import DriverAvailableJobs from "./DriverAvailableJobs";
 import DriverActiveDeliveries from "./DriverActiveDeliveries";
 import DriverAnalytics from "./DriverAnalytics";
 import DriverSettings from "./DriverSettings";
+import DriverVerification from "./DriverVerification";
+import DriverLiveTracking from "./DriverLiveTracking";
+import DriverJobMatching from "./DriverJobMatching";
 import {
   LayoutDashboard,
   Truck,
@@ -37,6 +40,9 @@ import {
   LogOut,
   User,
   MapPin,
+  Shield,
+  Navigation,
+  Target,
 } from "lucide-react";
 
 interface Driver {
