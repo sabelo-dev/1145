@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import CartSheet from "@/components/shop/CartSheet";
 import AuctionNotificationCenter from "@/components/auction/AuctionNotificationCenter";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Search, ShoppingCart, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import UserMenu from "./header/UserMenu";
@@ -25,13 +26,13 @@ const Header: React.FC = () => {
   const items = cart?.items || [];
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-10">
+    <header className="bg-background shadow-sm sticky top-0 z-10 border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 flex items-center">
             <span className="text-xl font-bold">
-              <span className="text-black">1145</span>
+              <span className="text-foreground">1145</span>
               <span className="text-amber-500 animate-pulse"> Lifestyle</span>
             </span>
           </Link>
@@ -48,6 +49,9 @@ const Header: React.FC = () => {
 
             {/* Auction Notifications */}
             {user && <AuctionNotificationCenter />}
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* User Menu */}
             <UserMenu user={user} isAdmin={isAdmin} isVendor={isVendor} isDriver={isDriver} logout={logout} />
