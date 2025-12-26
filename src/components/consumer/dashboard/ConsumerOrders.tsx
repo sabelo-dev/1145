@@ -10,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +34,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
+  Download,
+  FileText,
+  FileSpreadsheet,
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import OrderTrackingDialog from "./OrderTrackingDialog";
 import OrderDetailsModal from "./OrderDetailsModal";
 
@@ -268,6 +279,149 @@ const ConsumerOrders: React.FC = () => {
     setDetailsModalOpen(true);
   };
 
+  // Export to CSV
+  const exportToCSV = () => {
+    const dataToExport = filteredOrders.length > 0 ? filteredOrders : orders;
+    
+    if (dataToExport.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No data to export",
+        description: "There are no orders to export.",
+      });
+      return;
+    }
+
+    const headers = ["Order ID", "Date", "Status", "Vendor", "Items", "Products", "Total (R)"];
+    
+    const rows = dataToExport.map((order) => [
+      order.id.slice(0, 8).toUpperCase(),
+      format(new Date(order.date), "yyyy-MM-dd"),
+      order.status.replace(/_/g, " "),
+      order.vendor,
+      order.items.toString(),
+      order.products.map((p) => `${p.name} x${p.quantity}`).join("; "),
+      order.total.toFixed(2),
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `order-history-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Complete",
+      description: `Exported ${dataToExport.length} orders to CSV.`,
+    });
+  };
+
+  // Export to PDF
+  const exportToPDF = () => {
+    const dataToExport = filteredOrders.length > 0 ? filteredOrders : orders;
+    
+    if (dataToExport.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No data to export",
+        description: "There are no orders to export.",
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Order History", 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on ${format(new Date(), "PPP 'at' p")}`, 14, 30);
+    doc.text(`Total Orders: ${dataToExport.length}`, 14, 36);
+    
+    // Summary stats
+    const totalSpent = dataToExport
+      .filter((o) => o.status !== "cancelled")
+      .reduce((sum, o) => sum + o.total, 0);
+    doc.text(`Total Spent: R${totalSpent.toFixed(2)}`, 14, 42);
+
+    // Table data
+    const tableData = dataToExport.map((order) => [
+      order.id.slice(0, 8).toUpperCase(),
+      format(new Date(order.date), "dd MMM yyyy"),
+      order.status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      order.vendor.length > 20 ? order.vendor.slice(0, 20) + "..." : order.vendor,
+      order.items.toString(),
+      `R${order.total.toFixed(2)}`,
+    ]);
+
+    autoTable(doc, {
+      startY: 50,
+      head: [["Order ID", "Date", "Status", "Vendor", "Items", "Total"]],
+      body: tableData,
+      theme: "striped",
+      headStyles: {
+        fillColor: [245, 158, 11],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251],
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 4,
+      },
+      columnStyles: {
+        0: { fontStyle: "bold", cellWidth: 25 },
+        1: { cellWidth: 28 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 45 },
+        4: { cellWidth: 15, halign: "center" },
+        5: { cellWidth: 25, halign: "right", fontStyle: "bold" },
+      },
+    });
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 10,
+        { align: "center" }
+      );
+      doc.text(
+        "1145 Lifestyle - Order History Report",
+        14,
+        doc.internal.pageSize.height - 10
+      );
+    }
+
+    doc.save(`order-history-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+
+    toast({
+      title: "Export Complete",
+      description: `Exported ${dataToExport.length} orders to PDF.`,
+    });
+  };
+
   const handleCancelOrder = async (orderId: string) => {
     if (!confirm("Are you sure you want to cancel this order?")) return;
 
@@ -307,15 +461,35 @@ const ConsumerOrders: React.FC = () => {
     <div className="space-y-6">
       {/* Header with Stats */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Order History</h2>
             <p className="text-muted-foreground">View and track your recent orders</p>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchOrders} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2" disabled={orders.length === 0}>
+                  <Download className="h-4 w-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportToPDF} className="gap-2 cursor-pointer">
+                  <FileText className="h-4 w-4" />
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToCSV} className="gap-2 cursor-pointer">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="outline" size="sm" onClick={fetchOrders} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Quick Stats */}
