@@ -29,7 +29,21 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   logout,
 }) => {
   return (
-    <div className={cn("md:hidden bg-background opacity-100 border-t border-border shadow-lg", mobileMenuOpen ? "block" : "hidden")}>
+    <>
+      {/* Dark overlay */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300",
+          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+      {/* Menu content */}
+      <div className={cn(
+        "md:hidden bg-background opacity-100 border-t border-border shadow-lg fixed top-0 right-0 h-full w-4/5 max-w-sm z-50 overflow-y-auto transition-transform duration-300",
+        mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+      )}>
       <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background opacity-100">
         {/* Close button */}
         <div className="flex justify-end px-3 py-2">
@@ -256,6 +270,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         )}
       </div>
     </div>
+    </>
   );
 };
 
