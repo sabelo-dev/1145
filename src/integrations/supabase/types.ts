@@ -2091,7 +2091,12 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_auction_active: { Args: { _auction_id: string }; Returns: boolean }
       is_driver: { Args: { _user_id: string }; Returns: boolean }
+      is_registered_for_auction: {
+        Args: { _auction_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor: { Args: { _user_id: string }; Returns: boolean }
     }
