@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, Store, Shield, Truck } from "lucide-react";
+import { Search, Store, Shield, Truck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User as UserType } from "@/types";
 import {
@@ -31,6 +31,16 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   return (
     <div className={cn("md:hidden bg-background opacity-100 border-t border-border shadow-lg", mobileMenuOpen ? "block" : "hidden")}>
       <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background opacity-100">
+        {/* Close button */}
+        <div className="flex justify-end px-3 py-2">
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         <Link
           to="/"
           className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
