@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, Store, Shield, Truck, X } from "lucide-react";
+import { Search, Store, Shield, Truck, X, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User as UserType } from "@/types";
+import { useTheme } from "next-themes";
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,6 +29,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   isDriver,
   logout,
 }) => {
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
     <>
       {/* Dark overlay */}
@@ -45,8 +52,19 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         mobileMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
       <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background opacity-100">
-        {/* Close button */}
-        <div className="flex justify-end px-3 py-2">
+        {/* Close button and Theme Toggle */}
+        <div className="flex justify-between items-center px-3 py-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </button>
           <button
             onClick={() => setMobileMenuOpen(false)}
             className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

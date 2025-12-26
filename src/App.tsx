@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import TrackOrderPage from "./pages/TrackOrderPage";
 import StorefrontPage from "@/pages/StorefrontPage";
@@ -67,6 +68,7 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <WishlistProvider>
@@ -164,6 +166,7 @@ function App() {
         </WishlistProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
