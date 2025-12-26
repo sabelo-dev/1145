@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import Hero from "@/components/home/Hero";
+import HomeNavMenu from "@/components/home/HomeNavMenu";
 import SEO from "@/components/SEO";
 import { getOrganizationSchema, getWebsiteSchema } from "@/utils/structuredData";
 
@@ -20,6 +21,7 @@ const LandingPage: React.FC = () => {
         keywords="1145 lifestyle, online shopping, fashion, beauty, gadgets, home essentials, pre-launch"
         structuredData={structuredData}
       />
+      <HomeNavMenu />
       <Hero />
     </div>
   );
