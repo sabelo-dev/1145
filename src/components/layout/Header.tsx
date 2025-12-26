@@ -32,8 +32,8 @@ const Header: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 flex items-center">
             <span className="text-xl font-bold">
-              <span className="text-foreground">1145</span>
-              <span className="text-amber-500 animate-pulse"> Lifestyle</span>
+              <span className="text-foreground dark:text-primary-foreground">1145</span>
+              <span className="text-amber-500 dark:text-amber-400 animate-pulse"> Lifestyle</span>
             </span>
           </Link>
 
