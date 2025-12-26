@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import {
@@ -17,7 +18,12 @@ import {
   Clock,
   Navigation,
   ShoppingBag,
+  FileText,
+  Download,
 } from "lucide-react";
+import { generateInvoice } from "@/lib/invoiceGenerator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface OrderProduct {
   id: string;
@@ -54,7 +60,45 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   open,
   onOpenChange,
 }) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
   if (!order) return null;
+
+  const handleDownloadInvoice = () => {
+    try {
+      generateInvoice({
+        orderId: order.id,
+        orderDate: order.date,
+        customerName: order.shipping_address?.name || "Customer",
+        customerEmail: user?.email,
+        shippingAddress: order.shipping_address || {},
+        products: order.products.map((p) => ({
+          name: p.name,
+          quantity: p.quantity,
+          price: p.price,
+        })),
+        total: order.total,
+        trackingNumber: order.trackingNumber || undefined,
+        courierCompany: order.courier_company || undefined,
+        estimatedDelivery: order.estimated_delivery || undefined,
+        storeName: order.vendor,
+        orderStatus: order.status,
+      });
+
+      toast({
+        title: "Invoice Downloaded",
+        description: "Your invoice has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate invoice. Please try again.",
+      });
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
@@ -107,9 +151,20 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             </span>
             {getStatusBadge(order.status)}
           </DialogTitle>
-          <DialogDescription>
-            Placed on {format(new Date(order.date), "PPP 'at' p")}
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <DialogDescription>
+              Placed on {format(new Date(order.date), "PPP 'at' p")}
+            </DialogDescription>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadInvoice}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download Invoice
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">
