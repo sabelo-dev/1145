@@ -37,11 +37,13 @@ import {
   Download,
   FileText,
   FileSpreadsheet,
+  Star,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import OrderTrackingDialog from "./OrderTrackingDialog";
 import OrderDetailsModal from "./OrderDetailsModal";
+import WriteReviewDialog from "./WriteReviewDialog";
 
 interface OrderProduct {
   id: string;
@@ -49,6 +51,7 @@ interface OrderProduct {
   quantity: number;
   price: number;
   image_url?: string;
+  product_id?: string;
 }
 
 interface Order {
@@ -83,6 +86,7 @@ const ConsumerOrders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -168,6 +172,7 @@ const ConsumerOrders: React.FC = () => {
 
           return {
             id: item.id,
+            product_id: item.product_id,
             name: item.products?.name || "Unknown Product",
             quantity: item.quantity,
             price: Number(item.price),
@@ -277,6 +282,11 @@ const ConsumerOrders: React.FC = () => {
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
     setDetailsModalOpen(true);
+  };
+
+  const handleWriteReview = (order: Order) => {
+    setSelectedOrder(order);
+    setReviewDialogOpen(true);
   };
 
   // Export to CSV
@@ -680,10 +690,21 @@ const ConsumerOrders: React.FC = () => {
                         Details
                       </Button>
                       {canReturn(order.status) && (
-                        <Button variant="outline" size="sm" className="gap-1.5">
-                          <RotateCcw className="h-3.5 w-3.5" />
-                          Return
-                        </Button>
+                        <>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleWriteReview(order)}
+                            className="gap-1.5"
+                          >
+                            <Star className="h-3.5 w-3.5" />
+                            Review
+                          </Button>
+                          <Button variant="outline" size="sm" className="gap-1.5">
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            Return
+                          </Button>
+                        </>
                       )}
                       {canCancel(order.status) && (
                         <Button
@@ -748,6 +769,15 @@ const ConsumerOrders: React.FC = () => {
         open={detailsModalOpen}
         onOpenChange={setDetailsModalOpen}
       />
+
+      {selectedOrder && (
+        <WriteReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          orderId={selectedOrder.id}
+          products={selectedOrder.products}
+        />
+      )}
     </div>
   );
 };
