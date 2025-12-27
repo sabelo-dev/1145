@@ -1431,6 +1431,7 @@ export type Database = {
           created_at: string | null
           flagged: boolean | null
           id: string
+          images: string[] | null
           order_id: string | null
           product_id: string
           rating: number
@@ -1445,6 +1446,7 @@ export type Database = {
           created_at?: string | null
           flagged?: boolean | null
           id?: string
+          images?: string[] | null
           order_id?: string | null
           product_id: string
           rating: number
@@ -1459,6 +1461,7 @@ export type Database = {
           created_at?: string | null
           flagged?: boolean | null
           id?: string
+          images?: string[] | null
           order_id?: string | null
           product_id?: string
           rating?: number

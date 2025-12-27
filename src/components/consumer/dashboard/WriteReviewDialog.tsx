@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Star, Package, Check } from "lucide-react";
+import { Star, Package, Check, Camera, X, ImagePlus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -33,8 +33,12 @@ interface ProductReview {
   product_id: string;
   rating: number;
   comment: string;
+  images: string[];
   submitted: boolean;
 }
+
+const MAX_IMAGES = 5;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const WriteReviewDialog: React.FC<WriteReviewDialogProps> = ({
   open,
@@ -46,7 +50,9 @@ const WriteReviewDialog: React.FC<WriteReviewDialogProps> = ({
   const [productReviews, setProductReviews] = useState<ProductReview[]>([]);
   const [existingReviews, setExistingReviews] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -79,10 +85,97 @@ const WriteReviewDialog: React.FC<WriteReviewDialogProps> = ({
         product_id: product.product_id || product.id,
         rating: 0,
         comment: "",
+        images: [],
         submitted: false,
       }))
     );
     setCurrentProductIndex(0);
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const files = event.target.files;
+    if (!files || files.length === 0 || !user) return;
+
+    const currentImages = productReviews[index]?.images || [];
+    if (currentImages.length >= MAX_IMAGES) {
+      toast({
+        variant: "destructive",
+        title: "Maximum Images Reached",
+        description: `You can only upload up to ${MAX_IMAGES} images per review.`,
+      });
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, MAX_IMAGES - currentImages.length);
+    
+    // Validate file sizes
+    for (const file of filesToUpload) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          variant: "destructive",
+          title: "File Too Large",
+          description: `${file.name} exceeds the 5MB limit.`,
+        });
+        return;
+      }
+    }
+
+    setUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of filesToUpload) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('review-images')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('review-images')
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(publicUrl);
+      }
+
+      setProductReviews((prev) =>
+        prev.map((review, i) =>
+          i === index
+            ? { ...review, images: [...review.images, ...uploadedUrls] }
+            : review
+        )
+      );
+
+      toast({
+        title: "Images Uploaded",
+        description: `${uploadedUrls.length} image(s) added to your review.`,
+      });
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: "Failed to upload images. Please try again.",
+      });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeImage = (reviewIndex: number, imageIndex: number) => {
+    setProductReviews((prev) =>
+      prev.map((review, i) =>
+        i === reviewIndex
+          ? { ...review, images: review.images.filter((_, idx) => idx !== imageIndex) }
+          : review
+      )
+    );
   };
 
   const updateReview = (index: number, field: "rating" | "comment", value: number | string) => {
@@ -116,6 +209,7 @@ const WriteReviewDialog: React.FC<WriteReviewDialogProps> = ({
         order_id: orderId,
         rating: review.rating,
         comment: review.comment || null,
+        images: review.images.length > 0 ? review.images : null,
       });
 
       if (error) throw error;
@@ -317,9 +411,79 @@ const WriteReviewDialog: React.FC<WriteReviewDialogProps> = ({
                     onChange={(e) =>
                       updateReview(currentReviewIndex, "comment", e.target.value)
                     }
-                    rows={4}
+                    rows={3}
                     className="resize-none"
                   />
+                </div>
+
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Add Photos{" "}
+                    <span className="text-muted-foreground font-normal">
+                      (optional, up to {MAX_IMAGES})
+                    </span>
+                  </label>
+                  
+                  {/* Image Preview Grid */}
+                  {currentReview.images.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {currentReview.images.map((imageUrl, imgIndex) => (
+                        <div
+                          key={imgIndex}
+                          className="relative w-16 h-16 rounded-lg overflow-hidden group"
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={`Review image ${imgIndex + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(currentReviewIndex, imgIndex)}
+                            className="absolute top-0.5 right-0.5 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload Button */}
+                  {currentReview.images.length < MAX_IMAGES && (
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        onChange={(e) => handleImageUpload(e, currentReviewIndex)}
+                        className="hidden"
+                        id="review-image-upload"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="gap-2"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <ImagePlus className="h-4 w-4" />
+                            Add Photos
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}
