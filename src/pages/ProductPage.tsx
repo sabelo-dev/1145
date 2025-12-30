@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { Star, Truck, ShieldCheck, Heart, Calendar } from "lucide-react";
+import { Star, Truck, ShieldCheck, Heart, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -191,7 +191,7 @@ const ProductPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-lg border bg-gray-100">
+            <div className="relative aspect-square overflow-hidden rounded-lg border bg-gray-100 group">
               <img
                 src={product.images && product.images.length > 0 ? product.images[selectedImage] : '/placeholder.svg'}
                 alt={product.name}
@@ -200,6 +200,41 @@ const ProductPage: React.FC = () => {
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />
+              {/* Pagination arrows */}
+              {product.images && product.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover:bg-background p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover:bg-background p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                  {/* Dot indicators */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {product.images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImage(idx)}
+                        className={cn(
+                          "h-2 w-2 rounded-full transition-all",
+                          selectedImage === idx 
+                            ? "bg-primary w-4" 
+                            : "bg-background/70 hover:bg-background"
+                        )}
+                        aria-label={`Go to image ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
             {product.images && product.images.length > 0 && (
               <div className="flex space-x-2 overflow-auto pb-2">
@@ -208,8 +243,8 @@ const ProductPage: React.FC = () => {
                   key={idx}
                   className={`relative w-20 h-20 cursor-pointer rounded border ${
                     selectedImage === idx
-                      ? "ring-2 ring-wwe-navy"
-                      : "hover:ring-1 hover:ring-gray-300"
+                      ? "ring-2 ring-primary"
+                      : "hover:ring-1 hover:ring-muted-foreground/30"
                   }`}
                   onClick={() => setSelectedImage(idx)}
                 >
