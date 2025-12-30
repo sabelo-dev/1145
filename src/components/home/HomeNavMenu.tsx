@@ -25,8 +25,20 @@ const HomeNavMenu: React.FC = () => {
   const { user, logout, isVendor, isDriver } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const mobileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Check initial state
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (mobileSearchOpen && mobileInputRef.current) {
@@ -44,7 +56,13 @@ const HomeNavMenu: React.FC = () => {
   };
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-40">
+    <nav 
+      className={`bg-background sticky top-0 z-40 transition-all duration-300 ease-in-out ${
+        isScrolled 
+          ? "border-b border-border shadow-sm" 
+          : "border-b border-transparent"
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between gap-4 py-3">
           {/* Logo */}
