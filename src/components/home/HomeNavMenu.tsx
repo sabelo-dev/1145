@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search } from "lucide-react";
+import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +24,22 @@ const menuItems = [
 const HomeNavMenu: React.FC = () => {
   const { user, logout, isVendor, isDriver } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (mobileSearchOpen && mobileInputRef.current) {
+      mobileInputRef.current.focus();
+    }
+  }, [mobileSearchOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
+      setMobileSearchOpen(false);
     }
   };
 
@@ -45,7 +55,7 @@ const HomeNavMenu: React.FC = () => {
             <span className="font-bold text-lg text-foreground hidden md:inline">1145 Lifestyle</span>
           </Link>
 
-          {/* Search Bar */}
+          {/* Desktop Search Bar */}
           <form onSubmit={handleSearch} className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -59,91 +69,131 @@ const HomeNavMenu: React.FC = () => {
             </div>
           </form>
 
+          {/* Mobile Search Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="sm:hidden flex-shrink-0"
+            onClick={() => setMobileSearchOpen(true)}
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+
           {/* Nav Items */}
           <ul className="flex items-center gap-1 md:gap-2 overflow-x-auto flex-shrink-0">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.path}>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+            <li>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap outline-none">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">Profile</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to="/account" className="flex items-center gap-2 cursor-pointer">
+                        <User className="h-4 w-4" />
+                        My Account
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/account?tab=orders" className="flex items-center gap-2 cursor-pointer">
+                        <Package className="h-4 w-4" />
+                        Orders
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/account?tab=profile" className="flex items-center gap-2 cursor-pointer">
+                        <Settings className="h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    {(!isVendor || !isDriver) && <DropdownMenuSeparator />}
+                    
+                    {!isVendor && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/vendor/register" className="flex items-center gap-2 cursor-pointer">
+                          <Store className="h-4 w-4" />
+                          Become a Vendor
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {!isDriver && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/driver/register" className="flex items-center gap-2 cursor-pointer">
+                          <Truck className="h-4 w-4" />
+                          Become a Driver
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => logout()} 
+                      className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
                 <Link
-                  to={item.path}
+                  to="/login"
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
                 >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign In</span>
                 </Link>
-              </li>
-            );
-          })}
-          <li>
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap outline-none">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Profile</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link to="/account" className="flex items-center gap-2 cursor-pointer">
-                      <User className="h-4 w-4" />
-                      My Account
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/account?tab=orders" className="flex items-center gap-2 cursor-pointer">
-                      <Package className="h-4 w-4" />
-                      Orders
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/account?tab=profile" className="flex items-center gap-2 cursor-pointer">
-                      <Settings className="h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  {(!isVendor || !isDriver) && <DropdownMenuSeparator />}
-                  
-                  {!isVendor && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/vendor/register" className="flex items-center gap-2 cursor-pointer">
-                        <Store className="h-4 w-4" />
-                        Become a Vendor
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  
-                  {!isDriver && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/driver/register" className="flex items-center gap-2 cursor-pointer">
-                        <Truck className="h-4 w-4" />
-                        Become a Driver
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => logout()} 
-                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link
-                to="/login"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
-              >
-                <LogIn className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign In</span>
-              </Link>
-            )}
-          </li>
-        </ul>
+              )}
+            </li>
+          </ul>
         </div>
+
+        {/* Mobile Search Bar - Full Width */}
+        {mobileSearchOpen && (
+          <div className="sm:hidden pb-3 animate-fade-in">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  ref={mobileInputRef}
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-4 h-10 w-full"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setMobileSearchOpen(false);
+                  setSearchQuery("");
+                }}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </form>
+          </div>
+        )}
       </div>
     </nav>
   );
