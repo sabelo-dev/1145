@@ -1,7 +1,8 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck } from "lucide-react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,21 +22,45 @@ const menuItems = [
 
 const HomeNavMenu: React.FC = () => {
   const { user, logout, isVendor, isDriver } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
 
   return (
     <nav className="bg-background border-b border-border sticky top-0 z-40">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between gap-4 py-3">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">11</span>
             </div>
-            <span className="font-bold text-lg text-foreground hidden sm:inline">1145 Lifestyle</span>
+            <span className="font-bold text-lg text-foreground hidden md:inline">1145 Lifestyle</span>
           </Link>
 
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-md hidden sm:block">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-4 h-9 w-full"
+              />
+            </div>
+          </form>
+
           {/* Nav Items */}
-          <ul className="flex items-center gap-1 md:gap-4 overflow-x-auto">
+          <ul className="flex items-center gap-1 md:gap-2 overflow-x-auto flex-shrink-0">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
