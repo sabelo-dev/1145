@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, Store, Shield, Truck, X } from "lucide-react";
+import { Search, Store, Shield, Truck, X, Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, Sparkles, MessageCircle, HelpCircle, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User as UserType } from "@/types";
+import { Button } from "@/components/ui/button";
 
 import {
   Collapsible,
@@ -30,6 +31,20 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   logout,
 }) => {
 
+  const mainMenuItems = [
+    { label: "Home", path: "/", icon: Home },
+    { label: "Shop", path: "/shop", icon: ShoppingBag },
+    { label: "Best Sellers", path: "/best-sellers", icon: TrendingUp },
+    { label: "Deals", path: "/deals", icon: Percent },
+    { label: "Auctions", path: "/auctions", icon: Gavel },
+    { label: "New Arrivals", path: "/new-arrivals", icon: Sparkles },
+  ];
+
+  const supportMenuItems = [
+    { label: "Contact", path: "/contact", icon: MessageCircle },
+    { label: "FAQ", path: "/faq", icon: HelpCircle },
+  ];
+
   return (
     <>
       {/* Dark overlay */}
@@ -41,237 +56,235 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
+      
       {/* Menu content */}
       <div className={cn(
-        "md:hidden bg-background opacity-100 border-t border-border shadow-lg fixed top-0 right-0 h-full w-4/5 max-w-sm z-50 overflow-y-auto transition-transform duration-300",
+        "md:hidden bg-background border-l border-border shadow-lg fixed top-0 right-0 h-full w-[85%] max-w-sm z-50 overflow-y-auto transition-transform duration-300",
         mobileMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
-      <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background opacity-100">
-        {/* Close button */}
-        <div className="flex justify-end items-center px-3 py-2">
-          <button
+        {/* Header */}
+        <div className="sticky top-0 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+          <span className="font-semibold text-foreground">Menu</span>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setMobileMenuOpen(false)}
-            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            aria-label="Close menu"
+            className="h-8 w-8"
           >
-            <X className="h-5 w-5" />
-          </button>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-        <Link
-          to="/"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          Home
-        </Link>
-        <Link
-          to="/shop"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          Shop
-        </Link>
-        
-        {/* Categories with Subcategories */}
-        <Collapsible>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
-            Categories
-            <span className="text-xs">+</span>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pl-6 space-y-1">
-            <Link
-              to="/categories"
-              className="block px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              All Categories
-            </Link>
-            <div className="pl-3">
-              <p className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase">Clothing</p>
-              <Link
-                to="/category/clothing/men"
-                className="block px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Men's Clothing
-              </Link>
-              <Link
-                to="/category/clothing/women"
-                className="block px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Women's Clothing
-              </Link>
-              <Link
-                to="/category/clothing/kids"
-                className="block px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Kids' Clothing
-              </Link>
-            </div>
-            <div className="pl-3">
-              <p className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase">Home</p>
-              <Link
-                to="/category/home-kitchen/appliances"
-                className="block px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Appliances
-              </Link>
-              <Link
-                to="/category/home-kitchen/kitchen"
-                className="block px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Electronics
-              </Link>
-              <Link
-                to="/category/home-kitchen/furniture"
-                className="block px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Furniture
-              </Link>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
 
-        <Link
-          to="/best-sellers"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          Best Sellers
-        </Link>
-        <Link
-          to="/deals"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          Deals
-        </Link>
-        <Link
-          to="/auctions"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          Auctions
-        </Link>
-        <Link
-          to="/new-arrivals"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          New Arrivals
-        </Link>
-        <Link
-          to="/contact"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          Contact
-        </Link>
-        <Link
-          to="/faq"
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          FAQ
-        </Link>
-
-        {/* User-specific links */}
-        {user?.role === 'consumer' && !isVendor && (
-          <Link
-            to="/vendor/register"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Store className="h-4 w-4 inline-block mr-2" />
-            Become a Vendor
-          </Link>
-        )}
-        {isVendor && (
-          <Link
-            to="/vendor/dashboard"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Store className="h-4 w-4 inline-block mr-2" />
-            Vendor Dashboard
-          </Link>
-        )}
-        {isDriver && (
-          <Link
-            to="/driver/dashboard"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Truck className="h-4 w-4 inline-block mr-2" />
-            Driver Dashboard
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            to="/admin/dashboard"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Shield className="h-4 w-4 inline-block mr-2" />
-            Admin Dashboard
-          </Link>
-        )}
-
-        {/* Search Bar in Mobile Menu */}
-        <div className="px-3 py-2">
+        <div className="px-4 py-4 space-y-6">
+          {/* Search Bar */}
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="search"
-              className="block w-full pl-10 pr-3 py-2 border border-input rounded-md leading-5 bg-background placeholder-muted-foreground focus:outline-none focus:ring-ring focus:border-ring sm:text-sm"
-              placeholder="Search"
+              className="block w-full pl-10 pr-3 py-2.5 border border-input rounded-md text-sm bg-background placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder="Search products..."
             />
           </div>
-        </div>
 
-        {/* User Actions in Mobile Menu */}
-        {user ? (
-          <div className="px-3 py-2">
-            <div className="font-medium text-gray-800 mb-2">
-              {user.name || user.email}
+          {/* Main Navigation */}
+          <div className="space-y-1">
+            {mainMenuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Categories Section */}
+          <Collapsible className="border-t border-border pt-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors">
+              <div className="flex items-center gap-3">
+                <Grid3X3 className="h-4 w-4 text-muted-foreground" />
+                Categories
+              </div>
+              <span className="text-muted-foreground text-xs">+</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 ml-7 space-y-3">
+              <Link
+                to="/categories"
+                className="block px-3 py-2 rounded-md text-sm text-foreground hover:bg-accent transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                All Categories
+              </Link>
+              
+              <div>
+                <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clothing</p>
+                <div className="space-y-1">
+                  <Link
+                    to="/category/clothing/men"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Men's Clothing
+                  </Link>
+                  <Link
+                    to="/category/clothing/women"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Women's Clothing
+                  </Link>
+                  <Link
+                    to="/category/clothing/kids"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Kids' Clothing
+                  </Link>
+                </div>
+              </div>
+              
+              <div>
+                <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Home</p>
+                <div className="space-y-1">
+                  <Link
+                    to="/category/home-kitchen/appliances"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Appliances
+                  </Link>
+                  <Link
+                    to="/category/home-kitchen/kitchen"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Electronics
+                  </Link>
+                  <Link
+                    to="/category/home-kitchen/furniture"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Furniture
+                  </Link>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Support Links */}
+          <div className="border-t border-border pt-4 space-y-1">
+            {supportMenuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Role-specific Links */}
+          {(isVendor || isDriver || isAdmin || (user && !isVendor)) && (
+            <div className="border-t border-border pt-4 space-y-1">
+              {user?.role === 'consumer' && !isVendor && (
+                <Link
+                  to="/vendor/register"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Store className="h-4 w-4 text-muted-foreground" />
+                  Become a Vendor
+                </Link>
+              )}
+              {isVendor && (
+                <Link
+                  to="/vendor/dashboard"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Store className="h-4 w-4 text-muted-foreground" />
+                  Vendor Dashboard
+                </Link>
+              )}
+              {isDriver && (
+                <Link
+                  to="/driver/dashboard"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Truck className="h-4 w-4 text-muted-foreground" />
+                  Driver Dashboard
+                </Link>
+              )}
+              {isAdmin && (
+                <Link
+                  to="/admin/dashboard"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  Admin Dashboard
+                </Link>
+              )}
             </div>
-            <Link
-              to="/account"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Account
-            </Link>
-            <button
-              onClick={async () => {
-                await logout();
-                setMobileMenuOpen(false);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Sign out
-            </button>
+          )}
+
+          {/* User Section */}
+          <div className="border-t border-border pt-4">
+            {user ? (
+              <div className="space-y-3">
+                <div className="px-3 py-2 bg-muted/50 rounded-md">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {user.name || user.email}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </div>
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  My Dashboard
+                </Link>
+                <button
+                  onClick={async () => {
+                    await logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+            )}
           </div>
-        ) : (
-          <div className="px-3 py-2">
-            <Link
-              to="/login"
-              className="block w-full text-center px-3 py-2 rounded-md bg-primary text-primary-foreground font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sign in
-            </Link>
-          </div>
-        )}
+        </div>
       </div>
-    </div>
     </>
   );
 };

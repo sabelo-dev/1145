@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.send-auction-status-email]
 verify_jwt = false
+
+[functions.send-new-order-alert]
+verify_jwt = false
