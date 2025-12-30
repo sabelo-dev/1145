@@ -25,7 +25,17 @@ const HomeNavMenu: React.FC = () => {
   return (
     <nav className="bg-background border-b border-border sticky top-0 z-40">
       <div className="container mx-auto px-4">
-        <ul className="flex items-center justify-center gap-2 md:gap-8 py-3 overflow-x-auto">
+        <div className="flex items-center justify-between py-3">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">11</span>
+            </div>
+            <span className="font-bold text-lg text-foreground hidden sm:inline">1145 Lifestyle</span>
+          </Link>
+
+          {/* Nav Items */}
+          <ul className="flex items-center gap-1 md:gap-4 overflow-x-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -108,6 +118,7 @@ const HomeNavMenu: React.FC = () => {
             )}
           </li>
         </ul>
+        </div>
       </div>
     </nav>
   );
