@@ -59,7 +59,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       
       {/* Menu content */}
       <div className={cn(
-        "md:hidden bg-background border-l border-border shadow-lg fixed top-0 right-0 h-full w-[85%] max-w-sm z-50 overflow-y-auto transition-transform duration-300",
+        "md:hidden bg-white dark:bg-background border-l border-border shadow-lg fixed top-0 right-0 h-full w-[85%] max-w-sm z-50 overflow-y-auto transition-transform duration-300",
         mobileMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {/* Header */}
