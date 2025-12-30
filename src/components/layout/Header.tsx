@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import CartSheet from "@/components/shop/CartSheet";
 import AuctionNotificationCenter from "@/components/auction/AuctionNotificationCenter";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Search, ShoppingCart, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import UserMenu from "./header/UserMenu";
@@ -49,10 +48,6 @@ const Header: React.FC = () => {
 
             {/* Auction Notifications */}
             {user && <AuctionNotificationCenter />}
-
-            {/* Theme Toggle */}
-            <ThemeToggle />
-
             {/* User Menu */}
             <UserMenu user={user} isAdmin={isAdmin} isVendor={isVendor} isDriver={isDriver} logout={logout} />
 
