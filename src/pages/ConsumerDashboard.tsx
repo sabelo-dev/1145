@@ -25,9 +25,12 @@ import {
   Bell,
   HelpCircle,
   Gavel,
+  LayoutDashboard,
+  Settings,
 } from "lucide-react";
 
 // Import dashboard components
+import ConsumerOverview from "@/components/consumer/dashboard/ConsumerOverview";
 import ConsumerOrders from "@/components/consumer/dashboard/ConsumerOrders";
 import ConsumerWishlist from "@/components/consumer/dashboard/ConsumerWishlist";
 import ConsumerAddresses from "@/components/consumer/dashboard/ConsumerAddresses";
@@ -38,10 +41,11 @@ import ConsumerWallet from "@/components/consumer/dashboard/ConsumerWallet";
 import ConsumerNotifications from "@/components/consumer/dashboard/ConsumerNotifications";
 import ConsumerSupport from "@/components/consumer/dashboard/ConsumerSupport";
 import ConsumerAuctionWatchlist from "@/components/consumer/dashboard/ConsumerAuctionWatchlist";
+import ConsumerSettings from "@/components/consumer/dashboard/ConsumerSettings";
 
 const ConsumerDashboard: React.FC = () => {
   const { user, isLoading } = useAuth();
-  const [activeModule, setActiveModule] = useState("orders");
+  const [activeModule, setActiveModule] = useState("overview");
 
   if (isLoading) {
     return (
@@ -59,6 +63,12 @@ const ConsumerDashboard: React.FC = () => {
   }
 
   const sidebarItems = [
+    {
+      id: "overview",
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      description: "Overview of your account activity"
+    },
     {
       id: "orders",
       title: "My Orders",
@@ -118,11 +128,23 @@ const ConsumerDashboard: React.FC = () => {
       title: "Support",
       icon: HelpCircle,
       description: "Contact help desk or view ticket status"
+    },
+    {
+      id: "settings",
+      title: "Settings",
+      icon: Settings,
+      description: "App preferences and account settings"
     }
   ];
 
+  const handleNavigate = (section: string) => {
+    setActiveModule(section);
+  };
+
   const renderActiveModule = () => {
     switch (activeModule) {
+      case "overview":
+        return <ConsumerOverview onNavigate={handleNavigate} />;
       case "orders":
         return <ConsumerOrders />;
       case "wishlist":
@@ -143,8 +165,10 @@ const ConsumerDashboard: React.FC = () => {
         return <ConsumerNotifications />;
       case "support":
         return <ConsumerSupport />;
+      case "settings":
+        return <ConsumerSettings />;
       default:
-        return <ConsumerOrders />;
+        return <ConsumerOverview onNavigate={handleNavigate} />;
     }
   };
 
@@ -156,7 +180,7 @@ const ConsumerDashboard: React.FC = () => {
         <Sidebar className="w-64">
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>Consumer Dashboard</SidebarGroupLabel>
+              <SidebarGroupLabel>My Account</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {sidebarItems.map((item) => (
@@ -192,13 +216,13 @@ const ConsumerDashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Welcome back,</span>
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Welcome,</span>
               <span className="font-medium">{user.name || user.email}</span>
             </div>
           </header>
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-6 overflow-auto">
             {renderActiveModule()}
           </div>
         </main>
