@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import HomeHero from "@/components/home/HomeHero";
 import HomeNavMenu from "@/components/home/HomeNavMenu";
+import PromoBanner from "@/components/home/PromoBanner";
 import CategorySection from "@/components/home/CategorySection";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import PromoSection from "@/components/home/PromoSection";
@@ -72,6 +73,7 @@ const HomePage: React.FC = () => {
         structuredData={structuredData}
       />
       <HomeNavMenu />
+      <PromoBanner />
       <HomeHero />
       {loading ? (
         <div className="py-12 text-center">
