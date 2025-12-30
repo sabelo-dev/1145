@@ -10,6 +10,7 @@ import { User, Store, Shield, Bell, Truck, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ThemeColorPicker from "@/components/settings/ThemeColorPicker";
 import {
   Dialog,
   DialogContent,
@@ -164,6 +165,9 @@ const ConsumerProfile: React.FC = () => {
             <Button>Update Password</Button>
           </CardContent>
         </Card>
+
+        {/* Theme Customization */}
+        <ThemeColorPicker />
 
         {/* Notification Preferences */}
         <Card>

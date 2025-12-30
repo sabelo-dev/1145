@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeCustomizationProvider } from "@/contexts/ThemeCustomizationContext";
 import { Toaster } from "@/components/ui/toaster";
 import TrackOrderPage from "./pages/TrackOrderPage";
 import StorefrontPage from "@/pages/StorefrontPage";
@@ -69,6 +70,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeCustomizationProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <WishlistProvider>
@@ -166,6 +168,7 @@ function App() {
         </WishlistProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </ThemeCustomizationProvider>
     </ThemeProvider>
   );
 }
