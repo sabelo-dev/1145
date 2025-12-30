@@ -18,7 +18,7 @@ interface Vendor {
   id: string;
   business_name: string;
   user_id: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "suspended";
   created_at: string;
   description?: string;
   logo_url?: string;
@@ -87,7 +87,7 @@ const AdminVendors: React.FC = () => {
 
         const formattedVendors = (vendorsData || []).map((vendor) => ({
           ...vendor,
-          status: vendor.status as "pending" | "approved" | "rejected",
+          status: vendor.status as "pending" | "approved" | "rejected" | "suspended",
           profiles: profilesMap.get(vendor.user_id)
         }));
 
@@ -107,7 +107,7 @@ const AdminVendors: React.FC = () => {
     fetchVendors();
   }, [toast]);
 
-  const handleUpdateStatus = async (vendorId: string, newStatus: "approved" | "rejected") => {
+  const handleUpdateStatus = async (vendorId: string, newStatus: "approved" | "rejected" | "suspended") => {
     try {
       const { error } = await supabase
         .from('vendors')
@@ -135,6 +135,35 @@ const AdminVendors: React.FC = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to update vendor status.",
+      });
+    }
+  };
+
+  const handleRemoveVendor = async (vendorId: string) => {
+    if (!confirm("Are you sure you want to permanently remove this vendor? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('vendors')
+        .delete()
+        .eq('id', vendorId);
+
+      if (error) throw error;
+
+      setVendors(vendors.filter((vendor) => vendor.id !== vendorId));
+
+      toast({
+        title: "Vendor removed",
+        description: "Vendor has been permanently removed.",
+      });
+    } catch (error) {
+      console.error('Error removing vendor:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to remove vendor.",
       });
     }
   };
@@ -177,6 +206,8 @@ const AdminVendors: React.FC = () => {
                         ? "default"
                         : vendor.status === "rejected"
                         ? "destructive"
+                        : vendor.status === "suspended"
+                        ? "secondary"
                         : "outline"
                     }
                   >
@@ -204,18 +235,40 @@ const AdminVendors: React.FC = () => {
                         </Button>
                       </>
                     )}
+                    {vendor.status === "approved" && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleUpdateStatus(vendor.id, "suspended")}
+                      >
+                        Suspend
+                      </Button>
+                    )}
+                    {vendor.status === "suspended" && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleUpdateStatus(vendor.id, "approved")}
+                      >
+                        Reactivate
+                      </Button>
+                    )}
+                    {vendor.status === "rejected" && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleUpdateStatus(vendor.id, "approved")}
+                      >
+                        Approve
+                      </Button>
+                    )}
                     {vendor.status !== "pending" && (
                       <Button
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
-                        onClick={() =>
-                          handleUpdateStatus(
-                            vendor.id,
-                            vendor.status === "approved" ? "rejected" : "approved"
-                          )
-                        }
+                        onClick={() => handleRemoveVendor(vendor.id)}
                       >
-                        {vendor.status === "approved" ? "Deactivate" : "Activate"}
+                        Remove
                       </Button>
                     )}
                   </div>
