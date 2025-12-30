@@ -63,10 +63,10 @@ const Header: React.FC = () => {
   return (
     <>
       <header 
-        className={`bg-background sticky top-0 z-40 transition-all duration-300 ease-in-out ${
+        className={`sticky top-0 z-40 transition-all duration-300 ease-in-out ${
           isScrolled 
-            ? "border-b border-border shadow-sm" 
-            : "border-b border-transparent"
+            ? "bg-background/80 backdrop-blur-md border-b border-border shadow-sm" 
+            : "bg-background border-b border-transparent"
         }`}
       >
         <div className="container mx-auto px-4">
