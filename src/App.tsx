@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
@@ -24,7 +24,6 @@ import RegisterPage from "@/pages/RegisterPage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import CheckoutSuccessPage from "@/pages/CheckoutSuccessPage";
 import CheckoutCancelPage from "@/pages/CheckoutCancelPage";
-import AccountPage from "@/pages/AccountPage";
 import ConsumerDashboard from "@/pages/ConsumerDashboard";
 import ContactPage from "@/pages/ContactPage";
 import FAQPage from "@/pages/FAQPage";
@@ -93,8 +92,9 @@ function App() {
                 <Route path="checkout" element={<CheckoutPage />} />
                 <Route path="checkout/success" element={<CheckoutSuccessPage />} />
                 <Route path="checkout/cancel" element={<CheckoutCancelPage />} />
-                <Route path="account" element={<AccountPage />} />
-                <Route path="consumer/dashboard" element={
+                <Route path="account" element={<Navigate to="/dashboard" replace />} />
+                <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
+                <Route path="dashboard" element={
                   <ProtectedRoute requireAuth>
                     <ConsumerDashboard />
                   </ProtectedRoute>

@@ -255,12 +255,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                   </p>
                 </div>
                 <Link
-                  to="/account"
+                  to="/dashboard"
                   className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <User className="h-4 w-4 text-muted-foreground" />
-                  My Account
+                  My Dashboard
                 </Link>
                 <button
                   onClick={async () => {

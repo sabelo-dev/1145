@@ -149,19 +149,19 @@ const Header: React.FC = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem asChild>
-                        <Link to="/account" className="flex items-center gap-2 cursor-pointer">
+                        <Link to="/dashboard" className="flex items-center gap-2 cursor-pointer">
                           <User className="h-4 w-4" />
-                          My Account
+                          My Dashboard
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/account?tab=orders" className="flex items-center gap-2 cursor-pointer">
+                        <Link to="/dashboard?tab=orders" className="flex items-center gap-2 cursor-pointer">
                           <Package className="h-4 w-4" />
                           Orders
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/account?tab=profile" className="flex items-center gap-2 cursor-pointer">
+                        <Link to="/dashboard?tab=settings" className="flex items-center gap-2 cursor-pointer">
                           <Settings className="h-4 w-4" />
                           Settings
                         </Link>
