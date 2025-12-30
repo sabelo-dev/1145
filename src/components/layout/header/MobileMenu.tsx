@@ -59,11 +59,11 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       
       {/* Menu content */}
       <div className={cn(
-        "md:hidden bg-white dark:bg-background border-l border-border shadow-lg fixed top-0 right-0 h-full w-[85%] max-w-sm z-50 overflow-y-auto transition-transform duration-300",
+        "md:hidden bg-white dark:bg-background border-l border-border shadow-lg fixed top-0 right-0 h-[100dvh] w-[80vw] max-w-[320px] z-50 overflow-y-auto overflow-x-hidden transition-transform duration-300",
         mobileMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {/* Header */}
-        <div className="sticky top-0 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+        <div className="sticky top-0 bg-white dark:bg-background border-b border-border px-4 py-3 flex items-center justify-between z-10">
           <span className="font-semibold text-foreground">Menu</span>
           <Button
             variant="ghost"
