@@ -1,9 +1,55 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Tag, Clock, ArrowRight, Zap, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const PromoBanner: React.FC = () => {
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    // Set end time to midnight tonight (or next day if past midnight)
+    const getEndTime = () => {
+      const now = new Date();
+      const endTime = new Date();
+      endTime.setHours(23, 59, 59, 999);
+      
+      // If it's already past, set to tomorrow
+      if (now >= endTime) {
+        endTime.setDate(endTime.getDate() + 1);
+      }
+      return endTime;
+    };
+
+    const endTime = getEndTime();
+
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const difference = endTime.getTime() - now.getTime();
+
+      if (difference <= 0) {
+        return { hours: 0, minutes: 0, seconds: 0 };
+      }
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      return { hours, minutes, seconds };
+    };
+
+    // Initial calculation
+    setTimeLeft(calculateTimeLeft());
+
+    // Update every second
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (value: number) => value.toString().padStart(2, '0');
+
   return (
     <section className="bg-gradient-to-r from-primary to-primary/80 py-3">
       <div className="container mx-auto px-4">
@@ -21,9 +67,15 @@ const PromoBanner: React.FC = () => {
 
           {/* Timer & CTA */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-primary-foreground/90 text-sm">
+            <div className="flex items-center gap-2 text-primary-foreground text-sm">
               <Clock className="h-4 w-4" />
-              <span>Ends in 24:00:00</span>
+              <div className="flex items-center gap-1 font-mono font-bold">
+                <span className="bg-white/20 px-1.5 py-0.5 rounded">{formatTime(timeLeft.hours)}</span>
+                <span>:</span>
+                <span className="bg-white/20 px-1.5 py-0.5 rounded">{formatTime(timeLeft.minutes)}</span>
+                <span>:</span>
+                <span className="bg-white/20 px-1.5 py-0.5 rounded">{formatTime(timeLeft.seconds)}</span>
+              </div>
             </div>
             <Link to="/deals">
               <Button 
