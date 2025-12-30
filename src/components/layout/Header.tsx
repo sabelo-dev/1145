@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import CartSheet from "@/components/shop/CartSheet";
 import MobileMenu from "./header/MobileMenu";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,6 +124,9 @@ const Header: React.FC = () => {
               >
                 <Search className="h-4 w-4" />
               </Button>
+
+              {/* Notification Center */}
+              <NotificationCenter />
 
               {/* Cart Button */}
               <Button 
