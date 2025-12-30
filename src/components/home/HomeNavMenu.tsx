@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel } from "lucide-react";
+import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
   { label: "Home", path: "/", icon: Home },
@@ -12,6 +13,8 @@ const menuItems = [
 ];
 
 const HomeNavMenu: React.FC = () => {
+  const { user } = useAuth();
+
   return (
     <nav className="bg-background border-b border-border sticky top-0 z-40">
       <div className="container mx-auto px-4">
@@ -30,6 +33,24 @@ const HomeNavMenu: React.FC = () => {
               </li>
             );
           })}
+          <li>
+            <Link
+              to={user ? "/account" : "/login"}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+            >
+              {user ? (
+                <>
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Profile</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </>
+              )}
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>
