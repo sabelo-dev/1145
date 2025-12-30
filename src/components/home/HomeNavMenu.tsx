@@ -48,11 +48,10 @@ const HomeNavMenu: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between gap-4 py-3">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">11</span>
+          <Link to="/" className="flex-shrink-0">
+            <div className="px-3 py-1.5 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">1145</span>
             </div>
-            <span className="font-bold text-lg text-foreground hidden md:inline">1145 Lifestyle</span>
           </Link>
 
           {/* Desktop Search Bar */}
