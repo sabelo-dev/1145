@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Store, Shield, Bell, Truck, Loader2 } from "lucide-react";
+import { User, Store, Shield, Bell, Truck, Loader2, Camera, Upload, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +24,10 @@ import {
 const ConsumerProfile: React.FC = () => {
   const { user, isDriver, refreshUserProfile } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDriverDialog, setShowDriverDialog] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
   const [driverForm, setDriverForm] = useState({
     name: user?.name || '',
     phone: '',
@@ -32,6 +36,120 @@ const ConsumerProfile: React.FC = () => {
     vehicleRegistration: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('profile-photos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-photos')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      await refreshUserProfile();
+
+      toast({
+        title: "Photo updated",
+        description: "Your profile photo has been updated successfully.",
+      });
+    } catch (error: any) {
+      console.error('Photo upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload photo. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!user) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      // Remove from storage
+      const { error: deleteError } = await supabase.storage
+        .from('profile-photos')
+        .remove([`${user.id}/avatar.jpg`, `${user.id}/avatar.png`, `${user.id}/avatar.jpeg`, `${user.id}/avatar.webp`]);
+
+      if (deleteError) console.warn('Storage delete warning:', deleteError);
+
+      // Update profile to remove avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl('');
+      await refreshUserProfile();
+
+      toast({
+        title: "Photo removed",
+        description: "Your profile photo has been removed.",
+      });
+    } catch (error: any) {
+      console.error('Photo removal error:', error);
+      toast({
+        title: "Removal failed",
+        description: error.message || "Failed to remove photo. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const getInitials = () => {
+    if (user?.name) {
+      return user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return user?.email?.charAt(0).toUpperCase() || 'U';
+  };
 
   const handleDriverRegistration = async () => {
     if (!user) return;
@@ -101,6 +219,73 @@ const ConsumerProfile: React.FC = () => {
       </div>
 
       <div className="grid gap-6">
+        {/* Profile Photo */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Profile Photo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="relative group">
+                <Avatar className="h-28 w-28 border-4 border-background shadow-lg">
+                  <AvatarImage src={avatarUrl} alt={user?.name || 'Profile'} />
+                  <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                {isUploadingPhoto && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1 space-y-3">
+                <div>
+                  <h4 className="font-medium">Upload a new photo</h4>
+                  <p className="text-sm text-muted-foreground">
+                    JPG, PNG or WebP. Max file size 5MB.
+                  </p>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingPhoto}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Photo
+                  </Button>
+                  {avatarUrl && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemovePhoto}
+                      disabled={isUploadingPhoto}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Personal Information */}
         <Card>
           <CardHeader>
