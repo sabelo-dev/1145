@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import CartSheet from "@/components/shop/CartSheet";
 import AuctionNotificationCenter from "@/components/auction/AuctionNotificationCenter";
-import { Search, ShoppingCart, Menu, X } from "lucide-react";
+import { ShoppingCart, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import UserMenu from "./header/UserMenu";
 import Navigation from "./header/Navigation";
 import MobileMenu from "./header/MobileMenu";
+import SearchPopover from "./header/SearchPopover";
 
 const Header: React.FC = () => {
   const { user, logout, isAdmin, isVendor, isDriver } = useAuth();
@@ -42,9 +43,7 @@ const Header: React.FC = () => {
           {/* Right Side Actions */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Search Button */}
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
+            <SearchPopover />
 
             {/* Auction Notifications */}
             {user && <AuctionNotificationCenter />}
