@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search, X, ShoppingCart } from "lucide-react";
+import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search, X, ShoppingCart, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import CartSheet from "@/components/shop/CartSheet";
+import MobileMenu from "./header/MobileMenu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,10 +25,11 @@ const menuItems = [
 ];
 
 const Header: React.FC = () => {
-  const { user, logout, isVendor, isDriver } = useAuth();
+  const { user, logout, isVendor, isDriver, isAdmin } = useAuth();
   const { cart, toggleCart, isCartOpen, setCartOpen } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const mobileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -70,7 +72,7 @@ const Header: React.FC = () => {
         }`}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between gap-3 py-2">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
               <div className="px-2.5 py-1 bg-primary rounded-md flex items-center justify-center">
@@ -79,7 +81,7 @@ const Header: React.FC = () => {
             </Link>
 
             {/* Desktop Search Bar */}
-            <form onSubmit={handleSearch} className="flex-1 max-w-md hidden sm:block">
+            <form onSubmit={handleSearch} className="flex-1 max-w-md hidden md:block">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -92,18 +94,8 @@ const Header: React.FC = () => {
               </div>
             </form>
 
-            {/* Mobile Search Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="sm:hidden flex-shrink-0 h-8 w-8"
-              onClick={() => setMobileSearchOpen(true)}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
-
-            {/* Nav Items */}
-            <ul className="flex items-center gap-1 md:gap-2 overflow-x-auto flex-shrink-0">
+            {/* Desktop Nav Items - Hidden on mobile */}
+            <ul className="hidden md:flex items-center gap-1 lg:gap-2 flex-shrink-0">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -113,36 +105,47 @@ const Header: React.FC = () => {
                       className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
                     >
                       <Icon className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">{item.label}</span>
+                      <span className="hidden lg:inline">{item.label}</span>
                     </Link>
                   </li>
                 );
               })}
+            </ul>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {/* Mobile Search Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-8 w-8"
+                onClick={() => setMobileSearchOpen(true)}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
 
               {/* Cart Button */}
-              <li>
-                <Button 
-                  onClick={toggleCart} 
-                  variant="ghost" 
-                  size="sm"
-                  className="relative h-8 px-2"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {items.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center">
-                      {items.length}
-                    </span>
-                  )}
-                </Button>
-              </li>
+              <Button 
+                onClick={toggleCart} 
+                variant="ghost" 
+                size="icon"
+                className="relative h-8 w-8"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {items.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center">
+                    {items.length}
+                  </span>
+                )}
+              </Button>
 
-              {/* Profile/Sign In */}
-              <li>
+              {/* Desktop Profile/Sign In */}
+              <div className="hidden md:block">
                 {user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap outline-none">
                       <User className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Profile</span>
+                      <span className="hidden lg:inline">Profile</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem asChild>
@@ -200,16 +203,26 @@ const Header: React.FC = () => {
                     className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
                   >
                     <LogIn className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Sign In</span>
+                    <span className="hidden lg:inline">Sign In</span>
                   </Link>
                 )}
-              </li>
-            </ul>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-8 w-8"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Search Bar - Full Width */}
           {mobileSearchOpen && (
-            <div className="sm:hidden pb-2 animate-fade-in">
+            <div className="md:hidden pb-2 animate-fade-in">
               <form onSubmit={handleSearch} className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -239,6 +252,17 @@ const Header: React.FC = () => {
           )}
         </div>
       </header>
+
+      {/* Mobile Menu */}
+      <MobileMenu
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        user={user}
+        isAdmin={isAdmin}
+        isVendor={isVendor}
+        isDriver={isDriver}
+        logout={logout}
+      />
 
       {/* Cart Offcanvas */}
       <CartSheet isOpen={isCartOpen} setIsOpen={setCartOpen} />
