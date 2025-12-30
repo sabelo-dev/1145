@@ -47,20 +47,24 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
   return (
     <>
-      {/* Dark overlay */}
+      {/* Dark overlay with backdrop blur */}
       <div 
         className={cn(
-          "fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300",
-          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          "fixed inset-0 z-40 md:hidden transition-all duration-300 ease-out",
+          mobileMenuOpen 
+            ? "bg-black/40 backdrop-blur-sm opacity-100" 
+            : "bg-transparent backdrop-blur-none opacity-0 pointer-events-none"
         )}
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
       
-      {/* Menu content */}
+      {/* Menu content with slide animation */}
       <div className={cn(
-        "md:hidden bg-white dark:bg-background border-l border-border shadow-lg fixed top-0 right-0 h-[100dvh] w-[80vw] max-w-[320px] z-50 overflow-y-auto overflow-x-hidden transition-transform duration-300",
-        mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        "md:hidden bg-white dark:bg-background border-l border-border shadow-2xl fixed top-0 right-0 h-[100dvh] w-[80vw] max-w-[320px] z-50 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out",
+        mobileMenuOpen 
+          ? "translate-x-0 opacity-100" 
+          : "translate-x-full opacity-0"
       )}>
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-background border-b border-border px-4 py-3 flex items-center justify-between z-10">
