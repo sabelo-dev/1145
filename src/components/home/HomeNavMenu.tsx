@@ -64,11 +64,11 @@ const HomeNavMenu: React.FC = () => {
       }`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between gap-4 py-3">
+        <div className="flex items-center justify-between gap-3 py-2">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <div className="px-3 py-1.5 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">1145</span>
+            <div className="px-2.5 py-1 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">1145</span>
             </div>
           </Link>
 
