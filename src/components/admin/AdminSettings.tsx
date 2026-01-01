@@ -28,11 +28,11 @@ const AdminSettings: React.FC = () => {
 
   const form = useForm<SettingsForm>({
     defaultValues: {
-      platformName: "WWE Marketplace",
-      platformEmail: "support@wwe-marketplace.com",
+      platformName: "1145 Lifestyle",
+      platformEmail: "support@1145lifestyle.com",
       platformFee: "5",
       vendorFee: "10",
-      supportEmail: "help@wwe-marketplace.com",
+      supportEmail: "help@1145lifestyle.com",
       termsOfService: "Standard terms of service for WWE marketplace...",
       privacyPolicy: "Privacy policy for WWE marketplace..."
     },

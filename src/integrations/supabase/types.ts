@@ -1930,8 +1930,13 @@ export type Database = {
           total_earnings: number | null
           updated_at: string
           user_id: string
+          vehicle_color: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_photo_url: string | null
           vehicle_registration: string | null
           vehicle_type: string | null
+          vehicle_year: number | null
         }
         Insert: {
           acceptance_rate?: number | null
@@ -1950,8 +1955,13 @@ export type Database = {
           total_earnings?: number | null
           updated_at?: string
           user_id: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_photo_url?: string | null
           vehicle_registration?: string | null
           vehicle_type?: string | null
+          vehicle_year?: number | null
         }
         Update: {
           acceptance_rate?: number | null
@@ -1970,8 +1980,13 @@ export type Database = {
           total_earnings?: number | null
           updated_at?: string
           user_id?: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_photo_url?: string | null
           vehicle_registration?: string | null
           vehicle_type?: string | null
+          vehicle_year?: number | null
         }
         Relationships: [
           {
