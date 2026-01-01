@@ -256,7 +256,7 @@ export const generateInvoice = (data: InvoiceData) => {
   doc.setTextColor(...grayColor);
   doc.text("Thank you for shopping with 1145 Lifestyle!", pageWidth / 2, footerY + 2, { align: "center" });
   doc.setFontSize(8);
-  doc.text("For questions about this invoice, please contact support@1145lifestyle.co.za", pageWidth / 2, footerY + 9, { align: "center" });
+  doc.text("For questions about this invoice, please contact support@1145lifestyle.com", pageWidth / 2, footerY + 9, { align: "center" });
   doc.text(`Generated on ${format(new Date(), "dd MMM yyyy 'at' HH:mm")}`, pageWidth / 2, footerY + 15, { align: "center" });
 
   // Save
