@@ -126,8 +126,8 @@ export default function AdminUCoin() {
       supabase.from('bigold_wallets').select('balance, lifetime_earned, lifetime_spent')
     ]);
 
-    if (rulesRes.data) setEarningRules(rulesRes.data as BiGoldEarningRule[]);
-    if (optionsRes.data) setSpendingOptions(optionsRes.data as BiGoldSpendingOption[]);
+    if (rulesRes.data) setEarningRules(rulesRes.data as UCoinEarningRule[]);
+    if (optionsRes.data) setSpendingOptions(optionsRes.data as UCoinSpendingOption[]);
     
     if (statsRes.data) {
       const wallets = statsRes.data;
@@ -142,7 +142,7 @@ export default function AdminUCoin() {
     setIsLoading(false);
   };
 
-  const updateRule = async (rule: BiGoldEarningRule) => {
+  const updateRule = async (rule: UCoinEarningRule) => {
     const { error } = await supabase
       .from('bigold_earning_rules')
       .update({
@@ -162,7 +162,7 @@ export default function AdminUCoin() {
     }
   };
 
-  const updateOption = async (option: BiGoldSpendingOption) => {
+  const updateOption = async (option: UCoinSpendingOption) => {
     const { error } = await supabase
       .from('bigold_spending_options')
       .update({
