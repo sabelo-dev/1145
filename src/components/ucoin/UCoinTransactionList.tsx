@@ -2,11 +2,11 @@ import { format } from 'date-fns';
 import { ArrowUpRight, ArrowDownRight, Coins } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BiGoldTransaction } from '@/types/bigold';
+import { UCoinTransaction } from '@/types/ucoin';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface BiGoldTransactionListProps {
-  transactions: BiGoldTransaction[];
+interface UCoinTransactionListProps {
+  transactions: UCoinTransaction[];
   isLoading?: boolean;
 }
 
@@ -33,7 +33,7 @@ const categoryLabels: Record<string, string> = {
   cashout_vendor: 'Cash Out'
 };
 
-export function BiGoldTransactionList({ transactions, isLoading }: BiGoldTransactionListProps) {
+export function UCoinTransactionList({ transactions, isLoading }: UCoinTransactionListProps) {
   if (isLoading) {
     return (
       <Card>
@@ -76,7 +76,7 @@ export function BiGoldTransactionList({ transactions, isLoading }: BiGoldTransac
           <div className="text-center py-8 text-muted-foreground">
             <Coins className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>No transactions yet</p>
-            <p className="text-sm">Start earning BiGold by completing orders and engaging with the platform!</p>
+            <p className="text-sm">Start earning UCoin by completing orders and engaging with the platform!</p>
           </div>
         </CardContent>
       </Card>

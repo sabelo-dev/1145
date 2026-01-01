@@ -55,7 +55,7 @@ import {
   TrendingUp,
   Coins
 } from "lucide-react";
-import { BiGoldDashboard } from "@/components/bigold/BiGoldDashboard";
+import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
@@ -116,7 +116,7 @@ const VendorDashboard = () => {
     { id: "inventory", title: "Inventory Manager", icon: Warehouse },
     { id: "promotions", title: "Discounts / Coupons", icon: Percent },
     { id: "payouts", title: "Earnings / Wallet", icon: DollarSign },
-    { id: "bigold", title: "BiGold Rewards", icon: Coins },
+    { id: "ucoin", title: "UCoin Rewards", icon: Coins },
     { id: "messages", title: "Messages", icon: MessageSquare },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
@@ -244,8 +244,8 @@ const VendorDashboard = () => {
                 <TabsContent value="payouts" className="mt-0">
                   <VendorPayouts />
                 </TabsContent>
-                <TabsContent value="bigold" className="mt-0">
-                  <BiGoldDashboard />
+                <TabsContent value="ucoin" className="mt-0">
+                  <UCoinDashboard />
                 </TabsContent>
                 <TabsContent value="messages" className="mt-0">
                   <VendorMessages />

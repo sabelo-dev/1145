@@ -53,7 +53,7 @@ export function ReferralDashboard() {
       <div className="text-center py-12">
         <Users className="h-16 w-16 mx-auto mb-4 text-primary opacity-50" />
         <h2 className="text-xl font-semibold mb-2">Sign in to access Referrals</h2>
-        <p className="text-muted-foreground">Create an account or sign in to start referring friends and earning BiGold.</p>
+        <p className="text-muted-foreground">Create an account or sign in to start referring friends and earning UCoin.</p>
       </div>
     );
   }
@@ -112,7 +112,7 @@ export function ReferralDashboard() {
             </div>
             
             <p className="text-primary-foreground/80 text-sm mt-4">
-              Share your code with friends. Earn <strong>50 BiGold</strong> when they sign up and <strong>25 BiGold</strong> when they make their first purchase!
+              Share your code with friends. Earn <strong>50 UCoin</strong> when they sign up and <strong>25 UCoin</strong> when they make their first purchase!
             </p>
           </div>
         </div>
@@ -155,7 +155,7 @@ export function ReferralDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">BiGold Earned</CardTitle>
+            <CardTitle className="text-sm font-medium">UCoin Earned</CardTitle>
             <Coins className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
@@ -193,7 +193,7 @@ export function ReferralDashboard() {
               </div>
               <div>
                 <h4 className="font-medium">2. Friend Signs Up</h4>
-                <p className="text-sm text-muted-foreground">You earn <strong>50 BiGold</strong> when they create an account</p>
+                <p className="text-sm text-muted-foreground">You earn <strong>50 UCoin</strong> when they create an account</p>
               </div>
             </div>
             
@@ -203,7 +203,7 @@ export function ReferralDashboard() {
               </div>
               <div>
                 <h4 className="font-medium">3. First Purchase</h4>
-                <p className="text-sm text-muted-foreground">Earn <strong>25 BiGold</strong> more when they make their first purchase</p>
+                <p className="text-sm text-muted-foreground">Earn <strong>25 UCoin</strong> more when they make their first purchase</p>
               </div>
             </div>
           </div>
@@ -224,7 +224,7 @@ export function ReferralDashboard() {
             <div className="text-center py-8 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No referrals yet</p>
-              <p className="text-sm">Share your code to start earning BiGold!</p>
+              <p className="text-sm">Share your code to start earning UCoin!</p>
             </div>
           ) : (
             <ScrollArea className="h-[300px]">
@@ -312,7 +312,7 @@ export function ReferralDashboard() {
               Share Your Referral
             </DialogTitle>
             <DialogDescription>
-              Share your unique link or code with friends to earn BiGold rewards
+              Share your unique link or code with friends to earn UCoin rewards
             </DialogDescription>
           </DialogHeader>
           

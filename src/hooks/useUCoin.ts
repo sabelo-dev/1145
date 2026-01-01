@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BiGoldWallet, BiGoldTransaction, BiGoldEarningRule, BiGoldSpendingOption } from '@/types/bigold';
+import { UCoinWallet, UCoinTransaction, UCoinEarningRule, UCoinSpendingOption } from '@/types/ucoin';
 import { useToast } from '@/hooks/use-toast';
 
-export function useBiGold() {
+export function useUCoin() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [wallet, setWallet] = useState<BiGoldWallet | null>(null);
-  const [transactions, setTransactions] = useState<BiGoldTransaction[]>([]);
-  const [earningRules, setEarningRules] = useState<BiGoldEarningRule[]>([]);
-  const [spendingOptions, setSpendingOptions] = useState<BiGoldSpendingOption[]>([]);
+  const [wallet, setWallet] = useState<UCoinWallet | null>(null);
+  const [transactions, setTransactions] = useState<UCoinTransaction[]>([]);
+  const [earningRules, setEarningRules] = useState<UCoinEarningRule[]>([]);
+  const [spendingOptions, setSpendingOptions] = useState<UCoinSpendingOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchWallet = useCallback(async () => {
@@ -28,9 +28,8 @@ export function useBiGold() {
     }
 
     if (data) {
-      setWallet(data as BiGoldWallet);
+      setWallet(data as UCoinWallet);
     } else {
-      // Create wallet if doesn't exist
       const { data: newWallet, error: createError } = await supabase
         .from('bigold_wallets')
         .insert({ user_id: user.id })
@@ -38,7 +37,7 @@ export function useBiGold() {
         .single();
 
       if (!createError && newWallet) {
-        setWallet(newWallet as BiGoldWallet);
+        setWallet(newWallet as UCoinWallet);
       }
     }
   }, [user]);
@@ -54,7 +53,7 @@ export function useBiGold() {
       .limit(50);
 
     if (!error && data) {
-      setTransactions(data as BiGoldTransaction[]);
+      setTransactions(data as UCoinTransaction[]);
     }
   }, [user]);
 
@@ -65,10 +64,10 @@ export function useBiGold() {
     ]);
 
     if (rulesResult.data) {
-      setEarningRules(rulesResult.data as BiGoldEarningRule[]);
+      setEarningRules(rulesResult.data as UCoinEarningRule[]);
     }
     if (optionsResult.data) {
-      setSpendingOptions(optionsResult.data as BiGoldSpendingOption[]);
+      setSpendingOptions(optionsResult.data as UCoinSpendingOption[]);
     }
   }, []);
 
@@ -86,7 +85,7 @@ export function useBiGold() {
     }
   }, [user, fetchWallet, fetchTransactions, fetchRulesAndOptions]);
 
-  const earnBiGold = async (category: string, referenceId?: string, referenceType?: string) => {
+  const earnUCoin = async (category: string, referenceId?: string, referenceType?: string) => {
     if (!user || !wallet) return false;
 
     const rule = earningRules.find(r => r.category === category);
@@ -125,15 +124,15 @@ export function useBiGold() {
     }
 
     toast({
-      title: `+${amount} BiGold Earned!`,
-      description: rule.description || `You earned BiGold for ${category.replace(/_/g, ' ')}`
+      title: `+${amount} UCoin Earned!`,
+      description: rule.description || `You earned UCoin for ${category.replace(/_/g, ' ')}`
     });
 
     await Promise.all([fetchWallet(), fetchTransactions()]);
     return true;
   };
 
-  const spendBiGold = async (category: string) => {
+  const spendUCoin = async (category: string) => {
     if (!user || !wallet) return false;
 
     const option = spendingOptions.find(o => o.category === category);
@@ -141,8 +140,8 @@ export function useBiGold() {
 
     if (wallet.balance < option.cost) {
       toast({
-        title: 'Insufficient BiGold',
-        description: `You need ${option.cost} BiGold but only have ${wallet.balance}`,
+        title: 'Insufficient UCoin',
+        description: `You need ${option.cost} UCoin but only have ${wallet.balance}`,
         variant: 'destructive'
       });
       return false;
@@ -177,8 +176,8 @@ export function useBiGold() {
     }
 
     toast({
-      title: 'BiGold Redeemed!',
-      description: option.description || `You redeemed ${option.cost} BiGold`
+      title: 'UCoin Redeemed!',
+      description: option.description || `You redeemed ${option.cost} UCoin`
     });
 
     await Promise.all([fetchWallet(), fetchTransactions()]);
@@ -191,8 +190,8 @@ export function useBiGold() {
     earningRules,
     spendingOptions,
     isLoading,
-    earnBiGold,
-    spendBiGold,
+    earnUCoin,
+    spendUCoin,
     refreshWallet: fetchWallet,
     refreshTransactions: fetchTransactions
   };

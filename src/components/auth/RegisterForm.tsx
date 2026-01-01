@@ -126,7 +126,7 @@ const RegisterForm: React.FC = () => {
               )}
             </div>
             {referralValid === true && (
-              <p className="text-xs text-green-600">Valid referral code! You'll both earn BiGold rewards.</p>
+              <p className="text-xs text-green-600">Valid referral code! You'll both earn UCoin rewards.</p>
             )}
             {referralValid === false && referralCode.length >= 6 && (
               <p className="text-xs text-red-600">Invalid or expired referral code</p>

@@ -1,15 +1,15 @@
-import { useBiGold } from '@/hooks/useBiGold';
+import { useUCoin } from '@/hooks/useUCoin';
 import { useAuth } from '@/contexts/AuthContext';
-import { BiGoldWalletCard } from './BiGoldWalletCard';
-import { BiGoldTransactionList } from './BiGoldTransactionList';
-import { BiGoldRewardsShop } from './BiGoldRewardsShop';
-import { BiGoldEarningGuide } from './BiGoldEarningGuide';
+import { UCoinWalletCard } from './UCoinWalletCard';
+import { UCoinTransactionList } from './UCoinTransactionList';
+import { UCoinRewardsShop } from './UCoinRewardsShop';
+import { UCoinEarningGuide } from './UCoinEarningGuide';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Coins, Gift, BookOpen, History } from 'lucide-react';
 
-export function BiGoldDashboard() {
+export function UCoinDashboard() {
   const { user, isVendor, isDriver } = useAuth();
-  const { wallet, transactions, earningRules, spendingOptions, isLoading, spendBiGold } = useBiGold();
+  const { wallet, transactions, earningRules, spendingOptions, isLoading, spendUCoin } = useUCoin();
 
   const userType = isDriver ? 'driver' : isVendor ? 'vendor' : 'consumer';
 
@@ -17,15 +17,15 @@ export function BiGoldDashboard() {
     return (
       <div className="text-center py-12">
         <Coins className="h-16 w-16 mx-auto mb-4 text-amber-500 opacity-50" />
-        <h2 className="text-xl font-semibold mb-2">Sign in to access BiGold</h2>
-        <p className="text-muted-foreground">Create an account or sign in to start earning and redeeming BiGold rewards.</p>
+        <h2 className="text-xl font-semibold mb-2">Sign in to access Ubuntu Coin</h2>
+        <p className="text-muted-foreground">Create an account or sign in to start earning and redeeming UCoin rewards.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <BiGoldWalletCard wallet={wallet} isLoading={isLoading} />
+      <UCoinWalletCard wallet={wallet} isLoading={isLoading} />
 
       <Tabs defaultValue="shop" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -44,21 +44,21 @@ export function BiGoldDashboard() {
         </TabsList>
         
         <TabsContent value="shop" className="mt-4">
-          <BiGoldRewardsShop
+          <UCoinRewardsShop
             options={spendingOptions}
             balance={wallet?.balance || 0}
             userType={userType}
-            onRedeem={spendBiGold}
+            onRedeem={spendUCoin}
             isLoading={isLoading}
           />
         </TabsContent>
         
         <TabsContent value="earn" className="mt-4">
-          <BiGoldEarningGuide rules={earningRules} isLoading={isLoading} />
+          <UCoinEarningGuide rules={earningRules} isLoading={isLoading} />
         </TabsContent>
         
         <TabsContent value="history" className="mt-4">
-          <BiGoldTransactionList transactions={transactions} isLoading={isLoading} />
+          <UCoinTransactionList transactions={transactions} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </div>

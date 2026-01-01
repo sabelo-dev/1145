@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserReferralCode, Referral, ReferralStats } from '@/types/referral';
-import { useBiGold } from './useBiGold';
+import { useUCoin } from './useUCoin';
 import { useToast } from '@/hooks/use-toast';
 
 export function useReferral() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { earnBiGold } = useBiGold();
+  const { earnUCoin } = useUCoin();
   const [referralCode, setReferralCode] = useState<UserReferralCode | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [stats, setStats] = useState<ReferralStats>({
@@ -178,7 +178,7 @@ export function useReferral() {
     if (rewardType === 'purchase' && referral.purchase_reward_paid) return false;
 
     const category = rewardType === 'signup' ? 'referral_signup' : 'referral_purchase';
-    const success = await earnBiGold(category, referralId, 'referral');
+    const success = await earnUCoin(category, referralId, 'referral');
 
     if (success) {
       const updateField = rewardType === 'signup' ? 'signup_reward_paid' : 'purchase_reward_paid';

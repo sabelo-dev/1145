@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Coins, Percent, Truck, Rocket, Banknote, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { BiGoldSpendingOption } from '@/types/bigold';
+import { UCoinSpendingOption } from '@/types/ucoin';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -15,8 +14,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface BiGoldRewardsShopProps {
-  options: BiGoldSpendingOption[];
+interface UCoinRewardsShopProps {
+  options: UCoinSpendingOption[];
   balance: number;
   userType: 'consumer' | 'vendor' | 'driver';
   onRedeem: (category: string) => Promise<boolean>;
@@ -35,8 +34,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
   cashout_vendor: <Banknote className="h-5 w-5" />
 };
 
-export function BiGoldRewardsShop({ options, balance, userType, onRedeem, isLoading }: BiGoldRewardsShopProps) {
-  const [selectedOption, setSelectedOption] = useState<BiGoldSpendingOption | null>(null);
+export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoading }: UCoinRewardsShopProps) {
+  const [selectedOption, setSelectedOption] = useState<UCoinSpendingOption | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
 
   const filteredOptions = options.filter(opt => opt.user_types.includes(userType));
@@ -150,7 +149,7 @@ export function BiGoldRewardsShop({ options, balance, userType, onRedeem, isLoad
               Confirm Redemption
             </AlertDialogTitle>
             <AlertDialogDescription>
-              You are about to redeem <strong>{selectedOption?.cost.toLocaleString()} BiGold</strong> for:
+              You are about to redeem <strong>{selectedOption?.cost.toLocaleString()} UCoin</strong> for:
               <br />
               <span className="font-medium text-foreground">{selectedOption?.description}</span>
             </AlertDialogDescription>

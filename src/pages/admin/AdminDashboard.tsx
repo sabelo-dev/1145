@@ -38,7 +38,7 @@ import AdminSettings from "@/components/admin/AdminSettings";
 import { AdminShipping } from "@/components/admin/AdminShipping";
 import AdminAuctions from "@/components/admin/AdminAuctions";
 import AdminDrivers from "@/components/admin/AdminDrivers";
-import AdminBiGold from "@/components/admin/AdminBiGold";
+import AdminUCoin from "@/components/admin/AdminUCoin";
 import {
   LayoutDashboard,
   Users,
@@ -81,7 +81,7 @@ const AdminDashboard = () => {
     { id: "products", title: "Products (All)", icon: Package },
     { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "auction-analytics", title: "Auction Analytics", icon: TrendingUp },
-    { id: "bigold", title: "BiGold Management", icon: Coins },
+    { id: "ucoin", title: "UCoin Management", icon: Coins },
     { id: "categories", title: "Categories", icon: FileText },
     { id: "analytics", title: "Reports & Analytics", icon: BarChart3 },
     { id: "settings", title: "System Settings", icon: Settings },
@@ -189,8 +189,8 @@ const AdminDashboard = () => {
                 <TabsContent value="auction-analytics" className="mt-0">
                   <AdminAuctionAnalytics />
                 </TabsContent>
-                <TabsContent value="bigold" className="mt-0">
-                  <AdminBiGold />
+                <TabsContent value="ucoin" className="mt-0">
+                  <AdminUCoin />
                 </TabsContent>
                 <TabsContent value="orders" className="mt-0">
                   <AdminOrders />
