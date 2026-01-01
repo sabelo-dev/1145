@@ -287,6 +287,69 @@ export type Database = {
           },
         ]
       }
+      auto_campaigns: {
+        Row: {
+          action_config: Json
+          campaign_type: string
+          created_at: string
+          credit_budget: number
+          credits_used: number
+          id: string
+          is_active: boolean
+          last_triggered: string | null
+          store_id: string | null
+          trigger_conditions: Json
+          trigger_count: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          action_config: Json
+          campaign_type: string
+          created_at?: string
+          credit_budget?: number
+          credits_used?: number
+          id?: string
+          is_active?: boolean
+          last_triggered?: string | null
+          store_id?: string | null
+          trigger_conditions: Json
+          trigger_count?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          action_config?: Json
+          campaign_type?: string
+          created_at?: string
+          credit_budget?: number
+          credits_used?: number
+          id?: string
+          is_active?: boolean
+          last_triggered?: string | null
+          store_id?: string | null
+          trigger_conditions?: Json
+          trigger_count?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_campaigns_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auto_campaigns_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badge_definitions: {
         Row: {
           category: string
@@ -467,6 +530,332 @@ export type Database = {
           lifetime_spent?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      brand_bundle_products: {
+        Row: {
+          bundle_id: string
+          contribution_discount: number
+          created_at: string
+          id: string
+          product_id: string
+          status: string
+          vendor_id: string
+        }
+        Insert: {
+          bundle_id: string
+          contribution_discount?: number
+          created_at?: string
+          id?: string
+          product_id: string
+          status?: string
+          vendor_id: string
+        }
+        Update: {
+          bundle_id?: string
+          contribution_discount?: number
+          created_at?: string
+          id?: string
+          product_id?: string
+          status?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_bundle_products_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "brand_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_bundle_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_bundle_products_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_bundles: {
+        Row: {
+          bundle_discount: number
+          created_at: string
+          created_by_vendor_id: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bundle_discount?: number
+          created_at?: string
+          created_by_vendor_id: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bundle_discount?: number
+          created_at?: string
+          created_by_vendor_id?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_bundles_created_by_vendor_id_fkey"
+            columns: ["created_by_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_improvement_tips: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          data_context: Json | null
+          description: string
+          id: string
+          is_dismissed: boolean
+          is_read: boolean
+          priority: string
+          tip_type: string
+          title: string
+          vendor_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          data_context?: Json | null
+          description: string
+          id?: string
+          is_dismissed?: boolean
+          is_read?: boolean
+          priority?: string
+          tip_type: string
+          title: string
+          vendor_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          data_context?: Json | null
+          description?: string
+          id?: string
+          is_dismissed?: boolean
+          is_read?: boolean
+          priority?: string
+          tip_type?: string
+          title?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_improvement_tips_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_performance: {
+        Row: {
+          average_delivery_time: number | null
+          average_rating: number | null
+          cancelled_orders: number
+          completed_orders: number
+          conversion_rate: number | null
+          created_at: string
+          fulfillment_rate: number | null
+          id: string
+          negative_reviews: number
+          period_end: string
+          period_start: string
+          positive_reviews: number
+          repeat_customer_rate: number | null
+          returned_orders: number
+          total_orders: number
+          total_revenue: number
+          total_reviews: number
+          vendor_id: string
+        }
+        Insert: {
+          average_delivery_time?: number | null
+          average_rating?: number | null
+          cancelled_orders?: number
+          completed_orders?: number
+          conversion_rate?: number | null
+          created_at?: string
+          fulfillment_rate?: number | null
+          id?: string
+          negative_reviews?: number
+          period_end: string
+          period_start: string
+          positive_reviews?: number
+          repeat_customer_rate?: number | null
+          returned_orders?: number
+          total_orders?: number
+          total_revenue?: number
+          total_reviews?: number
+          vendor_id: string
+        }
+        Update: {
+          average_delivery_time?: number | null
+          average_rating?: number | null
+          cancelled_orders?: number
+          completed_orders?: number
+          conversion_rate?: number | null
+          created_at?: string
+          fulfillment_rate?: number | null
+          id?: string
+          negative_reviews?: number
+          period_end?: string
+          period_start?: string
+          positive_reviews?: number
+          repeat_customer_rate?: number | null
+          returned_orders?: number
+          total_orders?: number
+          total_revenue?: number
+          total_reviews?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_performance_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_tier_history: {
+        Row: {
+          created_at: string
+          effective_date: string
+          id: string
+          previous_tier_id: string | null
+          reason: string | null
+          tier_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          effective_date?: string
+          id?: string
+          previous_tier_id?: string | null
+          reason?: string | null
+          tier_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          effective_date?: string
+          id?: string
+          previous_tier_id?: string | null
+          reason?: string | null
+          tier_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_tier_history_previous_tier_id_fkey"
+            columns: ["previous_tier_id"]
+            isOneToOne: false
+            referencedRelation: "brand_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_tier_history_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "brand_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_tier_history_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_tiers: {
+        Row: {
+          badge_color: string
+          commission_rate: number
+          created_at: string
+          display_name: string
+          features: Json
+          id: string
+          level: number
+          min_fulfillment_rate: number
+          min_orders: number
+          min_rating: number
+          min_revenue: number
+          name: string
+          payout_days: number
+          promo_credits_monthly: number
+          visibility_boost: number
+        }
+        Insert: {
+          badge_color?: string
+          commission_rate?: number
+          created_at?: string
+          display_name: string
+          features?: Json
+          id?: string
+          level: number
+          min_fulfillment_rate?: number
+          min_orders?: number
+          min_rating?: number
+          min_revenue?: number
+          name: string
+          payout_days?: number
+          promo_credits_monthly?: number
+          visibility_boost?: number
+        }
+        Update: {
+          badge_color?: string
+          commission_rate?: number
+          created_at?: string
+          display_name?: string
+          features?: Json
+          id?: string
+          level?: number
+          min_fulfillment_rate?: number
+          min_orders?: number
+          min_rating?: number
+          min_revenue?: number
+          name?: string
+          payout_days?: number
+          promo_credits_monthly?: number
+          visibility_boost?: number
         }
         Relationships: []
       }
@@ -767,6 +1156,66 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cross_promotions: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          initiator_products: string[] | null
+          initiator_vendor_id: string
+          partner_products: string[] | null
+          partner_vendor_id: string
+          promo_type: string
+          start_date: string | null
+          status: string
+          terms: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          initiator_products?: string[] | null
+          initiator_vendor_id: string
+          partner_products?: string[] | null
+          partner_vendor_id: string
+          promo_type: string
+          start_date?: string | null
+          status?: string
+          terms: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          initiator_products?: string[] | null
+          initiator_vendor_id?: string
+          partner_products?: string[] | null
+          partner_vendor_id?: string
+          promo_type?: string
+          start_date?: string | null
+          status?: string
+          terms?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_promotions_initiator_vendor_id_fkey"
+            columns: ["initiator_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_promotions_partner_vendor_id_fkey"
+            columns: ["partner_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -1764,6 +2213,88 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_credit_transactions: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          type: string
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          type: string
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          type?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_credit_transactions_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          last_monthly_grant: string | null
+          lifetime_earned: number
+          lifetime_spent: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          last_monthly_grant?: string | null
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          last_monthly_grant?: string | null
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_credits_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promotions: {
         Row: {
           code: string
@@ -2063,6 +2594,76 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sponsored_placements: {
+        Row: {
+          clicks: number
+          conversions: number
+          created_at: string
+          credit_cost: number
+          end_time: string
+          id: string
+          impressions: number
+          placement_type: string
+          product_id: string | null
+          start_time: string
+          status: string
+          store_id: string | null
+          vendor_id: string
+        }
+        Insert: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          credit_cost: number
+          end_time: string
+          id?: string
+          impressions?: number
+          placement_type: string
+          product_id?: string | null
+          start_time: string
+          status?: string
+          store_id?: string | null
+          vendor_id: string
+        }
+        Update: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          credit_cost?: number
+          end_time?: string
+          id?: string
+          impressions?: number
+          placement_type?: string
+          product_id?: string | null
+          start_time?: string
+          status?: string
+          store_id?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsored_placements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsored_placements_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsored_placements_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       store_categories: {
         Row: {
@@ -2544,6 +3145,8 @@ export type Database = {
           subscription_status: string | null
           subscription_tier: string | null
           tax_id: string | null
+          tier_id: string | null
+          tier_updated_at: string | null
           trial_end_date: string | null
           trial_start_date: string | null
           updated_at: string
@@ -2566,6 +3169,8 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: string | null
           tax_id?: string | null
+          tier_id?: string | null
+          tier_updated_at?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string
@@ -2588,13 +3193,23 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: string | null
           tax_id?: string | null
+          tier_id?: string | null
+          tier_updated_at?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vendors_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "brand_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wishlists: {
         Row: {
