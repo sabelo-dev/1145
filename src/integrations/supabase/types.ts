@@ -287,6 +287,48 @@ export type Database = {
           },
         ]
       }
+      badge_definitions: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          display_name: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          requirement_type: string
+          requirement_value: number
+          ucoin_reward: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          icon: string
+          id?: string
+          is_active?: boolean
+          name: string
+          requirement_type: string
+          requirement_value: number
+          ucoin_reward?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          ucoin_reward?: number
+        }
+        Relationships: []
+      }
       bigold_earning_rules: {
         Row: {
           amount: number
@@ -540,6 +582,140 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      consumer_activity_log: {
+        Row: {
+          activity_type: string
+          category: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          product_id: string | null
+          store_id: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          store_id?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          store_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      consumer_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          is_featured: boolean
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          is_featured?: boolean
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          is_featured?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumer_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badge_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consumer_preferences: {
+        Row: {
+          created_at: string
+          default_location: Json | null
+          id: string
+          notification_preferences: Json | null
+          preferred_categories: string[] | null
+          preferred_vendors: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_location?: Json | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_categories?: string[] | null
+          preferred_vendors?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_location?: Json | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_categories?: string[] | null
+          preferred_vendors?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      consumer_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_order_week: string | null
+          longest_streak: number
+          streak_start_date: string | null
+          total_weeks_ordered: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_order_week?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          total_weeks_ordered?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_order_week?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          total_weeks_ordered?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       conversations: {
         Row: {
@@ -898,6 +1074,81 @@ export type Database = {
         }
         Relationships: []
       }
+      flash_deals: {
+        Row: {
+          claimed_count: number
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_time: string
+          flash_price: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          original_price: number | null
+          product_id: string | null
+          start_time: string
+          stock_limit: number | null
+          store_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          claimed_count?: number
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          end_time: string
+          flash_price?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          original_price?: number | null
+          product_id?: string | null
+          start_time: string
+          stock_limit?: number | null
+          store_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          claimed_count?: number
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_time?: string
+          flash_price?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          original_price?: number | null
+          product_id?: string | null
+          start_time?: string
+          stock_limit?: number | null
+          store_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flash_deals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_deals_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_jobs: {
         Row: {
           completed_at: string | null
@@ -1053,6 +1304,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "order_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_insurance: {
+        Row: {
+          claim_reason: string | null
+          claimed_at: string | null
+          coverage_amount: number
+          coverage_type: string
+          created_at: string
+          id: string
+          order_id: string
+          status: string
+          ucoin_cost: number
+          user_id: string
+        }
+        Insert: {
+          claim_reason?: string | null
+          claimed_at?: string | null
+          coverage_amount: number
+          coverage_type?: string
+          created_at?: string
+          id?: string
+          order_id: string
+          status?: string
+          ucoin_cost: number
+          user_id: string
+        }
+        Update: {
+          claim_reason?: string | null
+          claimed_at?: string | null
+          coverage_amount?: number
+          coverage_type?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          status?: string
+          ucoin_cost?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_insurance_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
@@ -1569,6 +1867,7 @@ export type Database = {
       referrals: {
         Row: {
           created_at: string
+          first_order_bonus_paid: boolean | null
           first_purchase_amount: number | null
           first_purchase_date: string | null
           id: string
@@ -1576,12 +1875,14 @@ export type Database = {
           referral_code: string
           referred_id: string
           referrer_id: string
+          signup_date: string | null
           signup_reward_paid: boolean
           status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          first_order_bonus_paid?: boolean | null
           first_purchase_amount?: number | null
           first_purchase_date?: string | null
           id?: string
@@ -1589,12 +1890,14 @@ export type Database = {
           referral_code: string
           referred_id: string
           referrer_id: string
+          signup_date?: string | null
           signup_reward_paid?: boolean
           status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          first_order_bonus_paid?: boolean | null
           first_purchase_amount?: number | null
           first_purchase_date?: string | null
           id?: string
@@ -1602,6 +1905,7 @@ export type Database = {
           referral_code?: string
           referred_id?: string
           referrer_id?: string
+          signup_date?: string | null
           signup_reward_paid?: boolean
           status?: string
           updated_at?: string
@@ -2335,6 +2639,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_and_award_badges: { Args: { p_user_id: string }; Returns: number }
       generate_referral_code: { Args: never; Returns: string }
       get_or_create_referral_code: {
         Args: { p_user_id: string }
