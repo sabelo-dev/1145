@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Wallet, CreditCard, Plus, Trash2, Star, ArrowUpDown, Coins } from "lucide-react";
+import { Wallet, CreditCard, Plus, Trash2, Star, ArrowUpDown, Coins, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BiGoldDashboard } from "@/components/bigold/BiGoldDashboard";
+import { ReferralDashboard } from "@/components/referral/ReferralDashboard";
 
 const ConsumerWallet: React.FC = () => {
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
@@ -96,10 +97,14 @@ const ConsumerWallet: React.FC = () => {
       </div>
 
       <Tabs defaultValue="bigold" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="bigold" className="flex items-center gap-2">
             <Coins className="h-4 w-4" />
             BiGold
+          </TabsTrigger>
+          <TabsTrigger value="referrals" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Referrals
           </TabsTrigger>
           <TabsTrigger value="payments" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
@@ -109,6 +114,10 @@ const ConsumerWallet: React.FC = () => {
 
         <TabsContent value="bigold" className="mt-4">
           <BiGoldDashboard />
+        </TabsContent>
+
+        <TabsContent value="referrals" className="mt-4">
+          <ReferralDashboard />
         </TabsContent>
 
         <TabsContent value="payments" className="mt-4 space-y-6">

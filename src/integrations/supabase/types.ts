@@ -1566,6 +1566,48 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          created_at: string
+          first_purchase_amount: number | null
+          first_purchase_date: string | null
+          id: string
+          purchase_reward_paid: boolean
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          signup_reward_paid: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_purchase_amount?: number | null
+          first_purchase_date?: string | null
+          id?: string
+          purchase_reward_paid?: boolean
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          signup_reward_paid?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_purchase_amount?: number | null
+          first_purchase_date?: string | null
+          id?: string
+          purchase_reward_paid?: boolean
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          signup_reward_paid?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string | null
@@ -1972,6 +2014,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          total_earned: number
+          updated_at: string
+          user_id: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          total_earned?: number
+          updated_at?: string
+          user_id: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          total_earned?: number
+          updated_at?: string
+          user_id?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2251,6 +2326,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
+      get_or_create_referral_code: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -2272,6 +2352,10 @@ export type Database = {
       }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor: { Args: { _user_id: string }; Returns: boolean }
+      process_referral_signup: {
+        Args: { p_referral_code: string; p_referred_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "consumer" | "vendor" | "admin" | "driver"
