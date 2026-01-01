@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Wallet, CreditCard, Plus, Trash2, Star, ArrowUpDown } from "lucide-react";
+import { Wallet, CreditCard, Plus, Trash2, Star, ArrowUpDown, Coins, Users } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
+import { ReferralDashboard } from "@/components/referral/ReferralDashboard";
 
 const ConsumerWallet: React.FC = () => {
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
@@ -92,6 +95,32 @@ const ConsumerWallet: React.FC = () => {
         <Wallet className="h-5 w-5" />
         <span className="text-lg font-medium">Wallet & Payments</span>
       </div>
+
+      <Tabs defaultValue="ucoin" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="ucoin" className="flex items-center gap-2">
+            <Coins className="h-4 w-4" />
+            UCoin
+          </TabsTrigger>
+          <TabsTrigger value="referrals" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Referrals
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Payments
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ucoin" className="mt-4">
+          <UCoinDashboard />
+        </TabsContent>
+
+        <TabsContent value="referrals" className="mt-4">
+          <ReferralDashboard />
+        </TabsContent>
+
+        <TabsContent value="payments" className="mt-4 space-y-6">
 
       {/* Wallet Balance */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -255,6 +284,8 @@ const ConsumerWallet: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -47,23 +47,27 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
   return (
     <>
-      {/* Dark overlay */}
+      {/* Dark overlay with backdrop blur */}
       <div 
         className={cn(
-          "fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300",
-          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          "fixed inset-0 z-40 md:hidden transition-all duration-300 ease-out",
+          mobileMenuOpen 
+            ? "bg-black/40 backdrop-blur-sm opacity-100" 
+            : "bg-transparent backdrop-blur-none opacity-0 pointer-events-none"
         )}
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
       
-      {/* Menu content */}
+      {/* Menu content with slide animation */}
       <div className={cn(
-        "md:hidden bg-background border-l border-border shadow-lg fixed top-0 right-0 h-full w-[85%] max-w-sm z-50 overflow-y-auto transition-transform duration-300",
-        mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        "md:hidden bg-white dark:bg-background border-l border-border shadow-2xl fixed top-0 right-0 h-[100dvh] w-[80vw] max-w-[320px] z-50 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out",
+        mobileMenuOpen 
+          ? "translate-x-0 opacity-100" 
+          : "translate-x-full opacity-0"
       )}>
         {/* Header */}
-        <div className="sticky top-0 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+        <div className="sticky top-0 bg-white dark:bg-background border-b border-border px-4 py-3 flex items-center justify-between z-10">
           <span className="font-semibold text-foreground">Menu</span>
           <Button
             variant="ghost"
@@ -88,16 +92,17 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
           {/* Main Navigation */}
           <div className="space-y-1">
-            {mainMenuItems.map((item) => {
+            {mainMenuItems.map((item, index) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
+                  style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <Icon className="h-4 w-4 text-muted-foreground transition-transform duration-150 group-active:scale-90" />
                   {item.label}
                 </Link>
               );
@@ -106,17 +111,17 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
           {/* Categories Section */}
           <Collapsible className="border-t border-border pt-4">
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out">
               <div className="flex items-center gap-3">
                 <Grid3X3 className="h-4 w-4 text-muted-foreground" />
                 Categories
               </div>
-              <span className="text-muted-foreground text-xs">+</span>
+              <span className="text-muted-foreground text-xs transition-transform duration-200">+</span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 ml-7 space-y-3">
+            <CollapsibleContent className="mt-2 ml-7 space-y-3 animate-accordion-down">
               <Link
                 to="/categories"
-                className="block px-3 py-2 rounded-md text-sm text-foreground hover:bg-accent transition-colors"
+                className="block px-3 py-2 rounded-md text-sm text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 All Categories
@@ -127,21 +132,21 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 <div className="space-y-1">
                   <Link
                     to="/category/clothing/men"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Men's Clothing
                   </Link>
                   <Link
                     to="/category/clothing/women"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Women's Clothing
                   </Link>
                   <Link
                     to="/category/clothing/kids"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Kids' Clothing
@@ -154,21 +159,21 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 <div className="space-y-1">
                   <Link
                     to="/category/home-kitchen/appliances"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Appliances
                   </Link>
                   <Link
                     to="/category/home-kitchen/kitchen"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Electronics
                   </Link>
                   <Link
                     to="/category/home-kitchen/furniture"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Furniture
@@ -186,7 +191,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Icon className="h-4 w-4 text-muted-foreground" />
@@ -202,7 +207,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               {user?.role === 'consumer' && !isVendor && (
                 <Link
                   to="/vendor/register"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Store className="h-4 w-4 text-muted-foreground" />
@@ -212,7 +217,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               {isVendor && (
                 <Link
                   to="/vendor/dashboard"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Store className="h-4 w-4 text-muted-foreground" />
@@ -222,7 +227,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               {isDriver && (
                 <Link
                   to="/driver/dashboard"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Truck className="h-4 w-4 text-muted-foreground" />
@@ -232,7 +237,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               {isAdmin && (
                 <Link
                   to="/admin/dashboard"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Shield className="h-4 w-4 text-muted-foreground" />
@@ -256,7 +261,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 </div>
                 <Link
                   to="/dashboard"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <User className="h-4 w-4 text-muted-foreground" />
@@ -267,7 +272,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                     await logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 active:scale-[0.98] active:bg-destructive/20 transition-all duration-150 ease-out"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out
@@ -276,7 +281,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             ) : (
               <Link
                 to="/login"
-                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 active:scale-[0.98] active:bg-primary/80 transition-all duration-150 ease-out"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Sign In

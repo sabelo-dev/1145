@@ -43,7 +43,9 @@ import {
   Shield,
   Navigation,
   Target,
+  Coins,
 } from "lucide-react";
+import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 
 interface Driver {
   id: string;
@@ -111,6 +113,7 @@ const DriverDashboard: React.FC = () => {
     { id: "available-jobs", title: "Available Jobs", icon: MapPin },
     { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
     { id: "live-tracking", title: "Live Tracking", icon: Navigation },
+    { id: "ucoin", title: "UCoin Rewards", icon: Coins },
     { id: "analytics", title: "My Analytics", icon: BarChart3 },
     { id: "verification", title: "Verification", icon: Shield },
     { id: "settings", title: "Settings", icon: Settings },
@@ -222,6 +225,9 @@ const DriverDashboard: React.FC = () => {
               </TabsContent>
               <TabsContent value="live-tracking" className="mt-0">
                 <DriverLiveTracking driver={driver} />
+              </TabsContent>
+              <TabsContent value="ucoin" className="mt-0">
+                <UCoinDashboard />
               </TabsContent>
               <TabsContent value="analytics" className="mt-0">
                 <DriverAnalytics driver={driver} />
