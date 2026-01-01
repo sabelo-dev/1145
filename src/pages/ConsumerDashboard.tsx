@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Package,
@@ -172,62 +173,103 @@ const ConsumerDashboard: React.FC = () => {
     }
   };
 
-  const activeItem = sidebarItems.find(item => item.id === activeModule);
-
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <Sidebar className="w-64">
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>My Account</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {sidebarItems.map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        onClick={() => setActiveModule(item.id)}
-                        className={cn(
-                          "w-full justify-start",
-                          activeModule === item.id && "bg-accent"
-                        )}
-                      >
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {item.title}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-
-        <main className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center justify-between border-b px-6">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
-              <div>
-                <h1 className="text-xl font-semibold">
-                  {activeItem?.title}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {activeItem?.description}
-                </p>
-              </div>
-            </div>
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Welcome,</span>
-              <span className="font-medium">{user.name || user.email}</span>
-            </div>
-          </header>
-
-          <div className="flex-1 p-6 overflow-auto">
-            {renderActiveModule()}
-          </div>
-        </main>
-      </div>
+      <ConsumerDashboardContent
+        sidebarItems={sidebarItems}
+        activeModule={activeModule}
+        setActiveModule={setActiveModule}
+        renderActiveModule={renderActiveModule}
+        user={user}
+      />
     </SidebarProvider>
+  );
+};
+
+interface SidebarItem {
+  id: string;
+  title: string;
+  icon: React.ForwardRefExoticComponent<any>;
+  description: string;
+}
+
+interface ConsumerDashboardContentProps {
+  sidebarItems: SidebarItem[];
+  activeModule: string;
+  setActiveModule: (id: string) => void;
+  renderActiveModule: () => React.ReactNode;
+  user: any;
+}
+
+const ConsumerDashboardContent: React.FC<ConsumerDashboardContentProps> = ({
+  sidebarItems,
+  activeModule,
+  setActiveModule,
+  renderActiveModule,
+  user,
+}) => {
+  const { isMobile, setOpenMobile } = useSidebar();
+  const activeItem = sidebarItems.find(item => item.id === activeModule);
+
+  const handleItemClick = (id: string) => {
+    setActiveModule(id);
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex w-full">
+      <Sidebar className="w-64">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>My Account</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {sidebarItems.map((item) => (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      onClick={() => handleItemClick(item.id)}
+                      className={cn(
+                        "w-full justify-start",
+                        activeModule === item.id && "bg-accent"
+                      )}
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.title}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+
+      <main className="flex-1 flex flex-col">
+        <header className="h-14 flex items-center justify-between border-b px-6">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl font-semibold">
+                {activeItem?.title}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {activeItem?.description}
+              </p>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Welcome,</span>
+            <span className="font-medium">{user.name || user.email}</span>
+          </div>
+        </header>
+
+        <div className="flex-1 p-6 overflow-auto">
+          {renderActiveModule()}
+        </div>
+      </main>
+    </div>
   );
 };
 
