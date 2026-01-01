@@ -192,12 +192,12 @@ const FAQPage: React.FC = () => {
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Email Support</h3>
                 <p className="text-sm text-gray-600 mb-2">For detailed inquiries</p>
-                <p className="font-medium">support@wwecommerce.co.za</p>
+                <p className="font-medium">support@1145lifestyle.com</p>
               </div>
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Sales Team</h3>
                 <p className="text-sm text-gray-600 mb-2">For business inquiries</p>
-                <p className="font-medium">sales@wwecommerce.co.za</p>
+                <p className="font-medium">sales@1145lifestyle.com</p>
               </div>
             </div>
           </CardContent>

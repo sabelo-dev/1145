@@ -214,7 +214,7 @@ const ConsumerSupport: React.FC = () => {
             <Mail className="h-8 w-8 text-primary" />
             <div>
               <h3 className="font-medium">Email Support</h3>
-              <p className="text-sm text-muted-foreground">support@lsi.com</p>
+              <p className="text-sm text-muted-foreground">support@1145lifestyle.com</p>
             </div>
             <Button variant="outline" size="sm" className="ml-auto">
               Send Email

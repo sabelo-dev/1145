@@ -242,7 +242,7 @@ const TermsPage: React.FC = () => {
               <div className="space-y-4">
                 <p className="text-gray-700">If you have questions about these Terms of Service, please contact us:</p>
                 <div className="text-gray-700">
-                  <p>Email: legal@lsimall.co.za</p>
+                  <p>Email: legal@1145lifestyle.com</p>
                   <p>Phone: +27-76-159-7719</p>
                   <p>Address: eCommerce Street, International</p>
                 </div>
