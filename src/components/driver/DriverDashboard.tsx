@@ -58,6 +58,11 @@ interface Driver {
   vehicle_type: string | null;
   license_number: string | null;
   vehicle_registration: string | null;
+  vehicle_make: string | null;
+  vehicle_model: string | null;
+  vehicle_year: number | null;
+  vehicle_color: string | null;
+  vehicle_photo_url: string | null;
 }
 
 const DriverDashboard: React.FC = () => {
