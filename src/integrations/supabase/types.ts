@@ -1265,6 +1265,72 @@ export type Database = {
           },
         ]
       }
+      delivery_earnings: {
+        Row: {
+          base_pay: number
+          created_at: string
+          delivery_job_id: string
+          distance_km: number | null
+          distance_pay: number
+          driver_id: string
+          id: string
+          is_priority: boolean | null
+          surge_multiplier: number | null
+          surge_pay: number
+          tier_bonus: number
+          tip_amount: number
+          total_earnings: number
+          urgency_pay: number
+        }
+        Insert: {
+          base_pay?: number
+          created_at?: string
+          delivery_job_id: string
+          distance_km?: number | null
+          distance_pay?: number
+          driver_id: string
+          id?: string
+          is_priority?: boolean | null
+          surge_multiplier?: number | null
+          surge_pay?: number
+          tier_bonus?: number
+          tip_amount?: number
+          total_earnings?: number
+          urgency_pay?: number
+        }
+        Update: {
+          base_pay?: number
+          created_at?: string
+          delivery_job_id?: string
+          distance_km?: number | null
+          distance_pay?: number
+          driver_id?: string
+          id?: string
+          is_priority?: boolean | null
+          surge_multiplier?: number | null
+          surge_pay?: number
+          tier_bonus?: number
+          tip_amount?: number
+          total_earnings?: number
+          urgency_pay?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_earnings_delivery_job_id_fkey"
+            columns: ["delivery_job_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_earnings_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_jobs: {
         Row: {
           actual_delivery_time: string | null
@@ -1324,6 +1390,67 @@ export type Database = {
           },
           {
             foreignKeyName: "delivery_jobs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_tips: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          delivery_job_id: string | null
+          driver_id: string | null
+          id: string
+          is_prepaid: boolean
+          order_id: string
+          paid_at: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id: string
+          delivery_job_id?: string | null
+          driver_id?: string | null
+          id?: string
+          is_prepaid?: boolean
+          order_id: string
+          paid_at?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          delivery_job_id?: string | null
+          driver_id?: string | null
+          id?: string
+          is_prepaid?: boolean
+          order_id?: string
+          paid_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_tips_delivery_job_id_fkey"
+            columns: ["delivery_job_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_tips_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_tips_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
@@ -1413,6 +1540,113 @@ export type Database = {
           },
         ]
       }
+      driver_cashouts: {
+        Row: {
+          amount: number
+          created_at: string
+          driver_id: string
+          fee_amount: number
+          fee_percent: number
+          id: string
+          net_amount: number
+          payment_method: string
+          payment_reference: string | null
+          processed_at: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          driver_id: string
+          fee_amount?: number
+          fee_percent?: number
+          id?: string
+          net_amount: number
+          payment_method: string
+          payment_reference?: string | null
+          processed_at?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          driver_id?: string
+          fee_amount?: number
+          fee_percent?: number
+          id?: string
+          net_amount?: number
+          payment_method?: string
+          payment_reference?: string | null
+          processed_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_cashouts_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_investments: {
+        Row: {
+          amount: number
+          created_at: string
+          driver_id: string
+          id: string
+          investment_type: string
+          maturity_date: string | null
+          returns_earned: number
+          status: string
+          target_vendor_id: string | null
+          ucoin_spent: number
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          driver_id: string
+          id?: string
+          investment_type: string
+          maturity_date?: string | null
+          returns_earned?: number
+          status?: string
+          target_vendor_id?: string | null
+          ucoin_spent?: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          driver_id?: string
+          id?: string
+          investment_type?: string
+          maturity_date?: string | null
+          returns_earned?: number
+          status?: string
+          target_vendor_id?: string | null
+          ucoin_spent?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_investments_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_investments_target_vendor_id_fkey"
+            columns: ["target_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_payouts: {
         Row: {
           amount: number
@@ -1475,53 +1709,279 @@ export type Database = {
           },
         ]
       }
+      driver_performance_stats: {
+        Row: {
+          accepted_jobs: number
+          average_rating: number | null
+          created_at: string
+          driver_id: string
+          id: string
+          offered_jobs: number
+          ontime_deliveries: number
+          period_end: string
+          period_start: string
+          total_deliveries: number
+          total_earnings: number
+          total_tips: number
+        }
+        Insert: {
+          accepted_jobs?: number
+          average_rating?: number | null
+          created_at?: string
+          driver_id: string
+          id?: string
+          offered_jobs?: number
+          ontime_deliveries?: number
+          period_end: string
+          period_start: string
+          total_deliveries?: number
+          total_earnings?: number
+          total_tips?: number
+        }
+        Update: {
+          accepted_jobs?: number
+          average_rating?: number | null
+          created_at?: string
+          driver_id?: string
+          id?: string
+          offered_jobs?: number
+          ontime_deliveries?: number
+          period_end?: string
+          period_start?: string
+          total_deliveries?: number
+          total_earnings?: number
+          total_tips?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_performance_stats_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_tier_history: {
+        Row: {
+          created_at: string
+          driver_id: string
+          effective_date: string
+          id: string
+          previous_tier_id: string | null
+          reason: string | null
+          tier_id: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          effective_date?: string
+          id?: string
+          previous_tier_id?: string | null
+          reason?: string | null
+          tier_id: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          effective_date?: string
+          id?: string
+          previous_tier_id?: string | null
+          reason?: string | null
+          tier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_tier_history_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_tier_history_previous_tier_id_fkey"
+            columns: ["previous_tier_id"]
+            isOneToOne: false
+            referencedRelation: "driver_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_tier_history_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "driver_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_tiers: {
+        Row: {
+          badge_color: string
+          base_pay_multiplier: number
+          cashout_fee_percent: number
+          created_at: string
+          display_name: string
+          features: Json
+          id: string
+          insurance_coverage_percent: number
+          level: number
+          min_acceptance_rate: number
+          min_deliveries: number
+          min_ontime_rate: number
+          min_rating: number
+          name: string
+          priority_job_access: boolean
+        }
+        Insert: {
+          badge_color?: string
+          base_pay_multiplier?: number
+          cashout_fee_percent?: number
+          created_at?: string
+          display_name: string
+          features?: Json
+          id?: string
+          insurance_coverage_percent?: number
+          level: number
+          min_acceptance_rate?: number
+          min_deliveries?: number
+          min_ontime_rate?: number
+          min_rating?: number
+          name: string
+          priority_job_access?: boolean
+        }
+        Update: {
+          badge_color?: string
+          base_pay_multiplier?: number
+          cashout_fee_percent?: number
+          created_at?: string
+          display_name?: string
+          features?: Json
+          id?: string
+          insurance_coverage_percent?: number
+          level?: number
+          min_acceptance_rate?: number
+          min_deliveries?: number
+          min_ontime_rate?: number
+          min_rating?: number
+          name?: string
+          priority_job_access?: boolean
+        }
+        Relationships: []
+      }
+      driver_vehicle_fund: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          purpose: string | null
+          status: string
+          target_amount: number | null
+          total_saved: number
+          ucoin_contributed: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          purpose?: string | null
+          status?: string
+          target_amount?: number | null
+          total_saved?: number
+          ucoin_contributed?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          purpose?: string | null
+          status?: string
+          target_amount?: number | null
+          total_saved?: number
+          ucoin_contributed?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_vehicle_fund_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
+          acceptance_rate: number | null
+          available_balance: number | null
           created_at: string
           current_location: Json | null
           id: string
           license_number: string | null
           name: string
+          ontime_rate: number | null
           phone: string | null
           rating: number | null
           status: string
+          tier_id: string | null
           total_deliveries: number | null
+          total_earnings: number | null
           updated_at: string
           user_id: string
           vehicle_registration: string | null
           vehicle_type: string | null
         }
         Insert: {
+          acceptance_rate?: number | null
+          available_balance?: number | null
           created_at?: string
           current_location?: Json | null
           id?: string
           license_number?: string | null
           name: string
+          ontime_rate?: number | null
           phone?: string | null
           rating?: number | null
           status?: string
+          tier_id?: string | null
           total_deliveries?: number | null
+          total_earnings?: number | null
           updated_at?: string
           user_id: string
           vehicle_registration?: string | null
           vehicle_type?: string | null
         }
         Update: {
+          acceptance_rate?: number | null
+          available_balance?: number | null
           created_at?: string
           current_location?: Json | null
           id?: string
           license_number?: string | null
           name?: string
+          ontime_rate?: number | null
           phone?: string | null
           rating?: number | null
           status?: string
+          tier_id?: string | null
           total_deliveries?: number | null
+          total_earnings?: number | null
           updated_at?: string
           user_id?: string
           vehicle_registration?: string | null
           vehicle_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "drivers_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "driver_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       flash_deals: {
         Row: {
@@ -2871,6 +3331,45 @@ export type Database = {
           },
         ]
       }
+      surge_zones: {
+        Row: {
+          created_at: string
+          days_active: number[] | null
+          end_time: string | null
+          id: string
+          is_active: boolean
+          name: string
+          polygon: Json
+          start_time: string | null
+          surge_multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_active?: number[] | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          polygon: Json
+          start_time?: string | null
+          surge_multiplier?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_active?: number[] | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          polygon?: Json
+          start_time?: string | null
+          surge_multiplier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_addresses: {
         Row: {
           city: string
@@ -3254,7 +3753,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      calculate_delivery_earnings: {
+        Args: {
+          p_delivery_job_id: string
+          p_distance_km: number
+          p_is_urgent?: boolean
+          p_surge_multiplier?: number
+        }
+        Returns: number
+      }
       check_and_award_badges: { Args: { p_user_id: string }; Returns: number }
+      evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_or_create_referral_code: {
         Args: { p_user_id: string }

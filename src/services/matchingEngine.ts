@@ -50,7 +50,7 @@ export interface DriverMatchCriteria {
 }
 
 export interface MatchedDriver {
-  driver: DriverProfile & {
+  driver: {
     id: string;
     name: string;
     phone: string | null;
@@ -59,6 +59,16 @@ export interface MatchedDriver {
     vehicle_registration: string | null;
     current_location: GeoLocation | null;
     total_deliveries: number | null;
+    status: string;
+    user_id: string;
+    license_number: string | null;
+    created_at: string;
+    updated_at: string;
+    tier_id?: string | null;
+    acceptance_rate?: number | null;
+    ontime_rate?: number | null;
+    total_earnings?: number | null;
+    available_balance?: number | null;
   };
   distance_to_pickup: number;
   estimated_arrival_mins: number;
@@ -224,8 +234,24 @@ export const matchingEngine = {
 
         return {
           driver: {
-            ...driver,
+            id: driver.id,
+            name: driver.name,
+            phone: driver.phone,
+            rating: driver.rating,
+            vehicle_type: driver.vehicle_type,
+            vehicle_registration: driver.vehicle_registration,
             current_location: rawLoc?.lat && rawLoc?.lng ? { lat: rawLoc.lat, lng: rawLoc.lng } : null,
+            total_deliveries: driver.total_deliveries,
+            status: driver.status,
+            user_id: driver.user_id,
+            license_number: driver.license_number,
+            created_at: driver.created_at,
+            updated_at: driver.updated_at,
+            tier_id: driver.tier_id,
+            acceptance_rate: driver.acceptance_rate,
+            ontime_rate: driver.ontime_rate,
+            total_earnings: driver.total_earnings,
+            available_balance: driver.available_balance,
           },
           distance_to_pickup: distance,
           estimated_arrival_mins: Math.round(distance * 3),
