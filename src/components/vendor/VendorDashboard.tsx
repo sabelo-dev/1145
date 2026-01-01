@@ -52,8 +52,10 @@ import {
   LogOut,
   User,
   Gavel,
-  TrendingUp
+  TrendingUp,
+  Coins
 } from "lucide-react";
+import { BiGoldDashboard } from "@/components/bigold/BiGoldDashboard";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
@@ -114,6 +116,7 @@ const VendorDashboard = () => {
     { id: "inventory", title: "Inventory Manager", icon: Warehouse },
     { id: "promotions", title: "Discounts / Coupons", icon: Percent },
     { id: "payouts", title: "Earnings / Wallet", icon: DollarSign },
+    { id: "bigold", title: "BiGold Rewards", icon: Coins },
     { id: "messages", title: "Messages", icon: MessageSquare },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
@@ -240,6 +243,9 @@ const VendorDashboard = () => {
                 </TabsContent>
                 <TabsContent value="payouts" className="mt-0">
                   <VendorPayouts />
+                </TabsContent>
+                <TabsContent value="bigold" className="mt-0">
+                  <BiGoldDashboard />
                 </TabsContent>
                 <TabsContent value="messages" className="mt-0">
                   <VendorMessages />
