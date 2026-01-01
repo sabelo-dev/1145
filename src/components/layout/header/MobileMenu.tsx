@@ -61,13 +61,13 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       
       {/* Menu content with slide animation */}
       <div className={cn(
-        "md:hidden bg-white dark:bg-background border-l border-border shadow-2xl fixed top-0 right-0 h-[100dvh] w-[80vw] max-w-[320px] z-50 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out",
+        "md:hidden bg-white border-l border-border shadow-2xl fixed top-0 right-0 h-[100dvh] w-[80vw] max-w-[320px] z-50 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out",
         mobileMenuOpen 
           ? "translate-x-0 opacity-100" 
           : "translate-x-full opacity-0"
       )}>
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-background border-b border-border px-4 py-3 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white border-b border-border px-4 py-3 flex items-center justify-between z-10">
           <span className="font-semibold text-foreground">Menu</span>
           <Button
             variant="ghost"
