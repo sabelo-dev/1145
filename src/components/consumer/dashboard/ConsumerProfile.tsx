@@ -73,20 +73,23 @@ const ConsumerProfile: React.FC = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache-busting timestamp
       const { data: { publicUrl } } = supabase.storage
         .from('profile-photos')
         .getPublicUrl(fileName);
 
+      // Add cache-busting parameter to force refresh
+      const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+
       // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: urlWithCacheBust })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      setAvatarUrl(publicUrl);
+      setAvatarUrl(urlWithCacheBust);
       await refreshUserProfile();
 
       toast({
