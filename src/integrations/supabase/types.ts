@@ -2326,6 +2326,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_bigold: {
+        Args: {
+          p_category: string
+          p_reference_id?: string
+          p_reference_type?: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       generate_referral_code: { Args: never; Returns: string }
       get_or_create_referral_code: {
         Args: { p_user_id: string }
