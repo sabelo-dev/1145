@@ -53,7 +53,7 @@ import {
   Rocket,
   Banknote,
 } from 'lucide-react';
-import { BiGoldEarningRule, BiGoldSpendingOption } from '@/types/bigold';
+import { UCoinEarningRule, UCoinSpendingOption } from '@/types/ucoin';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   order_completed: <ShoppingBag className="h-4 w-4" />,
@@ -85,15 +85,15 @@ interface Stats {
   totalSpent: number;
 }
 
-export default function AdminBiGold() {
+export default function AdminUCoin() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [earningRules, setEarningRules] = useState<BiGoldEarningRule[]>([]);
-  const [spendingOptions, setSpendingOptions] = useState<BiGoldSpendingOption[]>([]);
+  const [earningRules, setEarningRules] = useState<UCoinEarningRule[]>([]);
+  const [spendingOptions, setSpendingOptions] = useState<UCoinSpendingOption[]>([]);
   const [stats, setStats] = useState<Stats>({ totalWallets: 0, totalBalance: 0, totalEarned: 0, totalSpent: 0 });
   
-  const [editingRule, setEditingRule] = useState<BiGoldEarningRule | null>(null);
-  const [editingOption, setEditingOption] = useState<BiGoldSpendingOption | null>(null);
+  const [editingRule, setEditingRule] = useState<UCoinEarningRule | null>(null);
+  const [editingOption, setEditingOption] = useState<UCoinSpendingOption | null>(null);
   const [isAddingRule, setIsAddingRule] = useState(false);
   const [isAddingOption, setIsAddingOption] = useState(false);
 

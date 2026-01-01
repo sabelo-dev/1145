@@ -1,14 +1,14 @@
 import { Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface BiGoldBadgeProps {
+interface UCoinBadgeProps {
   amount: number;
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   className?: string;
 }
 
-export function BiGoldBadge({ amount, size = 'md', showIcon = true, className }: BiGoldBadgeProps) {
+export function UCoinBadge({ amount, size = 'md', showIcon = true, className }: UCoinBadgeProps) {
   const sizeClasses = {
     sm: 'text-xs px-1.5 py-0.5 gap-1',
     md: 'text-sm px-2 py-1 gap-1.5',

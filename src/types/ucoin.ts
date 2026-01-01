@@ -1,4 +1,4 @@
-export interface BiGoldWallet {
+export interface UCoinWallet {
   id: string;
   user_id: string;
   balance: number;
@@ -8,7 +8,7 @@ export interface BiGoldWallet {
   updated_at: string;
 }
 
-export interface BiGoldTransaction {
+export interface UCoinTransaction {
   id: string;
   user_id: string;
   amount: number;
@@ -20,7 +20,7 @@ export interface BiGoldTransaction {
   created_at: string;
 }
 
-export interface BiGoldEarningRule {
+export interface UCoinEarningRule {
   id: string;
   category: string;
   amount: number;
@@ -31,7 +31,7 @@ export interface BiGoldEarningRule {
   updated_at: string;
 }
 
-export interface BiGoldSpendingOption {
+export interface UCoinSpendingOption {
   id: string;
   category: string;
   cost: number;

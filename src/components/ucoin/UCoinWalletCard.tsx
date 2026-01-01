@@ -1,14 +1,14 @@
 import { Coins, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BiGoldWallet } from '@/types/bigold';
+import { Card, CardContent } from '@/components/ui/card';
+import { UCoinWallet } from '@/types/ucoin';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface BiGoldWalletCardProps {
-  wallet: BiGoldWallet | null;
+interface UCoinWalletCardProps {
+  wallet: UCoinWallet | null;
   isLoading?: boolean;
 }
 
-export function BiGoldWalletCard({ wallet, isLoading }: BiGoldWalletCardProps) {
+export function UCoinWalletCard({ wallet, isLoading }: UCoinWalletCardProps) {
   if (isLoading) {
     return (
       <Card className="overflow-hidden">
@@ -39,13 +39,13 @@ export function BiGoldWalletCard({ wallet, isLoading }: BiGoldWalletCardProps) {
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <Coins className="h-6 w-6" />
-            <span className="font-semibold text-lg">BiGold Balance</span>
+            <span className="font-semibold text-lg">Ubuntu Coin Balance</span>
             <Sparkles className="h-4 w-4 text-yellow-200" />
           </div>
           <div className="text-4xl font-bold tracking-tight">
             {balance.toLocaleString()}
           </div>
-          <p className="text-white/80 text-sm mt-1">Platform Currency</p>
+          <p className="text-white/80 text-sm mt-1">UCoin - Platform Currency</p>
         </div>
       </div>
       

@@ -1,10 +1,10 @@
 import { Coins, ShoppingBag, Truck, Star, Users, Clock, Trophy, Zap, UserCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BiGoldEarningRule } from '@/types/bigold';
+import { UCoinEarningRule } from '@/types/ucoin';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface BiGoldEarningGuideProps {
-  rules: BiGoldEarningRule[];
+interface UCoinEarningGuideProps {
+  rules: UCoinEarningRule[];
   isLoading?: boolean;
 }
 
@@ -22,14 +22,14 @@ const categoryIcons: Record<string, React.ReactNode> = {
   profile_complete: <UserCheck className="h-4 w-4" />
 };
 
-export function BiGoldEarningGuide({ rules, isLoading }: BiGoldEarningGuideProps) {
+export function UCoinEarningGuide({ rules, isLoading }: UCoinEarningGuideProps) {
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-amber-500" />
-            Ways to Earn BiGold
+            Ways to Earn UCoin
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -48,7 +48,7 @@ export function BiGoldEarningGuide({ rules, isLoading }: BiGoldEarningGuideProps
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Coins className="h-5 w-5 text-amber-500" />
-          Ways to Earn BiGold
+          Ways to Earn UCoin
         </CardTitle>
       </CardHeader>
       <CardContent>

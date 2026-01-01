@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Wallet, CreditCard, Plus, Trash2, Star, ArrowUpDown, Coins, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BiGoldDashboard } from "@/components/bigold/BiGoldDashboard";
+import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { ReferralDashboard } from "@/components/referral/ReferralDashboard";
 
 const ConsumerWallet: React.FC = () => {
@@ -96,11 +96,11 @@ const ConsumerWallet: React.FC = () => {
         <span className="text-lg font-medium">Wallet & Payments</span>
       </div>
 
-      <Tabs defaultValue="bigold" className="w-full">
+      <Tabs defaultValue="ucoin" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="bigold" className="flex items-center gap-2">
+          <TabsTrigger value="ucoin" className="flex items-center gap-2">
             <Coins className="h-4 w-4" />
-            BiGold
+            UCoin
           </TabsTrigger>
           <TabsTrigger value="referrals" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
@@ -112,8 +112,8 @@ const ConsumerWallet: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="bigold" className="mt-4">
-          <BiGoldDashboard />
+        <TabsContent value="ucoin" className="mt-4">
+          <UCoinDashboard />
         </TabsContent>
 
         <TabsContent value="referrals" className="mt-4">
