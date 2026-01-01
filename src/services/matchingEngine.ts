@@ -258,7 +258,7 @@ export const matchingEngine = {
           match_score: matchScore,
         };
       })
-      .filter((result): result is MatchedDriver => {
+      .filter((result): result is NonNullable<typeof result> => {
         if (!result) return false;
         return result.distance_to_pickup <= criteria.proximity_km;
       })
