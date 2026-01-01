@@ -1,27 +1,42 @@
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 
 type ThemeProviderProps = React.ComponentProps<typeof NextThemesProvider>;
 
+// Hook to check if we're on mobile
+const useIsMobile = () => {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 768;
+};
+
 // Component to force light mode on mobile
 function MobileThemeEnforcer({ children }: { children: React.ReactNode }) {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, theme, resolvedTheme } = useTheme();
 
-  useEffect(() => {
-    const checkMobile = () => {
+  // Use layout effect for immediate enforcement before paint
+  useLayoutEffect(() => {
+    const enforceLightMode = () => {
       const isMobile = window.innerWidth < 768;
-      if (isMobile && theme === "dark") {
+      if (isMobile && (theme === "dark" || resolvedTheme === "dark")) {
         setTheme("light");
       }
     };
 
-    // Check on mount
-    checkMobile();
+    // Check immediately
+    enforceLightMode();
 
     // Check on resize
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, [setTheme, theme]);
+    window.addEventListener("resize", enforceLightMode);
+    return () => window.removeEventListener("resize", enforceLightMode);
+  }, [setTheme, theme, resolvedTheme]);
+
+  // Also enforce on any theme change
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile && (theme === "dark" || resolvedTheme === "dark")) {
+      setTheme("light");
+    }
+  }, [theme, resolvedTheme, setTheme]);
 
   return <>{children}</>;
 }
