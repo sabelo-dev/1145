@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit, Save, Eye, Upload, Image, FileText } from "lucide-react";
+import { Edit, Save, Eye, Upload, Image, FileText, Loader2 } from "lucide-react";
 
 interface Page {
   id: string;
@@ -26,57 +26,17 @@ interface Banner {
   position: "hero" | "promo" | "sidebar";
 }
 
-const mockPages: Page[] = [
-  {
-    id: "1",
-    title: "About Us",
-    slug: "about",
-    content: "Learn more about our marketplace...",
-    status: "published",
-    lastModified: "2024-01-15"
-  },
-  {
-    id: "2",
-    title: "Contact Us", 
-    slug: "contact",
-    content: "Get in touch with our team...",
-    status: "published",
-    lastModified: "2024-01-14"
-  },
-  {
-    id: "3",
-    title: "Privacy Policy",
-    slug: "privacy",
-    content: "Your privacy is important to us...",
-    status: "draft",
-    lastModified: "2024-01-13"
-  }
-];
-
-const mockBanners: Banner[] = [
-  {
-    id: "1",
-    title: "Summer Sale",
-    imageUrl: "/placeholder-banner.jpg",
-    linkUrl: "/deals",
-    active: true,
-    position: "hero"
-  },
-  {
-    id: "2",
-    title: "New Arrivals",
-    imageUrl: "/placeholder-banner-2.jpg", 
-    linkUrl: "/new-arrivals",
-    active: true,
-    position: "promo"
-  }
-];
-
 const AdminCMS: React.FC = () => {
-  const [pages, setPages] = useState<Page[]>(mockPages);
-  const [banners, setBanners] = useState<Banner[]>(mockBanners);
+  const [pages, setPages] = useState<Page[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [editingPage, setEditingPage] = useState<Page | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // In production, fetch from Supabase tables
+    setLoading(false);
+  }, []);
 
   const handleSavePage = () => {
     if (!editingPage) return;
@@ -120,16 +80,32 @@ const AdminCMS: React.FC = () => {
     });
   };
 
+  const EmptyState = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
+    <div className="flex flex-col items-center justify-center py-12">
+      <Icon className="h-12 w-12 text-muted-foreground mb-4" />
+      <h3 className="text-lg font-medium mb-2">{title}</h3>
+      <p className="text-muted-foreground text-center max-w-sm">{description}</p>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">CMS / Pages Management</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold">CMS / Pages Management</h2>
       </div>
 
       <Tabs defaultValue="pages" className="w-full">
-        <TabsList>
-          <TabsTrigger value="pages">Static Pages</TabsTrigger>
-          <TabsTrigger value="banners">Banners & Promotions</TabsTrigger>
+        <TabsList className="w-full flex h-auto">
+          <TabsTrigger value="pages" className="flex-1">Static Pages</TabsTrigger>
+          <TabsTrigger value="banners" className="flex-1">Banners & Promotions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pages" className="space-y-4">
@@ -140,7 +116,7 @@ const AdminCMS: React.FC = () => {
                 <CardDescription>Update page content and settings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Page Title</label>
                     <Input
@@ -166,12 +142,12 @@ const AdminCMS: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex gap-2">
-                  <Button onClick={handleSavePage}>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button onClick={handleSavePage} className="w-full sm:w-auto">
                     <Save className="h-4 w-4 mr-2" />
                     Save Changes
                   </Button>
-                  <Button variant="outline" onClick={() => setEditingPage(null)}>
+                  <Button variant="outline" onClick={() => setEditingPage(null)} className="w-full sm:w-auto">
                     Cancel
                   </Button>
                 </div>
@@ -179,48 +155,62 @@ const AdminCMS: React.FC = () => {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {pages.map((page) => (
-                <Card key={page.id}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium">{page.title}</h3>
-                          <Badge 
-                            variant={page.status === "published" ? "default" : "secondary"}
-                          >
-                            {page.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">/{page.slug}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Last modified: {page.lastModified}
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setEditingPage(page)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleTogglePageStatus(page.id)}
-                        >
-                          {page.status === "published" ? "Unpublish" : "Publish"}
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+              {pages.length === 0 ? (
+                <Card>
+                  <CardContent>
+                    <EmptyState 
+                      icon={FileText} 
+                      title="No pages created yet" 
+                      description="Create static pages like About Us, FAQ, Privacy Policy, etc."
+                    />
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                pages.map((page) => (
+                  <Card key={page.id}>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-medium">{page.title}</h3>
+                            <Badge 
+                              variant={page.status === "published" ? "default" : "secondary"}
+                            >
+                              {page.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">/{page.slug}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Last modified: {page.lastModified}
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setEditingPage(page)}
+                            className="flex-1 sm:flex-none"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleTogglePageStatus(page.id)}
+                            className="flex-1 sm:flex-none"
+                          >
+                            {page.status === "published" ? "Unpublish" : "Publish"}
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           )}
         </TabsContent>
@@ -232,46 +222,55 @@ const AdminCMS: React.FC = () => {
               <CardDescription>Manage promotional banners and hero images</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {banners.map((banner) => (
-                <div key={banner.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{banner.title}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          {banner.position}
-                        </Badge>
-                        <Badge 
-                          variant={banner.active ? "default" : "secondary"}
-                          className="text-xs"
+              {banners.length === 0 ? (
+                <EmptyState 
+                  icon={Image} 
+                  title="No banners yet" 
+                  description="Add promotional banners to display on your homepage."
+                />
+              ) : (
+                banners.map((banner) => (
+                  <div key={banner.id} className="border rounded-lg p-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="font-medium">{banner.title}</h4>
+                          <Badge variant="outline" className="text-xs">
+                            {banner.position}
+                          </Badge>
+                          <Badge 
+                            variant={banner.active ? "default" : "secondary"}
+                            className="text-xs"
+                          >
+                            {banner.active ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Links to: {banner.linkUrl}
+                        </p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Image className="h-4 w-4" />
+                          <span className="truncate max-w-[200px]">{banner.imageUrl}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleToggleBanner(banner.id)}
+                          className="flex-1 sm:flex-none"
                         >
-                          {banner.active ? "Active" : "Inactive"}
-                        </Badge>
+                          {banner.active ? "Deactivate" : "Activate"}
+                        </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Links to: {banner.linkUrl}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Image className="h-4 w-4" />
-                        <span>{banner.imageUrl}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleToggleBanner(banner.id)}
-                      >
-                        {banner.active ? "Deactivate" : "Activate"}
-                      </Button>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
               
               <Button className="w-full" variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
