@@ -3787,8 +3787,12 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          recipient_id: string | null
           reference_id: string | null
           reference_type: string | null
+          sender_id: string | null
+          transfer_fee_mg: number | null
+          transfer_reference: string | null
           type: string
           user_id: string
         }
@@ -3798,8 +3802,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          recipient_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          sender_id?: string | null
+          transfer_fee_mg?: number | null
+          transfer_reference?: string | null
           type: string
           user_id: string
         }
@@ -3809,9 +3817,157 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          recipient_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          sender_id?: string | null
+          transfer_fee_mg?: number | null
+          transfer_reference?: string | null
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ucoin_transfer_limits: {
+        Row: {
+          created_at: string
+          daily_limit_mg: number
+          id: string
+          min_transfer_mg: number
+          monthly_limit_mg: number
+          requires_2fa_above_mg: number
+          single_transfer_max_mg: number
+          updated_at: string
+          user_tier: string
+        }
+        Insert: {
+          created_at?: string
+          daily_limit_mg?: number
+          id?: string
+          min_transfer_mg?: number
+          monthly_limit_mg?: number
+          requires_2fa_above_mg?: number
+          single_transfer_max_mg?: number
+          updated_at?: string
+          user_tier?: string
+        }
+        Update: {
+          created_at?: string
+          daily_limit_mg?: number
+          id?: string
+          min_transfer_mg?: number
+          monthly_limit_mg?: number
+          requires_2fa_above_mg?: number
+          single_transfer_max_mg?: number
+          updated_at?: string
+          user_tier?: string
+        }
+        Relationships: []
+      }
+      ucoin_transfer_usage: {
+        Row: {
+          created_at: string
+          daily_transferred_mg: number
+          id: string
+          monthly_transferred_mg: number
+          transfer_count: number
+          transfer_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_transferred_mg?: number
+          id?: string
+          monthly_transferred_mg?: number
+          transfer_count?: number
+          transfer_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_transferred_mg?: number
+          id?: string
+          monthly_transferred_mg?: number
+          transfer_count?: number
+          transfer_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ucoin_user_settings: {
+        Row: {
+          created_at: string
+          display_mode: string
+          id: string
+          is_transfer_enabled: boolean
+          preferred_gold_unit: string
+          requires_2fa: boolean
+          updated_at: string
+          user_id: string
+          user_tier: string
+        }
+        Insert: {
+          created_at?: string
+          display_mode?: string
+          id?: string
+          is_transfer_enabled?: boolean
+          preferred_gold_unit?: string
+          requires_2fa?: boolean
+          updated_at?: string
+          user_id: string
+          user_tier?: string
+        }
+        Update: {
+          created_at?: string
+          display_mode?: string
+          id?: string
+          is_transfer_enabled?: boolean
+          preferred_gold_unit?: string
+          requires_2fa?: boolean
+          updated_at?: string
+          user_id?: string
+          user_tier?: string
+        }
+        Relationships: []
+      }
+      ucoin_velocity_log: {
+        Row: {
+          action_type: string
+          amount_mg: number
+          counterparty_id: string | null
+          created_at: string
+          device_fingerprint: string | null
+          flag_reason: string | null
+          id: string
+          ip_address: string | null
+          is_flagged: boolean
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          amount_mg: number
+          counterparty_id?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          flag_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          is_flagged?: boolean
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          amount_mg?: number
+          counterparty_id?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          flag_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          is_flagged?: boolean
           user_id?: string
         }
         Relationships: []
@@ -4518,6 +4674,20 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_ucoin_transfers: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          amount: number
+          counterparty_id: string
+          created_at: string
+          direction: string
+          fee_mg: number
+          id: string
+          note: string
+          transfer_reference: string
+          type: string
+        }[]
+      }
       get_user_affiliate_tier: {
         Args: { p_user_id: string }
         Returns: {
@@ -4533,6 +4703,20 @@ export type Database = {
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_user_transfer_limits: {
+        Args: { p_user_id: string }
+        Returns: {
+          daily_limit_mg: number
+          daily_used_mg: number
+          min_transfer_mg: number
+          monthly_limit_mg: number
+          monthly_used_mg: number
+          remaining_daily_mg: number
+          remaining_monthly_mg: number
+          requires_2fa_above_mg: number
+          single_transfer_max_mg: number
+        }[]
       }
       get_vendor_features: { Args: { vendor_id: string }; Returns: Json }
       get_vendor_tier_config: { Args: { p_vendor_id: string }; Returns: Json }
@@ -4563,6 +4747,17 @@ export type Database = {
       process_referral_signup: {
         Args: { p_referral_code: string; p_referred_id: string }
         Returns: boolean
+      }
+      transfer_ucoin: {
+        Args: {
+          p_amount_mg: number
+          p_device_fingerprint?: string
+          p_ip_address?: string
+          p_note?: string
+          p_recipient_identifier: string
+          p_sender_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {
