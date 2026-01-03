@@ -17,7 +17,7 @@ export function useUCoin() {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from('bigold_wallets')
+      .from('ucoin_wallets')
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle();
@@ -31,7 +31,7 @@ export function useUCoin() {
       setWallet(data as UCoinWallet);
     } else {
       const { data: newWallet, error: createError } = await supabase
-        .from('bigold_wallets')
+        .from('ucoin_wallets')
         .insert({ user_id: user.id })
         .select()
         .single();
@@ -46,7 +46,7 @@ export function useUCoin() {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from('bigold_transactions')
+      .from('ucoin_transactions')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -59,8 +59,8 @@ export function useUCoin() {
 
   const fetchRulesAndOptions = useCallback(async () => {
     const [rulesResult, optionsResult] = await Promise.all([
-      supabase.from('bigold_earning_rules').select('*').eq('is_active', true),
-      supabase.from('bigold_spending_options').select('*').eq('is_active', true)
+      supabase.from('ucoin_earning_rules').select('*').eq('is_active', true),
+      supabase.from('ucoin_spending_options').select('*').eq('is_active', true)
     ]);
 
     if (rulesResult.data) {
@@ -94,7 +94,7 @@ export function useUCoin() {
     const amount = rule.amount * rule.multiplier;
 
     const { error: txError } = await supabase
-      .from('bigold_transactions')
+      .from('ucoin_transactions')
       .insert({
         user_id: user.id,
         amount,
@@ -111,7 +111,7 @@ export function useUCoin() {
     }
 
     const { error: walletError } = await supabase
-      .from('bigold_wallets')
+      .from('ucoin_wallets')
       .update({
         balance: wallet.balance + amount,
         lifetime_earned: wallet.lifetime_earned + amount
@@ -148,7 +148,7 @@ export function useUCoin() {
     }
 
     const { error: txError } = await supabase
-      .from('bigold_transactions')
+      .from('ucoin_transactions')
       .insert({
         user_id: user.id,
         amount: option.cost,
@@ -163,7 +163,7 @@ export function useUCoin() {
     }
 
     const { error: walletError } = await supabase
-      .from('bigold_wallets')
+      .from('ucoin_wallets')
       .update({
         balance: wallet.balance - option.cost,
         lifetime_spent: wallet.lifetime_spent + option.cost

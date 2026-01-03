@@ -392,147 +392,6 @@ export type Database = {
         }
         Relationships: []
       }
-      bigold_earning_rules: {
-        Row: {
-          amount: number
-          category: string
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          multiplier: number | null
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          category: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          multiplier?: number | null
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          category?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          multiplier?: number | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      bigold_spending_options: {
-        Row: {
-          category: string
-          cost: number
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          min_balance: number | null
-          updated_at: string
-          user_types: string[] | null
-          value: number
-          value_type: string
-        }
-        Insert: {
-          category: string
-          cost: number
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          min_balance?: number | null
-          updated_at?: string
-          user_types?: string[] | null
-          value: number
-          value_type: string
-        }
-        Update: {
-          category?: string
-          cost?: number
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          min_balance?: number | null
-          updated_at?: string
-          user_types?: string[] | null
-          value?: number
-          value_type?: string
-        }
-        Relationships: []
-      }
-      bigold_transactions: {
-        Row: {
-          amount: number
-          category: string
-          created_at: string
-          description: string | null
-          id: string
-          reference_id: string | null
-          reference_type: string | null
-          type: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          category: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          reference_id?: string | null
-          reference_type?: string | null
-          type: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          category?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          reference_id?: string | null
-          reference_type?: string | null
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      bigold_wallets: {
-        Row: {
-          balance: number
-          created_at: string
-          id: string
-          lifetime_earned: number
-          lifetime_spent: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          balance?: number
-          created_at?: string
-          id?: string
-          lifetime_earned?: number
-          lifetime_spent?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          balance?: number
-          created_at?: string
-          id?: string
-          lifetime_earned?: number
-          lifetime_spent?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       brand_bundle_products: {
         Row: {
           bundle_id: string
@@ -3385,6 +3244,147 @@ export type Database = {
         }
         Relationships: []
       }
+      ucoin_earning_rules: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          multiplier: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          multiplier?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          multiplier?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ucoin_spending_options: {
+        Row: {
+          category: string
+          cost: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          min_balance: number | null
+          updated_at: string
+          user_types: string[] | null
+          value: number
+          value_type: string
+        }
+        Insert: {
+          category: string
+          cost: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          min_balance?: number | null
+          updated_at?: string
+          user_types?: string[] | null
+          value: number
+          value_type: string
+        }
+        Update: {
+          category?: string
+          cost?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          min_balance?: number | null
+          updated_at?: string
+          user_types?: string[] | null
+          value?: number
+          value_type?: string
+        }
+        Relationships: []
+      }
+      ucoin_transactions: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ucoin_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          lifetime_earned: number
+          lifetime_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_addresses: {
         Row: {
           city: string
@@ -3759,7 +3759,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      award_bigold: {
+      award_ucoin: {
         Args: {
           p_category: string
           p_reference_id?: string
@@ -3768,6 +3768,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      award_user_badges: { Args: { p_user_id: string }; Returns: number }
       calculate_delivery_earnings: {
         Args: {
           p_delivery_job_id: string

@@ -155,7 +155,7 @@ export function useConsumerRetention() {
 
     // Deduct UCoin first
     const { data: wallet } = await supabase
-      .from('bigold_wallets')
+      .from('ucoin_wallets')
       .select('balance')
       .eq('user_id', user.id)
       .single();
@@ -181,7 +181,7 @@ export function useConsumerRetention() {
 
     // Deduct UCoin
     await supabase
-      .from('bigold_wallets')
+      .from('ucoin_wallets')
       .update({ 
         balance: wallet.balance - ucoinCost,
         lifetime_spent: wallet.balance + ucoinCost
