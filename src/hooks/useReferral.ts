@@ -92,7 +92,7 @@ export function useReferral() {
         r.status === 'purchase_completed'
       ).length;
 
-      // BiGold rewards: 50 for signup, 25 for purchase
+      // UCoin rewards: 50 for signup, 25 for purchase
       const earnedFromSignups = enrichedReferrals.filter(r => r.signup_reward_paid).length * 50;
       const earnedFromPurchases = enrichedReferrals.filter(r => r.purchase_reward_paid).length * 25;
       const pendingSignups = enrichedReferrals.filter(r => 
