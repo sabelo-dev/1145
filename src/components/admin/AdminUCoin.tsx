@@ -233,7 +233,7 @@ export default function AdminUCoin() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalWallets.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Active BiGold users</p>
+            <p className="text-xs text-muted-foreground">Active UCoin users</p>
           </CardContent>
         </Card>
 
@@ -244,7 +244,7 @@ export default function AdminUCoin() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.totalBalance.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">BiGold in circulation</p>
+            <p className="text-xs text-muted-foreground">UCoin in circulation</p>
           </CardContent>
         </Card>
 
@@ -290,7 +290,7 @@ export default function AdminUCoin() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Earning Rules</CardTitle>
-                  <CardDescription>Configure how users earn BiGold</CardDescription>
+                  <CardDescription>Configure how users earn UCoin</CardDescription>
                 </div>
                 <Button onClick={() => setIsAddingRule(true)}>
                   <Plus className="h-4 w-4 mr-2" />
