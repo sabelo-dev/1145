@@ -40,6 +40,7 @@ import { AdminShipping } from "@/components/admin/AdminShipping";
 import AdminAuctions from "@/components/admin/AdminAuctions";
 import AdminDrivers from "@/components/admin/AdminDrivers";
 import AdminUCoin from "@/components/admin/AdminUCoin";
+import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import {
   LayoutDashboard,
   Users,
@@ -59,7 +60,8 @@ import {
   Truck,
   Gavel,
   TrendingUp,
-  Coins
+  Coins,
+  Pickaxe
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -83,6 +85,7 @@ const AdminDashboard = () => {
     { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "auction-analytics", title: "Auction Analytics", icon: TrendingUp },
     { id: "ucoin", title: "UCoin Management", icon: Coins },
+    { id: "social-mining", title: "Social Mining", icon: Pickaxe },
     { id: "categories", title: "Categories", icon: FileText },
     { id: "analytics", title: "Reports & Analytics", icon: BarChart3 },
     { id: "settings", title: "System Settings", icon: Settings },
@@ -235,6 +238,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="ucoin" className="mt-0">
               <AdminUCoin />
+            </TabsContent>
+            <TabsContent value="social-mining" className="mt-0">
+              <AdminSocialMining />
             </TabsContent>
             <TabsContent value="orders" className="mt-0">
               <AdminOrders />

@@ -56,7 +56,9 @@ export type EarningCategory =
   | 'sales_milestone_500'
   | 'sales_milestone_1000'
   | 'daily_login'
-  | 'profile_complete';
+  | 'profile_complete'
+  | 'social_mining'
+  | 'referral_mining_bonus';
 
 export type SpendingCategory =
   | 'discount_5_percent'

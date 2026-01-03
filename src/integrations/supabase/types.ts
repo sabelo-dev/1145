@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_tiers: {
+        Row: {
+          badge_color: string | null
+          badge_icon: string | null
+          created_at: string
+          daily_mining_cap: number
+          display_name: string
+          features: Json | null
+          id: string
+          level: number
+          min_conversions: number
+          mining_multiplier: number
+          name: string
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          created_at?: string
+          daily_mining_cap?: number
+          display_name: string
+          features?: Json | null
+          id?: string
+          level: number
+          min_conversions?: number
+          mining_multiplier?: number
+          name: string
+        }
+        Update: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          created_at?: string
+          daily_mining_cap?: number
+          display_name?: string
+          features?: Json | null
+          id?: string
+          level?: number
+          min_conversions?: number
+          mining_multiplier?: number
+          name?: string
+        }
+        Relationships: []
+      }
       attribute_types: {
         Row: {
           category: string | null
@@ -1124,6 +1166,33 @@ export type Database = {
           },
         ]
       }
+      daily_mining_limits: {
+        Row: {
+          created_at: string
+          id: string
+          mining_date: string
+          tasks_completed: number | null
+          total_mined: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mining_date?: string
+          tasks_completed?: number | null
+          total_mined?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mining_date?: string
+          tasks_completed?: number | null
+          total_mined?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       delivery_earnings: {
         Row: {
           base_pay: number
@@ -2059,6 +2128,192 @@ export type Database = {
           },
         ]
       }
+      mining_campaigns: {
+        Row: {
+          banner_url: string | null
+          bonus_multiplier: number | null
+          created_at: string
+          current_participants: number | null
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          start_date: string
+          task_id: string | null
+          title: string
+        }
+        Insert: {
+          banner_url?: string | null
+          bonus_multiplier?: number | null
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          start_date: string
+          task_id?: string | null
+          title: string
+        }
+        Update: {
+          banner_url?: string | null
+          bonus_multiplier?: number | null
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          start_date?: string
+          task_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_campaigns_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "mining_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_completions: {
+        Row: {
+          base_reward: number
+          campaign_id: string | null
+          created_at: string
+          final_reward: number
+          id: string
+          multiplier: number | null
+          proof_data: Json | null
+          proof_url: string | null
+          social_account_id: string | null
+          status: string | null
+          task_id: string
+          user_id: string
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          base_reward: number
+          campaign_id?: string | null
+          created_at?: string
+          final_reward: number
+          id?: string
+          multiplier?: number | null
+          proof_data?: Json | null
+          proof_url?: string | null
+          social_account_id?: string | null
+          status?: string | null
+          task_id: string
+          user_id: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          base_reward?: number
+          campaign_id?: string | null
+          created_at?: string
+          final_reward?: number
+          id?: string
+          multiplier?: number | null
+          proof_data?: Json | null
+          proof_url?: string | null
+          social_account_id?: string | null
+          status?: string | null
+          task_id?: string
+          user_id?: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_completions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "mining_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mining_completions_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mining_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "mining_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_tasks: {
+        Row: {
+          base_reward: number
+          category: string
+          cooldown_hours: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_daily_completions: number | null
+          min_followers: number | null
+          platform: string | null
+          requires_verification: boolean | null
+          reward_tier: string | null
+          task_type: string
+          title: string
+          updated_at: string
+          verification_type: string | null
+        }
+        Insert: {
+          base_reward: number
+          category: string
+          cooldown_hours?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_daily_completions?: number | null
+          min_followers?: number | null
+          platform?: string | null
+          requires_verification?: boolean | null
+          reward_tier?: string | null
+          task_type: string
+          title: string
+          updated_at?: string
+          verification_type?: string | null
+        }
+        Update: {
+          base_reward?: number
+          category?: string
+          cooldown_hours?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_daily_completions?: number | null
+          min_followers?: number | null
+          platform?: string | null
+          requires_verification?: boolean | null
+          reward_tier?: string | null
+          task_type?: string
+          title?: string
+          updated_at?: string
+          verification_type?: string | null
+        }
+        Relationships: []
+      }
       order_history: {
         Row: {
           action: string
@@ -2729,6 +2984,50 @@ export type Database = {
           },
         ]
       }
+      referral_mining_bonuses: {
+        Row: {
+          beneficiary_id: string
+          bonus_amount: number
+          bonus_percent: number
+          completion_id: string
+          created_at: string
+          id: string
+          miner_id: string
+          referral_level: number
+          status: string | null
+        }
+        Insert: {
+          beneficiary_id: string
+          bonus_amount: number
+          bonus_percent: number
+          completion_id: string
+          created_at?: string
+          id?: string
+          miner_id: string
+          referral_level: number
+          status?: string | null
+        }
+        Update: {
+          beneficiary_id?: string
+          bonus_amount?: number
+          bonus_percent?: number
+          completion_id?: string
+          created_at?: string
+          id?: string
+          miner_id?: string
+          referral_level?: number
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_mining_bonuses_completion_id_fkey"
+            columns: ["completion_id"]
+            isOneToOne: false
+            referencedRelation: "mining_completions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           created_at: string
@@ -2926,6 +3225,69 @@ export type Database = {
           postal_codes?: Json | null
           provinces?: Json | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      social_accounts: {
+        Row: {
+          access_token: string | null
+          avatar_url: string | null
+          connected_at: string
+          created_at: string
+          display_name: string | null
+          follower_count: number | null
+          id: string
+          is_verified: boolean | null
+          last_synced_at: string | null
+          platform: string
+          platform_user_id: string
+          profile_url: string | null
+          refresh_token: string | null
+          status: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          access_token?: string | null
+          avatar_url?: string | null
+          connected_at?: string
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          id?: string
+          is_verified?: boolean | null
+          last_synced_at?: string | null
+          platform: string
+          platform_user_id: string
+          profile_url?: string | null
+          refresh_token?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          access_token?: string | null
+          avatar_url?: string | null
+          connected_at?: string
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          id?: string
+          is_verified?: boolean | null
+          last_synced_at?: string | null
+          platform?: string
+          platform_user_id?: string
+          profile_url?: string | null
+          refresh_token?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
         }
         Relationships: []
       }
@@ -3433,6 +3795,59 @@ export type Database = {
         }
         Relationships: []
       }
+      user_affiliate_status: {
+        Row: {
+          affiliate_code: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_mining_date: string | null
+          tier_id: string | null
+          today_mined: number | null
+          total_conversions: number | null
+          total_mined: number | null
+          total_referrals: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliate_code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_mining_date?: string | null
+          tier_id?: string | null
+          today_mined?: number | null
+          total_conversions?: number | null
+          total_mined?: number | null
+          total_referrals?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliate_code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_mining_date?: string | null
+          tier_id?: string | null
+          today_mined?: number | null
+          total_conversions?: number | null
+          total_mined?: number | null
+          total_referrals?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_affiliate_status_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_referral_codes: {
         Row: {
           code: string
@@ -3938,11 +4353,34 @@ export type Database = {
         Args: { p_vendor_id: string }
         Returns: Json
       }
+      complete_mining_task: {
+        Args: {
+          p_campaign_id?: string
+          p_proof_data?: Json
+          p_proof_url?: string
+          p_social_account_id?: string
+          p_task_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_or_create_referral_code: {
         Args: { p_user_id: string }
         Returns: string
+      }
+      get_user_affiliate_tier: {
+        Args: { p_user_id: string }
+        Returns: {
+          badge_color: string
+          daily_cap: number
+          display_name: string
+          level: number
+          mining_multiplier: number
+          tier_id: string
+          tier_name: string
+        }[]
       }
       get_user_role: {
         Args: { user_id: string }
@@ -3966,6 +4404,10 @@ export type Database = {
       }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor: { Args: { _user_id: string }; Returns: boolean }
+      process_referral_mining_bonus: {
+        Args: { p_completion_id: string; p_miner_id: string; p_reward: number }
+        Returns: undefined
+      }
       process_referral_signup: {
         Args: { p_referral_code: string; p_referred_id: string }
         Returns: boolean

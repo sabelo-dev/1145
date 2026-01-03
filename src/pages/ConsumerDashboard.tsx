@@ -28,6 +28,7 @@ import {
   Gavel,
   LayoutDashboard,
   Settings,
+  Pickaxe,
 } from "lucide-react";
 
 // Import dashboard components
@@ -43,6 +44,7 @@ import ConsumerNotifications from "@/components/consumer/dashboard/ConsumerNotif
 import ConsumerSupport from "@/components/consumer/dashboard/ConsumerSupport";
 import ConsumerAuctionWatchlist from "@/components/consumer/dashboard/ConsumerAuctionWatchlist";
 import ConsumerSettings from "@/components/consumer/dashboard/ConsumerSettings";
+import { SocialMiningDashboard } from "@/components/mining/SocialMiningDashboard";
 
 const ConsumerDashboard: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -119,6 +121,12 @@ const ConsumerDashboard: React.FC = () => {
       description: "Saved cards, transactions, loyalty points"
     },
     {
+      id: "mining",
+      title: "Social Mining",
+      icon: Pickaxe,
+      description: "Earn UCoin through social media tasks"
+    },
+    {
       id: "notifications",
       title: "Notifications",
       icon: Bell,
@@ -162,6 +170,8 @@ const ConsumerDashboard: React.FC = () => {
         return <ConsumerMessages />;
       case "wallet":
         return <ConsumerWallet />;
+      case "mining":
+        return <SocialMiningDashboard />;
       case "notifications":
         return <ConsumerNotifications />;
       case "support":

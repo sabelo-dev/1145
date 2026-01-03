@@ -4,8 +4,9 @@ import { UCoinWalletCard } from './UCoinWalletCard';
 import { UCoinTransactionList } from './UCoinTransactionList';
 import { UCoinRewardsShop } from './UCoinRewardsShop';
 import { UCoinEarningGuide } from './UCoinEarningGuide';
+import { SocialMiningDashboard } from '@/components/mining/SocialMiningDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Coins, Gift, BookOpen, History } from 'lucide-react';
+import { Coins, Gift, BookOpen, History, Pickaxe } from 'lucide-react';
 
 export function UCoinDashboard() {
   const { user, isVendor, isDriver } = useAuth();
@@ -27,8 +28,12 @@ export function UCoinDashboard() {
     <div className="space-y-6">
       <UCoinWalletCard wallet={wallet} isLoading={isLoading} />
 
-      <Tabs defaultValue="shop" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="mining" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="mining" className="flex items-center gap-2">
+            <Pickaxe className="h-4 w-4" />
+            <span className="hidden sm:inline">Mining</span>
+          </TabsTrigger>
           <TabsTrigger value="shop" className="flex items-center gap-2">
             <Gift className="h-4 w-4" />
             <span className="hidden sm:inline">Rewards</span>
@@ -42,6 +47,10 @@ export function UCoinDashboard() {
             <span className="hidden sm:inline">History</span>
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="mining" className="mt-4">
+          <SocialMiningDashboard />
+        </TabsContent>
         
         <TabsContent value="shop" className="mt-4">
           <UCoinRewardsShop
