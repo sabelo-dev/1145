@@ -1,7 +1,9 @@
-import { Coins, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
+import { Coins, TrendingUp, TrendingDown, Sparkles, Scale } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { UCoinWallet } from '@/types/ucoin';
+import { UCoinWallet, UCOIN_GOLD_RATIO } from '@/types/ucoin';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGoldPricingContext } from '@/contexts/GoldPricingContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UCoinWalletCardProps {
   wallet: UCoinWallet | null;
@@ -9,6 +11,8 @@ interface UCoinWalletCardProps {
 }
 
 export function UCoinWalletCard({ wallet, isLoading }: UCoinWalletCardProps) {
+  const { mgGoldToCurrency, displayCurrency, getCurrency } = useGoldPricingContext();
+  
   if (isLoading) {
     return (
       <Card className="overflow-hidden">
@@ -29,6 +33,13 @@ export function UCoinWalletCard({ wallet, isLoading }: UCoinWalletCardProps) {
   const balance = wallet?.balance || 0;
   const lifetimeEarned = wallet?.lifetime_earned || 0;
   const lifetimeSpent = wallet?.lifetime_spent || 0;
+  
+  // 1 UCoin = 1 mg gold
+  const goldMg = balance * UCOIN_GOLD_RATIO.MG_PER_UCOIN;
+  const goldGrams = goldMg / 1000;
+  const currencyValue = mgGoldToCurrency(goldMg, displayCurrency);
+  const currency = getCurrency(displayCurrency);
+  const currencySymbol = currency?.currencySymbol || displayCurrency;
 
   return (
     <Card className="overflow-hidden border-0 shadow-lg">
@@ -42,10 +53,27 @@ export function UCoinWalletCard({ wallet, isLoading }: UCoinWalletCardProps) {
             <span className="font-semibold text-lg">Ubuntu Coin Balance</span>
             <Sparkles className="h-4 w-4 text-yellow-200" />
           </div>
-          <div className="text-4xl font-bold tracking-tight">
-            {balance.toLocaleString()}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-4xl font-bold tracking-tight cursor-help">
+                  {balance.toLocaleString()}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="text-sm">
+                <div className="space-y-1">
+                  <p><strong>Gold Backing:</strong></p>
+                  <p>= {goldMg.toLocaleString()} mg Au</p>
+                  <p>= {goldGrams.toFixed(3)} g Au</p>
+                  <p>≈ {currencySymbol}{currencyValue.toFixed(2)}</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <div className="flex items-center gap-2 text-white/80 text-sm mt-1">
+            <Scale className="h-3 w-3" />
+            <span>1 UCoin = 1 mg Gold | ≈ {currencySymbol}{currencyValue.toFixed(2)}</span>
           </div>
-          <p className="text-white/80 text-sm mt-1">UCoin - Platform Currency</p>
         </div>
       </div>
       

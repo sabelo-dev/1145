@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_tiers: {
+        Row: {
+          badge_color: string | null
+          badge_icon: string | null
+          created_at: string
+          daily_mining_cap: number
+          display_name: string
+          features: Json | null
+          id: string
+          level: number
+          min_conversions: number
+          mining_multiplier: number
+          name: string
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          created_at?: string
+          daily_mining_cap?: number
+          display_name: string
+          features?: Json | null
+          id?: string
+          level: number
+          min_conversions?: number
+          mining_multiplier?: number
+          name: string
+        }
+        Update: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          created_at?: string
+          daily_mining_cap?: number
+          display_name?: string
+          features?: Json | null
+          id?: string
+          level?: number
+          min_conversions?: number
+          mining_multiplier?: number
+          name?: string
+        }
+        Relationships: []
+      }
       attribute_types: {
         Row: {
           category: string | null
@@ -1079,6 +1121,39 @@ export type Database = {
           },
         ]
       }
+      currency_rates: {
+        Row: {
+          created_at: string
+          currency_code: string
+          currency_name: string
+          currency_symbol: string
+          id: string
+          is_active: boolean | null
+          rate_to_usd: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency_code: string
+          currency_name: string
+          currency_symbol: string
+          id?: string
+          is_active?: boolean | null
+          rate_to_usd: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency_code?: string
+          currency_name?: string
+          currency_symbol?: string
+          id?: string
+          is_active?: boolean | null
+          rate_to_usd?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_attribute_values: {
         Row: {
           attribute_type_id: string
@@ -1123,6 +1198,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_mining_limits: {
+        Row: {
+          created_at: string
+          id: string
+          mining_date: string
+          tasks_completed: number | null
+          total_mined: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mining_date?: string
+          tasks_completed?: number | null
+          total_mined?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mining_date?: string
+          tasks_completed?: number | null
+          total_mined?: number | null
+          user_id?: string
+        }
+        Relationships: []
       }
       delivery_earnings: {
         Row: {
@@ -1932,6 +2034,39 @@ export type Database = {
           },
         ]
       }
+      gold_price_cache: {
+        Row: {
+          created_at: string
+          fetched_at: string
+          id: string
+          is_current: boolean | null
+          price_per_gram_usd: number
+          price_per_mg_usd: number
+          price_per_oz_usd: number
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          is_current?: boolean | null
+          price_per_gram_usd: number
+          price_per_mg_usd: number
+          price_per_oz_usd: number
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          is_current?: boolean | null
+          price_per_gram_usd?: number
+          price_per_mg_usd?: number
+          price_per_oz_usd?: number
+          source?: string | null
+        }
+        Relationships: []
+      }
       import_jobs: {
         Row: {
           completed_at: string | null
@@ -2059,6 +2194,192 @@ export type Database = {
           },
         ]
       }
+      mining_campaigns: {
+        Row: {
+          banner_url: string | null
+          bonus_multiplier: number | null
+          created_at: string
+          current_participants: number | null
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          start_date: string
+          task_id: string | null
+          title: string
+        }
+        Insert: {
+          banner_url?: string | null
+          bonus_multiplier?: number | null
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          start_date: string
+          task_id?: string | null
+          title: string
+        }
+        Update: {
+          banner_url?: string | null
+          bonus_multiplier?: number | null
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          start_date?: string
+          task_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_campaigns_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "mining_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_completions: {
+        Row: {
+          base_reward: number
+          campaign_id: string | null
+          created_at: string
+          final_reward: number
+          id: string
+          multiplier: number | null
+          proof_data: Json | null
+          proof_url: string | null
+          social_account_id: string | null
+          status: string | null
+          task_id: string
+          user_id: string
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          base_reward: number
+          campaign_id?: string | null
+          created_at?: string
+          final_reward: number
+          id?: string
+          multiplier?: number | null
+          proof_data?: Json | null
+          proof_url?: string | null
+          social_account_id?: string | null
+          status?: string | null
+          task_id: string
+          user_id: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          base_reward?: number
+          campaign_id?: string | null
+          created_at?: string
+          final_reward?: number
+          id?: string
+          multiplier?: number | null
+          proof_data?: Json | null
+          proof_url?: string | null
+          social_account_id?: string | null
+          status?: string | null
+          task_id?: string
+          user_id?: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_completions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "mining_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mining_completions_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mining_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "mining_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_tasks: {
+        Row: {
+          base_reward: number
+          category: string
+          cooldown_hours: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_daily_completions: number | null
+          min_followers: number | null
+          platform: string | null
+          requires_verification: boolean | null
+          reward_tier: string | null
+          task_type: string
+          title: string
+          updated_at: string
+          verification_type: string | null
+        }
+        Insert: {
+          base_reward: number
+          category: string
+          cooldown_hours?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_daily_completions?: number | null
+          min_followers?: number | null
+          platform?: string | null
+          requires_verification?: boolean | null
+          reward_tier?: string | null
+          task_type: string
+          title: string
+          updated_at?: string
+          verification_type?: string | null
+        }
+        Update: {
+          base_reward?: number
+          category?: string
+          cooldown_hours?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_daily_completions?: number | null
+          min_followers?: number | null
+          platform?: string | null
+          requires_verification?: boolean | null
+          reward_tier?: string | null
+          task_type?: string
+          title?: string
+          updated_at?: string
+          verification_type?: string | null
+        }
+        Relationships: []
+      }
       order_history: {
         Row: {
           action: string
@@ -2144,9 +2465,11 @@ export type Database = {
       order_items: {
         Row: {
           created_at: string
+          gold_rate_at_purchase: number | null
           id: string
           order_id: string
           price: number
+          price_mg_gold: number | null
           product_id: string
           quantity: number
           status: string
@@ -2157,9 +2480,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          gold_rate_at_purchase?: number | null
           id?: string
           order_id: string
           price: number
+          price_mg_gold?: number | null
           product_id: string
           quantity: number
           status?: string
@@ -2170,9 +2495,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          gold_rate_at_purchase?: number | null
           id?: string
           order_id?: string
           price?: number
+          price_mg_gold?: number | null
           product_id?: string
           quantity?: number
           status?: string
@@ -2219,6 +2546,7 @@ export type Database = {
           courier_phone: string | null
           created_at: string
           estimated_delivery: string | null
+          gold_rate_at_checkout: number | null
           id: string
           notes: string | null
           payment_method: string | null
@@ -2232,6 +2560,7 @@ export type Database = {
           shipping_method: string | null
           status: string
           total: number
+          total_mg_gold: number | null
           tracking_number: string | null
           tracking_url: string | null
           updated_at: string
@@ -2243,6 +2572,7 @@ export type Database = {
           courier_phone?: string | null
           created_at?: string
           estimated_delivery?: string | null
+          gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -2256,6 +2586,7 @@ export type Database = {
           shipping_method?: string | null
           status?: string
           total: number
+          total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
@@ -2267,6 +2598,7 @@ export type Database = {
           courier_phone?: string | null
           created_at?: string
           estimated_delivery?: string | null
+          gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -2280,6 +2612,7 @@ export type Database = {
           shipping_method?: string | null
           status?: string
           total?: number
+          total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
@@ -2403,6 +2736,8 @@ export type Database = {
           id: string
           image_url: string | null
           price: number
+          price_currency: string | null
+          price_mg_gold: number | null
           product_id: string
           quantity: number
           sku: string | null
@@ -2414,6 +2749,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           price: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
           product_id: string
           quantity?: number
           sku?: string | null
@@ -2425,6 +2762,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           price?: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
           product_id?: string
           quantity?: number
           sku?: string | null
@@ -2451,6 +2790,10 @@ export type Database = {
           id: string
           name: string
           price: number
+          price_currency: string | null
+          price_mg_gold: number | null
+          price_snapshot_at: string | null
+          price_snapshot_gold_rate: number | null
           product_type: string
           quantity: number
           rating: number | null
@@ -2472,6 +2815,10 @@ export type Database = {
           id?: string
           name: string
           price: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
+          price_snapshot_at?: string | null
+          price_snapshot_gold_rate?: number | null
           product_type?: string
           quantity?: number
           rating?: number | null
@@ -2493,6 +2840,10 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
+          price_snapshot_at?: string | null
+          price_snapshot_gold_rate?: number | null
           product_type?: string
           quantity?: number
           rating?: number | null
@@ -2729,6 +3080,50 @@ export type Database = {
           },
         ]
       }
+      referral_mining_bonuses: {
+        Row: {
+          beneficiary_id: string
+          bonus_amount: number
+          bonus_percent: number
+          completion_id: string
+          created_at: string
+          id: string
+          miner_id: string
+          referral_level: number
+          status: string | null
+        }
+        Insert: {
+          beneficiary_id: string
+          bonus_amount: number
+          bonus_percent: number
+          completion_id: string
+          created_at?: string
+          id?: string
+          miner_id: string
+          referral_level: number
+          status?: string | null
+        }
+        Update: {
+          beneficiary_id?: string
+          bonus_amount?: number
+          bonus_percent?: number
+          completion_id?: string
+          created_at?: string
+          id?: string
+          miner_id?: string
+          referral_level?: number
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_mining_bonuses_completion_id_fkey"
+            columns: ["completion_id"]
+            isOneToOne: false
+            referencedRelation: "mining_completions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           created_at: string
@@ -2929,6 +3324,69 @@ export type Database = {
         }
         Relationships: []
       }
+      social_accounts: {
+        Row: {
+          access_token: string | null
+          avatar_url: string | null
+          connected_at: string
+          created_at: string
+          display_name: string | null
+          follower_count: number | null
+          id: string
+          is_verified: boolean | null
+          last_synced_at: string | null
+          platform: string
+          platform_user_id: string
+          profile_url: string | null
+          refresh_token: string | null
+          status: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          access_token?: string | null
+          avatar_url?: string | null
+          connected_at?: string
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          id?: string
+          is_verified?: boolean | null
+          last_synced_at?: string | null
+          platform: string
+          platform_user_id: string
+          profile_url?: string | null
+          refresh_token?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          access_token?: string | null
+          avatar_url?: string | null
+          connected_at?: string
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          id?: string
+          is_verified?: boolean | null
+          last_synced_at?: string | null
+          platform?: string
+          platform_user_id?: string
+          profile_url?: string | null
+          refresh_token?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       sponsored_placements: {
         Row: {
           clicks: number
@@ -3036,6 +3494,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          pricing_currency: string | null
           return_policy: string | null
           shipping_policy: string | null
           slug: string
@@ -3049,6 +3508,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          pricing_currency?: string | null
           return_policy?: string | null
           shipping_policy?: string | null
           slug: string
@@ -3062,6 +3522,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          pricing_currency?: string | null
           return_policy?: string | null
           shipping_policy?: string | null
           slug?: string
@@ -3326,8 +3787,12 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          recipient_id: string | null
           reference_id: string | null
           reference_type: string | null
+          sender_id: string | null
+          transfer_fee_mg: number | null
+          transfer_reference: string | null
           type: string
           user_id: string
         }
@@ -3337,8 +3802,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          recipient_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          sender_id?: string | null
+          transfer_fee_mg?: number | null
+          transfer_reference?: string | null
           type: string
           user_id: string
         }
@@ -3348,9 +3817,157 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          recipient_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          sender_id?: string | null
+          transfer_fee_mg?: number | null
+          transfer_reference?: string | null
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ucoin_transfer_limits: {
+        Row: {
+          created_at: string
+          daily_limit_mg: number
+          id: string
+          min_transfer_mg: number
+          monthly_limit_mg: number
+          requires_2fa_above_mg: number
+          single_transfer_max_mg: number
+          updated_at: string
+          user_tier: string
+        }
+        Insert: {
+          created_at?: string
+          daily_limit_mg?: number
+          id?: string
+          min_transfer_mg?: number
+          monthly_limit_mg?: number
+          requires_2fa_above_mg?: number
+          single_transfer_max_mg?: number
+          updated_at?: string
+          user_tier?: string
+        }
+        Update: {
+          created_at?: string
+          daily_limit_mg?: number
+          id?: string
+          min_transfer_mg?: number
+          monthly_limit_mg?: number
+          requires_2fa_above_mg?: number
+          single_transfer_max_mg?: number
+          updated_at?: string
+          user_tier?: string
+        }
+        Relationships: []
+      }
+      ucoin_transfer_usage: {
+        Row: {
+          created_at: string
+          daily_transferred_mg: number
+          id: string
+          monthly_transferred_mg: number
+          transfer_count: number
+          transfer_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_transferred_mg?: number
+          id?: string
+          monthly_transferred_mg?: number
+          transfer_count?: number
+          transfer_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_transferred_mg?: number
+          id?: string
+          monthly_transferred_mg?: number
+          transfer_count?: number
+          transfer_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ucoin_user_settings: {
+        Row: {
+          created_at: string
+          display_mode: string
+          id: string
+          is_transfer_enabled: boolean
+          preferred_gold_unit: string
+          requires_2fa: boolean
+          updated_at: string
+          user_id: string
+          user_tier: string
+        }
+        Insert: {
+          created_at?: string
+          display_mode?: string
+          id?: string
+          is_transfer_enabled?: boolean
+          preferred_gold_unit?: string
+          requires_2fa?: boolean
+          updated_at?: string
+          user_id: string
+          user_tier?: string
+        }
+        Update: {
+          created_at?: string
+          display_mode?: string
+          id?: string
+          is_transfer_enabled?: boolean
+          preferred_gold_unit?: string
+          requires_2fa?: boolean
+          updated_at?: string
+          user_id?: string
+          user_tier?: string
+        }
+        Relationships: []
+      }
+      ucoin_velocity_log: {
+        Row: {
+          action_type: string
+          amount_mg: number
+          counterparty_id: string | null
+          created_at: string
+          device_fingerprint: string | null
+          flag_reason: string | null
+          id: string
+          ip_address: string | null
+          is_flagged: boolean
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          amount_mg: number
+          counterparty_id?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          flag_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          is_flagged?: boolean
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          amount_mg?: number
+          counterparty_id?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          flag_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          is_flagged?: boolean
           user_id?: string
         }
         Relationships: []
@@ -3359,6 +3976,7 @@ export type Database = {
         Row: {
           balance: number
           created_at: string
+          gold_balance_mg: number | null
           id: string
           lifetime_earned: number
           lifetime_spent: number
@@ -3368,6 +3986,7 @@ export type Database = {
         Insert: {
           balance?: number
           created_at?: string
+          gold_balance_mg?: number | null
           id?: string
           lifetime_earned?: number
           lifetime_spent?: number
@@ -3377,6 +3996,7 @@ export type Database = {
         Update: {
           balance?: number
           created_at?: string
+          gold_balance_mg?: number | null
           id?: string
           lifetime_earned?: number
           lifetime_spent?: number
@@ -3428,6 +4048,89 @@ export type Database = {
           postal_code?: string
           province?: string
           street?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_affiliate_status: {
+        Row: {
+          affiliate_code: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_mining_date: string | null
+          tier_id: string | null
+          today_mined: number | null
+          total_conversions: number | null
+          total_mined: number | null
+          total_referrals: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliate_code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_mining_date?: string | null
+          tier_id?: string | null
+          today_mined?: number | null
+          total_conversions?: number | null
+          total_mined?: number | null
+          total_referrals?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliate_code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_mining_date?: string | null
+          tier_id?: string | null
+          today_mined?: number | null
+          total_conversions?: number | null
+          total_mined?: number | null
+          total_referrals?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_affiliate_status_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_currency_preferences: {
+        Row: {
+          created_at: string
+          display_mode: string | null
+          gold_unit: string | null
+          id: string
+          preferred_currency: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_mode?: string | null
+          gold_unit?: string | null
+          id?: string
+          preferred_currency?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_mode?: string | null
+          gold_unit?: string | null
+          id?: string
+          preferred_currency?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3779,6 +4482,7 @@ export type Database = {
           business_type: string | null
           commission_rate: number | null
           created_at: string
+          default_pricing_currency: string | null
           description: string | null
           features_config: Json | null
           id: string
@@ -3810,6 +4514,7 @@ export type Database = {
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
+          default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
           id?: string
@@ -3841,6 +4546,7 @@ export type Database = {
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
+          default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
           id?: string
@@ -3938,15 +4644,79 @@ export type Database = {
         Args: { p_vendor_id: string }
         Returns: Json
       }
+      complete_mining_task: {
+        Args: {
+          p_campaign_id?: string
+          p_proof_data?: Json
+          p_proof_url?: string
+          p_social_account_id?: string
+          p_task_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      currency_to_mg_gold: {
+        Args: { p_amount: number; p_currency_code: string }
+        Returns: number
+      }
       evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_current_gold_price: {
+        Args: never
+        Returns: {
+          fetched_at: string
+          price_per_gram_usd: number
+          price_per_mg_usd: number
+          price_per_oz_usd: number
+        }[]
+      }
       get_or_create_referral_code: {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_ucoin_transfers: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          amount: number
+          counterparty_id: string
+          created_at: string
+          direction: string
+          fee_mg: number
+          id: string
+          note: string
+          transfer_reference: string
+          type: string
+        }[]
+      }
+      get_user_affiliate_tier: {
+        Args: { p_user_id: string }
+        Returns: {
+          badge_color: string
+          daily_cap: number
+          display_name: string
+          level: number
+          mining_multiplier: number
+          tier_id: string
+          tier_name: string
+        }[]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_user_transfer_limits: {
+        Args: { p_user_id: string }
+        Returns: {
+          daily_limit_mg: number
+          daily_used_mg: number
+          min_transfer_mg: number
+          monthly_limit_mg: number
+          monthly_used_mg: number
+          remaining_daily_mg: number
+          remaining_monthly_mg: number
+          requires_2fa_above_mg: number
+          single_transfer_max_mg: number
+        }[]
       }
       get_vendor_features: { Args: { vendor_id: string }; Returns: Json }
       get_vendor_tier_config: { Args: { p_vendor_id: string }; Returns: Json }
@@ -3966,9 +4736,28 @@ export type Database = {
       }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor: { Args: { _user_id: string }; Returns: boolean }
+      mg_gold_to_currency: {
+        Args: { p_currency_code: string; p_mg_gold: number }
+        Returns: number
+      }
+      process_referral_mining_bonus: {
+        Args: { p_completion_id: string; p_miner_id: string; p_reward: number }
+        Returns: undefined
+      }
       process_referral_signup: {
         Args: { p_referral_code: string; p_referred_id: string }
         Returns: boolean
+      }
+      transfer_ucoin: {
+        Args: {
+          p_amount_mg: number
+          p_device_fingerprint?: string
+          p_ip_address?: string
+          p_note?: string
+          p_recipient_identifier: string
+          p_sender_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {

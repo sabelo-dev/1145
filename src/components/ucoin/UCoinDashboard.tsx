@@ -1,15 +1,20 @@
 import { useUCoin } from '@/hooks/useUCoin';
+import { useUCoinTransfer } from '@/hooks/useUCoinTransfer';
 import { useAuth } from '@/contexts/AuthContext';
 import { UCoinWalletCard } from './UCoinWalletCard';
 import { UCoinTransactionList } from './UCoinTransactionList';
 import { UCoinRewardsShop } from './UCoinRewardsShop';
 import { UCoinEarningGuide } from './UCoinEarningGuide';
+import { UCoinTransferForm } from './UCoinTransferForm';
+import { UCoinTransferHistory } from './UCoinTransferHistory';
+import { SocialMiningDashboard } from '@/components/mining/SocialMiningDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Coins, Gift, BookOpen, History } from 'lucide-react';
+import { Coins, Gift, BookOpen, History, Pickaxe, Send } from 'lucide-react';
 
 export function UCoinDashboard() {
   const { user, isVendor, isDriver } = useAuth();
   const { wallet, transactions, earningRules, spendingOptions, isLoading, spendUCoin } = useUCoin();
+  const { limits, transfers, isTransferring, transfer, isLoading: transferLoading } = useUCoinTransfer();
 
   const userType = isDriver ? 'driver' : isVendor ? 'vendor' : 'consumer';
 
@@ -27,21 +32,45 @@ export function UCoinDashboard() {
     <div className="space-y-6">
       <UCoinWalletCard wallet={wallet} isLoading={isLoading} />
 
-      <Tabs defaultValue="shop" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="mining" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="mining" className="flex items-center gap-2">
+            <Pickaxe className="h-4 w-4" />
+            <span className="hidden sm:inline">Mining</span>
+          </TabsTrigger>
+          <TabsTrigger value="transfer" className="flex items-center gap-2">
+            <Send className="h-4 w-4" />
+            <span className="hidden sm:inline">Transfer</span>
+          </TabsTrigger>
           <TabsTrigger value="shop" className="flex items-center gap-2">
             <Gift className="h-4 w-4" />
             <span className="hidden sm:inline">Rewards</span>
           </TabsTrigger>
           <TabsTrigger value="earn" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
-            <span className="hidden sm:inline">How to Earn</span>
+            <span className="hidden sm:inline">Earn</span>
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
             <span className="hidden sm:inline">History</span>
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="mining" className="mt-4">
+          <SocialMiningDashboard />
+        </TabsContent>
+
+        <TabsContent value="transfer" className="mt-4">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <UCoinTransferForm
+              wallet={wallet}
+              limits={limits}
+              isTransferring={isTransferring}
+              onTransfer={transfer}
+            />
+            <UCoinTransferHistory transfers={transfers} isLoading={transferLoading} />
+          </div>
+        </TabsContent>
         
         <TabsContent value="shop" className="mt-4">
           <UCoinRewardsShop

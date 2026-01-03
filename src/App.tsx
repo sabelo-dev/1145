@@ -6,6 +6,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeCustomizationProvider } from "@/contexts/ThemeCustomizationContext";
+import { GoldPricingProvider } from "@/contexts/GoldPricingContext";
 import { Toaster } from "@/components/ui/toaster";
 import TrackOrderPage from "./pages/TrackOrderPage";
 import StorefrontPage from "@/pages/StorefrontPage";
@@ -72,6 +73,7 @@ function App() {
     <ThemeCustomizationProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <GoldPricingProvider>
         <WishlistProvider>
           <CartProvider>
             <Router>
@@ -166,6 +168,7 @@ function App() {
             </Router>
           </CartProvider>
         </WishlistProvider>
+        </GoldPricingProvider>
       </AuthProvider>
     </QueryClientProvider>
     </ThemeCustomizationProvider>

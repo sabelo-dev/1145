@@ -6,8 +6,9 @@ import { Heart } from "lucide-react";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import StarRating from "@/components/ui/star-rating";
+import { GoldPriceDisplay } from "@/components/gold";
 
 interface ProductCardProps {
   product: Product;
@@ -126,12 +127,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           )}
           
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="font-semibold">{formatCurrency(product.price)}</span>
-            {isOnSale && (
-              <span className="text-gray-500 text-sm line-through">
-                {formatCurrency(product.compareAtPrice!)}
-              </span>
-            )}
+            <GoldPriceDisplay 
+              price={product.price} 
+              compareAtPrice={product.compareAtPrice}
+              size="md"
+            />
           </div>
           <div className="flex items-center mb-3">
             <StarRating rating={product.rating} />
