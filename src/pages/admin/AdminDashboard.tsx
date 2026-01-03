@@ -41,6 +41,7 @@ import AdminAuctions from "@/components/admin/AdminAuctions";
 import AdminDrivers from "@/components/admin/AdminDrivers";
 import AdminUCoin from "@/components/admin/AdminUCoin";
 import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
+import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import {
   LayoutDashboard,
   Users,
@@ -85,6 +86,7 @@ const AdminDashboard = () => {
     { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "auction-analytics", title: "Auction Analytics", icon: TrendingUp },
     { id: "ucoin", title: "UCoin Management", icon: Coins },
+    { id: "gold-pricing", title: "Gold Pricing", icon: Coins },
     { id: "social-mining", title: "Social Mining", icon: Pickaxe },
     { id: "categories", title: "Categories", icon: FileText },
     { id: "analytics", title: "Reports & Analytics", icon: BarChart3 },
@@ -241,6 +243,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="social-mining" className="mt-0">
               <AdminSocialMining />
+            </TabsContent>
+            <TabsContent value="gold-pricing" className="mt-0">
+              <AdminGoldPricing />
             </TabsContent>
             <TabsContent value="orders" className="mt-0">
               <AdminOrders />

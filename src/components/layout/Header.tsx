@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import CartSheet from "@/components/shop/CartSheet";
 import MobileMenu from "./header/MobileMenu";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
+import { CurrencyToggle } from "@/components/gold";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -115,6 +116,11 @@ const Header: React.FC = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {/* Currency/Gold Toggle - Desktop */}
+              <div className="hidden lg:block">
+                <CurrencyToggle compact />
+              </div>
+
               {/* Mobile Search Button */}
               <Button
                 variant="ghost"

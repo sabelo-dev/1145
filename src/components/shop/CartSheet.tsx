@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
@@ -6,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { GoldPriceDisplay } from "@/components/gold";
 
 interface CartSheetProps {
   isOpen: boolean;
@@ -42,7 +41,9 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, setIsOpen }) => {
                     </div>
                     <div className="ml-4 flex-1">
                       <h3 className="text-sm font-medium">{item.name}</h3>
-                      <p className="text-sm font-semibold mt-1">{formatCurrency(item.price)}</p>
+                      <div className="text-sm font-semibold mt-1">
+                        <GoldPriceDisplay price={item.price} size="sm" />
+                      </div>
                       
                       <div className="flex items-center mt-2">
                         <button
@@ -74,7 +75,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, setIsOpen }) => {
             <div className="border-t pt-4 space-y-4">
               <div className="flex justify-between items-center font-semibold">
                 <span>Subtotal</span>
-                <span>{formatCurrency(cart.subtotal || 0)}</span>
+                <GoldPriceDisplay price={cart.subtotal || 0} size="md" />
               </div>
               <p className="text-sm text-gray-500">Shipping and taxes calculated at checkout</p>
               <div className="space-y-2">

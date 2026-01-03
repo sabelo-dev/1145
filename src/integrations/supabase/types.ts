@@ -1121,6 +1121,39 @@ export type Database = {
           },
         ]
       }
+      currency_rates: {
+        Row: {
+          created_at: string
+          currency_code: string
+          currency_name: string
+          currency_symbol: string
+          id: string
+          is_active: boolean | null
+          rate_to_usd: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency_code: string
+          currency_name: string
+          currency_symbol: string
+          id?: string
+          is_active?: boolean | null
+          rate_to_usd: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency_code?: string
+          currency_name?: string
+          currency_symbol?: string
+          id?: string
+          is_active?: boolean | null
+          rate_to_usd?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_attribute_values: {
         Row: {
           attribute_type_id: string
@@ -2001,6 +2034,39 @@ export type Database = {
           },
         ]
       }
+      gold_price_cache: {
+        Row: {
+          created_at: string
+          fetched_at: string
+          id: string
+          is_current: boolean | null
+          price_per_gram_usd: number
+          price_per_mg_usd: number
+          price_per_oz_usd: number
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          is_current?: boolean | null
+          price_per_gram_usd: number
+          price_per_mg_usd: number
+          price_per_oz_usd: number
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          is_current?: boolean | null
+          price_per_gram_usd?: number
+          price_per_mg_usd?: number
+          price_per_oz_usd?: number
+          source?: string | null
+        }
+        Relationships: []
+      }
       import_jobs: {
         Row: {
           completed_at: string | null
@@ -2399,9 +2465,11 @@ export type Database = {
       order_items: {
         Row: {
           created_at: string
+          gold_rate_at_purchase: number | null
           id: string
           order_id: string
           price: number
+          price_mg_gold: number | null
           product_id: string
           quantity: number
           status: string
@@ -2412,9 +2480,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          gold_rate_at_purchase?: number | null
           id?: string
           order_id: string
           price: number
+          price_mg_gold?: number | null
           product_id: string
           quantity: number
           status?: string
@@ -2425,9 +2495,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          gold_rate_at_purchase?: number | null
           id?: string
           order_id?: string
           price?: number
+          price_mg_gold?: number | null
           product_id?: string
           quantity?: number
           status?: string
@@ -2474,6 +2546,7 @@ export type Database = {
           courier_phone: string | null
           created_at: string
           estimated_delivery: string | null
+          gold_rate_at_checkout: number | null
           id: string
           notes: string | null
           payment_method: string | null
@@ -2487,6 +2560,7 @@ export type Database = {
           shipping_method: string | null
           status: string
           total: number
+          total_mg_gold: number | null
           tracking_number: string | null
           tracking_url: string | null
           updated_at: string
@@ -2498,6 +2572,7 @@ export type Database = {
           courier_phone?: string | null
           created_at?: string
           estimated_delivery?: string | null
+          gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -2511,6 +2586,7 @@ export type Database = {
           shipping_method?: string | null
           status?: string
           total: number
+          total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
@@ -2522,6 +2598,7 @@ export type Database = {
           courier_phone?: string | null
           created_at?: string
           estimated_delivery?: string | null
+          gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -2535,6 +2612,7 @@ export type Database = {
           shipping_method?: string | null
           status?: string
           total?: number
+          total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
@@ -2658,6 +2736,8 @@ export type Database = {
           id: string
           image_url: string | null
           price: number
+          price_currency: string | null
+          price_mg_gold: number | null
           product_id: string
           quantity: number
           sku: string | null
@@ -2669,6 +2749,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           price: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
           product_id: string
           quantity?: number
           sku?: string | null
@@ -2680,6 +2762,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           price?: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
           product_id?: string
           quantity?: number
           sku?: string | null
@@ -2706,6 +2790,10 @@ export type Database = {
           id: string
           name: string
           price: number
+          price_currency: string | null
+          price_mg_gold: number | null
+          price_snapshot_at: string | null
+          price_snapshot_gold_rate: number | null
           product_type: string
           quantity: number
           rating: number | null
@@ -2727,6 +2815,10 @@ export type Database = {
           id?: string
           name: string
           price: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
+          price_snapshot_at?: string | null
+          price_snapshot_gold_rate?: number | null
           product_type?: string
           quantity?: number
           rating?: number | null
@@ -2748,6 +2840,10 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+          price_currency?: string | null
+          price_mg_gold?: number | null
+          price_snapshot_at?: string | null
+          price_snapshot_gold_rate?: number | null
           product_type?: string
           quantity?: number
           rating?: number | null
@@ -3398,6 +3494,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          pricing_currency: string | null
           return_policy: string | null
           shipping_policy: string | null
           slug: string
@@ -3411,6 +3508,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          pricing_currency?: string | null
           return_policy?: string | null
           shipping_policy?: string | null
           slug: string
@@ -3424,6 +3522,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          pricing_currency?: string | null
           return_policy?: string | null
           shipping_policy?: string | null
           slug?: string
@@ -3721,6 +3820,7 @@ export type Database = {
         Row: {
           balance: number
           created_at: string
+          gold_balance_mg: number | null
           id: string
           lifetime_earned: number
           lifetime_spent: number
@@ -3730,6 +3830,7 @@ export type Database = {
         Insert: {
           balance?: number
           created_at?: string
+          gold_balance_mg?: number | null
           id?: string
           lifetime_earned?: number
           lifetime_spent?: number
@@ -3739,6 +3840,7 @@ export type Database = {
         Update: {
           balance?: number
           created_at?: string
+          gold_balance_mg?: number | null
           id?: string
           lifetime_earned?: number
           lifetime_spent?: number
@@ -3847,6 +3949,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_currency_preferences: {
+        Row: {
+          created_at: string
+          display_mode: string | null
+          gold_unit: string | null
+          id: string
+          preferred_currency: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_mode?: string | null
+          gold_unit?: string | null
+          id?: string
+          preferred_currency?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_mode?: string | null
+          gold_unit?: string | null
+          id?: string
+          preferred_currency?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_referral_codes: {
         Row: {
@@ -4194,6 +4326,7 @@ export type Database = {
           business_type: string | null
           commission_rate: number | null
           created_at: string
+          default_pricing_currency: string | null
           description: string | null
           features_config: Json | null
           id: string
@@ -4225,6 +4358,7 @@ export type Database = {
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
+          default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
           id?: string
@@ -4256,6 +4390,7 @@ export type Database = {
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
+          default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
           id?: string
@@ -4364,8 +4499,21 @@ export type Database = {
         }
         Returns: Json
       }
+      currency_to_mg_gold: {
+        Args: { p_amount: number; p_currency_code: string }
+        Returns: number
+      }
       evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_current_gold_price: {
+        Args: never
+        Returns: {
+          fetched_at: string
+          price_per_gram_usd: number
+          price_per_mg_usd: number
+          price_per_oz_usd: number
+        }[]
+      }
       get_or_create_referral_code: {
         Args: { p_user_id: string }
         Returns: string
@@ -4404,6 +4552,10 @@ export type Database = {
       }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor: { Args: { _user_id: string }; Returns: boolean }
+      mg_gold_to_currency: {
+        Args: { p_currency_code: string; p_mg_gold: number }
+        Returns: number
+      }
       process_referral_mining_bonus: {
         Args: { p_completion_id: string; p_miner_id: string; p_reward: number }
         Returns: undefined
