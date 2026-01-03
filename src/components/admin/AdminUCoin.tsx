@@ -121,9 +121,9 @@ export default function AdminUCoin() {
     setIsLoading(true);
     
     const [rulesRes, optionsRes, statsRes] = await Promise.all([
-      supabase.from('bigold_earning_rules').select('*').order('amount', { ascending: false }),
-      supabase.from('bigold_spending_options').select('*').order('cost', { ascending: true }),
-      supabase.from('bigold_wallets').select('balance, lifetime_earned, lifetime_spent')
+      supabase.from('ucoin_earning_rules').select('*').order('amount', { ascending: false }),
+      supabase.from('ucoin_spending_options').select('*').order('cost', { ascending: true }),
+      supabase.from('ucoin_wallets').select('balance, lifetime_earned, lifetime_spent')
     ]);
 
     if (rulesRes.data) setEarningRules(rulesRes.data as UCoinEarningRule[]);
@@ -144,7 +144,7 @@ export default function AdminUCoin() {
 
   const updateRule = async (rule: UCoinEarningRule) => {
     const { error } = await supabase
-      .from('bigold_earning_rules')
+      .from('ucoin_earning_rules')
       .update({
         amount: rule.amount,
         description: rule.description,
@@ -164,7 +164,7 @@ export default function AdminUCoin() {
 
   const updateOption = async (option: UCoinSpendingOption) => {
     const { error } = await supabase
-      .from('bigold_spending_options')
+      .from('ucoin_spending_options')
       .update({
         cost: option.cost,
         value: option.value,
@@ -186,7 +186,7 @@ export default function AdminUCoin() {
   };
 
   const addRule = async () => {
-    const { error } = await supabase.from('bigold_earning_rules').insert(newRule);
+    const { error } = await supabase.from('ucoin_earning_rules').insert(newRule);
     
     if (error) {
       toast({ title: 'Error adding rule', description: error.message, variant: 'destructive' });
@@ -199,7 +199,7 @@ export default function AdminUCoin() {
   };
 
   const addOption = async () => {
-    const { error } = await supabase.from('bigold_spending_options').insert(newOption);
+    const { error } = await supabase.from('ucoin_spending_options').insert(newOption);
     
     if (error) {
       toast({ title: 'Error adding option', description: error.message, variant: 'destructive' });
@@ -233,7 +233,7 @@ export default function AdminUCoin() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalWallets.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Active BiGold users</p>
+            <p className="text-xs text-muted-foreground">Active UCoin users</p>
           </CardContent>
         </Card>
 
@@ -244,7 +244,7 @@ export default function AdminUCoin() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.totalBalance.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">BiGold in circulation</p>
+            <p className="text-xs text-muted-foreground">UCoin in circulation</p>
           </CardContent>
         </Card>
 
@@ -290,7 +290,7 @@ export default function AdminUCoin() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Earning Rules</CardTitle>
-                  <CardDescription>Configure how users earn BiGold</CardDescription>
+                  <CardDescription>Configure how users earn UCoin</CardDescription>
                 </div>
                 <Button onClick={() => setIsAddingRule(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -472,7 +472,7 @@ export default function AdminUCoin() {
               </div>
               <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
                 <p className="text-sm text-amber-700 dark:text-amber-300">
-                  Effective reward: <strong>{editingRule.amount * editingRule.multiplier} BiGold</strong>
+                  Effective reward: <strong>{editingRule.amount * editingRule.multiplier} UCoin</strong>
                 </p>
               </div>
             </div>
@@ -511,7 +511,7 @@ export default function AdminUCoin() {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>Cost (BiGold)</Label>
+                  <Label>Cost (UCoin)</Label>
                   <Input
                     type="number"
                     value={editingOption.cost}
@@ -657,7 +657,7 @@ export default function AdminUCoin() {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label>Cost (BiGold)</Label>
+                <Label>Cost (UCoin)</Label>
                 <Input
                   type="number"
                   value={newOption.cost}

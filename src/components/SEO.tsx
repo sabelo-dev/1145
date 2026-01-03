@@ -12,17 +12,31 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "1145 Lifestyle - Your Premier Online Marketplace",
-  description = "Discover quality products from trusted vendors at 1145 Lifestyle. Shop electronics, fashion, home goods, and more with fast shipping and secure checkout.",
-  keywords = "online marketplace, ecommerce, shopping, vendors, products, electronics, fashion, home goods",
-  image = "https://lovable.dev/opengraph-image-p98pqg.png",
+  title = "1145 Lifestyle - Premium Online Shopping",
+  description = "Shop 1145 Lifestyle for premium fashion, electronics, home goods & more. 1145 is your trusted South African marketplace with fast delivery and secure checkout.",
+  keywords = "1145, Lifestyle, 1145 Lifestyle, online shopping, ecommerce, fashion, electronics, home goods, South Africa, premium marketplace",
+  image = "https://1145lifestyle.com/og-image.png",
   url,
   type = "website",
   structuredData,
   noindex = false,
 }: SEOProps) => {
-  const fullTitle = title.includes("1145 Lifestyle") ? title : `${title} | 1145 Lifestyle`;
+  const fullTitle = title.includes("1145") ? title : `${title} | 1145 Lifestyle`;
   const canonicalUrl = url || typeof window !== "undefined" ? window.location.href : "";
+
+  const defaultStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "1145 Lifestyle",
+    "alternateName": ["1145", "Lifestyle", "1145 Lifestyle"],
+    "url": "https://1145lifestyle.com",
+    "description": description,
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://1145lifestyle.com/shop?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
 
   return (
     <Helmet>
@@ -43,7 +57,7 @@ const SEO = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
-      <meta property="og:site_name" content="LSI Mall" />
+      <meta property="og:site_name" content="1145 Lifestyle" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -53,7 +67,9 @@ const SEO = ({
       <meta name="twitter:image" content={image} />
 
       {/* Structured Data */}
-      {structuredData && <script type="application/ld+json">{JSON.stringify(structuredData)}</script>}
+      <script type="application/ld+json">
+        {JSON.stringify(structuredData || defaultStructuredData)}
+      </script>
     </Helmet>
   );
 };
