@@ -3642,18 +3642,151 @@ export type Database = {
           },
         ]
       }
+      vendor_subscription_features: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          is_enabled: boolean
+          limit_value: number | null
+          reset_at: string | null
+          updated_at: string
+          usage_count: number | null
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          is_enabled?: boolean
+          limit_value?: number | null
+          reset_at?: string | null
+          updated_at?: string
+          usage_count?: number | null
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          is_enabled?: boolean
+          limit_value?: number | null
+          reset_at?: string | null
+          updated_at?: string
+          usage_count?: number | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscription_features_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_subscription_usage: {
+        Row: {
+          created_at: string
+          current_value: number
+          id: string
+          limit_value: number | null
+          metric_type: string
+          period_end: string
+          period_start: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number
+          id?: string
+          limit_value?: number | null
+          metric_type: string
+          period_end?: string
+          period_start?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          id?: string
+          limit_value?: number | null
+          metric_type?: string
+          period_end?: string
+          period_start?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscription_usage_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_upgrade_triggers: {
+        Row: {
+          dismissed_at: string | null
+          id: string
+          is_dismissed: boolean | null
+          trigger_data: Json | null
+          trigger_type: string
+          triggered_at: string
+          vendor_id: string
+        }
+        Insert: {
+          dismissed_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          trigger_data?: Json | null
+          trigger_type: string
+          triggered_at?: string
+          vendor_id: string
+        }
+        Update: {
+          dismissed_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          trigger_data?: Json | null
+          trigger_type?: string
+          triggered_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_upgrade_triggers_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendors: {
         Row: {
+          ad_credits: number | null
           approval_date: string | null
           business_address: string | null
           business_email: string | null
           business_name: string
           business_phone: string | null
           business_type: string | null
+          commission_rate: number | null
           created_at: string
           description: string | null
+          features_config: Json | null
           id: string
           logo_url: string | null
+          monthly_promotions_limit: number | null
+          monthly_promotions_used: number | null
+          payout_days: number | null
+          search_boost: number | null
           status: string
           subscription_expires_at: string | null
           subscription_status: string | null
@@ -3668,16 +3801,23 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          ad_credits?: number | null
           approval_date?: string | null
           business_address?: string | null
           business_email?: string | null
           business_name: string
           business_phone?: string | null
           business_type?: string | null
+          commission_rate?: number | null
           created_at?: string
           description?: string | null
+          features_config?: Json | null
           id?: string
           logo_url?: string | null
+          monthly_promotions_limit?: number | null
+          monthly_promotions_used?: number | null
+          payout_days?: number | null
+          search_boost?: number | null
           status?: string
           subscription_expires_at?: string | null
           subscription_status?: string | null
@@ -3692,16 +3832,23 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          ad_credits?: number | null
           approval_date?: string | null
           business_address?: string | null
           business_email?: string | null
           business_name?: string
           business_phone?: string | null
           business_type?: string | null
+          commission_rate?: number | null
           created_at?: string
           description?: string | null
+          features_config?: Json | null
           id?: string
           logo_url?: string | null
+          monthly_promotions_limit?: number | null
+          monthly_promotions_used?: number | null
+          payout_days?: number | null
+          search_boost?: number | null
           status?: string
           subscription_expires_at?: string | null
           subscription_status?: string | null
@@ -3778,7 +3925,19 @@ export type Database = {
         }
         Returns: number
       }
+      can_vendor_add_product: {
+        Args: { p_vendor_id: string }
+        Returns: boolean
+      }
+      can_vendor_create_promotion: {
+        Args: { p_vendor_id: string }
+        Returns: boolean
+      }
       check_and_award_badges: { Args: { p_user_id: string }; Returns: number }
+      check_vendor_upgrade_triggers: {
+        Args: { p_vendor_id: string }
+        Returns: Json
+      }
       evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_or_create_referral_code: {
@@ -3790,6 +3949,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_vendor_features: { Args: { vendor_id: string }; Returns: Json }
+      get_vendor_tier_config: { Args: { p_vendor_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

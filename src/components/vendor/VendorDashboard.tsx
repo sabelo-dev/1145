@@ -36,7 +36,8 @@ import VendorSettings from "./dashboard/VendorSettings";
 import VendorSupport from "./dashboard/VendorSupport";
 import VendorAuctions from "./dashboard/VendorAuctions";
 import VendorAuctionAnalytics from "./dashboard/VendorAuctionAnalytics";
-import SubscriptionBanner from "./SubscriptionBanner";
+import VendorSubscriptionPage from "./dashboard/VendorSubscriptionPage";
+import { SubscriptionStatusCard, SubscriptionUpgradeModal } from "./subscription";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
@@ -54,15 +55,18 @@ import {
   User,
   Gavel,
   TrendingUp,
-  Coins
+  Coins,
+  Crown
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
+import { toast } from "sonner";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [vendorData, setVendorData] = useState<any>(null);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -108,6 +112,7 @@ const VendorDashboard = () => {
 
   const sidebarItems = [
     { id: "overview", title: "Dashboard Home", icon: LayoutDashboard },
+    { id: "subscription", title: "Subscription", icon: Crown },
     { id: "shopfront", title: "Shopfront", icon: Store },
     { id: "products", title: "Products", icon: Package },
     { id: "auctions", title: "Auctions", icon: Gavel },
@@ -123,6 +128,33 @@ const VendorDashboard = () => {
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
 
+  const handleUpgrade = async (plan: 'standard' | 'premium') => {
+    if (!vendorData?.id) return;
+    
+    const { error } = await supabase
+      .from('vendors')
+      .update({ subscription_tier: plan })
+      .eq('id', vendorData.id);
+    
+    if (error) {
+      toast.error('Failed to update subscription');
+      throw error;
+    }
+    
+    // Refresh vendor data
+    const { data: updated } = await supabase
+      .from('vendors')
+      .select('*')
+      .eq('id', vendorData.id)
+      .single();
+    
+    if (updated) {
+      setVendorData(updated);
+    }
+    
+    toast.success(plan === 'premium' ? 'Welcome to Premium!' : 'Plan updated successfully');
+  };
+
   return (
     <ProtectedRoute requireAuth requireVendor>
       <SidebarProvider>
@@ -134,6 +166,9 @@ const VendorDashboard = () => {
           handleLogout={handleLogout}
           isTrialExpired={isTrialExpired}
           vendorData={vendorData}
+          showUpgradeModal={showUpgradeModal}
+          setShowUpgradeModal={setShowUpgradeModal}
+          onUpgrade={handleUpgrade}
         />
       </SidebarProvider>
     </ProtectedRoute>
@@ -154,6 +189,9 @@ interface VendorDashboardContentProps {
   handleLogout: () => void;
   isTrialExpired: boolean;
   vendorData: any;
+  showUpgradeModal: boolean;
+  setShowUpgradeModal: (show: boolean) => void;
+  onUpgrade: (plan: 'standard' | 'premium') => Promise<void>;
 }
 
 const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
@@ -164,6 +202,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
   handleLogout,
   isTrialExpired,
   vendorData,
+  showUpgradeModal,
+  setShowUpgradeModal,
+  onUpgrade,
 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -247,13 +288,27 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
               <p className="text-sm text-muted-foreground mb-3">
                 Your trial period has ended. Please upgrade to continue using the vendor dashboard.
               </p>
-              <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm">
+              <Button onClick={() => setShowUpgradeModal(true)} className="gap-1">
+                <Crown className="h-4 w-4" />
                 Upgrade Now
-              </button>
+              </Button>
             </div>
           )}
           
-          <SubscriptionBanner vendorId={vendorData?.id} />
+          {activeTab === 'overview' && vendorData && (
+            <SubscriptionStatusCard
+              vendorId={vendorData.id}
+              onUpgrade={() => setShowUpgradeModal(true)}
+              className="mb-6"
+            />
+          )}
+          
+          <SubscriptionUpgradeModal
+            isOpen={showUpgradeModal}
+            onClose={() => setShowUpgradeModal(false)}
+            currentTier={vendorData?.subscription_tier === 'premium' ? 'premium' : 'standard'}
+            onUpgrade={onUpgrade}
+          />
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
             <TabsList className="hidden">
@@ -266,6 +321,13 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             
             <TabsContent value="overview" className="mt-0">
               <VendorOverview onNavigate={setActiveTab} />
+            </TabsContent>
+            <TabsContent value="subscription" className="mt-0">
+              <VendorSubscriptionPage 
+                vendorId={vendorData?.id}
+                currentTier={vendorData?.subscription_tier === 'premium' ? 'premium' : 'standard'}
+                onUpgrade={() => setShowUpgradeModal(true)}
+              />
             </TabsContent>
             <TabsContent value="shopfront" className="mt-0">
               <VendorShopfront />
