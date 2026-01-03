@@ -65,10 +65,10 @@ const AdminFinancials: React.FC = () => {
       // Fetch orders for revenue calculation
       const { data: orders } = await supabase
         .from('orders')
-        .select('subtotal, status')
+        .select('total, status')
         .eq('status', 'completed');
 
-      const totalRevenue = orders?.reduce((sum, order) => sum + (Number(order.subtotal) || 0), 0) || 0;
+      const totalRevenue = orders?.reduce((sum, order) => sum + (Number(order.total) || 0), 0) || 0;
       const totalCommissions = totalRevenue * 0.1; // 10% commission
 
       setStats({
