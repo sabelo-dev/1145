@@ -194,7 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "Auctions <onboarding@resend.dev>",
+      from: "1145 Auctions <no-reply@mail.1145lifestyle.com>",
       to: [userEmail],
       subject: statusDetails.subject,
       html,

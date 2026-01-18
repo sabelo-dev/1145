@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending outbid notification to ${profile.email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "1145 Lifestyle <onboarding@resend.dev>",
+      from: "1145 Lifestyle <no-reply@mail.1145lifestyle.com>",
       to: [profile.email],
       subject: `You've been outbid on ${productName}!`,
       html: `

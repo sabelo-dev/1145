@@ -299,7 +299,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         vendorEmailPromises.push(
           resend.emails.send({
-            from: "1145 Lifestyle <onboarding@resend.dev>",
+            from: "1145 Lifestyle <no-reply@mail.1145lifestyle.com>",
             to: [vendorInfo.email],
             subject: `🎉 New Order Received - Order #${orderId.slice(0, 8).toUpperCase()}`,
             html: vendorHtml,
@@ -337,7 +337,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       vendorEmailPromises.push(
         resend.emails.send({
-          from: "1145 Lifestyle <onboarding@resend.dev>",
+          from: "1145 Lifestyle <no-reply@mail.1145lifestyle.com>",
           to: adminEmails,
           subject: `📊 New Order #${orderId.slice(0, 8).toUpperCase()} - R ${orderTotal.toFixed(2)}`,
           html: adminHtml,
