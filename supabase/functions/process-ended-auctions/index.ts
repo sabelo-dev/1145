@@ -180,7 +180,7 @@ serve(async (req) => {
 
             try {
               await resend.emails.send({
-                from: "Auctions <onboarding@resend.dev>",
+                from: "1145 Auctions <no-reply@mail.1145lifestyle.com>",
                 to: [winnerProfile.email],
                 subject: `🎉 Congratulations! You won: ${auction.product?.name}`,
                 html: emailHtml,
@@ -196,7 +196,7 @@ serve(async (req) => {
           if (vendorEmail) {
             try {
               await resend.emails.send({
-                from: "Auctions <onboarding@resend.dev>",
+                from: "1145 Auctions <no-reply@mail.1145lifestyle.com>",
                 to: [vendorEmail],
                 subject: `Your auction item sold: ${auction.product?.name}`,
                 html: `

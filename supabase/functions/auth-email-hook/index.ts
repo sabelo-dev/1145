@@ -251,7 +251,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending ${email_data.email_action_type} email to ${user.email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "1145 Lifestyle <onboarding@resend.dev>",
+      from: "1145 Lifestyle <no-reply@mail.1145lifestyle.com>",
       to: [user.email],
       subject: subject,
       html: html,

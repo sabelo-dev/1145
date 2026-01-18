@@ -2,6 +2,7 @@ import { useUCoin } from '@/hooks/useUCoin';
 import { useUCoinTransfer } from '@/hooks/useUCoinTransfer';
 import { useAuth } from '@/contexts/AuthContext';
 import { UCoinWalletCard } from './UCoinWalletCard';
+import { UCoinWalletAddress } from './UCoinWalletAddress';
 import { UCoinTransactionList } from './UCoinTransactionList';
 import { UCoinRewardsShop } from './UCoinRewardsShop';
 import { UCoinEarningGuide } from './UCoinEarningGuide';
@@ -30,7 +31,10 @@ export function UCoinDashboard() {
 
   return (
     <div className="space-y-6">
-      <UCoinWalletCard wallet={wallet} isLoading={isLoading} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <UCoinWalletCard wallet={wallet} isLoading={isLoading} />
+        <UCoinWalletAddress wallet={wallet} isLoading={isLoading} />
+      </div>
 
       <Tabs defaultValue="mining" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
