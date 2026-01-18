@@ -12,23 +12,23 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "1145 Lifestyle - Premium Online Shopping",
-  description = "Shop 1145 Lifestyle for premium fashion, electronics, home goods & more. 1145 is your trusted South African marketplace with fast delivery and secure checkout.",
-  keywords = "1145, Lifestyle, 1145 Lifestyle, online shopping, ecommerce, fashion, electronics, home goods, South Africa, premium marketplace",
+  title = "1145 - Premium Online Shopping",
+  description = "Shop 1145 for premium fashion, electronics, home goods & more. 1145 is your trusted South African marketplace with fast delivery and secure checkout.",
+  keywords = "1145, online shopping, ecommerce, fashion, electronics, home goods, South Africa, premium marketplace",
   image = "https://1145lifestyle.com/og-image.png",
   url,
   type = "website",
   structuredData,
   noindex = false,
 }: SEOProps) => {
-  const fullTitle = title.includes("1145") ? title : `${title} | 1145 Lifestyle`;
+  const fullTitle = title.includes("1145") ? title : `${title} | 1145 `;
   const canonicalUrl = url || typeof window !== "undefined" ? window.location.href : "";
 
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "1145 Lifestyle",
-    "alternateName": ["1145", "Lifestyle", "1145 Lifestyle"],
+    "name": "1145",
+    "alternateName": ["1145"],
     "url": "https://1145lifestyle.com",
     "description": description,
     "potentialAction": {
@@ -57,7 +57,7 @@ const SEO = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
-      <meta property="og:site_name" content="1145 Lifestyle" />
+      <meta property="og:site_name" content="1145" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
