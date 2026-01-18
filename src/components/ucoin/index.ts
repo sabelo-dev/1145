@@ -4,6 +4,7 @@ export { UCoinEarningGuide } from './UCoinEarningGuide';
 export { UCoinRewardsShop } from './UCoinRewardsShop';
 export { UCoinTransactionList } from './UCoinTransactionList';
 export { UCoinWalletCard } from './UCoinWalletCard';
+export { UCoinWalletAddress } from './UCoinWalletAddress';
 export { UCoinTransferForm } from './UCoinTransferForm';
 export { UCoinTransferHistory } from './UCoinTransferHistory';
 export { UCoinValueDisplay } from './UCoinValueDisplay';
