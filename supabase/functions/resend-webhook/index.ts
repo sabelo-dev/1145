@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Accepted domain for inbound emails
-const ACCEPTED_DOMAIN = "1145lifestyle.com";
+const ACCEPTED_DOMAIN = "mail 1145lifestyle.com";
 
 interface ResendEmailEvent {
   type: string;
