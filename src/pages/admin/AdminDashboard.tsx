@@ -42,6 +42,7 @@ import AdminDrivers from "@/components/admin/AdminDrivers";
 import AdminUCoin from "@/components/admin/AdminUCoin";
 import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
+import AdminInbox from "@/components/admin/AdminInbox";
 import {
   LayoutDashboard,
   Users,
@@ -62,7 +63,8 @@ import {
   Gavel,
   TrendingUp,
   Coins,
-  Pickaxe
+  Pickaxe,
+  Inbox,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -79,6 +81,7 @@ const AdminDashboard = () => {
 
   const sidebarItems = [
     { id: "overview", title: "Overview", icon: LayoutDashboard },
+    { id: "inbox", title: "Email Inbox", icon: Inbox },
     { id: "users", title: "User Management", icon: Users },
     { id: "vendors", title: "Vendor Management", icon: Store },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
@@ -222,6 +225,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             
             <TabsContent value="overview" className="mt-0">
               <AdminOverview />
+            </TabsContent>
+            <TabsContent value="inbox" className="mt-0">
+              <AdminInbox />
             </TabsContent>
             <TabsContent value="users" className="mt-0">
               <AdminUsers />

@@ -2112,6 +2112,60 @@ export type Database = {
         }
         Relationships: []
       }
+      inbound_emails: {
+        Row: {
+          attachment_count: number | null
+          body_html: string | null
+          body_text: string | null
+          created_at: string
+          from_address: string
+          has_attachments: boolean | null
+          id: string
+          is_archived: boolean | null
+          is_read: boolean | null
+          processed_at: string | null
+          processed_by: string | null
+          raw_payload: Json | null
+          received_at: string | null
+          subject: string
+          to_addresses: string[]
+        }
+        Insert: {
+          attachment_count?: number | null
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          from_address: string
+          has_attachments?: boolean | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          processed_at?: string | null
+          processed_by?: string | null
+          raw_payload?: Json | null
+          received_at?: string | null
+          subject?: string
+          to_addresses: string[]
+        }
+        Update: {
+          attachment_count?: number | null
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          from_address?: string
+          has_attachments?: boolean | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          processed_at?: string | null
+          processed_by?: string | null
+          raw_payload?: Json | null
+          received_at?: string | null
+          subject?: string
+          to_addresses?: string[]
+        }
+        Relationships: []
+      }
       inventory_settings: {
         Row: {
           auto_restock_enabled: boolean | null
