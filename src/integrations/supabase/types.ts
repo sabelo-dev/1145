@@ -4748,6 +4748,7 @@ export type Database = {
         Args: { p_referral_code: string; p_referred_id: string }
         Returns: boolean
       }
+      reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
       transfer_ucoin: {
         Args: {
           p_amount_mg: number
