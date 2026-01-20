@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -25,6 +26,14 @@ const AdminSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingsId, setSettingsId] = useState<string | null>(null);
+
+  const [resetting, setResetting] = useState(false);
+  const [resetScopes, setResetScopes] = useState({
+    orders: true,
+    products: true,
+    auctions: true,
+  });
+  const [resetConfirmText, setResetConfirmText] = useState("");
 
   const form = useForm<SettingsForm>({
     defaultValues: {
@@ -266,6 +275,139 @@ const AdminSettings: React.FC = () => {
           </Button>
         </form>
       </Form>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Danger Zone</CardTitle>
+          <CardDescription>
+            Reset demo data without affecting authentication (does not touch auth users).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Choose what to clear, then type <span className="font-mono">RESET</span> to confirm.
+            </p>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <label className="flex items-start gap-3 rounded-md border p-3">
+                <Checkbox
+                  checked={resetScopes.orders}
+                  onCheckedChange={(v) =>
+                    setResetScopes((s) => ({ ...s, orders: Boolean(v) }))
+                  }
+                />
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium">Orders</span>
+                  <span className="block text-xs text-muted-foreground">
+                    orders, items, delivery jobs/history
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-md border p-3">
+                <Checkbox
+                  checked={resetScopes.products}
+                  onCheckedChange={(v) =>
+                    setResetScopes((s) => ({ ...s, products: Boolean(v) }))
+                  }
+                />
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium">Products</span>
+                  <span className="block text-xs text-muted-foreground">
+                    products, images, variations, stores
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-md border p-3">
+                <Checkbox
+                  checked={resetScopes.auctions}
+                  onCheckedChange={(v) =>
+                    setResetScopes((s) => ({ ...s, auctions: Boolean(v) }))
+                  }
+                />
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium">Auctions</span>
+                  <span className="block text-xs text-muted-foreground">
+                    auctions, bids, registrations, watchlists
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-3 md:flex-row md:items-end">
+              <div className="flex-1 space-y-2">
+                <FormLabel>Type RESET to confirm</FormLabel>
+                <Input
+                  value={resetConfirmText}
+                  onChange={(e) => setResetConfirmText(e.target.value)}
+                  placeholder="RESET"
+                  className="font-mono"
+                />
+              </div>
+
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={resetting}
+                onClick={async () => {
+                  const scopes = (Object.entries(resetScopes)
+                    .filter(([, enabled]) => enabled)
+                    .map(([key]) => key)) as Array<"orders" | "products" | "auctions">;
+
+                  if (scopes.length === 0) {
+                    toast({
+                      title: "Nothing selected",
+                      description: "Select at least one scope to reset.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  if (resetConfirmText.trim().toUpperCase() !== "RESET") {
+                    toast({
+                      title: "Confirmation required",
+                      description: "Type RESET to run the demo data reset.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  setResetting(true);
+                  try {
+                    const { data, error } = await supabase.rpc("reset_demo_data", {
+                      p_scopes: scopes,
+                    });
+
+                    if (error) throw error;
+
+                    toast({
+                      title: "Demo data reset complete",
+                      description: `Cleared: ${scopes.join(", ")}.`,
+                    });
+                    setResetConfirmText("");
+                    console.log("reset_demo_data result:", data);
+                  } catch (err: any) {
+                    console.error("reset_demo_data error:", err);
+                    toast({
+                      title: "Reset failed",
+                      description:
+                        err?.message || "Unable to reset demo data. Please try again.",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setResetting(false);
+                  }
+                }}
+              >
+                {resetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Reset Demo Data
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
