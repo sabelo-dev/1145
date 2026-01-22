@@ -6,8 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature",
 };
 
-// Accepted domain for inbound emails
-const ACCEPTED_DOMAIN = "mail.1145lifestyle.com";
+// Accepted domains for inbound emails
+const ACCEPTED_DOMAINS = ["1145lifestyle.com", "mail.1145lifestyle.com", "velukcun.resend.app"];
 
 interface ResendEmailEvent {
   type: string;
@@ -62,12 +62,13 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`Subject: ${subject}`);
 
         // Verify the email is addressed to our domain
-        const isValidRecipient = recipients?.some(
-          (r: string) => r.toLowerCase().endsWith(`@${ACCEPTED_DOMAIN}`)
-        );
+        const isValidRecipient = recipients?.some((r: string) => {
+          const recipientLower = r.toLowerCase();
+          return ACCEPTED_DOMAINS.some(domain => recipientLower.endsWith(`@${domain}`));
+        });
 
         if (!isValidRecipient) {
-          console.log(`Email not addressed to @${ACCEPTED_DOMAIN}, ignoring`);
+          console.log(`Email not addressed to accepted domains, ignoring. Recipients: ${recipients?.join(", ")}`);
           return new Response(
             JSON.stringify({ success: true, message: "Email ignored - wrong domain" }),
             { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
