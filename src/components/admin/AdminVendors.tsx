@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import AddVendorDialog from "@/components/admin/vendors/AddVendorDialog";
 
 interface Vendor {
   id: string;
@@ -41,13 +42,12 @@ const AdminVendors: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Fetch vendors from database
-  useEffect(() => {
-    const fetchVendors = async () => {
-      try {
-        const { data: vendorsData, error } = await supabase
-          .from('vendors')
-          .select(`
+  const fetchVendors = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data: vendorsData, error } = await supabase
+        .from('vendors')
+        .select(`
             id,
             business_name,
             user_id,
@@ -64,48 +64,48 @@ const AdminVendors: React.FC = () => {
             website,
             tax_id
           `)
-          .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Supabase error fetching vendors:', error);
-          throw error;
-        }
-
-        // Get all unique user IDs
-        const userIds = [...new Set(vendorsData?.map(v => v.user_id) || [])];
-        
-        // Fetch all profiles in one query
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, email, name')
-          .in('id', userIds);
-
-        // Create a map for quick lookup
-        const profilesMap = new Map(
-          (profilesData || []).map(p => [p.id, p])
-        );
-
-        const formattedVendors = (vendorsData || []).map((vendor) => ({
-          ...vendor,
-          status: vendor.status as "pending" | "approved" | "rejected" | "suspended",
-          profiles: profilesMap.get(vendor.user_id)
-        }));
-
-        setVendors(formattedVendors);
-      } catch (error) {
-        console.error('Error fetching vendors:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: `Failed to load vendors: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        });
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error('Supabase error fetching vendors:', error);
+        throw error;
       }
-    };
 
-    fetchVendors();
+      // Get all unique user IDs
+      const userIds = [...new Set(vendorsData?.map((v) => v.user_id) || [])];
+
+      // Fetch all profiles in one query
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, email, name')
+        .in('id', userIds);
+
+      // Create a map for quick lookup
+      const profilesMap = new Map((profilesData || []).map((p) => [p.id, p]));
+
+      const formattedVendors = (vendorsData || []).map((vendor) => ({
+        ...vendor,
+        status: vendor.status as "pending" | "approved" | "rejected" | "suspended",
+        profiles: profilesMap.get(vendor.user_id),
+      }));
+
+      setVendors(formattedVendors);
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to load vendors: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    } finally {
+      setLoading(false);
+    }
   }, [toast]);
+
+  // Fetch vendors from database
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
 
   const handleUpdateStatus = async (vendorId: string, newStatus: "approved" | "rejected" | "suspended") => {
     try {
@@ -172,6 +172,7 @@ const AdminVendors: React.FC = () => {
     <div>
       <div className="flex justify-between mb-4">
         <h2 className="text-2xl font-bold">Vendor Applications</h2>
+        <AddVendorDialog onCreated={fetchVendors} />
       </div>
 
       {loading ? (
@@ -283,3 +284,4 @@ const AdminVendors: React.FC = () => {
 };
 
 export default AdminVendors;
+

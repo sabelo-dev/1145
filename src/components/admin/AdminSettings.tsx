@@ -53,12 +53,13 @@ const AdminSettings: React.FC = () => {
 
   const loadSettings = async () => {
     try {
+      // Use maybeSingle() so a fresh project (no settings row yet) doesn't throw.
       const { data, error } = await supabase
         .from('platform_settings')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -67,8 +68,8 @@ const AdminSettings: React.FC = () => {
         form.reset({
           platformName: data.platform_name,
           platformEmail: data.platform_email,
-          platformFee: String(data.platform_fee),
-          vendorFee: String(data.vendor_fee),
+          platformFee: String(data.platform_fee ?? ""),
+          vendorFee: String(data.vendor_fee ?? ""),
           supportEmail: data.support_email,
           termsOfService: data.terms_of_service || "",
           privacyPolicy: data.privacy_policy || ""
@@ -89,11 +90,22 @@ const AdminSettings: React.FC = () => {
   const onSubmit = async (data: SettingsForm) => {
     setSaving(true);
     try {
+      const platformFee = Number(data.platformFee);
+      const vendorFee = Number(data.vendorFee);
+
+      if (!Number.isFinite(platformFee) || platformFee < 0 || platformFee > 100) {
+        throw new Error("Platform fee must be a number between 0 and 100");
+      }
+
+      if (!Number.isFinite(vendorFee) || vendorFee < 0 || vendorFee > 100) {
+        throw new Error("Vendor fee must be a number between 0 and 100");
+      }
+
       const settingsData = {
         platform_name: data.platformName,
         platform_email: data.platformEmail,
-        platform_fee: parseFloat(data.platformFee),
-        vendor_fee: parseFloat(data.vendorFee),
+        platform_fee: platformFee,
+        vendor_fee: vendorFee,
         support_email: data.supportEmail,
         terms_of_service: data.termsOfService,
         privacy_policy: data.privacyPolicy,
