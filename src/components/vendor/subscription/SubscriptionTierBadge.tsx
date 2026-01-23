@@ -4,7 +4,7 @@ import { Crown, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SubscriptionTierBadgeProps {
-  tier: 'standard' | 'premium';
+  tier: 'starter' | 'bronze' | 'silver' | 'gold';
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   className?: string;
@@ -16,7 +16,8 @@ const SubscriptionTierBadge: React.FC<SubscriptionTierBadgeProps> = ({
   showIcon = true,
   className,
 }) => {
-  const isPremium = tier === 'premium';
+  const isGold = tier === 'gold';
+  const isStarter = tier === 'starter';
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5',
@@ -32,22 +33,22 @@ const SubscriptionTierBadge: React.FC<SubscriptionTierBadgeProps> = ({
 
   return (
     <Badge
-      variant={isPremium ? 'default' : 'secondary'}
+      variant={isGold ? 'default' : 'secondary'}
       className={cn(
         sizeClasses[size],
-        isPremium && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0',
-        !isPremium && 'bg-muted text-muted-foreground',
+        isGold && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0',
+        !isGold && 'bg-muted text-muted-foreground',
         className
       )}
     >
       {showIcon && (
-        isPremium ? (
+        isGold ? (
           <Crown className={cn(iconSizes[size], 'mr-1')} />
         ) : (
           <Star className={cn(iconSizes[size], 'mr-1')} />
         )
       )}
-      {isPremium ? 'Premium' : 'Standard'}
+      {isStarter ? 'Starter' : tier.charAt(0).toUpperCase() + tier.slice(1)}
     </Badge>
   );
 };

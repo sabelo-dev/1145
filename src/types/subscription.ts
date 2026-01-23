@@ -12,7 +12,7 @@ export interface SubscriptionPlan {
 }
 
 export interface VendorSubscription {
-  subscription_tier: 'trial' | 'standard' | 'premium';
+  subscription_tier: 'starter' | 'bronze' | 'silver' | 'gold';
   trial_start_date?: string;
   trial_end_date?: string;
   subscription_status: 'trial' | 'active' | 'expired' | 'cancelled';

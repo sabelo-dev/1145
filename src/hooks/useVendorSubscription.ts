@@ -40,7 +40,7 @@ export interface UpgradeTrigger {
 }
 
 export interface VendorSubscriptionData {
-  tier: 'standard' | 'premium';
+  tier: 'starter' | 'bronze' | 'silver' | 'gold';
   status: 'active' | 'expired' | 'cancelled';
   expiresAt?: string;
   commissionRate: number;
@@ -118,39 +118,128 @@ export const useVendorSubscription = (vendorId?: string) => {
         promotionsUsed = count || 0;
       }
 
-      const tier = vendor.subscription_tier === 'premium' ? 'premium' : 'standard';
-      const isPremium = tier === 'premium';
+      const tier = (vendor.subscription_tier as VendorSubscriptionData['tier']) || 'starter';
 
-      // Build tier config
-      const config: SubscriptionTierConfig = {
-        max_products: isPremium ? null : 25,
-        monthly_promotions: isPremium ? null : 1,
-        commission_rate: isPremium ? 6 : 10,
-        payout_days: isPremium ? 2 : 7,
-        search_boost: isPremium ? 1.5 : 1.0,
-        custom_theme: isPremium,
-        banner_images: isPremium,
-        store_video: isPremium,
-        custom_url: isPremium,
-        bulk_upload: isPremium,
-        bulk_edit: isPremium,
-        inventory_sync: isPremium,
-        product_scheduling: isPremium,
-        advanced_analytics: isPremium,
-        ab_testing: isPremium,
-        smart_discounts: isPremium,
-        verified_badge: isPremium,
-        premium_badge: isPremium,
-        leaderboard_access: isPremium,
-        priority_support: isPremium,
-        cross_border: isPremium,
-        bulk_buyer_access: isPremium,
-        api_access: isPremium,
-        homepage_exposure: isPremium,
-        category_priority: isPremium,
-        recommendation_full: isPremium,
-        ad_credits_monthly: isPremium ? 500 : 0,
+      const configByTier: Record<VendorSubscriptionData['tier'], SubscriptionTierConfig> = {
+        starter: {
+          max_products: 25,
+          monthly_promotions: 1,
+          commission_rate: 10,
+          payout_days: 7,
+          search_boost: 1.0,
+          custom_theme: false,
+          banner_images: false,
+          store_video: false,
+          custom_url: false,
+          bulk_upload: false,
+          bulk_edit: false,
+          inventory_sync: false,
+          product_scheduling: false,
+          advanced_analytics: false,
+          ab_testing: false,
+          smart_discounts: false,
+          verified_badge: false,
+          premium_badge: false,
+          leaderboard_access: false,
+          priority_support: false,
+          cross_border: false,
+          bulk_buyer_access: false,
+          api_access: false,
+          homepage_exposure: false,
+          category_priority: false,
+          recommendation_full: false,
+          ad_credits_monthly: 0,
+        },
+        bronze: {
+          max_products: 100,
+          monthly_promotions: 5,
+          commission_rate: 9,
+          payout_days: 5,
+          search_boost: 1.1,
+          custom_theme: false,
+          banner_images: false,
+          store_video: false,
+          custom_url: false,
+          bulk_upload: false,
+          bulk_edit: false,
+          inventory_sync: false,
+          product_scheduling: false,
+          advanced_analytics: false,
+          ab_testing: false,
+          smart_discounts: false,
+          verified_badge: false,
+          premium_badge: false,
+          leaderboard_access: false,
+          priority_support: false,
+          cross_border: false,
+          bulk_buyer_access: false,
+          api_access: false,
+          homepage_exposure: false,
+          category_priority: false,
+          recommendation_full: false,
+          ad_credits_monthly: 100,
+        },
+        silver: {
+          max_products: 300,
+          monthly_promotions: 20,
+          commission_rate: 8,
+          payout_days: 3,
+          search_boost: 1.25,
+          custom_theme: true,
+          banner_images: true,
+          store_video: false,
+          custom_url: true,
+          bulk_upload: true,
+          bulk_edit: true,
+          inventory_sync: false,
+          product_scheduling: true,
+          advanced_analytics: true,
+          ab_testing: false,
+          smart_discounts: false,
+          verified_badge: true,
+          premium_badge: false,
+          leaderboard_access: false,
+          priority_support: true,
+          cross_border: false,
+          bulk_buyer_access: false,
+          api_access: false,
+          homepage_exposure: false,
+          category_priority: true,
+          recommendation_full: true,
+          ad_credits_monthly: 250,
+        },
+        gold: {
+          max_products: null,
+          monthly_promotions: null,
+          commission_rate: 6,
+          payout_days: 2,
+          search_boost: 1.5,
+          custom_theme: true,
+          banner_images: true,
+          store_video: true,
+          custom_url: true,
+          bulk_upload: true,
+          bulk_edit: true,
+          inventory_sync: true,
+          product_scheduling: true,
+          advanced_analytics: true,
+          ab_testing: true,
+          smart_discounts: true,
+          verified_badge: true,
+          premium_badge: true,
+          leaderboard_access: true,
+          priority_support: true,
+          cross_border: true,
+          bulk_buyer_access: true,
+          api_access: true,
+          homepage_exposure: true,
+          category_priority: true,
+          recommendation_full: true,
+          ad_credits_monthly: 500,
+        },
       };
+
+      const config: SubscriptionTierConfig = configByTier[tier] || configByTier.starter;
 
       setTierConfig(config);
 
@@ -159,36 +248,42 @@ export const useVendorSubscription = (vendorId?: string) => {
         tier,
         status: (vendor.subscription_status as 'active' | 'expired' | 'cancelled') || 'active',
         expiresAt: vendor.subscription_expires_at,
-        commissionRate: vendor.commission_rate || (isPremium ? 6 : 10),
-        payoutDays: vendor.payout_days || (isPremium ? 2 : 7),
-        searchBoost: vendor.search_boost || (isPremium ? 1.5 : 1.0),
+        commissionRate: vendor.commission_rate || config.commission_rate,
+        payoutDays: vendor.payout_days || config.payout_days,
+        searchBoost: vendor.search_boost || config.search_boost,
         adCredits: vendor.ad_credits || 0,
         productCount,
-        productLimit: isPremium ? null : 25,
+        productLimit: config.max_products,
         promotionsUsed,
-        promotionsLimit: isPremium ? null : 1,
+        promotionsLimit: config.monthly_promotions,
       };
 
       setSubscription(subscriptionData);
 
-      // Check upgrade triggers for Standard tier
-      if (tier === 'standard') {
+      // Check upgrade triggers for non-top tiers
+      if (tier !== 'gold') {
         const triggers: UpgradeTrigger[] = [];
 
+        const nextTier: VendorSubscriptionData['tier'] =
+          tier === 'starter' ? 'bronze' : tier === 'bronze' ? 'silver' : 'gold';
+
+        const maxProducts = config.max_products;
+        const promoLimit = config.monthly_promotions;
+
         // Product limit trigger (80% threshold)
-        if (productCount >= 20) {
+        if (typeof maxProducts === 'number' && maxProducts > 0 && productCount >= Math.floor(maxProducts * 0.8)) {
           triggers.push({
             type: 'product_limit_80',
-            message: `You've used ${productCount} of 25 product slots`,
-            percentage: Math.round((productCount / 25) * 100),
+            message: `You've used ${productCount} of ${maxProducts} product slots. Upgrade to ${nextTier.toUpperCase()} for more.`,
+            percentage: Math.round((productCount / maxProducts) * 100),
           });
         }
 
         // Promotion cap trigger
-        if (promotionsUsed >= 1) {
+        if (typeof promoLimit === 'number' && promotionsUsed >= promoLimit) {
           triggers.push({
             type: 'promotion_cap',
-            message: "You've used your monthly promotion. Upgrade for unlimited!",
+            message: `You've used your monthly promotions. Upgrade to ${nextTier.toUpperCase()} for more.`,
           });
         }
 
@@ -211,14 +306,14 @@ export const useVendorSubscription = (vendorId?: string) => {
 
   const canAddProduct = useCallback(() => {
     if (!subscription) return false;
-    if (subscription.tier === 'premium') return true;
-    return subscription.productCount < (subscription.productLimit || 25);
+    if (subscription.productLimit === null) return true;
+    return subscription.productCount < subscription.productLimit;
   }, [subscription]);
 
   const canCreatePromotion = useCallback(() => {
     if (!subscription) return false;
-    if (subscription.tier === 'premium') return true;
-    return subscription.promotionsUsed < (subscription.promotionsLimit || 1);
+    if (subscription.promotionsLimit === null) return true;
+    return subscription.promotionsUsed < subscription.promotionsLimit;
   }, [subscription]);
 
   const hasFeature = useCallback((feature: keyof SubscriptionTierConfig) => {

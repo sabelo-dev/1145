@@ -45,7 +45,14 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
 
   if (!subscription) return null;
 
-  const isPremium = subscription.tier === 'premium';
+  const isGold = subscription.tier === 'gold';
+
+  const nextTier: typeof subscription.tier =
+    subscription.tier === 'starter'
+      ? 'bronze'
+      : subscription.tier === 'bronze'
+      ? 'silver'
+      : 'gold';
 
   return (
     <div className="space-y-4">
@@ -62,7 +69,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              {isPremium ? (
+              {isGold ? (
                 <Crown className="h-5 w-5 text-primary" />
               ) : (
                 <Star className="h-5 w-5" />
@@ -115,45 +122,45 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
           </div>
 
           {/* Premium Features Preview (for Standard users) */}
-          {!isPremium && (
+          {!isGold && (
             <div className="border-t pt-4">
               <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary" />
-                Unlock with Premium
+                Next level: {nextTier.toUpperCase()}
               </h4>
               <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Package className="h-3 w-3" />
-                  Unlimited products
+                  Higher product limits
                 </div>
                 <div className="flex items-center gap-1">
                   <Percent className="h-3 w-3" />
-                  6% commission (save 4%)
+                  Better commissions
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  24-48 hr payouts
+                  Faster payouts
                 </div>
                 <div className="flex items-center gap-1">
                   <TrendingUp className="h-3 w-3" />
-                  Advanced analytics
+                  More visibility
                 </div>
               </div>
               <Button onClick={onUpgrade} className="w-full mt-4 gap-1">
                 <Crown className="h-4 w-4" />
-                Upgrade to Premium - R299/mo
+                View plans
               </Button>
             </div>
           )}
 
           {/* Premium Status */}
-          {isPremium && (
+          {isGold && (
             <div className="border-t pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Premium Active</p>
+                  <p className="text-sm font-medium">Gold Active</p>
                   <p className="text-xs text-muted-foreground">
-                    Thank you for being a Premium seller!
+                    Thank you for being a Gold seller!
                   </p>
                 </div>
                 <Button variant="outline" size="sm">
