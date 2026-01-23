@@ -12,7 +12,7 @@ export interface AdminVendor {
   id: string;
   businessName: string;
   email: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "suspended";
   logoUrl?: string;
   description?: string;
   createdAt: string;
