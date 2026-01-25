@@ -4399,6 +4399,53 @@ export type Database = {
           },
         ]
       }
+      vendor_subscription_audit_log: {
+        Row: {
+          change_type: string
+          changed_by: string
+          created_at: string
+          id: string
+          new_status: string | null
+          new_tier: string | null
+          old_status: string | null
+          old_tier: string | null
+          reason: string | null
+          vendor_id: string
+        }
+        Insert: {
+          change_type: string
+          changed_by: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          new_tier?: string | null
+          old_status?: string | null
+          old_tier?: string | null
+          reason?: string | null
+          vendor_id: string
+        }
+        Update: {
+          change_type?: string
+          changed_by?: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          new_tier?: string | null
+          old_status?: string | null
+          old_tier?: string | null
+          reason?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscription_audit_log_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_subscription_features: {
         Row: {
           created_at: string
