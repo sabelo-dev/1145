@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Settings2 } from "lucide-react";
 import AddVendorDialog from "@/components/admin/vendors/AddVendorDialog";
+import EditVendorSubscriptionDialog from "@/components/admin/vendors/EditVendorSubscriptionDialog";
 
 interface Vendor {
   id: string;
@@ -40,6 +42,8 @@ interface Vendor {
 const AdminVendors: React.FC = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchVendors = useCallback(async () => {
@@ -168,6 +172,20 @@ const AdminVendors: React.FC = () => {
     }
   };
 
+  const getTierBadgeColor = (tier: string | undefined) => {
+    switch (tier) {
+      case "gold": return "bg-yellow-500 text-black";
+      case "silver": return "bg-slate-400 text-white";
+      case "bronze": return "bg-amber-700 text-white";
+      default: return "bg-gray-500 text-white";
+    }
+  };
+
+  const handleEditSubscription = (vendor: Vendor) => {
+    setEditingVendor(vendor);
+    setEditDialogOpen(true);
+  };
+
   return (
     <div>
       <div className="flex justify-between mb-4">
@@ -184,8 +202,8 @@ const AdminVendors: React.FC = () => {
             <TableRow>
               <TableHead>Business Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Address</TableHead>
+              <TableHead>Tier</TableHead>
+              <TableHead>Sub Status</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Applied On</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -196,9 +214,15 @@ const AdminVendors: React.FC = () => {
               <TableRow key={vendor.id}>
                 <TableCell className="font-medium">{vendor.business_name}</TableCell>
                 <TableCell>{vendor.business_email || 'N/A'}</TableCell>
-                <TableCell>{vendor.business_phone || 'N/A'}</TableCell>
-                <TableCell className="max-w-xs truncate" title={vendor.business_address}>
-                  {vendor.business_address || 'N/A'}
+                <TableCell>
+                  <Badge className={getTierBadgeColor(vendor.subscription_tier)}>
+                    {(vendor.subscription_tier || 'starter').charAt(0).toUpperCase() + (vendor.subscription_tier || 'starter').slice(1)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="capitalize">
+                    {vendor.subscription_status || 'trial'}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -218,6 +242,14 @@ const AdminVendors: React.FC = () => {
                 <TableCell>{new Date(vendor.created_at).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditSubscription(vendor)}
+                      title="Edit Subscription"
+                    >
+                      <Settings2 className="h-4 w-4" />
+                    </Button>
                     {vendor.status === "pending" && (
                       <>
                         <Button
@@ -279,6 +311,13 @@ const AdminVendors: React.FC = () => {
           </TableBody>
         </Table>
       )}
+
+      <EditVendorSubscriptionDialog
+        vendor={editingVendor}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onUpdated={fetchVendors}
+      />
     </div>
   );
 };
