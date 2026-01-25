@@ -238,9 +238,20 @@ const handler = async (req: Request): Promise<Response> => {
       user.user_metadata?.name ||
       user.user_metadata?.full_name ||
       user.email.split("@")[0];
-
-    // Build the action URL
-    const actionUrl = email_data.confirmation_url || "";
+    // Build the action URL - use confirmation_url if available, otherwise construct from token
+    const siteUrl = Deno.env.get("SITE_URL") || "https://1145lifestyle.com";
+    let actionUrl = email_data.confirmation_url || "";
+    
+    // If no confirmation_url but we have a token_hash, construct the URL
+    if (!actionUrl && email_data.token_hash) {
+      const redirectTo = email_data.redirect_to || siteUrl;
+      actionUrl = `${siteUrl}/auth/confirm?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(redirectTo)}`;
+    }
+    
+    // Fallback: if still no URL, use site URL
+    if (!actionUrl) {
+      actionUrl = siteUrl;
+    }
 
     const { subject, html } = getEmailTemplate(
       email_data.email_action_type,
