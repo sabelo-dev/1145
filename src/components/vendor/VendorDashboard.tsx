@@ -306,8 +306,12 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
           <SubscriptionUpgradeModal
             isOpen={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
-            currentTier={vendorData?.subscription_tier === 'premium' ? 'premium' : 'standard'}
-            onUpgrade={onUpgrade}
+            currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
+            onUpgrade={async (tier, billing) => {
+              console.log('Upgrading to:', tier, billing);
+              // TODO: Implement actual upgrade logic
+              setShowUpgradeModal(false);
+            }}
           />
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
@@ -325,7 +329,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <TabsContent value="subscription" className="mt-0">
               <VendorSubscriptionPage 
                 vendorId={vendorData?.id}
-                currentTier={vendorData?.subscription_tier === 'premium' ? 'premium' : 'standard'}
+                currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
                 onUpgrade={() => setShowUpgradeModal(true)}
               />
             </TabsContent>

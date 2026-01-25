@@ -11,41 +11,98 @@ import SubscriptionComparisonTable from './SubscriptionComparisonTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Star, ArrowRight } from 'lucide-react';
+import { Check, Crown, Star, ArrowRight, Medal, Gem, Infinity } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+type TierType = 'starter' | 'bronze' | 'silver' | 'gold';
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentTier: 'standard' | 'premium';
-  onUpgrade: (plan: 'standard' | 'premium') => Promise<void>;
+  currentTier: TierType;
+  onUpgrade: (tier: TierType, billing: 'monthly' | 'yearly') => Promise<void>;
 }
 
-const standardFeatures = [
-  'Basic product listings',
-  'Up to 25 products',
-  '1 promotion per month',
-  '10% platform commission',
-  '7-day payout speed',
-  'Email support (48-72 hrs)',
-  'Local selling',
-  'Basic sales stats',
-];
+const tierConfig: Record<TierType, { 
+  icon: React.ElementType; 
+  label: string;
+  description: string;
+  color: string;
+  features: string[];
+}> = {
+  starter: {
+    icon: Star,
+    label: 'Starter',
+    description: 'Get started for free',
+    color: 'text-muted-foreground',
+    features: [
+      '25 product listings',
+      '1 promotion/month',
+      '10% commission',
+      '7-day payouts',
+      'Email support',
+      'Basic analytics',
+    ],
+  },
+  bronze: {
+    icon: Medal,
+    label: 'Bronze',
+    description: 'For growing sellers',
+    color: 'text-amber-700',
+    features: [
+      '100 product listings',
+      '5 promotions/month',
+      '9% commission',
+      '5-day payouts',
+      'R100 monthly ad credits',
+      '1.1x search boost',
+    ],
+  },
+  silver: {
+    icon: Gem,
+    label: 'Silver',
+    description: 'For established brands',
+    color: 'text-slate-500',
+    features: [
+      '300 product listings',
+      '20 promotions/month',
+      '8% commission',
+      '3-day payouts',
+      'R250 monthly ad credits',
+      'Verified badge',
+      'Advanced analytics',
+      'Priority support',
+    ],
+  },
+  gold: {
+    icon: Crown,
+    label: 'Gold',
+    description: 'For top performers',
+    color: 'text-yellow-600',
+    features: [
+      'Unlimited products',
+      'Unlimited promotions',
+      '6% commission',
+      '24-48hr payouts',
+      'R500 monthly ad credits',
+      'Premium badge',
+      'Homepage exposure',
+      'API access',
+      'Cross-border selling',
+    ],
+  },
+};
 
-const premiumFeatures = [
-  'Unlimited products',
-  'Unlimited promotions',
-  '6% platform commission',
-  '24-48 hr payouts',
-  'Priority chat support (<12 hrs)',
-  'Advanced analytics & A/B testing',
-  'Custom store theme & branding',
-  'Cross-border selling & API access',
-  'R500 monthly ad credits',
-  'Featured & Verified badges',
-  'Homepage exposure',
-  'Bulk upload & inventory sync',
-];
+// Placeholder pricing
+const pricing: Record<TierType, { monthly: number; yearly: number }> = {
+  starter: { monthly: 0, yearly: 0 },
+  bronze: { monthly: 99, yearly: 990 },
+  silver: { monthly: 249, yearly: 2490 },
+  gold: { monthly: 499, yearly: 4990 },
+};
 
 const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
   isOpen,
@@ -55,18 +112,15 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'simple' | 'detailed'>('simple');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
-  const handleSelectPlan = async (plan: 'standard' | 'premium') => {
-    if (plan === currentTier) return;
+  const handleSelectPlan = async (tier: TierType, billing: 'monthly' | 'yearly') => {
+    if (tier === currentTier) return;
     
     try {
       setLoading(true);
-      await onUpgrade(plan);
-      toast.success(
-        plan === 'premium' 
-          ? 'Welcome to Premium! Enjoy your new features.' 
-          : 'Plan changed successfully.'
-      );
+      await onUpgrade(tier, billing);
+      toast.success(`Welcome to ${tierConfig[tier].label}! Enjoy your new features.`);
       onClose();
     } catch (error) {
       toast.error('Failed to change plan. Please try again.');
@@ -75,9 +129,12 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
     }
   };
 
+  const tiers: TierType[] = ['starter', 'bronze', 'silver', 'gold'];
+  const currentTierIndex = tiers.indexOf(currentTier);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             <Crown className="h-6 w-6 text-primary" />
@@ -94,95 +151,115 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
             <TabsTrigger value="detailed">Full Comparison</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="simple" className="mt-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Standard Plan */}
-              <Card className={currentTier === 'standard' ? 'ring-2 ring-primary' : ''}>
-                <CardHeader className="text-center pb-2">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Star className="h-6 w-6" />
-                    <CardTitle className="text-xl">Standard</CardTitle>
-                  </div>
-                  {currentTier === 'standard' && (
-                    <Badge variant="outline">Current Plan</Badge>
-                  )}
-                  <div className="text-4xl font-bold mt-4">Free</div>
-                  <p className="text-sm text-muted-foreground">Perfect for getting started</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    {standardFeatures.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant={currentTier === 'standard' ? 'outline' : 'secondary'}
-                    className="w-full"
-                    disabled={currentTier === 'standard' || loading}
-                    onClick={() => handleSelectPlan('standard')}
-                  >
-                    {currentTier === 'standard' ? 'Current Plan' : 'Downgrade'}
-                  </Button>
-                </CardContent>
-              </Card>
+          <TabsContent value="simple" className="mt-6 space-y-6">
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center gap-3 p-4 bg-muted/30 rounded-lg">
+              <Label className={cn("text-sm", billingPeriod === 'monthly' && 'font-semibold')}>Monthly</Label>
+              <Switch
+                checked={billingPeriod === 'yearly'}
+                onCheckedChange={(checked) => setBillingPeriod(checked ? 'yearly' : 'monthly')}
+              />
+              <Label className={cn("text-sm", billingPeriod === 'yearly' && 'font-semibold')}>
+                Yearly
+                <Badge variant="secondary" className="ml-2 text-xs">Save ~17%</Badge>
+              </Label>
+            </div>
 
-              {/* Premium Plan */}
-              <Card className={`relative border-primary ${currentTier === 'premium' ? 'ring-2 ring-primary' : ''}`}>
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 border-0">
-                    Recommended
-                  </Badge>
-                </div>
-                <CardHeader className="text-center pb-2">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Crown className="h-6 w-6 text-primary" />
-                    <CardTitle className="text-xl">Premium</CardTitle>
-                  </div>
-                  {currentTier === 'premium' && (
-                    <Badge>Current Plan</Badge>
-                  )}
-                  <div className="text-4xl font-bold mt-4">
-                    R299
-                    <span className="text-lg font-normal text-muted-foreground">/mo</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">For growth-focused sellers</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    {premiumFeatures.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    className="w-full gap-1"
-                    disabled={currentTier === 'premium' || loading}
-                    onClick={() => handleSelectPlan('premium')}
-                  >
-                    {currentTier === 'premium' ? (
-                      'Current Plan'
-                    ) : (
-                      <>
-                        Upgrade Now <ArrowRight className="h-4 w-4" />
-                      </>
+            {/* Plans Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {tiers.map((tier, index) => {
+                const config = tierConfig[tier];
+                const Icon = config.icon;
+                const price = pricing[tier][billingPeriod];
+                const isCurrentTier = tier === currentTier;
+                const isRecommended = tier === 'silver';
+                const isUpgrade = index > currentTierIndex;
+                
+                return (
+                  <Card 
+                    key={tier}
+                    className={cn(
+                      'relative',
+                      isCurrentTier && 'ring-2 ring-primary',
+                      isRecommended && 'border-primary',
+                      tier === 'gold' && 'border-yellow-400/50'
                     )}
-                  </Button>
-                </CardContent>
-              </Card>
+                  >
+                    {isRecommended && (
+                      <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary border-0 text-xs">
+                        Popular
+                      </Badge>
+                    )}
+                    <CardHeader className="text-center pb-2">
+                      <div className={cn("flex items-center justify-center gap-2", config.color)}>
+                        <Icon className="h-5 w-5" />
+                        <CardTitle className="text-lg">{config.label}</CardTitle>
+                      </div>
+                      {isCurrentTier && (
+                        <Badge variant="outline" className="mx-auto text-xs">Current</Badge>
+                      )}
+                      <div className="text-2xl font-bold mt-2">
+                        {price === 0 ? (
+                          'Free'
+                        ) : (
+                          <>
+                            R{price}
+                            <span className="text-xs font-normal text-muted-foreground">
+                              /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{config.description}</p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <ul className="space-y-1">
+                        {config.features.slice(0, 5).map((feature, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-xs">
+                            <Check className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                            {feature.toLowerCase().includes('unlimited') ? (
+                              <span className="flex items-center gap-1">
+                                <Infinity className="h-3 w-3 text-primary" />
+                                {feature}
+                              </span>
+                            ) : (
+                              feature
+                            )}
+                          </li>
+                        ))}
+                        {config.features.length > 5 && (
+                          <li className="text-xs text-muted-foreground">
+                            +{config.features.length - 5} more...
+                          </li>
+                        )}
+                      </ul>
+                      <Button
+                        size="sm"
+                        className={cn(
+                          "w-full text-xs",
+                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                        )}
+                        variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
+                        disabled={isCurrentTier || loading}
+                        onClick={() => handleSelectPlan(tier, billingPeriod)}
+                      >
+                        {isCurrentTier ? 'Current' : isUpgrade ? (
+                          <>Upgrade <ArrowRight className="h-3 w-3 ml-1" /></>
+                        ) : 'Downgrade'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* ROI Calculator */}
-            {currentTier === 'standard' && (
-              <Card className="mt-6 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+            {currentTier === 'starter' && (
+              <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
                 <CardContent className="p-4">
-                  <h4 className="font-semibold mb-2">Premium ROI Calculator</h4>
+                  <h4 className="font-semibold mb-2">Upgrade ROI Calculator</h4>
                   <p className="text-sm text-muted-foreground mb-3">
-                    If you sell R7,500/month, Premium pays for itself with commission savings alone!
+                    If you sell R10,000/month, Bronze pays for itself with commission savings!
                   </p>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
@@ -191,11 +268,11 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Commission Saved</p>
-                      <p className="font-bold text-primary">R400 (4%)</p>
+                      <p className="font-bold text-primary">R100 (1%)</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Net Benefit</p>
-                      <p className="font-bold text-primary">+R101/mo</p>
+                      <p className="font-bold text-primary">+R1/mo profit</p>
                     </div>
                   </div>
                 </CardContent>
