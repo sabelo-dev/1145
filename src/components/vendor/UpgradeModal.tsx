@@ -9,22 +9,24 @@ import {
 import SubscriptionPlans from "./SubscriptionPlans";
 import { SubscriptionPlan } from "@/types/subscription";
 
+type TierType = 'starter' | 'bronze' | 'silver' | 'gold';
+
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectPlan: (plan: SubscriptionPlan) => void;
-  currentTier?: string;
+  onSelectPlan: (plan: SubscriptionPlan, billing: 'monthly' | 'yearly') => void;
+  currentTier?: TierType;
 }
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({
   isOpen,
   onClose,
   onSelectPlan,
-  currentTier
+  currentTier = 'starter'
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">Choose Your Plan</DialogTitle>
           <DialogDescription>
