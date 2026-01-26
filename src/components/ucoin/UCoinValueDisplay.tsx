@@ -1,12 +1,10 @@
 import { Coins } from 'lucide-react';
-import { useGoldPricingContext } from '@/contexts/GoldPricingContext';
-import { UCoinDisplayMode, GoldUnit, UCOIN_GOLD_RATIO } from '@/types/ucoin';
+import { UCoinDisplayMode, UCOIN_RAND_VALUE } from '@/types/ucoin';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UCoinValueDisplayProps {
   amount: number;
   displayMode?: UCoinDisplayMode;
-  goldUnit?: GoldUnit;
   showIcon?: boolean;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
@@ -15,32 +13,15 @@ interface UCoinValueDisplayProps {
 export function UCoinValueDisplay({
   amount,
   displayMode = 'ucoin',
-  goldUnit = 'mg',
   showIcon = true,
   className = '',
   size = 'md'
 }: UCoinValueDisplayProps) {
-  const { mgGoldToCurrency, displayCurrency, getCurrency } = useGoldPricingContext();
-
-  // 1 UCoin = 1 mg gold
-  const mgGold = amount * UCOIN_GOLD_RATIO.MG_PER_UCOIN;
-  const currencyValue = mgGoldToCurrency(mgGold, displayCurrency);
-  const currency = getCurrency(displayCurrency);
-
-  const formatGold = (mg: number, unit: GoldUnit): string => {
-    switch (unit) {
-      case 'g':
-        return `${(mg / 1000).toFixed(3)} g Au`;
-      case 'oz':
-        return `${(mg / 31103.4768).toFixed(6)} oz Au`;
-      default:
-        return `${mg.toLocaleString()} mg Au`;
-    }
-  };
+  // 1 UCoin = R0.10
+  const randValue = amount * UCOIN_RAND_VALUE;
 
   const formatCurrency = (): string => {
-    const symbol = currency?.currencySymbol || displayCurrency;
-    return `${symbol}${currencyValue.toFixed(2)}`;
+    return `R${randValue.toFixed(2)}`;
   };
 
   const sizeClasses = {
@@ -57,8 +38,6 @@ export function UCoinValueDisplay({
 
   const getDisplayValue = (): string => {
     switch (displayMode) {
-      case 'gold':
-        return formatGold(mgGold, goldUnit);
       case 'currency':
         return formatCurrency();
       default:
@@ -69,9 +48,8 @@ export function UCoinValueDisplay({
   const tooltipContent = (
     <div className="space-y-1 text-xs">
       <p><strong>{amount.toLocaleString()} UCoin</strong></p>
-      <p>= {formatGold(mgGold, 'mg')}</p>
-      <p>= {formatGold(mgGold, 'g')}</p>
-      <p>≈ {formatCurrency()}</p>
+      <p>= {formatCurrency()}</p>
+      <p className="text-muted-foreground">1 UCoin = R0.10</p>
     </div>
   );
 

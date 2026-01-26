@@ -96,12 +96,15 @@ export interface TransferResult {
   recipient_id?: string;
 }
 
-// UCoin is gold-backed: 1 UCoin = 1 mg of gold (mgAu)
+// UCoin has a fixed rand value: 1 UCoin = R0.10
+export const UCOIN_RAND_VALUE = 0.10; // ZAR per UCoin
+
+// Legacy gold ratio kept for backward compatibility
 export const UCOIN_GOLD_RATIO = {
   MG_PER_UCOIN: 1,
   UCOIN_PER_MG: 1,
   UCOIN_PER_GRAM: 1000,
-  UCOIN_PER_OZ: 31103.4768, // Troy ounce
+  UCOIN_PER_OZ: 31103.4768,
 } as const;
 
 export type EarningCategory =
