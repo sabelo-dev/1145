@@ -4760,6 +4760,10 @@ export type Database = {
         Args: { p_amount: number; p_currency_code: string }
         Returns: number
       }
+      delete_vendor_cascade: {
+        Args: { vendor_uuid: string }
+        Returns: undefined
+      }
       evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_current_gold_price: {
