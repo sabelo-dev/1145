@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.resend-webhook]
 verify_jwt = false
+
+[functions.update-gold-prices]
+verify_jwt = false

@@ -169,18 +169,10 @@ export function useUCoinTransfer() {
     return true;
   };
 
-  // Convert UCoin to gold display
-  const formatAsGold = (ucoin: number, unit: 'mg' | 'g' | 'oz' = 'mg'): string => {
-    // 1 UCoin = 1 mg Au
-    const mg = ucoin;
-    switch (unit) {
-      case 'g':
-        return `${(mg / 1000).toFixed(3)} g Au`;
-      case 'oz':
-        return `${(mg / 31103.4768).toFixed(6)} oz Au`;
-      default:
-        return `${mg.toLocaleString()} mg Au`;
-    }
+  // Convert UCoin to rand display
+  const formatAsRand = (ucoin: number): string => {
+    const randValue = ucoin * 0.10; // 1 UCoin = R0.10
+    return `R${randValue.toFixed(2)}`;
   };
 
   return {
@@ -191,7 +183,7 @@ export function useUCoinTransfer() {
     isTransferring,
     transfer,
     updateSettings,
-    formatAsGold,
+    formatAsRand,
     refreshLimits: fetchLimits,
     refreshTransfers: fetchTransfers
   };

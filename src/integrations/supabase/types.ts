@@ -4865,6 +4865,15 @@ export type Database = {
         }
         Returns: Json
       }
+      verify_mining_completion: {
+        Args: {
+          p_completion_id: string
+          p_rejection_reason?: string
+          p_verified: boolean
+          p_verified_by?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "consumer" | "vendor" | "admin" | "driver"
