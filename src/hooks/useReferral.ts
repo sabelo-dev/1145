@@ -84,7 +84,7 @@ export function useReferral() {
 
       setReferrals(enrichedReferrals);
 
-      // Calculate stats
+      // Calculate stats - rewards are now auto-awarded, no pending
       const signupsCompleted = enrichedReferrals.filter(r => 
         r.status === 'signup_completed' || r.status === 'purchase_completed'
       ).length;
@@ -92,22 +92,16 @@ export function useReferral() {
         r.status === 'purchase_completed'
       ).length;
 
-      // UCoin rewards: 50 for signup, 25 for purchase
+      // UCoin rewards: 50 for signup, 25 for purchase (auto-awarded now)
       const earnedFromSignups = enrichedReferrals.filter(r => r.signup_reward_paid).length * 50;
       const earnedFromPurchases = enrichedReferrals.filter(r => r.purchase_reward_paid).length * 25;
-      const pendingSignups = enrichedReferrals.filter(r => 
-        (r.status === 'signup_completed' || r.status === 'purchase_completed') && !r.signup_reward_paid
-      ).length * 50;
-      const pendingPurchases = enrichedReferrals.filter(r => 
-        r.status === 'purchase_completed' && !r.purchase_reward_paid
-      ).length * 25;
 
       setStats({
         totalReferrals: enrichedReferrals.length,
         signupsCompleted,
         purchasesCompleted,
         totalEarned: earnedFromSignups + earnedFromPurchases,
-        pendingEarnings: pendingSignups + pendingPurchases,
+        pendingEarnings: 0, // No pending - auto-awarded now
       });
     }
   }, [user]);
@@ -162,12 +156,13 @@ export function useReferral() {
 
     toast({
       title: 'Referral code applied!',
-      description: 'You will receive rewards when you complete actions on the platform',
+      description: 'UCoin rewards have been automatically credited to both accounts!',
     });
 
     return true;
   };
 
+  // Rewards are now auto-completed - this is kept for backwards compatibility
   const claimReferralReward = async (referralId: string, rewardType: 'signup' | 'purchase') => {
     if (!user) return false;
 
