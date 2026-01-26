@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.send-new-order-alert]
 verify_jwt = false
+
+[functions.resend-webhook]
+verify_jwt = false
