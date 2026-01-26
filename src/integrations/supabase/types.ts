@@ -5051,6 +5051,14 @@ export type Database = {
         Args: { p_completion_id: string; p_miner_id: string; p_reward: number }
         Returns: undefined
       }
+      process_referral_purchase: {
+        Args: {
+          p_order_amount: number
+          p_order_id: string
+          p_referred_id: string
+        }
+        Returns: boolean
+      }
       process_referral_signup: {
         Args: { p_referral_code: string; p_referred_id: string }
         Returns: boolean
