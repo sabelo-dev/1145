@@ -63,8 +63,13 @@ export function MiningTaskList({
   const handleSubmit = async () => {
     if (!selectedTask) return;
     
+    // Proof URL is now required for ALL tasks
+    if (!proofUrl.trim()) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    await onCompleteTask(selectedTask.id, proofUrl || undefined);
+    await onCompleteTask(selectedTask.id, proofUrl);
     setIsSubmitting(false);
     setSelectedTask(null);
     setProofUrl('');
@@ -112,12 +117,10 @@ export function MiningTaskList({
                 <CheckCircle2 className="h-3 w-3" />
                 {completionsToday}/{task.max_daily_completions} today
               </span>
-              {task.requires_verification && (
-                <span className="flex items-center gap-1 text-yellow-600">
-                  <AlertCircle className="h-3 w-3" />
-                  Requires verification
-                </span>
-              )}
+              <span className="flex items-center gap-1 text-amber-600">
+                <AlertCircle className="h-3 w-3" />
+                Requires proof
+              </span>
             </div>
           </div>
 
@@ -195,20 +198,25 @@ export function MiningTaskList({
               )}
             </div>
 
-            {selectedTask?.requires_verification && (
-              <div className="space-y-2">
-                <Label htmlFor="proof">Proof URL (required)</Label>
-                <Input
-                  id="proof"
-                  placeholder="https://..."
-                  value={proofUrl}
-                  onChange={(e) => setProofUrl(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Provide a link to your post or content for verification
+            <div className="space-y-2">
+              <Label htmlFor="proof">Proof URL (required)</Label>
+              <Input
+                id="proof"
+                placeholder="https://instagram.com/p/... or https://twitter.com/..."
+                value={proofUrl}
+                onChange={(e) => setProofUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Provide a direct link to your completed action (post, story, comment, etc.)
+              </p>
+              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  <AlertCircle className="inline h-3 w-3 mr-1" />
+                  UCoin will only be credited after your submission is verified. 
+                  Fraudulent submissions will be rejected.
                 </p>
               </div>
-            )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -217,9 +225,9 @@ export function MiningTaskList({
             </Button>
             <Button 
               onClick={handleSubmit} 
-              disabled={isSubmitting || (selectedTask?.requires_verification && !proofUrl)}
+              disabled={isSubmitting || !proofUrl.trim()}
             >
-              {isSubmitting ? 'Submitting...' : 'Complete Task'}
+              {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
             </Button>
           </DialogFooter>
         </DialogContent>
