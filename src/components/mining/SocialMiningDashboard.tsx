@@ -85,6 +85,7 @@ export function SocialMiningDashboard() {
             canCompleteTask={canCompleteTask}
             getCompletionsToday={getTaskCompletionsToday}
             onCompleteTask={completeTask}
+            onConnectAccount={connectSocialAccount}
           />
         </div>
 
