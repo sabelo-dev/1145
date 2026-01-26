@@ -62,7 +62,7 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver') => {
+  const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer') => {
     try {
       // Delete existing roles for this user
       await supabase
@@ -288,6 +288,15 @@ const AdminUsers: React.FC = () => {
                       onClick={() => handleUpdateRole(user.id, 'driver')}
                     >
                       Make Driver
+                    </Button>
+                  )}
+                  {user.role !== 'influencer' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleUpdateRole(user.id, 'influencer')}
+                    >
+                      Make Influencer
                     </Button>
                   )}
                   {user.role !== 'consumer' && (

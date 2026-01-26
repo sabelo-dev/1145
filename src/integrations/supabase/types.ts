@@ -56,6 +56,48 @@ export type Database = {
         }
         Relationships: []
       }
+      approved_social_accounts: {
+        Row: {
+          account_handle: string
+          account_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          platform: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          account_handle: string
+          account_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          platform: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          account_handle?: string
+          account_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          platform?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       attribute_types: {
         Row: {
           category: string | null
@@ -2166,6 +2208,54 @@ export type Database = {
         }
         Relationships: []
       }
+      influencer_profiles: {
+        Row: {
+          assigned_by: string | null
+          bio: string | null
+          can_manage_accounts: boolean | null
+          can_post: boolean | null
+          can_schedule: boolean | null
+          created_at: string
+          display_name: string | null
+          id: string
+          is_active: boolean | null
+          performance_stats: Json | null
+          platforms_access: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          bio?: string | null
+          can_manage_accounts?: boolean | null
+          can_post?: boolean | null
+          can_schedule?: boolean | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          performance_stats?: Json | null
+          platforms_access?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          bio?: string | null
+          can_manage_accounts?: boolean | null
+          can_post?: boolean | null
+          can_schedule?: boolean | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          performance_stats?: Json | null
+          platforms_access?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory_settings: {
         Row: {
           auto_restock_enabled: boolean | null
@@ -3440,6 +3530,112 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      social_media_posts: {
+        Row: {
+          content: string
+          content_type: string
+          created_at: string
+          created_by: string
+          engagement_stats: Json | null
+          external_post_ids: Json | null
+          id: string
+          media_urls: string[] | null
+          platforms: string[]
+          product_id: string | null
+          published_at: string | null
+          scheduled_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          content_type?: string
+          created_at?: string
+          created_by: string
+          engagement_stats?: Json | null
+          external_post_ids?: Json | null
+          id?: string
+          media_urls?: string[] | null
+          platforms?: string[]
+          product_id?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          content_type?: string
+          created_at?: string
+          created_by?: string
+          engagement_stats?: Json | null
+          external_post_ids?: Json | null
+          id?: string
+          media_urls?: string[] | null
+          platforms?: string[]
+          product_id?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_media_posts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_platforms: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          external_post_id: string | null
+          external_post_url: string | null
+          id: string
+          platform: string
+          post_id: string
+          published_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          external_post_id?: string | null
+          external_post_url?: string | null
+          id?: string
+          platform: string
+          post_id: string
+          published_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          external_post_id?: string | null
+          external_post_url?: string | null
+          id?: string
+          platform?: string
+          post_id?: string
+          published_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_platforms_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sponsored_placements: {
         Row: {
@@ -4876,7 +5072,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "consumer" | "vendor" | "admin" | "driver"
+      app_role: "consumer" | "vendor" | "admin" | "driver" | "influencer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5004,7 +5200,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["consumer", "vendor", "admin", "driver"],
+      app_role: ["consumer", "vendor", "admin", "driver", "influencer"],
     },
   },
 } as const

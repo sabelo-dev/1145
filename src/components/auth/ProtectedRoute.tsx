@@ -8,6 +8,7 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
   requireVendor?: boolean;
   requireDriver?: boolean;
+  requireInfluencer?: boolean;
   fallbackPath?: string;
 }
 
@@ -17,9 +18,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAdmin = false,
   requireVendor = false,
   requireDriver = false,
+  requireInfluencer = false,
   fallbackPath = '/'
 }) => {
-  const { user, isLoading, isAdmin, isVendor, isDriver } = useAuth();
+  const { user, isLoading, isAdmin, isVendor, isDriver, isInfluencer } = useAuth();
 
   // Show loading while auth is being determined
   if (isLoading) {
@@ -35,13 +37,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect unauthenticated users if auth is required
   if (requireAuth && !user) {
-    const loginPath = requireAdmin ? '/admin/login' : requireVendor ? '/vendor/login' : requireDriver ? '/driver/login' : '/login';
+    const loginPath = requireAdmin ? '/admin/login' : 
+                      requireVendor ? '/vendor/login' : 
+                      requireDriver ? '/driver/login' : 
+                      requireInfluencer ? '/influencer/login' : '/login';
     return <Navigate to={loginPath} replace />;
   }
 
   // Redirect authenticated users away from auth pages
   if (!requireAuth && user) {
     if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+    if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
     if (isVendor) return <Navigate to="/vendor/dashboard" replace />;
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
     return <Navigate to="/" replace />;
@@ -60,6 +66,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check driver access
   if (requireDriver && (!user || !isDriver)) {
     return <Navigate to="/driver/login" replace />;
+  }
+
+  // Check influencer access
+  if (requireInfluencer && (!user || !isInfluencer)) {
+    return <Navigate to="/influencer/login" replace />;
   }
 
   return <>{children}</>;

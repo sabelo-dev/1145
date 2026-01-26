@@ -14,6 +14,7 @@ interface AuthContextType {
   isVendor: boolean;
   isAdmin: boolean;
   isDriver: boolean;
+  isInfluencer: boolean;
   refreshUserProfile: () => Promise<void>;
 }
 
@@ -25,11 +26,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isVendor, setIsVendor] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
+  const [isInfluencer, setIsInfluencer] = useState(false);
   const { toast } = useToast();
   const loadingManager = useLoadingManager();
 
-  const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isDriverUser: boolean, isLogin: boolean = true): string => {
+  const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isDriverUser: boolean, isInfluencerUser: boolean, isLogin: boolean = true): string => {
     if (userRole === 'admin') return '/admin/dashboard';
+    if (isInfluencerUser) return '/influencer/dashboard';
     if (isDriverUser) return '/driver/dashboard';
     if (userRole === 'vendor') {
       return isLogin ? '/vendor/dashboard' : '/login';
@@ -43,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsVendor(false);
     setIsAdmin(false);
     setIsDriver(false);
+    setIsInfluencer(false);
   };
 
   const checkDriverStatus = async (userId: string): Promise<boolean> => {
@@ -122,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Set role flags based on user_roles table
         setIsAdmin(userRoles.includes('admin'));
+        setIsInfluencer(userRoles.includes('influencer'));
         
         // Check vendor and driver status
         const [vendorStatus, driverStatus] = await Promise.all([
@@ -143,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAdmin(false);
         setIsVendor(false);
         setIsDriver(false);
+        setIsInfluencer(false);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -259,9 +265,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ]);
         
         const userRoles = rolesResult.data?.map(r => r.role) || [];
+        const isInfluencerUser = userRoles.includes('influencer');
         const userRole = userRoles.includes('admin') ? 'admin' : 
                         userRoles.includes('vendor') ? 'vendor' : 'consumer';
-        const redirectPath = getRedirectPathForRole(userRole, vendorResult, driverResult, true);
+        const redirectPath = getRedirectPathForRole(userRole, vendorResult, driverResult, isInfluencerUser, true);
         
         toast({
           title: "Login Successful",
@@ -403,7 +410,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isVendor, isAdmin, isDriver, refreshUserProfile }}>
+    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isVendor, isAdmin, isDriver, isInfluencer, refreshUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
