@@ -73,7 +73,9 @@ const InfluencerLoginPage: React.FC = () => {
           </div>
           <CardTitle className="text-2xl">Influencer Login</CardTitle>
           <CardDescription>
-            Sign in to access the Influencer Dashboard
+            Sign in to access the Influencer Dashboard.
+            <br />
+            <span className="text-xs">Access is granted by platform administrators only.</span>
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
