@@ -73,7 +73,7 @@ export const useInfluencer = () => {
     }
   }, [user, fetchPosts, fetchApprovedAccounts, fetchProfile]);
 
-  const createPost = async (postData: Partial<SocialMediaPost>) => {
+  const createPost = async (postData: Partial<SocialMediaPost> & { external_post_url?: string | null }) => {
     if (!user) return null;
 
     try {
@@ -85,6 +85,7 @@ export const useInfluencer = () => {
         product_id: postData.product_id,
         scheduled_at: postData.scheduled_at,
         status: postData.status,
+        external_post_url: postData.external_post_url || null,
         created_by: user.id,
       };
       
@@ -113,7 +114,7 @@ export const useInfluencer = () => {
     }
   };
 
-  const updatePost = async (postId: string, updates: Partial<SocialMediaPost>) => {
+  const updatePost = async (postId: string, updates: Partial<SocialMediaPost> & { external_post_url?: string | null }) => {
     try {
       const { error } = await supabase
         .from('social_media_posts')

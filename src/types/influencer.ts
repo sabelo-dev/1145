@@ -11,6 +11,7 @@ export interface SocialMediaPost {
   published_at?: string;
   status: 'draft' | 'scheduled' | 'published' | 'failed';
   external_post_ids: Record<string, string>;
+  external_post_url?: string;
   engagement_stats: Record<string, any>;
   created_at: string;
   updated_at: string;
