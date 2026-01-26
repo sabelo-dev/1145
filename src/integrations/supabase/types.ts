@@ -60,6 +60,7 @@ export type Database = {
         Row: {
           account_handle: string
           account_url: string | null
+          added_by_admin: string | null
           created_at: string
           id: string
           is_active: boolean | null
@@ -73,6 +74,7 @@ export type Database = {
         Insert: {
           account_handle: string
           account_url?: string | null
+          added_by_admin?: string | null
           created_at?: string
           id?: string
           is_active?: boolean | null
@@ -86,6 +88,7 @@ export type Database = {
         Update: {
           account_handle?: string
           account_url?: string | null
+          added_by_admin?: string | null
           created_at?: string
           id?: string
           is_active?: boolean | null
@@ -3539,6 +3542,7 @@ export type Database = {
           created_by: string
           engagement_stats: Json | null
           external_post_ids: Json | null
+          external_post_url: string | null
           id: string
           media_urls: string[] | null
           platforms: string[]
@@ -3556,6 +3560,7 @@ export type Database = {
           created_by: string
           engagement_stats?: Json | null
           external_post_ids?: Json | null
+          external_post_url?: string | null
           id?: string
           media_urls?: string[] | null
           platforms?: string[]
@@ -3573,6 +3578,7 @@ export type Database = {
           created_by?: string
           engagement_stats?: Json | null
           external_post_ids?: Json | null
+          external_post_url?: string | null
           id?: string
           media_urls?: string[] | null
           platforms?: string[]
@@ -5062,6 +5068,15 @@ export type Database = {
         Returns: Json
       }
       verify_mining_completion: {
+        Args: {
+          p_completion_id: string
+          p_rejection_reason?: string
+          p_verified: boolean
+          p_verified_by?: string
+        }
+        Returns: Json
+      }
+      verify_mining_task_from_approved_source: {
         Args: {
           p_completion_id: string
           p_rejection_reason?: string

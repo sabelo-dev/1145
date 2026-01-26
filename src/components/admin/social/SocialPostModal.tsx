@@ -45,6 +45,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
   const [productId, setProductId] = useState<string>('');
   const [products, setProducts] = useState<any[]>([]);
   const [scheduledAt, setScheduledAt] = useState<string>('');
+  const [externalPostUrl, setExternalPostUrl] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       setSelectedPlatforms(editingPost.platforms || []);
       setProductId(editingPost.product_id || '');
       setScheduledAt(editingPost.scheduled_at || '');
+      setExternalPostUrl(editingPost.external_post_url || '');
     } else {
       resetForm();
     }
@@ -79,6 +81,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
     setSelectedPlatforms([]);
     setProductId('');
     setScheduledAt('');
+    setExternalPostUrl('');
   };
 
   const handlePlatformToggle = (platformId: string) => {
@@ -120,6 +123,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       platforms: string[];
       product_id: string | null;
       scheduled_at: string | null;
+      external_post_url: string | null;
       status: 'draft' | 'scheduled' | 'published' | 'failed';
     } = {
       title,
@@ -128,6 +132,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       platforms: selectedPlatforms,
       product_id: contentType === 'product' && productId ? productId : null,
       scheduled_at: scheduledAt || null,
+      external_post_url: externalPostUrl || null,
       status: scheduledAt ? 'scheduled' : 'draft',
     };
 
@@ -251,6 +256,19 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
             />
             <p className="text-xs text-muted-foreground">
               Leave empty to save as draft
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="externalUrl">External Post URL (after publishing)</Label>
+            <Input
+              id="externalUrl"
+              placeholder="https://instagram.com/p/..."
+              value={externalPostUrl}
+              onChange={(e) => setExternalPostUrl(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Add the published post URL for mining task verification
             </p>
           </div>
         </div>
