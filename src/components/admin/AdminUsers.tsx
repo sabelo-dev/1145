@@ -62,7 +62,7 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin') => {
+  const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver') => {
     try {
       // Delete existing roles for this user
       await supabase
@@ -262,7 +262,7 @@ const AdminUsers: React.FC = () => {
               </TableCell>
               <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
               <TableCell className="text-right">
-                <div className="flex gap-2 justify-end">
+                <div className="flex gap-2 justify-end flex-wrap">
                   {user.role !== 'admin' && (
                     <Button 
                       variant="outline" 
@@ -279,6 +279,15 @@ const AdminUsers: React.FC = () => {
                       onClick={() => handleUpdateRole(user.id, 'vendor')}
                     >
                       Make Vendor
+                    </Button>
+                  )}
+                  {user.role !== 'driver' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleUpdateRole(user.id, 'driver')}
+                    >
+                      Make Driver
                     </Button>
                   )}
                   {user.role !== 'consumer' && (
