@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,9 +12,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings2 } from "lucide-react";
+import { Settings2, Trash2 } from "lucide-react";
 import AddVendorDialog from "@/components/admin/vendors/AddVendorDialog";
 import EditVendorSubscriptionDialog from "@/components/admin/vendors/EditVendorSubscriptionDialog";
+import DeleteVendorDialog from "@/components/admin/vendors/DeleteVendorDialog";
 
 interface Vendor {
   id: string;
@@ -44,6 +44,8 @@ const AdminVendors: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deletingVendor, setDeletingVendor] = useState<Vendor | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchVendors = useCallback(async () => {
@@ -144,15 +146,10 @@ const AdminVendors: React.FC = () => {
   };
 
   const handleRemoveVendor = async (vendorId: string) => {
-    if (!confirm("Are you sure you want to permanently remove this vendor? This action cannot be undone.")) {
-      return;
-    }
-
     try {
-      const { error } = await supabase
-        .from('vendors')
-        .delete()
-        .eq('id', vendorId);
+      const { error } = await supabase.rpc('delete_vendor_cascade', {
+        vendor_uuid: vendorId
+      });
 
       if (error) throw error;
 
@@ -160,16 +157,21 @@ const AdminVendors: React.FC = () => {
 
       toast({
         title: "Vendor removed",
-        description: "Vendor has been permanently removed.",
+        description: "Vendor and all associated data have been permanently deleted.",
       });
     } catch (error) {
       console.error('Error removing vendor:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to remove vendor.",
+        description: `Failed to remove vendor: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     }
+  };
+
+  const handleDeleteClick = (vendor: Vendor) => {
+    setDeletingVendor(vendor);
+    setDeleteDialogOpen(true);
   };
 
   const getTierBadgeColor = (tier: string | undefined) => {
@@ -299,9 +301,10 @@ const AdminVendors: React.FC = () => {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleRemoveVendor(vendor.id)}
+                        onClick={() => handleDeleteClick(vendor)}
+                        title="Delete Vendor"
                       >
-                        Remove
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
@@ -317,6 +320,13 @@ const AdminVendors: React.FC = () => {
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         onUpdated={fetchVendors}
+      />
+
+      <DeleteVendorDialog
+        vendor={deletingVendor}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleRemoveVendor}
       />
     </div>
   );
