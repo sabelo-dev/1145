@@ -65,6 +65,9 @@ import ReturnsPage from "@/pages/ReturnsPage";
 import TermsPage from "@/pages/TermsPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 
+// Auth pages
+import AuthConfirmPage from "@/pages/AuthConfirmPage";
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -126,6 +129,7 @@ function App() {
               <Route path="track-order" element={<TrackOrderPage />} />
               
               {/* Auth pages without layout */}
+              <Route path="auth/confirm" element={<AuthConfirmPage />} />
               <Route path="login" element={<LoginPage />} />
               <Route path="register" element={<RegisterPage />} />
               <Route path="forgot-password" element={<ForgotPasswordPage />} />
