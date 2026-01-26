@@ -183,6 +183,28 @@ const ConsumerProfile: React.FC = () => {
 
       if (driverError) throw driverError;
 
+      // Update user role to driver in profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ role: 'driver' })
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+      }
+
+      // Update user_roles table: remove consumer role and add driver role
+      // Delete consumer role
+      const { error: deleteRoleError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('role', 'consumer');
+
+      if (deleteRoleError) {
+        console.error('Error deleting consumer role:', deleteRoleError);
+      }
+
       // Add driver role
       const { error: roleError } = await supabase
         .from('user_roles')
