@@ -44,6 +44,11 @@ import VendorDashboardPage from "@/pages/VendorDashboardPage";
 import DriverLoginPage from "@/pages/driver/DriverLoginPage";
 import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
 import DriverRegisterPage from "@/pages/driver/DriverRegisterPage";
+
+// Influencer pages
+import InfluencerLoginPage from "@/pages/influencer/InfluencerLoginPage";
+import InfluencerDashboardPage from "@/pages/influencer/InfluencerDashboardPage";
+
 // Subcategory pages
 import SubcategoryPage from "@/pages/SubcategoryPage";
 
@@ -162,6 +167,14 @@ function App() {
               <Route path="driver/dashboard" element={
                 <ProtectedRoute requireAuth requireDriver>
                   <DriverDashboardPage />
+                </ProtectedRoute>
+              } />
+              
+              {/* Influencer pages */}
+              <Route path="influencer/login" element={<InfluencerLoginPage />} />
+              <Route path="influencer/dashboard" element={
+                <ProtectedRoute requireAuth requireInfluencer>
+                  <InfluencerDashboardPage />
                 </ProtectedRoute>
               } />
               
