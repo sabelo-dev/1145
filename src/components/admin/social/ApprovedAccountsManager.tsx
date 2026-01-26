@@ -48,20 +48,11 @@ interface ApprovedAccount {
   user_email?: string;
 }
 
-interface UserOption {
-  id: string;
-  name: string;
-  email: string;
-}
-
 export const ApprovedAccountsManager: React.FC = () => {
   const { toast } = useToast();
   const [accounts, setAccounts] = useState<ApprovedAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [users, setUsers] = useState<UserOption[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState('');
-  const [searchEmail, setSearchEmail] = useState('');
   const [newPlatform, setNewPlatform] = useState('');
   const [newHandle, setNewHandle] = useState('');
   const [newUrl, setNewUrl] = useState('');
@@ -93,53 +84,49 @@ export const ApprovedAccountsManager: React.FC = () => {
     }
   };
 
-  const searchUsers = async () => {
-    if (!searchEmail.trim()) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, email')
-        .ilike('email', `%${searchEmail}%`)
-        .limit(10);
-
-      if (error) throw error;
-      setUsers(data as UserOption[] || []);
-    } catch (error) {
-      console.error('Error searching users:', error);
-    }
-  };
 
   useEffect(() => {
     fetchAccounts();
   }, []);
 
   const handleAddAccount = async () => {
-    if (!selectedUserId || !newPlatform || !newHandle) return;
+    if (!newPlatform || !newHandle) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Fields',
+        description: 'Platform and username are required.',
+      });
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
+      if (!currentUser) {
+        throw new Error('You must be logged in as admin');
+      }
+
+      // Use admin's user_id as the owner - this is a platform-level social account
       const { error } = await supabase
         .from('approved_social_accounts')
         .insert({
-          user_id: selectedUserId,
+          user_id: currentUser.id, // Admin owns the account
           platform: newPlatform,
           account_handle: newHandle,
           account_url: newUrl || null,
           is_verified: true,
           verified_at: new Date().toISOString(),
-          verified_by: currentUser?.id,
-          added_by_admin: currentUser?.id,
+          verified_by: currentUser.id,
+          added_by_admin: currentUser.id,
         });
 
       if (error) throw error;
 
       toast({
         title: 'Account Added',
-        description: 'Social account has been added and verified.',
+        description: 'Social account has been added successfully.',
       });
 
       setIsAddDialogOpen(false);
@@ -157,9 +144,6 @@ export const ApprovedAccountsManager: React.FC = () => {
   };
 
   const resetForm = () => {
-    setSelectedUserId('');
-    setSearchEmail('');
-    setUsers([]);
     setNewPlatform('');
     setNewHandle('');
     setNewUrl('');
@@ -407,47 +391,15 @@ export const ApprovedAccountsManager: React.FC = () => {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Social Account for User</DialogTitle>
+            <DialogTitle>Add Social Media Account</DialogTitle>
             <DialogDescription>
-              Add a verified social media account for a user. This account will be available for social mining tasks.
+              Add a platform social media account. This account will be available for social mining tasks and influencer content.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Search User by Email</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="user@example.com"
-                  value={searchEmail}
-                  onChange={(e) => setSearchEmail(e.target.value)}
-                />
-                <Button type="button" onClick={searchUsers}>
-                  Search
-                </Button>
-              </div>
-            </div>
-
-            {users.length > 0 && (
-              <div className="space-y-2">
-                <Label>Select User</Label>
-                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a user" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name || user.email} ({user.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="platform">Platform</Label>
+              <Label htmlFor="platform">Platform *</Label>
               <Select value={newPlatform} onValueChange={setNewPlatform}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select platform" />
@@ -463,24 +415,27 @@ export const ApprovedAccountsManager: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="handle">Username/Handle</Label>
+              <Label htmlFor="handle">Username/Handle *</Label>
               <Input
                 id="handle"
-                placeholder="@username"
+                placeholder="username (without @)"
                 value={newHandle}
                 onChange={(e) => setNewHandle(e.target.value.replace('@', ''))}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="url">Profile URL (optional)</Label>
+              <Label htmlFor="url">Profile URL</Label>
               <Input
                 id="url"
                 type="url"
-                placeholder="https://..."
+                placeholder="https://instagram.com/username"
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                Full link to the social media profile
+              </p>
             </div>
           </div>
 
@@ -490,7 +445,7 @@ export const ApprovedAccountsManager: React.FC = () => {
             </Button>
             <Button
               onClick={handleAddAccount}
-              disabled={isSubmitting || !selectedUserId || !newPlatform || !newHandle}
+              disabled={isSubmitting || !newPlatform || !newHandle}
             >
               {isSubmitting ? 'Adding...' : 'Add Account'}
             </Button>
