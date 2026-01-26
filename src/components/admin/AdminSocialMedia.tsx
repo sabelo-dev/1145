@@ -11,18 +11,33 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Send, Calendar, Edit, Trash2, Users, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Send, Calendar, Edit, Trash2, Users, CheckCircle, XCircle, User } from 'lucide-react';
 import { useInfluencer } from '@/hooks/useInfluencer';
 import { SocialPostModal } from './social/SocialPostModal';
 import { ApprovedAccountsManager } from './social/ApprovedAccountsManager';
 import { InfluencerManager } from './social/InfluencerManager';
 import { SOCIAL_PLATFORMS } from '@/types/influencer';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+
+interface PostWithAuthor {
+  id: string;
+  title: string;
+  content: string;
+  content_type: string;
+  platforms: string[];
+  status: string;
+  created_at: string;
+  created_by: string;
+  author_name?: string;
+  author_email?: string;
+}
 
 const AdminSocialMedia: React.FC = () => {
   const { posts, loading, deletePost, publishPost, refreshPosts } = useInfluencer();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [postsWithAuthors, setPostsWithAuthors] = useState<PostWithAuthor[]>([]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -52,6 +67,34 @@ const AdminSocialMedia: React.FC = () => {
       ) : null;
     });
   };
+
+  // Fetch author info for posts
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      if (posts.length === 0) {
+        setPostsWithAuthors([]);
+        return;
+      }
+
+      const authorIds = [...new Set(posts.map(p => p.created_by))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', authorIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      const enhanced = posts.map(post => ({
+        ...post,
+        author_name: profileMap.get(post.created_by)?.name || 'Unknown',
+        author_email: profileMap.get(post.created_by)?.email || '',
+      }));
+
+      setPostsWithAuthors(enhanced);
+    };
+
+    fetchAuthors();
+  }, [posts]);
 
   const handleEdit = (post: any) => {
     setEditingPost(post);
@@ -101,7 +144,7 @@ const AdminSocialMedia: React.FC = () => {
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
-              ) : posts.length === 0 ? (
+              ) : postsWithAuthors.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>No posts yet. Create your first post!</p>
                 </div>
@@ -110,6 +153,7 @@ const AdminSocialMedia: React.FC = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Title</TableHead>
+                      <TableHead>Author</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Platforms</TableHead>
                       <TableHead>Status</TableHead>
@@ -118,9 +162,18 @@ const AdminSocialMedia: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {posts.map((post) => (
+                    {postsWithAuthors.map((post) => (
                       <TableRow key={post.id}>
                         <TableCell className="font-medium">{post.title}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-sm font-medium">{post.author_name}</div>
+                              <div className="text-xs text-muted-foreground">{post.author_email}</div>
+                            </div>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary">{post.content_type}</Badge>
                         </TableCell>
@@ -134,6 +187,7 @@ const AdminSocialMedia: React.FC = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handlePublish(post.id)}
+                                title="Publish"
                               >
                                 <Send className="h-4 w-4" />
                               </Button>
@@ -142,13 +196,16 @@ const AdminSocialMedia: React.FC = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleEdit(post)}
+                              title="Edit"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
+                              className="text-destructive hover:text-destructive"
                               onClick={() => handleDelete(post.id)}
+                              title="Delete"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
