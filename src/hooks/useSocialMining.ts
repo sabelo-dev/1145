@@ -278,16 +278,17 @@ export function useSocialMining() {
       return null;
     }
 
-    const result = data as { success: boolean; error?: string; reward?: number; status?: string };
+    const result = data as { success: boolean; error?: string; reward?: number; status?: string; message?: string };
 
     if (!result.success) {
       toast({ title: 'Task not completed', description: result.error, variant: 'destructive' });
       return null;
     }
 
+    // Show pending message - UCoin only credited after verification
     toast({
-      title: `+${result.reward} UCoin earned!`,
-      description: result.status === 'pending' ? 'Awaiting verification' : 'Credited to your wallet'
+      title: 'Task Submitted',
+      description: result.message || `Pending verification. ${result.reward} UCoin will be credited once approved.`
     });
 
     await Promise.all([fetchCompletions(), fetchDailyLimit(), fetchAffiliateStatus()]);
