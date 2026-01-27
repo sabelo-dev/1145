@@ -25,11 +25,13 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types";
-import { Plus } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
 
 const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
@@ -41,12 +43,19 @@ const AdminUsers: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (emailFilter?: string) => {
     try {
-      const { data, error } = await supabase
+      setIsSearching(!!emailFilter);
+      let query = supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
+
+      if (emailFilter && emailFilter.trim()) {
+        query = query.ilike('email', `%${emailFilter.trim()}%`);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setUsers(data || []);
@@ -59,7 +68,17 @@ const AdminUsers: React.FC = () => {
       });
     } finally {
       setLoading(false);
+      setIsSearching(false);
     }
+  };
+
+  const handleSearch = () => {
+    fetchUsers(searchEmail);
+  };
+
+  const handleClearSearch = () => {
+    setSearchEmail("");
+    fetchUsers();
   };
 
   const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer') => {
@@ -173,7 +192,7 @@ const AdminUsers: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading users...</div>;
+    return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
 
   return (
@@ -238,9 +257,33 @@ const AdminUsers: React.FC = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Search by Email */}
+      <div className="flex gap-2 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by email..."
+            value={searchEmail}
+            onChange={(e) => setSearchEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className="pl-10"
+          />
+        </div>
+        <Button onClick={handleSearch} disabled={isSearching}>
+          {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+        </Button>
+        {searchEmail && (
+          <Button variant="outline" onClick={handleClearSearch}>
+            Clear
+          </Button>
+        )}
+      </div>
       
       <Table>
-        <TableCaption>List of all registered users</TableCaption>
+        <TableCaption>
+          {searchEmail ? `Search results for "${searchEmail}"` : "List of all registered users"}
+        </TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
@@ -251,67 +294,75 @@ const AdminUsers: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map(user => (
-            <TableRow key={user.id}>
-              <TableCell>{user.name || 'N/A'}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'vendor' ? 'outline' : 'default'}>
-                  {user.role}
-                </Badge>
-              </TableCell>
-              <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex gap-2 justify-end flex-wrap">
-                  {user.role !== 'admin' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleUpdateRole(user.id, 'admin')}
-                    >
-                      Make Admin
-                    </Button>
-                  )}
-                  {user.role !== 'vendor' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleUpdateRole(user.id, 'vendor')}
-                    >
-                      Make Vendor
-                    </Button>
-                  )}
-                  {user.role !== 'driver' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleUpdateRole(user.id, 'driver')}
-                    >
-                      Make Driver
-                    </Button>
-                  )}
-                  {user.role !== 'influencer' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleUpdateRole(user.id, 'influencer')}
-                    >
-                      Make Influencer
-                    </Button>
-                  )}
-                  {user.role !== 'consumer' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleUpdateRole(user.id, 'consumer')}
-                    >
-                      Make Consumer
-                    </Button>
-                  )}
-                </div>
+          {users.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                {searchEmail ? "No users found matching that email" : "No users found"}
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            users.map(user => (
+              <TableRow key={user.id}>
+                <TableCell>{user.name || 'N/A'}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'vendor' ? 'outline' : 'default'}>
+                    {user.role}
+                  </Badge>
+                </TableCell>
+                <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex gap-2 justify-end flex-wrap">
+                    {user.role !== 'admin' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleUpdateRole(user.id, 'admin')}
+                      >
+                        Make Admin
+                      </Button>
+                    )}
+                    {user.role !== 'vendor' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleUpdateRole(user.id, 'vendor')}
+                      >
+                        Make Vendor
+                      </Button>
+                    )}
+                    {user.role !== 'driver' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleUpdateRole(user.id, 'driver')}
+                      >
+                        Make Driver
+                      </Button>
+                    )}
+                    {user.role !== 'influencer' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleUpdateRole(user.id, 'influencer')}
+                      >
+                        Make Influencer
+                      </Button>
+                    )}
+                    {user.role !== 'consumer' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleUpdateRole(user.id, 'consumer')}
+                      >
+                        Make Consumer
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
