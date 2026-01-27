@@ -116,8 +116,14 @@ const DriverRegisterPage: React.FC = () => {
         description: "Your driver application has been submitted. You'll be notified once approved.",
       });
 
+      // Refresh user profile and wait for it to complete
       await refreshUserProfile();
-      navigate("/consumer/dashboard");
+      
+      // Add a small delay to ensure context is fully updated
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Navigate to driver dashboard after profile refresh
+      navigate("/driver/dashboard", { replace: true });
     } catch (error: any) {
       console.error('Driver registration error:', error);
       toast({
