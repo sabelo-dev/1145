@@ -37,9 +37,13 @@ const AuthConfirmPage = () => {
           setStatus("success");
           setMessage(getSuccessMessage(type));
           
+          // For signup (email verification), redirect to login page
+          // For other types, use the provided redirect or default
+          const finalRedirect = type === "signup" ? "/login" : redirectTo;
+          
           // Redirect after a short delay
           setTimeout(() => {
-            navigate(redirectTo, { replace: true });
+            navigate(finalRedirect, { replace: true });
           }, 2000);
         }
       } catch (err) {
