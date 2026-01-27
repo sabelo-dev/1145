@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -46,9 +46,34 @@ import ConsumerAuctionWatchlist from "@/components/consumer/dashboard/ConsumerAu
 import ConsumerSettings from "@/components/consumer/dashboard/ConsumerSettings";
 import { SocialMiningDashboard } from "@/components/mining/SocialMiningDashboard";
 
+// Map URL tab params to module IDs
+const tabToModuleMap: Record<string, string> = {
+  orders: "orders",
+  wishlist: "wishlist",
+  addresses: "addresses",
+  profile: "profile",
+  reviews: "reviews",
+  messages: "messages",
+  wallet: "wallet",
+  mining: "mining",
+  notifications: "notifications",
+  support: "support",
+  settings: "settings",
+  "auction-watchlist": "auction-watchlist",
+};
+
 const ConsumerDashboard: React.FC = () => {
   const { user, isLoading } = useAuth();
+  const [searchParams] = useSearchParams();
   const [activeModule, setActiveModule] = useState("overview");
+
+  // Handle URL tab parameter
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabToModuleMap[tabParam]) {
+      setActiveModule(tabToModuleMap[tabParam]);
+    }
+  }, [searchParams]);
 
   if (isLoading) {
     return (
