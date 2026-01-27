@@ -26,6 +26,7 @@ const AdminSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingsId, setSettingsId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [resetting, setResetting] = useState(false);
   const [resetScopes, setResetScopes] = useState({
@@ -42,8 +43,8 @@ const AdminSettings: React.FC = () => {
       platformFee: "5",
       vendorFee: "10",
       supportEmail: "help@1145lifestyle.com",
-      termsOfService: "Standard terms of service for WWE marketplace...",
-      privacyPolicy: "Privacy policy for WWE marketplace..."
+      termsOfService: "Standard terms of service for 1145 marketplace...",
+      privacyPolicy: "Privacy policy for 1145 marketplace..."
     },
   });
 
@@ -52,6 +53,7 @@ const AdminSettings: React.FC = () => {
   }, []);
 
   const loadSettings = async () => {
+    setLoadError(null);
     try {
       // Use maybeSingle() so a fresh project (no settings row yet) doesn't throw.
       const { data, error } = await supabase
@@ -61,7 +63,15 @@ const AdminSettings: React.FC = () => {
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's an RLS permission error
+        if (error.code === 'PGRST301' || error.message?.includes('permission') || error.code === '42501') {
+          setLoadError("You don't have permission to access platform settings. Please ensure your admin role is properly configured in the user_roles table.");
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       if (data) {
         setSettingsId(data.id);
@@ -75,8 +85,10 @@ const AdminSettings: React.FC = () => {
           privacyPolicy: data.privacy_policy || ""
         });
       }
-    } catch (error) {
+      // If no data exists, keep defaults - this is fine for first-time setup
+    } catch (error: any) {
       console.error('Error loading settings:', error);
+      setLoadError(error?.message || "Failed to load platform settings");
       toast({
         title: "Error",
         description: "Failed to load platform settings",
@@ -153,6 +165,29 @@ const AdminSettings: React.FC = () => {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Platform Settings</h2>
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Access Error</CardTitle>
+            <CardDescription>{loadError}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              To fix this, ensure your user has the 'admin' role in the user_roles table. 
+              You can do this by running an SQL query or using the Supabase dashboard.
+            </p>
+            <Button onClick={() => loadSettings()} variant="outline">
+              <Loader2 className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : 'hidden'}`} />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   return (
     <div className="space-y-8">
       <h2 className="text-2xl font-bold">Platform Settings</h2>
