@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { NewMessageDialog } from "./dialogs/NewMessageDialog";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { 
   MessageSquare, 
   Search, 
@@ -21,7 +22,8 @@ import {
   CheckCheck,
   Plus,
   Filter,
-  MoreVertical
+  MoreVertical,
+  Loader2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,8 +42,17 @@ const VendorMessages = () => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [storeId, setStoreId] = useState<string | null>(null);
   const [newMessageDialogOpen, setNewMessageDialogOpen] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const conversationChannelRef = useRef<RealtimeChannel | null>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   useEffect(() => {
     if (user?.id) {
@@ -54,6 +65,115 @@ const VendorMessages = () => {
       fetchMessages(selectedConversation);
     }
   }, [selectedConversation]);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!user) return;
+
+    // Clean up existing subscriptions
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+    if (conversationChannelRef.current) {
+      supabase.removeChannel(conversationChannelRef.current);
+    }
+
+    // Subscribe to messages for the selected conversation
+    if (selectedConversation) {
+      channelRef.current = supabase
+        .channel(`vendor-messages:${selectedConversation}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${selectedConversation}`,
+          },
+          async (payload) => {
+            const newMsg = payload.new as any;
+            
+            // Check if we already have this message (from our own send)
+            const exists = messages.some(m => m.id === newMsg.id);
+            if (exists) return;
+
+            const isFromVendor = newMsg.sender_type === 'vendor';
+            let senderName = 'Unknown';
+            
+            if (isFromVendor && newMsg.sender_id === user.id) {
+              senderName = 'You';
+            } else if (newMsg.sender_type === 'admin') {
+              senderName = 'Support';
+            } else {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('name, email')
+                .eq('id', newMsg.sender_id)
+                .single();
+              senderName = profile?.name || profile?.email || 'Unknown';
+            }
+
+            const enrichedMessage = {
+              id: newMsg.id,
+              conversationId: newMsg.conversation_id,
+              sender: newMsg.sender_type,
+              senderName,
+              content: newMsg.content,
+              timestamp: new Date(newMsg.created_at).toLocaleTimeString(),
+              read: newMsg.read
+            };
+
+            setMessages(prev => [...prev, enrichedMessage]);
+
+            // Mark as read if it's from customer
+            if (newMsg.sender_type === 'customer') {
+              await supabase
+                .from('messages')
+                .update({ read: true })
+                .eq('id', newMsg.id);
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    // Subscribe to conversation updates for unread counts
+    conversationChannelRef.current = supabase
+      .channel('vendor-conversations-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+        },
+        () => {
+          fetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          // Refresh conversations to update unread counts
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+      if (conversationChannelRef.current) {
+        supabase.removeChannel(conversationChannelRef.current);
+      }
+    };
+  }, [user, selectedConversation]);
 
   const fetchConversations = async () => {
     try {
@@ -188,36 +308,65 @@ const VendorMessages = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation) return;
+    if (!newMessage.trim() || !selectedConversation || sending) return;
+
+    const messageContent = newMessage.trim();
+    setNewMessage("");
+    setSending(true);
+
+    // Optimistic update - add message immediately
+    const optimisticMessage = {
+      id: `temp-${Date.now()}`,
+      conversationId: selectedConversation,
+      sender: 'vendor',
+      senderName: 'You',
+      content: messageContent,
+      timestamp: new Date().toLocaleTimeString(),
+      read: false
+    };
+    setMessages(prev => [...prev, optimisticMessage]);
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert([{
           conversation_id: selectedConversation,
           sender_id: user.id,
           sender_type: 'vendor',
-          content: newMessage,
+          content: messageContent,
           read: false
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Replace optimistic message with real one
+      setMessages(prev => 
+        prev.map(m => m.id === optimisticMessage.id ? {
+          ...optimisticMessage,
+          id: data.id
+        } : m)
+      );
 
       await supabase
         .from('conversations')
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', selectedConversation);
 
-      setNewMessage("");
-      fetchMessages(selectedConversation);
       fetchConversations();
     } catch (error) {
       console.error('Error sending message:', error);
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      setNewMessage(messageContent); // Restore message
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to send message"
       });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -447,6 +596,7 @@ const VendorMessages = () => {
                         </div>
                       </div>
                     ))}
+                    <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
                 
@@ -468,10 +618,14 @@ const VendorMessages = () => {
                     />
                     <Button 
                       onClick={handleSendMessage}
-                      disabled={!newMessage.trim()}
+                      disabled={!newMessage.trim() || sending}
                       className="self-end"
                     >
-                      <Send className="h-4 w-4" />
+                      {sending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
