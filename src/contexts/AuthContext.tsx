@@ -110,9 +110,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userRoles = roles.map(r => r.role);
       
       if (profile) {
-        // Determine primary role (for backwards compatibility)
-        const primaryRole = userRoles.includes('admin') ? 'admin' : 
-                          userRoles.includes('vendor') ? 'vendor' : 'consumer';
+        // Check vendor and driver status first (these are the most specific role checks)
+        const [vendorStatus, driverStatus] = await Promise.all([
+          checkVendorStatus(profile.id),
+          checkDriverStatus(profile.id)
+        ]);
+        
+        // Determine primary role with proper priority
+        // Priority: admin > influencer > driver > vendor > consumer
+        let primaryRole: 'admin' | 'vendor' | 'consumer' = 'consumer';
+        if (userRoles.includes('admin')) {
+          primaryRole = 'admin';
+        } else if (driverStatus || userRoles.includes('driver')) {
+          primaryRole = 'consumer'; // Driver uses consumer as base role
+        } else if (vendorStatus || userRoles.includes('vendor')) {
+          primaryRole = 'vendor';
+        }
         
         const userData: User = {
           id: profile.id,
@@ -124,17 +137,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(userData);
         
-        // Set role flags based on user_roles table
+        // Set role flags based on user_roles table AND actual status checks
         setIsAdmin(userRoles.includes('admin'));
         setIsInfluencer(userRoles.includes('influencer'));
+        setIsVendor(vendorStatus || userRoles.includes('vendor'));
+        setIsDriver(driverStatus || userRoles.includes('driver'));
         
-        // Check vendor and driver status
-        const [vendorStatus, driverStatus] = await Promise.all([
-          checkVendorStatus(profile.id),
-          checkDriverStatus(profile.id)
-        ]);
-        setIsVendor(vendorStatus);
-        setIsDriver(driverStatus);
+        console.log('User profile loaded:', {
+          userId: profile.id,
+          roles: userRoles,
+          isAdmin: userRoles.includes('admin'),
+          isVendor: vendorStatus || userRoles.includes('vendor'),
+          isDriver: driverStatus || userRoles.includes('driver'),
+          isInfluencer: userRoles.includes('influencer')
+        });
       } else {
         // Create basic user data from session if no profile exists
         const userData: User = {
@@ -162,6 +178,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (session?.user) {
       loadingManager.startLoading('refresh');
       await loadUserProfile(session, 'refresh');
+      // Wait a bit for state to propagate
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
   };
 
