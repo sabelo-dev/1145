@@ -33,7 +33,7 @@ const getEmailTemplate = (
 ): { subject: string; html: string } => {
   const templates: Record<string, { subject: string; html: string }> = {
     signup: {
-      subject: "Confirm your 1145 Lifestyle account",
+      subject: "Confirm your 1145  account",
       html: `
         <!DOCTYPE html>
         <html>
@@ -70,7 +70,7 @@ const getEmailTemplate = (
       `,
     },
     recovery: {
-      subject: "Reset your 1145 Lifestyle password",
+      subject: "Reset your 1145  password",
       html: `
         <!DOCTYPE html>
         <html>
@@ -97,10 +97,10 @@ const getEmailTemplate = (
               </p>
               <p>This link will expire in 24 hours.</p>
               <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
-              <p>Best regards,<br>The 1145 Lifestyle Team</p>
+              <p>Best regards,<br>The 1145  Team</p>
             </div>
             <div class="footer">
-              <p>© 2024 1145 Lifestyle. All rights reserved.</p>
+              <p>© 2024 1145 . All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -108,7 +108,7 @@ const getEmailTemplate = (
       `,
     },
     magiclink: {
-      subject: "Your 1145 Lifestyle login link",
+      subject: "Your 1145  login link",
       html: `
         <!DOCTYPE html>
         <html>
@@ -135,10 +135,10 @@ const getEmailTemplate = (
               </p>
               <p>This link will expire in 1 hour.</p>
               <p>If you didn't request this link, you can safely ignore this email.</p>
-              <p>Best regards,<br>The 1145 Lifestyle Team</p>
+              <p>Best regards,<br>The 1145  Team</p>
             </div>
             <div class="footer">
-              <p>© 2024 1145 Lifestyle. All rights reserved.</p>
+              <p>© 2024 1145 . All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -172,10 +172,10 @@ const getEmailTemplate = (
                 <a href="${actionUrl}" class="button" style="color: white;">Confirm Email</a>
               </p>
               <p>If you didn't request this change, please contact support immediately.</p>
-              <p>Best regards,<br>The 1145 Lifestyle Team</p>
+              <p>Best regards,<br>The 1145  Team</p>
             </div>
             <div class="footer">
-              <p>© 2024 1145 Lifestyle. All rights reserved.</p>
+              <p>© 2024 1145 . All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -183,7 +183,7 @@ const getEmailTemplate = (
       `,
     },
     invite: {
-      subject: "You're invited to join 1145 Lifestyle",
+      subject: "You're invited to join 1145 ",
       html: `
         <!DOCTYPE html>
         <html>
@@ -204,14 +204,14 @@ const getEmailTemplate = (
             </div>
             <div class="content">
               <p>Hi ${userName},</p>
-              <p>You've been invited to join 1145 Lifestyle! Click the button below to accept your invitation:</p>
+              <p>You've been invited to join 1145 ! Click the button below to accept your invitation:</p>
               <p style="text-align: center;">
                 <a href="${actionUrl}" class="button" style="color: white;">Accept Invitation</a>
               </p>
-              <p>Best regards,<br>The 1145 Lifestyle Team</p>
+              <p>Best regards,<br>The 1145  Team</p>
             </div>
             <div class="footer">
-              <p>© 2024 1145 Lifestyle. All rights reserved.</p>
+              <p>© 2024 1145 . All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -262,7 +262,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending ${email_data.email_action_type} email to ${user.email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "1145 Lifestyle <no-reply@mail.1145lifestyle.com>",
+      from: "1145  <no-reply@mail.1145lifestyle.com>",
       to: [user.email],
       subject: subject,
       html: html,
