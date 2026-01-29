@@ -83,20 +83,71 @@ const AdminUsers: React.FC = () => {
 
   const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer') => {
     try {
-      // Delete existing roles for this user
-      await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
+      // For upgrades to driver/vendor/influencer, remove consumer role
+      // For admin, keep it separate as it's a special privilege
+      if (newRole === 'driver' || newRole === 'vendor' || newRole === 'influencer') {
+        // Remove consumer role if it exists
+        await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId)
+          .eq('role', 'consumer');
+        
+        // Check if user already has this role
+        const { data: existingRole } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('role', newRole)
+          .maybeSingle();
+        
+        if (!existingRole) {
+          // Insert the new role
+          const { error } = await supabase
+            .from('user_roles')
+            .insert({ user_id: userId, role: newRole });
+          if (error) throw error;
+        }
+      } else if (newRole === 'consumer') {
+        // Downgrading to consumer - remove specialized roles
+        await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId)
+          .in('role', ['driver', 'vendor', 'influencer']);
+        
+        // Add consumer role if not exists
+        const { data: existingConsumer } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('role', 'consumer')
+          .maybeSingle();
+        
+        if (!existingConsumer) {
+          const { error } = await supabase
+            .from('user_roles')
+            .insert({ user_id: userId, role: 'consumer' });
+          if (error) throw error;
+        }
+      } else if (newRole === 'admin') {
+        // Admin is additive - just add the role
+        const { data: existingAdmin } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('role', 'admin')
+          .maybeSingle();
+        
+        if (!existingAdmin) {
+          const { error } = await supabase
+            .from('user_roles')
+            .insert({ user_id: userId, role: 'admin' });
+          if (error) throw error;
+        }
+      }
 
-      // Insert new role
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role: newRole });
-
-      if (error) throw error;
-
-      // Also update profiles table for backwards compatibility
+      // Update profiles table for backwards compatibility
       await supabase
         .from('profiles')
         .update({ role: newRole })
