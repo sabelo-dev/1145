@@ -11,11 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Send, Calendar, Edit, Trash2, Users, CheckCircle, XCircle, User } from 'lucide-react';
+import { Plus, Send, Edit, Trash2, User, Share2, Users, Link } from 'lucide-react';
 import { useInfluencer } from '@/hooks/useInfluencer';
 import { SocialPostModal } from './social/SocialPostModal';
 import { ApprovedAccountsManager } from './social/ApprovedAccountsManager';
 import { InfluencerManager } from './social/InfluencerManager';
+import { ConnectedAccountsList } from './social/ConnectedAccountsList';
 import { SOCIAL_PLATFORMS } from '@/types/influencer';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +32,7 @@ interface PostWithAuthor {
   created_by: string;
   author_name?: string;
   author_email?: string;
+  author_role?: string;
 }
 
 const AdminSocialMedia: React.FC = () => {
@@ -79,15 +81,24 @@ const AdminSocialMedia: React.FC = () => {
       const authorIds = [...new Set(posts.map(p => p.created_by))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, name, email, role')
         .in('id', authorIds);
 
+      // Check which authors are influencers
+      const { data: influencers } = await supabase
+        .from('influencer_profiles')
+        .select('user_id')
+        .in('user_id', authorIds);
+
+      const influencerIds = new Set(influencers?.map(i => i.user_id) || []);
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
       const enhanced = posts.map(post => ({
         ...post,
         author_name: profileMap.get(post.created_by)?.name || 'Unknown',
         author_email: profileMap.get(post.created_by)?.email || '',
+        author_role: influencerIds.has(post.created_by) ? 'influencer' : 
+                     profileMap.get(post.created_by)?.role || 'admin',
       }));
 
       setPostsWithAuthors(enhanced);
@@ -111,12 +122,19 @@ const AdminSocialMedia: React.FC = () => {
     await publishPost(postId);
   };
 
+  const getAuthorBadge = (role?: string) => {
+    if (role === 'influencer') {
+      return <Badge className="bg-purple-500">Influencer</Badge>;
+    }
+    return <Badge variant="secondary">Admin</Badge>;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Social Media Management</h2>
-          <p className="text-muted-foreground">Create and manage social media posts across platforms</p>
+          <p className="text-muted-foreground">Manage posts, accounts, and influencers</p>
         </div>
         <Button onClick={() => { setEditingPost(null); setIsModalOpen(true); }}>
           <Plus className="h-4 w-4 mr-2" />
@@ -125,10 +143,23 @@ const AdminSocialMedia: React.FC = () => {
       </div>
 
       <Tabs defaultValue="posts" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="posts">Posts</TabsTrigger>
-          <TabsTrigger value="accounts">Approved Accounts</TabsTrigger>
-          <TabsTrigger value="influencers">Influencers</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="posts" className="flex items-center gap-2">
+            <Share2 className="h-4 w-4" />
+            Posts
+          </TabsTrigger>
+          <TabsTrigger value="accounts" className="flex items-center gap-2">
+            <Link className="h-4 w-4" />
+            Connected Accounts
+          </TabsTrigger>
+          <TabsTrigger value="manage-accounts" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Manage Accounts
+          </TabsTrigger>
+          <TabsTrigger value="influencers" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Influencers
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts">
@@ -136,7 +167,7 @@ const AdminSocialMedia: React.FC = () => {
             <CardHeader>
               <CardTitle>Social Media Posts</CardTitle>
               <CardDescription>
-                Manage posts to be shared across social platforms
+                All posts from admins and influencers
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -146,6 +177,7 @@ const AdminSocialMedia: React.FC = () => {
                 </div>
               ) : postsWithAuthors.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
+                  <Share2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No posts yet. Create your first post!</p>
                 </div>
               ) : (
@@ -169,7 +201,10 @@ const AdminSocialMedia: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <div className="text-sm font-medium">{post.author_name}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{post.author_name}</span>
+                                {getAuthorBadge(post.author_role)}
+                              </div>
                               <div className="text-xs text-muted-foreground">{post.author_email}</div>
                             </div>
                           </div>
@@ -221,6 +256,10 @@ const AdminSocialMedia: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="accounts">
+          <ConnectedAccountsList />
+        </TabsContent>
+
+        <TabsContent value="manage-accounts">
           <ApprovedAccountsManager />
         </TabsContent>
 
