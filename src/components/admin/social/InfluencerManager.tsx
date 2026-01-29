@@ -149,6 +149,13 @@ export const InfluencerManager: React.FC = () => {
 
       if (profileError) throw profileError;
 
+      // Remove consumer role when upgrading to influencer
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', foundUser.id)
+        .eq('role', 'consumer');
+
       // Add influencer role
       const { error: roleError } = await supabase
         .from('user_roles')
@@ -160,6 +167,12 @@ export const InfluencerManager: React.FC = () => {
       if (roleError && !roleError.message.includes('duplicate')) {
         console.error('Role error:', roleError);
       }
+
+      // Update profiles table for backwards compatibility
+      await supabase
+        .from('profiles')
+        .update({ role: 'influencer' })
+        .eq('id', foundUser.id);
 
       toast({
         title: 'Influencer Assigned',
