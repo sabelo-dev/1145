@@ -55,6 +55,31 @@ const AdminSettings: React.FC = () => {
   const loadSettings = async () => {
     setLoadError(null);
     try {
+      // First check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoadError("You must be logged in to access platform settings.");
+        return;
+      }
+
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('Error checking admin role:', roleError);
+      }
+
+      if (!roleData) {
+        setLoadError("You don't have admin permissions. Please ensure your account has the 'admin' role in the user_roles table.");
+        return;
+      }
+
       // Use maybeSingle() so a fresh project (no settings row yet) doesn't throw.
       const { data, error } = await supabase
         .from('platform_settings')
