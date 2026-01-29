@@ -789,11 +789,40 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         .eq('user_id', user?.id)
         .single();
 
-      if (vendorError || !vendorData?.stores?.[0]) {
-        throw new Error("Vendor store not found");
+      if (vendorError) {
+        throw new Error("Vendor profile not found. Please complete vendor registration first.");
       }
 
-      const storeId = vendorData.stores[0].id;
+      let storeId = vendorData?.stores?.[0]?.id;
+
+      // If no store exists, create one automatically
+      if (!storeId) {
+        const storeName = vendorData.business_name || 'My Store';
+        const baseSlug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const uniqueSlug = `${baseSlug}-${Date.now()}`;
+
+        const { data: newStore, error: storeError } = await supabase
+          .from('stores')
+          .insert({
+            vendor_id: vendorData.id,
+            name: storeName,
+            slug: uniqueSlug,
+            description: `Welcome to ${storeName}`,
+          })
+          .select('id')
+          .single();
+
+        if (storeError) {
+          console.error('Error creating store:', storeError);
+          throw new Error("Failed to create store. Please try again.");
+        }
+
+        storeId = newStore.id;
+        toast({
+          title: "Store Created",
+          description: "A store has been automatically created for you.",
+        });
+      }
 
       if (mode === "add") {
         // Create new product with vendor tracking
