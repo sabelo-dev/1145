@@ -230,17 +230,44 @@ const VendorProducts = () => {
       const data = rows.slice(1);
 
       // Get vendor's store
-      const { data: vendor } = await supabase
+      const { data: vendor, error: vendorError } = await supabase
         .from('vendors')
-        .select('id')
+        .select('id, business_name')
         .eq('user_id', user.id)
         .single();
 
-      const { data: store } = await supabase
+      if (vendorError || !vendor) {
+        throw new Error("Vendor profile not found");
+      }
+
+      let { data: store } = await supabase
         .from('stores')
         .select('id')
         .eq('vendor_id', vendor.id)
         .single();
+
+      // Auto-create store if it doesn't exist
+      if (!store) {
+        const storeName = vendor.business_name || 'My Store';
+        const baseSlug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const uniqueSlug = `${baseSlug}-${Date.now()}`;
+
+        const { data: newStore, error: storeError } = await supabase
+          .from('stores')
+          .insert({
+            vendor_id: vendor.id,
+            name: storeName,
+            slug: uniqueSlug,
+            description: `Welcome to ${storeName}`,
+          })
+          .select('id')
+          .single();
+
+        if (storeError) {
+          throw new Error("Failed to create store");
+        }
+        store = newStore;
+      }
 
       let successCount = 0;
       let errorCount = 0;
