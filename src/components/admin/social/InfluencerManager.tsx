@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Users, Crown, Settings, Trash2 } from 'lucide-react';
+import { Plus, Users, Crown, Settings, Trash2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { InfluencerApplications } from './InfluencerApplications';
+import { InfluencerActivityCard } from './InfluencerActivityCard';
 
 interface InfluencerProfile {
   id: string;
@@ -38,6 +40,7 @@ interface InfluencerProfile {
   created_at: string;
   user_name?: string;
   user_email?: string;
+  posts_count?: number;
 }
 
 export const InfluencerManager: React.FC = () => {
@@ -50,7 +53,7 @@ export const InfluencerManager: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
 
-  const fetchInfluencers = async () => {
+  const fetchInfluencers = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('influencer_profiles')
@@ -62,10 +65,21 @@ export const InfluencerManager: React.FC = () => {
 
       if (error) throw error;
 
+      // Get post counts for each influencer
+      const { data: posts } = await supabase
+        .from('social_media_posts')
+        .select('created_by');
+
+      const postCounts = (posts || []).reduce((acc, post) => {
+        acc[post.created_by] = (acc[post.created_by] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
       const formatted = (data || []).map((inf: any) => ({
         ...inf,
         user_name: inf.profiles?.name,
         user_email: inf.profiles?.email,
+        posts_count: postCounts[inf.user_id] || 0,
       }));
 
       setInfluencers(formatted);
@@ -74,11 +88,11 @@ export const InfluencerManager: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchInfluencers();
-  }, []);
+  }, [fetchInfluencers]);
 
   const handleSearch = async () => {
     if (!searchEmail) return;
@@ -96,7 +110,6 @@ export const InfluencerManager: React.FC = () => {
       if (error) throw error;
 
       if (data) {
-        // Check if already an influencer
         const { data: existing } = await supabase
           .from('influencer_profiles')
           .select('id')
@@ -138,7 +151,6 @@ export const InfluencerManager: React.FC = () => {
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      // Create influencer profile
       const { error: profileError } = await supabase
         .from('influencer_profiles')
         .insert({
@@ -149,14 +161,12 @@ export const InfluencerManager: React.FC = () => {
 
       if (profileError) throw profileError;
 
-      // Remove consumer role when upgrading to influencer
       await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', foundUser.id)
         .eq('role', 'consumer');
 
-      // Add influencer role
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
@@ -168,7 +178,6 @@ export const InfluencerManager: React.FC = () => {
         console.error('Role error:', roleError);
       }
 
-      // Update profiles table for backwards compatibility
       await supabase
         .from('profiles')
         .update({ role: 'influencer' })
@@ -198,7 +207,6 @@ export const InfluencerManager: React.FC = () => {
     if (!window.confirm('Are you sure you want to remove this influencer?')) return;
 
     try {
-      // Remove influencer profile
       const { error: profileError } = await supabase
         .from('influencer_profiles')
         .delete()
@@ -206,16 +214,25 @@ export const InfluencerManager: React.FC = () => {
 
       if (profileError) throw profileError;
 
-      // Remove influencer role
       await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', influencer.user_id)
         .eq('role', 'influencer');
 
+      // Add back consumer role
+      await supabase
+        .from('user_roles')
+        .insert({ user_id: influencer.user_id, role: 'consumer' });
+
+      await supabase
+        .from('profiles')
+        .update({ role: 'consumer' })
+        .eq('id', influencer.user_id);
+
       toast({
         title: 'Influencer Removed',
-        description: 'The influencer has been removed.',
+        description: 'The influencer has been removed and downgraded to consumer.',
       });
 
       fetchInfluencers();
@@ -263,23 +280,35 @@ export const InfluencerManager: React.FC = () => {
   }
 
   return (
-    <>
+    <div className="space-y-6">
+      {/* Activity & Analytics Section */}
+      <InfluencerActivityCard />
+
+      {/* Applications Section */}
+      <InfluencerApplications onApproved={fetchInfluencers} />
+
+      {/* Current Influencers */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Crown className="h-5 w-5" />
-                Influencer Management
+                Current Influencers
               </CardTitle>
               <CardDescription>
-                Assign users as influencers to manage social media posts
+                Active influencers managing social media content
               </CardDescription>
             </div>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Influencer
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={fetchInfluencers}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Influencer
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -295,6 +324,7 @@ export const InfluencerManager: React.FC = () => {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Display Name</TableHead>
+                  <TableHead>Posts</TableHead>
                   <TableHead>Permissions</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Assigned</TableHead>
@@ -311,6 +341,9 @@ export const InfluencerManager: React.FC = () => {
                       </div>
                     </TableCell>
                     <TableCell>{inf.display_name || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{inf.posts_count} posts</Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {inf.can_post && <Badge variant="outline">Post</Badge>}
@@ -334,6 +367,7 @@ export const InfluencerManager: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleToggleActive(inf.id, !inf.is_active)}
+                          title={inf.is_active ? 'Deactivate' : 'Activate'}
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
@@ -342,6 +376,7 @@ export const InfluencerManager: React.FC = () => {
                           size="sm"
                           className="text-red-600"
                           onClick={() => handleRemoveInfluencer(inf)}
+                          title="Remove influencer"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -406,6 +441,6 @@ export const InfluencerManager: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
