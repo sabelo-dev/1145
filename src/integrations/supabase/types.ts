@@ -841,6 +841,90 @@ export type Database = {
         }
         Relationships: []
       }
+      cms_banners: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_order: number | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          link_url: string | null
+          position: string
+          start_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_url?: string | null
+          position?: string
+          start_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_url?: string | null
+          position?: string
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cms_pages: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          meta_description: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meta_description?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meta_description?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       collection_products: {
         Row: {
           collection_id: string
