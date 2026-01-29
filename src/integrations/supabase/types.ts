@@ -5034,7 +5034,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: { Args: never; Returns: boolean }
+      is_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       is_auction_active: { Args: { _auction_id: string }; Returns: boolean }
       is_driver: { Args: { _user_id: string }; Returns: boolean }
       is_registered_for_auction: {
