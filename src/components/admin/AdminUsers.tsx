@@ -83,6 +83,8 @@ const AdminUsers: React.FC = () => {
 
   const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer') => {
     try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
       // For upgrades to driver/vendor/influencer, remove consumer role
       // For admin, keep it separate as it's a special privilege
       if (newRole === 'driver' || newRole === 'vendor' || newRole === 'influencer') {
@@ -108,6 +110,31 @@ const AdminUsers: React.FC = () => {
             .insert({ user_id: userId, role: newRole });
           if (error) throw error;
         }
+
+        // For influencer role, also create influencer_profile if not exists
+        if (newRole === 'influencer') {
+          const { data: existingProfile } = await supabase
+            .from('influencer_profiles')
+            .select('id')
+            .eq('user_id', userId)
+            .maybeSingle();
+          
+          if (!existingProfile) {
+            // Get user's name for display_name
+            const user = users.find(u => u.id === userId);
+            const { error: profileError } = await supabase
+              .from('influencer_profiles')
+              .insert({
+                user_id: userId,
+                display_name: user?.name || null,
+                assigned_by: currentUser?.id,
+              });
+            
+            if (profileError) {
+              console.error('Error creating influencer profile:', profileError);
+            }
+          }
+        }
       } else if (newRole === 'consumer') {
         // Downgrading to consumer - remove specialized roles
         await supabase
@@ -115,6 +142,12 @@ const AdminUsers: React.FC = () => {
           .delete()
           .eq('user_id', userId)
           .in('role', ['driver', 'vendor', 'influencer']);
+        
+        // Also remove influencer profile if exists
+        await supabase
+          .from('influencer_profiles')
+          .delete()
+          .eq('user_id', userId);
         
         // Add consumer role if not exists
         const { data: existingConsumer } = await supabase
