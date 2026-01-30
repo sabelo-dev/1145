@@ -10,10 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Link2, ExternalLink, CheckCircle, XCircle, User } from 'lucide-react';
+import { Link2, ExternalLink, CheckCircle, XCircle, User, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SOCIAL_PLATFORMS } from '@/types/influencer';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import DeleteConfirmDialog from '@/components/admin/cms/DeleteConfirmDialog';
 
 interface ConnectedAccount {
   id: string;
@@ -32,62 +34,89 @@ interface ConnectedAccount {
 export const ConnectedAccountsList: React.FC = () => {
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<ConnectedAccount | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+      const { data: accountsData, error: accountsError } = await supabase
+        .from('approved_social_accounts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (accountsError) {
+        console.error('Error fetching accounts:', accountsError);
+        throw accountsError;
+      }
+
+      if (!accountsData || accountsData.length === 0) {
+        setAccounts([]);
+        return;
+      }
+
+      const userIds = [...new Set(accountsData.map(acc => acc.user_id))];
+      
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      const profileMap = new Map(
+        (profilesData || []).map(p => [p.id, { name: p.name, email: p.email }])
+      );
+
+      const formattedAccounts = accountsData.map((acc: any) => ({
+        ...acc,
+        user_name: profileMap.get(acc.user_id)?.name || 'Unknown',
+        user_email: profileMap.get(acc.user_id)?.email || '',
+      }));
+
+      setAccounts(formattedAccounts);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        // First fetch approved accounts
-        const { data: accountsData, error: accountsError } = await supabase
-          .from('approved_social_accounts')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (accountsError) {
-          console.error('Error fetching accounts:', accountsError);
-          throw accountsError;
-        }
-
-        if (!accountsData || accountsData.length === 0) {
-          setAccounts([]);
-          setLoading(false);
-          return;
-        }
-
-        // Get unique user IDs for profile lookup
-        const userIds = [...new Set(accountsData.map(acc => acc.user_id))];
-        
-        // Fetch profiles separately
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name, email')
-          .in('id', userIds);
-
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-        }
-
-        // Create a map of user_id to profile data
-        const profileMap = new Map(
-          (profilesData || []).map(p => [p.id, { name: p.name, email: p.email }])
-        );
-
-        // Merge account data with profile data
-        const formattedAccounts = accountsData.map((acc: any) => ({
-          ...acc,
-          user_name: profileMap.get(acc.user_id)?.name || 'Unknown',
-          user_email: profileMap.get(acc.user_id)?.email || '',
-        }));
-
-        setAccounts(formattedAccounts);
-      } catch (error) {
-        console.error('Error fetching accounts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchAccounts();
   }, []);
+
+  const handleDeleteClick = (account: ConnectedAccount) => {
+    setAccountToDelete(account);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!accountToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('approved_social_accounts')
+        .delete()
+        .eq('id', accountToDelete.id);
+
+      if (error) throw error;
+
+      toast.success(`Account @${accountToDelete.account_handle} removed successfully`);
+      setDeleteDialogOpen(false);
+      setAccountToDelete(null);
+      fetchAccounts();
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Failed to remove account');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const getPlatformBadge = (platformId: string) => {
     const platform = SOCIAL_PLATFORMS.find((p) => p.id === platformId);
@@ -196,6 +225,7 @@ export const ConnectedAccountsList: React.FC = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Source</TableHead>
                   <TableHead>Connected</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -251,6 +281,17 @@ export const ConnectedAccountsList: React.FC = () => {
                     <TableCell className="text-muted-foreground">
                       {format(new Date(account.created_at), 'MMM d, yyyy')}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteClick(account)}
+                        title="Remove account"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -258,6 +299,15 @@ export const ConnectedAccountsList: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Remove Connected Account"
+        description={`Are you sure you want to remove @${accountToDelete?.account_handle} (${accountToDelete?.platform})? This action cannot be undone.`}
+        onConfirm={handleDeleteConfirm}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
