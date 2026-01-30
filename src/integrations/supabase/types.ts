@@ -3719,6 +3719,122 @@ export type Database = {
           },
         ]
       }
+      social_oauth_tokens: {
+        Row: {
+          access_token: string
+          account_handle: string | null
+          account_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          page_access_token: string | null
+          page_id: string | null
+          page_name: string | null
+          platform: string
+          refresh_token: string | null
+          scope: string[] | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          account_handle?: string | null
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          page_access_token?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          platform: string
+          refresh_token?: string | null
+          scope?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          account_handle?: string | null
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          page_access_token?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          platform?: string
+          refresh_token?: string | null
+          scope?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      social_post_metrics: {
+        Row: {
+          clicks: number | null
+          comments: number | null
+          created_at: string
+          engagement_rate: number | null
+          external_post_id: string | null
+          fetched_at: string
+          id: string
+          impressions: number | null
+          likes: number | null
+          platform: string
+          post_id: string
+          raw_data: Json | null
+          reach: number | null
+          shares: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          engagement_rate?: number | null
+          external_post_id?: string | null
+          fetched_at?: string
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform: string
+          post_id: string
+          raw_data?: Json | null
+          reach?: number | null
+          shares?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          engagement_rate?: number | null
+          external_post_id?: string | null
+          fetched_at?: string
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform?: string
+          post_id?: string
+          raw_data?: Json | null
+          reach?: number | null
+          shares?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_metrics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_post_platforms: {
         Row: {
           created_at: string

@@ -166,25 +166,82 @@ export const useInfluencer = () => {
     }
   };
 
-  const publishPost = async (postId: string) => {
+  const publishPost = async (postId: string, useApi: boolean = false) => {
     try {
-      const { error } = await supabase
-        .from('social_media_posts')
-        .update({ 
-          status: 'published',
-          published_at: new Date().toISOString()
-        })
-        .eq('id', postId);
+      if (useApi) {
+        // Get session for API call
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'You must be logged in to publish',
+          });
+          return false;
+        }
 
-      if (error) throw error;
+        // Call the social-publish edge function
+        const response = await fetch(
+          'https://hipomusjocacncjsvgfa.supabase.co/functions/v1/social-publish',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ post_id: postId }),
+          }
+        );
 
-      toast({
-        title: 'Post Published',
-        description: 'Your post has been published to selected platforms.',
-      });
+        const data = await response.json();
 
-      await fetchPosts();
-      return true;
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        const { summary } = data;
+        
+        if (summary.success > 0 && summary.failed > 0) {
+          toast({
+            title: 'Partially Published',
+            description: `Published to ${summary.success} platform(s), ${summary.failed} failed.`,
+          });
+        } else if (summary.success > 0) {
+          toast({
+            title: 'Post Published',
+            description: `Successfully published to ${summary.success} platform(s).`,
+          });
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'Publishing Failed',
+            description: 'Could not publish to any platform. Check your connected accounts.',
+          });
+          return false;
+        }
+
+        await fetchPosts();
+        return true;
+      } else {
+        // Original behavior - just mark as published in database
+        const { error } = await supabase
+          .from('social_media_posts')
+          .update({ 
+            status: 'published',
+            published_at: new Date().toISOString()
+          })
+          .eq('id', postId);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Post Published',
+          description: 'Your post has been marked as published.',
+        });
+
+        await fetchPosts();
+        return true;
+      }
     } catch (error: any) {
       toast({
         variant: 'destructive',
