@@ -76,34 +76,61 @@ serve(async (req) => {
       );
     }
 
+    console.log("Starting deletion for user:", userId);
+
     // Delete related data in order (handle foreign key constraints)
     // Delete user roles
     await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+    console.log("Deleted user_roles");
     
     // Delete influencer profile if exists
     await supabaseAdmin.from("influencer_profiles").delete().eq("user_id", userId);
+    console.log("Deleted influencer_profiles");
     
     // Delete approved social accounts
     await supabaseAdmin.from("approved_social_accounts").delete().eq("user_id", userId);
+    console.log("Deleted approved_social_accounts");
     
     // Delete social media posts created by user
     await supabaseAdmin.from("social_media_posts").delete().eq("created_by", userId);
+    console.log("Deleted social_media_posts");
     
     // Delete the profile
     await supabaseAdmin.from("profiles").delete().eq("id", userId);
+    console.log("Deleted profile");
 
-    // Finally, delete the user from auth.users
+    // Finally, try to delete the user from auth.users
     // Handle case where auth user may already be deleted but profile still exists
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    try {
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
-    if (deleteError) {
-      // If user not found in auth, that's okay - we've cleaned up the profile data
-      if (deleteError.message?.includes("User not found") || deleteError.code === "user_not_found") {
-        console.log("Auth user already deleted, profile cleanup completed");
+      if (deleteError) {
+        // Check if this is a "user not found" error - that's okay, we've cleaned up the profile data
+        const errorMessage = deleteError.message?.toLowerCase() || "";
+        const errorCode = (deleteError as any).code || "";
+        
+        if (errorMessage.includes("user not found") || errorCode === "user_not_found" || (deleteError as any).status === 404) {
+          console.log("Auth user already deleted or not found, profile cleanup completed");
+        } else {
+          // This is an actual error we should report
+          console.error("Error deleting user from auth:", deleteError);
+          return new Response(
+            JSON.stringify({ error: deleteError.message }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       } else {
-        console.error("Error deleting user from auth:", deleteError);
+        console.log("Successfully deleted auth user");
+      }
+    } catch (authDeleteError: any) {
+      // Catch any thrown errors from the auth delete
+      const errorMessage = authDeleteError?.message?.toLowerCase() || "";
+      if (errorMessage.includes("user not found") || errorMessage.includes("not found")) {
+        console.log("Auth user not found (caught exception), profile cleanup completed");
+      } else {
+        console.error("Exception deleting auth user:", authDeleteError);
         return new Response(
-          JSON.stringify({ error: deleteError.message }),
+          JSON.stringify({ error: authDeleteError?.message || "Failed to delete auth user" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -113,7 +140,7 @@ serve(async (req) => {
       JSON.stringify({ success: true, message: "User deleted successfully" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in delete-user function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
