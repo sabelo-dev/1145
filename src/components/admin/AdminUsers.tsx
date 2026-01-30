@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -23,12 +22,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, MoreHorizontal, Ban, Trash2, UserCheck } from "lucide-react";
+import { BanUserDialog, UnbanUserDialog, DeleteUserDialog } from "./users/UserActionDialogs";
+
+interface ExtendedProfile extends Profile {
+  is_banned?: boolean;
+}
 
 const AdminUsers: React.FC = () => {
-  const [users, setUsers] = useState<Profile[]>([]);
+  const [users, setUsers] = useState<ExtendedProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchEmail, setSearchEmail] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -37,6 +48,14 @@ const AdminUsers: React.FC = () => {
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [newAdminName, setNewAdminName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  
+  // User action states
+  const [selectedUser, setSelectedUser] = useState<ExtendedProfile | null>(null);
+  const [isBanDialogOpen, setIsBanDialogOpen] = useState(false);
+  const [isUnbanDialogOpen, setIsUnbanDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -81,21 +100,130 @@ const AdminUsers: React.FC = () => {
     fetchUsers();
   };
 
+  const handleBanUser = async () => {
+    if (!selectedUser) return;
+    
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_banned: true })
+        .eq('id', selectedUser.id);
+
+      if (error) throw error;
+
+      setUsers(users.map(u => 
+        u.id === selectedUser.id ? { ...u, is_banned: true } : u
+      ));
+
+      toast({
+        title: "User banned",
+        description: `${selectedUser.name || selectedUser.email} has been banned.`,
+      });
+    } catch (error) {
+      console.error('Error banning user:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to ban user",
+      });
+    } finally {
+      setIsProcessing(false);
+      setIsBanDialogOpen(false);
+      setSelectedUser(null);
+    }
+  };
+
+  const handleUnbanUser = async () => {
+    if (!selectedUser) return;
+    
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_banned: false })
+        .eq('id', selectedUser.id);
+
+      if (error) throw error;
+
+      setUsers(users.map(u => 
+        u.id === selectedUser.id ? { ...u, is_banned: false } : u
+      ));
+
+      toast({
+        title: "User unbanned",
+        description: `${selectedUser.name || selectedUser.email} has been unbanned.`,
+      });
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to unban user",
+      });
+    } finally {
+      setIsProcessing(false);
+      setIsUnbanDialogOpen(false);
+      setSelectedUser(null);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    
+    setIsProcessing(true);
+    try {
+      // Delete user roles first
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', selectedUser.id);
+
+      // Delete influencer profile if exists
+      await supabase
+        .from('influencer_profiles')
+        .delete()
+        .eq('user_id', selectedUser.id);
+
+      // Delete the profile
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', selectedUser.id);
+
+      if (error) throw error;
+
+      setUsers(users.filter(u => u.id !== selectedUser.id));
+
+      toast({
+        title: "User deleted",
+        description: `${selectedUser.name || selectedUser.email} has been permanently deleted.`,
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete user. They may have associated data that needs to be removed first.",
+      });
+    } finally {
+      setIsProcessing(false);
+      setIsDeleteDialogOpen(false);
+      setSelectedUser(null);
+    }
+  };
+
   const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer') => {
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      // For upgrades to driver/vendor/influencer, remove consumer role
-      // For admin, keep it separate as it's a special privilege
       if (newRole === 'driver' || newRole === 'vendor' || newRole === 'influencer') {
-        // Remove consumer role if it exists
         await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
           .eq('role', 'consumer');
         
-        // Check if user already has this role
         const { data: existingRole } = await supabase
           .from('user_roles')
           .select('id')
@@ -104,14 +232,12 @@ const AdminUsers: React.FC = () => {
           .maybeSingle();
         
         if (!existingRole) {
-          // Insert the new role
           const { error } = await supabase
             .from('user_roles')
             .insert({ user_id: userId, role: newRole });
           if (error) throw error;
         }
 
-        // For influencer role, also create influencer_profile if not exists
         if (newRole === 'influencer') {
           const { data: existingProfile } = await supabase
             .from('influencer_profiles')
@@ -120,7 +246,6 @@ const AdminUsers: React.FC = () => {
             .maybeSingle();
           
           if (!existingProfile) {
-            // Get user's name for display_name
             const user = users.find(u => u.id === userId);
             const { error: profileError } = await supabase
               .from('influencer_profiles')
@@ -136,20 +261,17 @@ const AdminUsers: React.FC = () => {
           }
         }
       } else if (newRole === 'consumer') {
-        // Downgrading to consumer - remove specialized roles
         await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
           .in('role', ['driver', 'vendor', 'influencer']);
         
-        // Also remove influencer profile if exists
         await supabase
           .from('influencer_profiles')
           .delete()
           .eq('user_id', userId);
         
-        // Add consumer role if not exists
         const { data: existingConsumer } = await supabase
           .from('user_roles')
           .select('id')
@@ -164,7 +286,6 @@ const AdminUsers: React.FC = () => {
           if (error) throw error;
         }
       } else if (newRole === 'admin') {
-        // Admin is additive - just add the role
         const { data: existingAdmin } = await supabase
           .from('user_roles')
           .select('id')
@@ -180,7 +301,6 @@ const AdminUsers: React.FC = () => {
         }
       }
 
-      // Update profiles table for backwards compatibility
       await supabase
         .from('profiles')
         .update({ role: newRole })
@@ -216,7 +336,6 @@ const AdminUsers: React.FC = () => {
 
     setIsCreating(true);
     try {
-      // Sign up the new user
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: newAdminEmail,
         password: newAdminPassword,
@@ -234,17 +353,14 @@ const AdminUsers: React.FC = () => {
         throw new Error("Failed to create user");
       }
 
-      // Wait a moment for the trigger to create the profile
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Insert admin role
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({ user_id: signUpData.user.id, role: 'admin' });
 
       if (roleError) throw roleError;
 
-      // Update profiles table
       await supabase
         .from('profiles')
         .update({ role: 'admin', name: newAdminName || newAdminEmail.split('@')[0] })
@@ -255,13 +371,11 @@ const AdminUsers: React.FC = () => {
         description: "New admin user has been created. They may need to verify their email.",
       });
 
-      // Reset form and close dialog
       setNewAdminEmail("");
       setNewAdminPassword("");
       setNewAdminName("");
       setIsDialogOpen(false);
       
-      // Refresh the users list
       fetchUsers();
     } catch (error: any) {
       console.error('Error creating admin:', error);
@@ -373,6 +487,7 @@ const AdminUsers: React.FC = () => {
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -380,13 +495,13 @@ const AdminUsers: React.FC = () => {
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                 {searchEmail ? "No users found matching that email" : "No users found"}
               </TableCell>
             </TableRow>
           ) : (
             users.map(user => (
-              <TableRow key={user.id}>
+              <TableRow key={user.id} className={user.is_banned ? "opacity-60" : ""}>
                 <TableCell>{user.name || 'N/A'}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
@@ -394,61 +509,112 @@ const AdminUsers: React.FC = () => {
                     {user.role}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                  {user.is_banned ? (
+                    <Badge variant="destructive">Banned</Badge>
+                  ) : (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Active</Badge>
+                  )}
+                </TableCell>
                 <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex gap-2 justify-end flex-wrap">
-                    {user.role !== 'admin' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleUpdateRole(user.id, 'admin')}
-                      >
-                        Make Admin
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
-                    )}
-                    {user.role !== 'vendor' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleUpdateRole(user.id, 'vendor')}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {user.role !== 'admin' && (
+                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'admin')}>
+                          Make Admin
+                        </DropdownMenuItem>
+                      )}
+                      {user.role !== 'vendor' && (
+                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'vendor')}>
+                          Make Vendor
+                        </DropdownMenuItem>
+                      )}
+                      {user.role !== 'driver' && (
+                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'driver')}>
+                          Make Driver
+                        </DropdownMenuItem>
+                      )}
+                      {user.role !== 'influencer' && (
+                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'influencer')}>
+                          Make Influencer
+                        </DropdownMenuItem>
+                      )}
+                      {user.role !== 'consumer' && (
+                        <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'consumer')}>
+                          Make Consumer
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      {user.is_banned ? (
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsUnbanDialogOpen(true);
+                          }}
+                          className="text-green-600"
+                        >
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Unban User
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsBanDialogOpen(true);
+                          }}
+                          className="text-orange-600"
+                        >
+                          <Ban className="h-4 w-4 mr-2" />
+                          Ban User
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsDeleteDialogOpen(true);
+                        }}
+                        className="text-destructive"
                       >
-                        Make Vendor
-                      </Button>
-                    )}
-                    {user.role !== 'driver' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleUpdateRole(user.id, 'driver')}
-                      >
-                        Make Driver
-                      </Button>
-                    )}
-                    {user.role !== 'influencer' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleUpdateRole(user.id, 'influencer')}
-                      >
-                        Make Influencer
-                      </Button>
-                    )}
-                    {user.role !== 'consumer' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleUpdateRole(user.id, 'consumer')}
-                      >
-                        Make Consumer
-                      </Button>
-                    )}
-                  </div>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete User
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+
+      {/* Action Dialogs */}
+      <BanUserDialog
+        open={isBanDialogOpen}
+        onOpenChange={setIsBanDialogOpen}
+        onConfirm={handleBanUser}
+        isLoading={isProcessing}
+        userName={selectedUser?.name || selectedUser?.email}
+      />
+      <UnbanUserDialog
+        open={isUnbanDialogOpen}
+        onOpenChange={setIsUnbanDialogOpen}
+        onConfirm={handleUnbanUser}
+        isLoading={isProcessing}
+        userName={selectedUser?.name || selectedUser?.email}
+      />
+      <DeleteUserDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteUser}
+        isLoading={isProcessing}
+        userName={selectedUser?.name || selectedUser?.email}
+      />
     </div>
   );
 };
