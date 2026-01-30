@@ -70,7 +70,7 @@ const AdminSocialMedia: React.FC = () => {
     });
   };
 
-  // Fetch author info for posts
+  // Fetch author info for posts including influencer display names
   useEffect(() => {
     const fetchAuthors = async () => {
       if (posts.length === 0) {
@@ -79,10 +79,18 @@ const AdminSocialMedia: React.FC = () => {
       }
 
       const authorIds = [...new Set(posts.map(p => p.created_by))];
+      
+      // Fetch profiles
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, name, email, role')
         .in('id', authorIds);
+
+      // Fetch influencer profiles to get display names
+      const { data: influencerProfiles } = await supabase
+        .from('influencer_profiles')
+        .select('user_id, display_name')
+        .in('user_id', authorIds);
 
       // Check which authors are influencers
       const { data: influencers } = await supabase
@@ -92,14 +100,25 @@ const AdminSocialMedia: React.FC = () => {
 
       const influencerIds = new Set(influencers?.map(i => i.user_id) || []);
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const influencerDisplayNames = new Map(
+        influencerProfiles?.map(ip => [ip.user_id, ip.display_name]) || []
+      );
 
-      const enhanced = posts.map(post => ({
-        ...post,
-        author_name: profileMap.get(post.created_by)?.name || 'Unknown',
-        author_email: profileMap.get(post.created_by)?.email || '',
-        author_role: influencerIds.has(post.created_by) ? 'influencer' : 
-                     profileMap.get(post.created_by)?.role || 'admin',
-      }));
+      const enhanced = posts.map(post => {
+        const isInfluencer = influencerIds.has(post.created_by);
+        const profile = profileMap.get(post.created_by);
+        // Use influencer display name if available, otherwise fall back to profile name
+        const displayName = isInfluencer 
+          ? (influencerDisplayNames.get(post.created_by) || profile?.name || 'Unknown')
+          : (profile?.name || 'Unknown');
+        
+        return {
+          ...post,
+          author_name: displayName,
+          author_email: profile?.email || '',
+          author_role: isInfluencer ? 'influencer' : profile?.role || 'admin',
+        };
+      });
 
       setPostsWithAuthors(enhanced);
     };
