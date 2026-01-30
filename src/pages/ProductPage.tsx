@@ -64,12 +64,19 @@ const ProductPage: React.FC = () => {
     loadProduct();
   }, [slug]);
 
-  // Get unique attribute types and values
+  // Get unique attribute types and values - filter out empty/invalid attributes
   const attributeTypes = React.useMemo(() => {
     if (!product?.variations || product.variations.length === 0) return [];
     const types = new Set<string>();
     product.variations.forEach(v => {
-      Object.keys(v.attributes).forEach(key => types.add(key));
+      if (v.attributes && typeof v.attributes === 'object') {
+        Object.entries(v.attributes).forEach(([key, value]) => {
+          // Only include attributes with valid keys and non-empty values
+          if (key && value !== null && value !== undefined && String(value).trim() !== '') {
+            types.add(key);
+          }
+        });
+      }
     });
     return Array.from(types);
   }, [product?.variations]);
@@ -78,7 +85,12 @@ const ProductPage: React.FC = () => {
     if (!product?.variations) return [];
     const values = new Set<string>();
     product.variations.forEach(v => {
-      if (v.attributes[type]) values.add(v.attributes[type]);
+      if (v.attributes && v.attributes[type]) {
+        const value = String(v.attributes[type]).trim();
+        if (value !== '') {
+          values.add(value);
+        }
+      }
     });
     return Array.from(values);
   };
@@ -315,7 +327,7 @@ const ProductPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Variation Selection */}
+            {/* Variation Selection - only show if there are valid attributes */}
             {attributeTypes.length > 0 && (
               <div className="space-y-5 border-t pt-6 mt-6">
                 <div className="bg-muted/50 rounded-lg p-4 border">
@@ -324,51 +336,59 @@ const ProductPage: React.FC = () => {
                     Select Options
                   </h3>
                   <div className="space-y-5">
-                    {attributeTypes.map(attrType => (
-                      <div key={attrType} className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-sm capitalize">
-                            {attrType}
-                          </span>
-                          {selectedAttributes[attrType] && (
-                            <Badge variant="secondary" className="font-normal">
-                              Selected: {String(selectedAttributes[attrType])}
-                            </Badge>
-                          )}
+                    {attributeTypes.map(attrType => {
+                      const values = getAttributeValues(attrType);
+                      // Don't render if no valid values
+                      if (values.length === 0) return null;
+                      
+                      return (
+                        <div key={attrType} className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm capitalize">
+                              {attrType}
+                            </span>
+                            {selectedAttributes[attrType] && (
+                              <Badge variant="secondary" className="font-normal">
+                                Selected: {String(selectedAttributes[attrType])}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {values.map(value => {
+                              const isSelected = selectedAttributes[attrType] === value;
+                              
+                              return (
+                                <button
+                                  key={value}
+                                  onClick={() => handleAttributeSelect(attrType, value)}
+                                  className={cn(
+                                    "px-5 py-2.5 border-2 rounded-lg text-sm font-medium transition-all",
+                                    "hover:scale-105 active:scale-95",
+                                    isSelected
+                                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                                      : "border-border bg-background hover:border-primary/50 hover:bg-muted"
+                                  )}
+                                >
+                                  {String(value)}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          {getAttributeValues(attrType).map(value => {
-                            const isSelected = selectedAttributes[attrType] === value;
-                            
-                            return (
-                              <button
-                                key={value}
-                                onClick={() => handleAttributeSelect(attrType, value)}
-                                className={cn(
-                                  "px-5 py-2.5 border-2 rounded-lg text-sm font-medium transition-all",
-                                  "hover:scale-105 active:scale-95",
-                                  isSelected
-                                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                                    : "border-border bg-background hover:border-primary/50 hover:bg-muted"
-                                )}
-                              >
-                                {String(value)}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                  {selectedVariation && (
+                  {selectedVariation && Object.keys(selectedAttributes).filter(key => selectedAttributes[key]).length > 0 && (
                     <div className="mt-4 pt-4 border-t text-sm space-y-1">
                       <p className="text-muted-foreground">Selected Variation:</p>
                       <p className="font-medium">
-                        {Object.entries(selectedAttributes).map(([key, value]) => (
-                          <span key={key} className="mr-2">
-                            {key}: {String(value)}
-                          </span>
-                        ))}
+                        {Object.entries(selectedAttributes)
+                          .filter(([_, value]) => value !== null && value !== undefined && String(value).trim() !== '')
+                          .map(([key, value]) => (
+                            <span key={key} className="mr-2">
+                              {key}: {String(value)}
+                            </span>
+                          ))}
                       </p>
                       <p className="font-semibold text-lg">{formatCurrency(selectedVariation.price)}</p>
                     </div>

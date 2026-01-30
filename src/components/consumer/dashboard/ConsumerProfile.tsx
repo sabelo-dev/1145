@@ -28,6 +28,17 @@ const ConsumerProfile: React.FC = () => {
   const [showDriverDialog, setShowDriverDialog] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  
+  // Profile form state
+  const [profileForm, setProfileForm] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    dateOfBirth: '',
+  });
+  
   const [driverForm, setDriverForm] = useState({
     name: user?.name || '',
     phone: '',
@@ -35,7 +46,75 @@ const ConsumerProfile: React.FC = () => {
     licenseNumber: '',
     vehicleRegistration: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load profile data on mount
+  React.useEffect(() => {
+    const loadProfile = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('name, phone')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error loading profile:', error);
+          return;
+        }
+        
+        if (data) {
+          const nameParts = (data.name || '').split(' ');
+          setProfileForm({
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            phone: data.phone || '',
+            dateOfBirth: '',
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+    
+    loadProfile();
+  }, [user?.id]);
+
+  const handleSaveProfile = async () => {
+    if (!user?.id) return;
+    
+    setIsSavingProfile(true);
+    try {
+      const fullName = [profileForm.firstName, profileForm.lastName].filter(Boolean).join(' ');
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: fullName,
+          phone: profileForm.phone || null,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      await refreshUserProfile();
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your personal information has been saved successfully.",
+      });
+    } catch (error: any) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -320,17 +399,27 @@ const ConsumerProfile: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue={user?.name?.split(' ')[0] || ""} />
+                <Input 
+                  id="firstName" 
+                  value={profileForm.firstName}
+                  onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                  placeholder="Enter your first name"
+                />
               </div>
               <div>
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue={user?.name?.split(' ')[1] || ""} />
+                <Input 
+                  id="lastName" 
+                  value={profileForm.lastName}
+                  onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                  placeholder="Enter your last name"
+                />
               </div>
             </div>
             
             <div>
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" defaultValue={user?.email || ""} disabled />
+              <Input id="email" type="email" value={user?.email || ""} disabled />
               <p className="text-xs text-muted-foreground mt-1">
                 Email cannot be changed. Contact support if you need to update it.
               </p>
@@ -338,15 +427,29 @@ const ConsumerProfile: React.FC = () => {
             
             <div>
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" placeholder="+27 123 456 789" />
+              <Input 
+                id="phone" 
+                type="tel" 
+                value={profileForm.phone}
+                onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                placeholder="+27 123 456 789" 
+              />
             </div>
             
             <div>
               <Label htmlFor="dateOfBirth">Date of Birth</Label>
-              <Input id="dateOfBirth" type="date" />
+              <Input 
+                id="dateOfBirth" 
+                type="date" 
+                value={profileForm.dateOfBirth}
+                onChange={(e) => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })}
+              />
             </div>
             
-            <Button>Update Personal Information</Button>
+            <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
+              {isSavingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Update Personal Information
+            </Button>
           </CardContent>
         </Card>
 
