@@ -36,20 +36,46 @@ export const ConnectedAccountsList: React.FC = () => {
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const { data, error } = await supabase
+        // First fetch approved accounts
+        const { data: accountsData, error: accountsError } = await supabase
           .from('approved_social_accounts')
-          .select(`
-            *,
-            profiles:user_id (name, email)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (accountsError) {
+          console.error('Error fetching accounts:', accountsError);
+          throw accountsError;
+        }
 
-        const formattedAccounts = (data || []).map((acc: any) => ({
+        if (!accountsData || accountsData.length === 0) {
+          setAccounts([]);
+          setLoading(false);
+          return;
+        }
+
+        // Get unique user IDs for profile lookup
+        const userIds = [...new Set(accountsData.map(acc => acc.user_id))];
+        
+        // Fetch profiles separately
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+        }
+
+        // Create a map of user_id to profile data
+        const profileMap = new Map(
+          (profilesData || []).map(p => [p.id, { name: p.name, email: p.email }])
+        );
+
+        // Merge account data with profile data
+        const formattedAccounts = accountsData.map((acc: any) => ({
           ...acc,
-          user_name: acc.profiles?.name,
-          user_email: acc.profiles?.email,
+          user_name: profileMap.get(acc.user_id)?.name || 'Unknown',
+          user_email: profileMap.get(acc.user_id)?.email || '',
         }));
 
         setAccounts(formattedAccounts);
