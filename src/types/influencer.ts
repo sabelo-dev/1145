@@ -37,6 +37,16 @@ export interface InfluencerProfile {
   display_name?: string;
   username?: string;
   bio?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  date_of_birth?: string;
+  id_number?: string;
+  street_address?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
+  country?: string;
   assigned_by?: string;
   can_post: boolean;
   can_schedule: boolean;
