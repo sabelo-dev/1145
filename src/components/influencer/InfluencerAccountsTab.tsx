@@ -35,15 +35,19 @@ export const InfluencerAccountsTab: React.FC = () => {
     if (!user) return;
 
     try {
-      // Only fetch accounts that were added by admin
+      // Fetch all accounts assigned to this user (whether added by admin or self)
       const { data, error } = await supabase
         .from('approved_social_accounts')
         .select('*')
         .eq('user_id', user.id)
-        .not('added_by_admin', 'is', null)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching accounts:', error);
+        throw error;
+      }
+      
+      console.log('Fetched influencer accounts:', data);
       setAccounts(data as UserAccount[] || []);
     } catch (error) {
       console.error('Error fetching accounts:', error);

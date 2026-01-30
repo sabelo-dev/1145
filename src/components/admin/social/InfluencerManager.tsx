@@ -55,15 +55,40 @@ export const InfluencerManager: React.FC = () => {
 
   const fetchInfluencers = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch influencer profiles first
+      const { data: influencerData, error: influencerError } = await supabase
         .from('influencer_profiles')
-        .select(`
-          *,
-          profiles:user_id (name, email)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (influencerError) {
+        console.error('Error fetching influencer profiles:', influencerError);
+        throw influencerError;
+      }
+
+      if (!influencerData || influencerData.length === 0) {
+        setInfluencers([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get unique user IDs for profile lookup
+      const userIds = [...new Set(influencerData.map(inf => inf.user_id))];
+
+      // Fetch profiles separately to avoid RLS join issues
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      // Create a map of user_id to profile data
+      const profileMap = new Map(
+        (profilesData || []).map(p => [p.id, { name: p.name, email: p.email }])
+      );
 
       // Get post counts for each influencer
       const { data: posts } = await supabase
@@ -75,10 +100,11 @@ export const InfluencerManager: React.FC = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      const formatted = (data || []).map((inf: any) => ({
+      // Merge data
+      const formatted = influencerData.map((inf: any) => ({
         ...inf,
-        user_name: inf.profiles?.name,
-        user_email: inf.profiles?.email,
+        user_name: profileMap.get(inf.user_id)?.name || 'Unknown',
+        user_email: profileMap.get(inf.user_id)?.email || '',
         posts_count: postCounts[inf.user_id] || 0,
       }));
 
