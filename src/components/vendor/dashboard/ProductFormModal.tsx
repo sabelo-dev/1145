@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import VariationBuilder, { StructuredVariation } from "./VariationBuilder";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required").max(200),
@@ -163,6 +164,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   });
   
   const [variations, setVariations] = useState<ProductVariation[]>([]);
+  const [structuredVariations, setStructuredVariations] = useState<StructuredVariation[]>([]);
+  const [useStructuredBuilder, setUseStructuredBuilder] = useState(true);
   const [images, setImages] = useState<ImageWithPreview[]>([]);
   const [downloadableFiles, setDownloadableFiles] = useState<DownloadableFile[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -171,9 +174,14 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  // Bulk variation generation
+  // Bulk variation generation (legacy)
   const [attributeTypes, setAttributeTypes] = useState<Array<{ name: string; values: string[] }>>([]);
   const [showBulkGenerator, setShowBulkGenerator] = useState(false);
+  
+  // Memoized callback for variation builder
+  const handleStructuredVariationsChange = useCallback((newVariations: StructuredVariation[]) => {
+    setStructuredVariations(newVariations);
+  }, []);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -637,8 +645,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   };
 
   const saveVariations = async (productId: string) => {
-    if (variations.length === 0) return;
-
     // Delete existing variations if in edit mode
     if (mode === "edit") {
       await supabase
@@ -647,87 +653,124 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         .eq('product_id', productId);
     }
 
-    // Create variations and handle their images
-    for (const variation of variations) {
-      if (variation.attributes.length > 0) {
-        // Convert attributes array to object for storage and upload attribute images
-        const attributesObject: Record<string, string> = {};
-        const attributeImageUrls: Record<string, string> = {};
-        
-        for (const attr of variation.attributes) {
-          if (attr.name && attr.value) {
-            attributesObject[attr.name] = attr.value;
-            
-            // Upload attribute image if exists
-            if (attr.image?.file) {
-              const fileExt = attr.image.file.name.split('.').pop();
-              const fileName = `attribute-images/${Date.now()}-${Math.random()}.${fileExt}`;
-              
-              const { error: uploadError } = await supabase.storage
-                .from('product-images')
-                .upload(fileName, attr.image.file);
+    // Use structured variations if available, otherwise fall back to legacy
+    if (useStructuredBuilder && structuredVariations.length > 0) {
+      // Save structured variations (from new builder)
+      for (const variation of structuredVariations) {
+        // Only save variations with stock > 0 or valid size
+        if (!variation.size) continue;
 
-              if (!uploadError) {
-                const { data: urlData } = supabase.storage
-                  .from('product-images')
-                  .getPublicUrl(fileName);
-                
-                attributeImageUrls[attr.name] = urlData.publicUrl;
-              }
-            }
-          }
+        const attributesObject: Record<string, string> = {
+          Color: variation.color,
+          Size: variation.size,
+        };
+
+        if (variation.colorHex) {
+          attributesObject['_colorHex'] = variation.colorHex;
         }
 
-        const { data: variationResult, error: variationError } = await supabase
+        if (variation.imageUrl) {
+          attributesObject['_images'] = JSON.stringify({ Color: variation.imageUrl });
+        }
+
+        const { error: variationError } = await supabase
           .from('product_variations')
           .insert({
             product_id: productId,
-            attributes: { ...attributesObject, _images: attributeImageUrls },
+            attributes: attributesObject,
             price: variation.price,
             quantity: variation.quantity,
-            sku: variation.sku
-          })
-          .select()
-          .single();
+            sku: variation.sku || `${productId.slice(0, 8)}-${variation.color}-${variation.size}`.toUpperCase().replace(/\s+/g, '-'),
+            image_url: variation.imageUrl,
+          });
 
         if (variationError) {
-          console.error('Error creating variation:', variationError);
-          continue;
+          console.error('Error creating structured variation:', variationError);
         }
+      }
+    } else if (variations.length > 0) {
+      // Legacy variation saving
+      for (const variation of variations) {
+        if (variation.attributes.length > 0) {
+          // Convert attributes array to object for storage and upload attribute images
+          const attributesObject: Record<string, string> = {};
+          const attributeImageUrls: Record<string, string> = {};
+          
+          for (const attr of variation.attributes) {
+            if (attr.name && attr.value) {
+              attributesObject[attr.name] = attr.value;
+              
+              // Upload attribute image if exists
+              if (attr.image?.file) {
+                const fileExt = attr.image.file.name.split('.').pop();
+                const fileName = `attribute-images/${Date.now()}-${Math.random()}.${fileExt}`;
+                
+                const { error: uploadError } = await supabase.storage
+                  .from('product-images')
+                  .upload(fileName, attr.image.file);
 
-        // Handle variation gallery images
-        if (variation.images && variation.images.length > 0) {
-          for (let i = 0; i < variation.images.length; i++) {
-            const image = variation.images[i];
-            if (image.file) {
-              const fileExt = image.file.name.split('.').pop();
-              const fileName = `variation-images/${Date.now()}-${Math.random()}.${fileExt}`;
-              const filePath = fileName;
-
-              const { error: uploadError } = await supabase.storage
-                .from('product-images')
-                .upload(filePath, image.file);
-
-              if (uploadError) {
-                console.error('Error uploading variation image:', uploadError);
-                continue;
+                if (!uploadError) {
+                  const { data: urlData } = supabase.storage
+                    .from('product-images')
+                    .getPublicUrl(fileName);
+                  
+                  attributeImageUrls[attr.name] = urlData.publicUrl;
+                }
               }
+            }
+          }
 
-              const { data: urlData } = supabase.storage
-                .from('product-images')
-                .getPublicUrl(filePath);
+          const { data: variationResult, error: variationError } = await supabase
+            .from('product_variations')
+            .insert({
+              product_id: productId,
+              attributes: { ...attributesObject, _images: attributeImageUrls },
+              price: variation.price,
+              quantity: variation.quantity,
+              sku: variation.sku
+            })
+            .select()
+            .single();
 
-              // Save variation image record
-              const { error: imageError } = await supabase
-                .from('variation_images')
-                .insert({
-                  variation_id: variationResult.id,
-                  image_url: urlData.publicUrl,
-                  position: i
-                });
+          if (variationError) {
+            console.error('Error creating variation:', variationError);
+            continue;
+          }
 
-              if (imageError) {
-                console.error('Error saving variation image:', imageError);
+          // Handle variation gallery images
+          if (variation.images && variation.images.length > 0) {
+            for (let i = 0; i < variation.images.length; i++) {
+              const image = variation.images[i];
+              if (image.file) {
+                const fileExt = image.file.name.split('.').pop();
+                const fileName = `variation-images/${Date.now()}-${Math.random()}.${fileExt}`;
+                const filePath = fileName;
+
+                const { error: uploadError } = await supabase.storage
+                  .from('product-images')
+                  .upload(filePath, image.file);
+
+                if (uploadError) {
+                  console.error('Error uploading variation image:', uploadError);
+                  continue;
+                }
+
+                const { data: urlData } = supabase.storage
+                  .from('product-images')
+                  .getPublicUrl(filePath);
+
+                // Save variation image record
+                const { error: imageError } = await supabase
+                  .from('variation_images')
+                  .insert({
+                    variation_id: variationResult.id,
+                    image_url: urlData.publicUrl,
+                    position: i
+                  });
+
+                if (imageError) {
+                  console.error('Error saving variation image:', imageError);
+                }
               }
             }
           }
@@ -1106,292 +1149,329 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           {/* Product Variations - Only for Variable Products */}
           {formData.productType === 'variable' && (
             <div className="space-y-4 border-t pt-6">
-            <div className="space-y-2">
+              {/* Mode Toggle */}
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-lg font-semibold">Product Variations</Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Add variations like sizes, colors, or styles. Each variation can have its own price, quantity, and images.
+                    Manage color and size combinations with individual stock levels
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    onClick={() => setShowBulkGenerator(!showBulkGenerator)} 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant={useStructuredBuilder ? "default" : "outline"}
                     size="sm"
+                    onClick={() => setUseStructuredBuilder(true)}
                   >
-                    {showBulkGenerator ? "Manual Mode" : "Bulk Generate"}
+                    Color/Size Builder
                   </Button>
-                  <Button type="button" onClick={addVariation} variant="default" size="sm" className="shrink-0">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Single
+                  <Button
+                    type="button"
+                    variant={!useStructuredBuilder ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUseStructuredBuilder(false)}
+                  >
+                    Advanced Mode
                   </Button>
                 </div>
               </div>
 
-              {/* Bulk Variation Generator */}
-              {showBulkGenerator && (
-                <div className="border-2 border-primary/20 rounded-lg p-6 space-y-4 bg-primary/5">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold">Bulk Variation Generator</h4>
+              {/* Structured Variation Builder (New) */}
+              {useStructuredBuilder && (
+                <VariationBuilder
+                  basePrice={formData.price}
+                  variations={structuredVariations}
+                  onVariationsChange={handleStructuredVariationsChange}
+                />
+              )}
+
+              {/* Legacy Variation Builder */}
+              {!useStructuredBuilder && (
+                <>
+                  <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                      Define attribute types and their values. We'll automatically create all combinations for you.
+                      Advanced mode allows custom attributes beyond color/size.
                     </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    {attributeTypes.map((type, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-3 bg-background">
-                        <div className="flex gap-2 items-start">
-                          <div className="flex-1 space-y-2">
-                            <Label className="text-sm">Attribute Name</Label>
-                            <Input
-                              placeholder="e.g., Color, Size, Material"
-                              value={type.name}
-                              onChange={(e) => updateAttributeTypeName(index, e.target.value)}
-                            />
-                          </div>
-                          <div className="flex-[2] space-y-2">
-                            <Label className="text-sm">Values (comma-separated)</Label>
-                            <Input
-                              placeholder="e.g., Red, Blue, Green"
-                              value={type.values.join(', ')}
-                              onChange={(e) => updateAttributeTypeValues(index, e.target.value)}
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeAttributeType(index)}
-                            className="mt-7"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        {type.values.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {type.values.map((value, vIndex) => (
-                              <span key={vIndex} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
-                                {value}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-
-                    <Button
-                      type="button"
-                      onClick={addAttributeType}
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Attribute Type
-                    </Button>
-                  </div>
-
-                  {attributeTypes.length > 0 && (
-                    <div className="pt-4 border-t space-y-2">
-                      <div className="text-sm text-muted-foreground">
-                        This will create{' '}
-                        <span className="font-semibold text-foreground">
-                          {attributeTypes.reduce((acc, type) => acc * (type.values.length || 1), 1)}
-                        </span>{' '}
-                        variation(s)
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={generateVariations}
-                        className="w-full"
+                    <div className="flex gap-2">
+                      <Button 
+                        type="button" 
+                        onClick={() => setShowBulkGenerator(!showBulkGenerator)} 
+                        variant="outline" 
+                        size="sm"
                       >
-                        Generate All Variations
+                        {showBulkGenerator ? "Manual Mode" : "Bulk Generate"}
+                      </Button>
+                      <Button type="button" onClick={addVariation} variant="default" size="sm" className="shrink-0">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Single
                       </Button>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {variations.length === 0 && !showBulkGenerator && (
-                <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    No variations yet. Use "Bulk Generate" for multiple combinations or "Add Single" for individual variations.
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            {variations.map((variation, variationIndex) => (
-              <div key={variation.id} className="border-2 rounded-lg p-6 space-y-4 bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-semibold text-base">Variation {variationIndex + 1}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Define attributes like "Color: Red" or "Size: Large"
-                    </p>
                   </div>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeVariation(variationIndex)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Remove
-                  </Button>
-                </div>
 
-                {/* Variation Attributes */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold">Attributes</Label>
-                    <span className="text-xs text-muted-foreground">
-                      Example: Color → Red, Size → Large
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {variation.attributes.map((attr, attrIndex) => (
-                      <div key={attrIndex} className="border rounded p-3 space-y-2">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Attribute name (e.g., Color)"
-                            value={attr.name}
-                            onChange={(e) => updateVariationAttribute(variationIndex, attrIndex, 'name', e.target.value)}
-                            className="flex-1"
-                          />
-                          <Input
-                            placeholder="Attribute value (e.g., Red)"
-                            value={attr.value}
-                            onChange={(e) => updateVariationAttribute(variationIndex, attrIndex, 'value', e.target.value)}
-                            className="flex-1"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => removeVariationAttribute(variationIndex, attrIndex)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        {/* Attribute Image */}
-                        <div className="space-y-2">
-                          <Label className="text-sm">Attribute Image (optional)</Label>
-                          <div className="flex gap-2 items-start">
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleAttributeImageChange(variationIndex, attrIndex, e)}
-                              className="flex-1"
-                            />
-                            {attr.image && (
-                              <div className="relative">
-                                <img
-                                  src={attr.image.url}
-                                  alt={`${attr.name} ${attr.value}`}
-                                  className="w-16 h-16 object-cover rounded border"
+                  {/* Bulk Variation Generator */}
+                  {showBulkGenerator && (
+                    <div className="border-2 border-primary/20 rounded-lg p-6 space-y-4 bg-primary/5">
+                      <div className="space-y-2">
+                        <h4 className="font-semibold">Bulk Variation Generator</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Define attribute types and their values. We'll automatically create all combinations for you.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        {attributeTypes.map((type, index) => (
+                          <div key={index} className="border rounded-lg p-4 space-y-3 bg-background">
+                            <div className="flex gap-2 items-start">
+                              <div className="flex-1 space-y-2">
+                                <Label className="text-sm">Attribute Name</Label>
+                                <Input
+                                  placeholder="e.g., Color, Size, Material"
+                                  value={type.name}
+                                  onChange={(e) => updateAttributeTypeName(index, e.target.value)}
                                 />
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="icon"
-                                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0"
-                                  onClick={() => removeAttributeImage(variationIndex, attrIndex)}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
+                              </div>
+                              <div className="flex-[2] space-y-2">
+                                <Label className="text-sm">Values (comma-separated)</Label>
+                                <Input
+                                  placeholder="e.g., Red, Blue, Green"
+                                  value={type.values.join(', ')}
+                                  onChange={(e) => updateAttributeTypeValues(index, e.target.value)}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeAttributeType(index)}
+                                className="mt-7"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            {type.values.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {type.values.map((value, vIndex) => (
+                                  <span key={vIndex} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
+                                    {value}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </div>
+                        ))}
+
+                        <Button
+                          type="button"
+                          onClick={addAttributeType}
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Attribute Type
+                        </Button>
+                      </div>
+
+                      {attributeTypes.length > 0 && (
+                        <div className="pt-4 border-t space-y-2">
+                          <div className="text-sm text-muted-foreground">
+                            This will create{' '}
+                            <span className="font-semibold text-foreground">
+                              {attributeTypes.reduce((acc, type) => acc * (type.values.length || 1), 1)}
+                            </span>{' '}
+                            variation(s)
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={generateVariations}
+                            className="w-full"
+                          >
+                            Generate All Variations
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {variations.length === 0 && !showBulkGenerator && (
+                    <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        No variations yet. Use "Bulk Generate" for multiple combinations or "Add Single" for individual variations.
+                      </p>
+                    </div>
+                  )}
+
+                  {variations.map((variation, variationIndex) => (
+                    <div key={variation.id} className="border-2 rounded-lg p-6 space-y-4 bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <h4 className="font-semibold text-base">Variation {variationIndex + 1}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            Define attributes like "Color: Red" or "Size: Large"
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeVariation(variationIndex)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+
+                      {/* Variation Attributes */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-semibold">Attributes</Label>
+                          <span className="text-xs text-muted-foreground">
+                            Example: Color → Red, Size → Large
+                          </span>
+                        </div>
+                        <div className="space-y-3">
+                          {variation.attributes.map((attr, attrIndex) => (
+                            <div key={attrIndex} className="border rounded p-3 space-y-2">
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="Attribute name (e.g., Color)"
+                                  value={attr.name}
+                                  onChange={(e) => updateVariationAttribute(variationIndex, attrIndex, 'name', e.target.value)}
+                                  className="flex-1"
+                                />
+                                <Input
+                                  placeholder="Attribute value (e.g., Red)"
+                                  value={attr.value}
+                                  onChange={(e) => updateVariationAttribute(variationIndex, attrIndex, 'value', e.target.value)}
+                                  className="flex-1"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => removeVariationAttribute(variationIndex, attrIndex)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              {/* Attribute Image */}
+                              <div className="space-y-2">
+                                <Label className="text-sm">Attribute Image (optional)</Label>
+                                <div className="flex gap-2 items-start">
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleAttributeImageChange(variationIndex, attrIndex, e)}
+                                    className="flex-1"
+                                  />
+                                  {attr.image && (
+                                    <div className="relative">
+                                      <img
+                                        src={attr.image.url}
+                                        alt={`${attr.name} ${attr.value}`}
+                                        className="w-16 h-16 object-cover rounded border"
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0"
+                                        onClick={() => removeAttributeImage(variationIndex, attrIndex)}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addVariationAttribute(variationIndex)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Attribute
+                          </Button>
                         </div>
                       </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addVariationAttribute(variationIndex)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Attribute
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Variation Details */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Price (R)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={variation.price}
-                      onChange={(e) => updateVariation(variationIndex, 'price', parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Quantity</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={variation.quantity}
-                      onChange={(e) => updateVariation(variationIndex, 'quantity', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>SKU</Label>
-                    <Input
-                      value={variation.sku}
-                      onChange={(e) => updateVariation(variationIndex, 'sku', e.target.value)}
-                      placeholder="Variation SKU"
-                    />
-                  </div>
-                </div>
-
-                {/* Variation Gallery */}
-                <div className="space-y-2">
-                  <Label>Variation Gallery (Multiple Images)</Label>
-                  <p className="text-sm text-muted-foreground">Add multiple images showcasing this variation</p>
-                  <div className="mt-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => handleVariationImageChange(variationIndex, e)}
-                      className="mb-4"
-                    />
-                    
-                    {variation.images && variation.images.length > 0 && (
-                      <div className="grid grid-cols-4 gap-2">
-                        {variation.images.map((image, imgIndex) => (
-                          <div key={imgIndex} className="relative group">
-                            <img
-                              src={image.url}
-                              alt={`Variation ${variationIndex + 1} gallery ${imgIndex + 1}`}
-                              className="w-full h-24 object-cover rounded border"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeVariationImage(variationIndex, imgIndex)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
+                      {/* Variation Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Price (R)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={variation.price}
+                            onChange={(e) => updateVariation(variationIndex, 'price', parseFloat(e.target.value) || 0)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Quantity</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={variation.quantity}
+                            onChange={(e) => updateVariation(variationIndex, 'quantity', parseInt(e.target.value) || 0)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>SKU</Label>
+                          <Input
+                            value={variation.sku}
+                            onChange={(e) => updateVariation(variationIndex, 'sku', e.target.value)}
+                            placeholder="Variation SKU"
+                          />
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+
+                      {/* Variation Gallery */}
+                      <div className="space-y-2">
+                        <Label>Variation Gallery (Multiple Images)</Label>
+                        <p className="text-sm text-muted-foreground">Add multiple images showcasing this variation</p>
+                        <div className="mt-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handleVariationImageChange(variationIndex, e)}
+                            className="mb-4"
+                          />
+                          
+                          {variation.images && variation.images.length > 0 && (
+                            <div className="grid grid-cols-4 gap-2">
+                              {variation.images.map((image, imgIndex) => (
+                                <div key={imgIndex} className="relative group">
+                                  <img
+                                    src={image.url}
+                                    alt={`Variation ${variationIndex + 1} gallery ${imgIndex + 1}`}
+                                    className="w-full h-24 object-cover rounded border"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeVariationImage(variationIndex, imgIndex)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           )}
 
