@@ -264,7 +264,14 @@ export const useInfluencer = () => {
   };
 
   const updateProfile = async (updates: Partial<InfluencerProfile>) => {
-    if (!user || !profile) return false;
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to update your profile',
+      });
+      return false;
+    }
 
     try {
       const { error } = await supabase
@@ -274,7 +281,7 @@ export const useInfluencer = () => {
           bio: updates.bio,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', profile.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -286,6 +293,7 @@ export const useInfluencer = () => {
       await fetchProfile();
       return true;
     } catch (error: any) {
+      console.error('Error updating profile:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
