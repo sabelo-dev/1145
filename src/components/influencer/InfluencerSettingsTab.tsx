@@ -1,15 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Settings, CheckCircle, XCircle, Shield, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Settings, CheckCircle, XCircle, Shield, Loader2, Save } from 'lucide-react';
 import type { InfluencerProfile } from '@/types/influencer';
 import { SOCIAL_PLATFORMS } from '@/types/influencer';
+import { useInfluencer } from '@/hooks/useInfluencer';
 
 interface InfluencerSettingsTabProps {
   profile: InfluencerProfile | null;
 }
 
 export const InfluencerSettingsTab: React.FC<InfluencerSettingsTabProps> = ({ profile }) => {
+  const { updateProfile } = useInfluencer();
+  const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || '');
+      setBio(profile.bio || '');
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (profile) {
+      const nameChanged = displayName !== (profile.display_name || '');
+      const bioChanged = bio !== (profile.bio || '');
+      setHasChanges(nameChanged || bioChanged);
+    }
+  }, [displayName, bio, profile]);
+
+  const handleSave = async () => {
+    if (!hasChanges) return;
+    
+    setIsSaving(true);
+    await updateProfile({
+      display_name: displayName.trim() || undefined,
+      bio: bio.trim() || undefined,
+    });
+    setIsSaving(false);
+    setHasChanges(false);
+  };
+
   if (!profile) {
     return (
       <Card>
@@ -32,33 +70,62 @@ export const InfluencerSettingsTab: React.FC<InfluencerSettingsTabProps> = ({ pr
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Settings</h2>
-        <p className="text-muted-foreground">Your influencer profile and permissions</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold">Settings</h2>
+          <p className="text-muted-foreground">Your influencer profile and permissions</p>
+        </div>
+        {hasChanges && (
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Save Changes
+          </Button>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Profile Info */}
+        {/* Editable Profile Info */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
               Profile Information
             </CardTitle>
-            <CardDescription>Your influencer profile details</CardDescription>
+            <CardDescription>Update your influencer profile details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Display Name</span>
-              <span className="font-medium">{profile.display_name || 'Not set'}</span>
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                placeholder="Your public name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                maxLength={100}
+              />
+              <p className="text-xs text-muted-foreground">
+                This name will be shown on posts you create
+              </p>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Bio</span>
-              <span className="font-medium text-right max-w-[200px] truncate">
-                {profile.bio || 'Not set'}
-              </span>
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                placeholder="Tell us about yourself..."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={3}
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground">
+                {bio.length}/500 characters
+              </p>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center pt-2">
               <span className="text-muted-foreground">Status</span>
               {profile.is_active ? (
                 <Badge className="bg-green-500">Active</Badge>

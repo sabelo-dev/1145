@@ -263,6 +263,38 @@ export const useInfluencer = () => {
     }
   };
 
+  const updateProfile = async (updates: Partial<InfluencerProfile>) => {
+    if (!user || !profile) return false;
+
+    try {
+      const { error } = await supabase
+        .from('influencer_profiles')
+        .update({
+          display_name: updates.display_name,
+          bio: updates.bio,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been updated successfully.',
+      });
+
+      await fetchProfile();
+      return true;
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Failed to update profile',
+      });
+      return false;
+    }
+  };
+
   return {
     posts,
     approvedAccounts,
@@ -274,7 +306,9 @@ export const useInfluencer = () => {
     publishPost,
     approveAccount,
     addApprovedAccount,
+    updateProfile,
     refreshPosts: fetchPosts,
     refreshAccounts: fetchApprovedAccounts,
+    refreshProfile: fetchProfile,
   };
 };
