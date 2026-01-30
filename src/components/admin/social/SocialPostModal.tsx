@@ -23,9 +23,9 @@ import {
 import { useInfluencer } from '@/hooks/useInfluencer';
 import { SOCIAL_PLATFORMS, CONTENT_TYPES, ContentType } from '@/types/influencer';
 import { supabase } from '@/integrations/supabase/client';
-import { Instagram, Facebook, Twitter, Youtube, Music, Send, Clock, FileText } from 'lucide-react';
+import { Instagram, Facebook, Twitter, Youtube, Music, Send, Clock, FileText, Zap } from 'lucide-react';
 
-type PublishOption = 'draft' | 'now' | 'scheduled';
+type PublishOption = 'draft' | 'now' | 'scheduled' | 'api_now';
 
 interface SocialPostModalProps {
   open: boolean;
@@ -40,7 +40,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
   editingPost,
   onSuccess,
 }) => {
-  const { createPost, updatePost } = useInfluencer();
+  const { createPost, updatePost, publishPost } = useInfluencer();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentType, setContentType] = useState<ContentType>('plain');
@@ -135,14 +135,17 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
 
     setIsSubmitting(true);
 
-    // Determine status and timestamps based on publish option
     let status: 'draft' | 'scheduled' | 'published' | 'failed' = 'draft';
     let scheduled_at: string | null = null;
     let published_at: string | null = null;
+    let publishViaApi = false;
 
     if (publishOption === 'now') {
       status = 'published';
       published_at = new Date().toISOString();
+    } else if (publishOption === 'api_now') {
+      status = 'draft'; // Will be updated by the API
+      publishViaApi = true;
     } else if (publishOption === 'scheduled') {
       status = 'scheduled';
       scheduled_at = scheduledAt;
@@ -175,11 +178,19 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
     }
 
     let success = false;
+    let createdPost = null;
     if (editingPost) {
       success = await updatePost(editingPost.id, postData);
+      if (success && publishViaApi) {
+        await publishPost(editingPost.id, true);
+      }
     } else {
       const result = await createPost(postData);
       success = !!result;
+      createdPost = result;
+      if (success && publishViaApi && result) {
+        await publishPost(result.id, true);
+      }
     }
 
     setIsSubmitting(false);
@@ -301,13 +312,23 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
                   </div>
                 </Label>
               </div>
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-primary/50 bg-primary/5 hover:bg-primary/10 cursor-pointer">
+                <RadioGroupItem value="api_now" id="api_now" />
+                <Label htmlFor="api_now" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <div>
+                    <div className="font-medium">Publish via API</div>
+                    <div className="text-xs text-muted-foreground">Post directly to connected social accounts using APIs</div>
+                  </div>
+                </Label>
+              </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="now" id="now" />
                 <Label htmlFor="now" className="flex items-center gap-2 cursor-pointer flex-1">
                   <Send className="h-4 w-4 text-green-500" />
                   <div>
-                    <div className="font-medium">Publish Now</div>
-                    <div className="text-xs text-muted-foreground">Publish immediately to selected platforms</div>
+                    <div className="font-medium">Mark as Published</div>
+                    <div className="text-xs text-muted-foreground">Mark as published (manual posting)</div>
                   </div>
                 </Label>
               </div>
@@ -367,8 +388,10 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
               ? 'Saving...'
               : editingPost
               ? 'Update Post'
+              : publishOption === 'api_now'
+              ? 'Publish via API'
               : publishOption === 'now'
-              ? 'Publish Now'
+              ? 'Mark as Published'
               : publishOption === 'scheduled'
               ? 'Schedule Post'
               : 'Save as Draft'}
