@@ -2302,12 +2302,22 @@ export type Database = {
           can_manage_accounts: boolean | null
           can_post: boolean | null
           can_schedule: boolean | null
+          city: string | null
+          country: string | null
           created_at: string
+          date_of_birth: string | null
           display_name: string | null
+          first_name: string | null
           id: string
+          id_number: string | null
           is_active: boolean | null
+          last_name: string | null
           performance_stats: Json | null
+          phone: string | null
           platforms_access: string[] | null
+          postal_code: string | null
+          province: string | null
+          street_address: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -2318,12 +2328,22 @@ export type Database = {
           can_manage_accounts?: boolean | null
           can_post?: boolean | null
           can_schedule?: boolean | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
+          first_name?: string | null
           id?: string
+          id_number?: string | null
           is_active?: boolean | null
+          last_name?: string | null
           performance_stats?: Json | null
+          phone?: string | null
           platforms_access?: string[] | null
+          postal_code?: string | null
+          province?: string | null
+          street_address?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -2334,12 +2354,22 @@ export type Database = {
           can_manage_accounts?: boolean | null
           can_post?: boolean | null
           can_schedule?: boolean | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
+          first_name?: string | null
           id?: string
+          id_number?: string | null
           is_active?: boolean | null
+          last_name?: string | null
           performance_stats?: Json | null
+          phone?: string | null
           platforms_access?: string[] | null
+          postal_code?: string | null
+          province?: string | null
+          street_address?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
