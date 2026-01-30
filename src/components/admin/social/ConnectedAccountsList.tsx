@@ -29,6 +29,7 @@ interface ConnectedAccount {
   added_by_admin?: string;
   user_name?: string;
   user_email?: string;
+  influencer_username?: string;
 }
 
 export const ConnectedAccountsList: React.FC = () => {
@@ -58,6 +59,7 @@ export const ConnectedAccountsList: React.FC = () => {
 
       const userIds = [...new Set(accountsData.map(acc => acc.user_id))];
       
+      // Fetch profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name, email')
@@ -67,14 +69,29 @@ export const ConnectedAccountsList: React.FC = () => {
         console.error('Error fetching profiles:', profilesError);
       }
 
+      // Fetch influencer profiles to get usernames
+      const { data: influencerData, error: influencerError } = await supabase
+        .from('influencer_profiles')
+        .select('user_id, username')
+        .in('user_id', userIds);
+
+      if (influencerError) {
+        console.error('Error fetching influencer profiles:', influencerError);
+      }
+
       const profileMap = new Map(
         (profilesData || []).map(p => [p.id, { name: p.name, email: p.email }])
+      );
+
+      const influencerMap = new Map(
+        (influencerData || []).map(i => [i.user_id, i.username])
       );
 
       const formattedAccounts = accountsData.map((acc: any) => ({
         ...acc,
         user_name: profileMap.get(acc.user_id)?.name || 'Unknown',
         user_email: profileMap.get(acc.user_id)?.email || '',
+        influencer_username: influencerMap.get(acc.user_id) || null,
       }));
 
       setAccounts(formattedAccounts);
@@ -263,6 +280,9 @@ export const ConnectedAccountsList: React.FC = () => {
                     <TableCell>
                       <div>
                         <div className="font-medium">{account.user_name || 'Unknown'}</div>
+                        {account.influencer_username && (
+                          <div className="text-xs text-primary">@{account.influencer_username}</div>
+                        )}
                         <div className="text-xs text-muted-foreground">{account.user_email}</div>
                       </div>
                     </TableCell>
