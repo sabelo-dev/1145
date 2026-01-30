@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Send, Edit, Trash2, User, Share2, Users, Link } from 'lucide-react';
+import { Plus, Send, Edit, Trash2, User, Share2, Users, Link, RefreshCw } from 'lucide-react';
 import { useInfluencer } from '@/hooks/useInfluencer';
 import { SocialPostModal } from './social/SocialPostModal';
 import { ApprovedAccountsManager } from './social/ApprovedAccountsManager';
@@ -40,6 +40,7 @@ const AdminSocialMedia: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
   const [postsWithAuthors, setPostsWithAuthors] = useState<PostWithAuthor[]>([]);
+  const [refreshingAuthors, setRefreshingAuthors] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -70,14 +71,14 @@ const AdminSocialMedia: React.FC = () => {
     });
   };
 
-  // Fetch author info for posts including influencer display names
-  useEffect(() => {
-    const fetchAuthors = async () => {
-      if (posts.length === 0) {
-        setPostsWithAuthors([]);
-        return;
-      }
+  const fetchAuthors = async () => {
+    if (posts.length === 0) {
+      setPostsWithAuthors([]);
+      return;
+    }
 
+    setRefreshingAuthors(true);
+    try {
       const authorIds = [...new Set(posts.map(p => p.created_by))];
       
       // Fetch profiles
@@ -121,10 +122,19 @@ const AdminSocialMedia: React.FC = () => {
       });
 
       setPostsWithAuthors(enhanced);
-    };
+    } finally {
+      setRefreshingAuthors(false);
+    }
+  };
 
+  // Fetch author info for posts including influencer display names
+  useEffect(() => {
     fetchAuthors();
   }, [posts]);
+
+  const handleRefreshAuthors = () => {
+    fetchAuthors();
+  };
 
   const handleEdit = (post: any) => {
     setEditingPost(post);
@@ -155,10 +165,20 @@ const AdminSocialMedia: React.FC = () => {
           <h2 className="text-2xl font-bold">Social Media Management</h2>
           <p className="text-muted-foreground">Manage posts, accounts, and influencers</p>
         </div>
-        <Button onClick={() => { setEditingPost(null); setIsModalOpen(true); }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Post
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleRefreshAuthors}
+            disabled={refreshingAuthors}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshingAuthors ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button onClick={() => { setEditingPost(null); setIsModalOpen(true); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Post
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="posts" className="space-y-4">

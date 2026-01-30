@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Link2, ExternalLink, CheckCircle, XCircle, User, Trash2 } from 'lucide-react';
+import { Link2, ExternalLink, CheckCircle, XCircle, User, Trash2, ShieldCheck, ShieldX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SOCIAL_PLATFORMS } from '@/types/influencer';
 import { format } from 'date-fns';
@@ -115,6 +115,35 @@ export const ConnectedAccountsList: React.FC = () => {
       toast.error('Failed to remove account');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleVerification = async (account: ConnectedAccount) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const newVerifiedStatus = !account.is_verified;
+      const { error } = await supabase
+        .from('approved_social_accounts')
+        .update({
+          is_verified: newVerifiedStatus,
+          verified_at: newVerifiedStatus ? new Date().toISOString() : null,
+          verified_by: newVerifiedStatus ? user?.id : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', account.id);
+
+      if (error) throw error;
+
+      toast.success(
+        newVerifiedStatus 
+          ? `Account @${account.account_handle} verified successfully` 
+          : `Account @${account.account_handle} verification removed`
+      );
+      fetchAccounts();
+    } catch (error) {
+      console.error('Error toggling verification:', error);
+      toast.error('Failed to update verification status');
     }
   };
 
@@ -282,15 +311,30 @@ export const ConnectedAccountsList: React.FC = () => {
                       {format(new Date(account.created_at), 'MMM d, yyyy')}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteClick(account)}
-                        title="Remove account"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={account.is_verified ? "text-orange-500 hover:text-orange-600" : "text-green-500 hover:text-green-600"}
+                          onClick={() => handleToggleVerification(account)}
+                          title={account.is_verified ? "Remove verification" : "Verify account"}
+                        >
+                          {account.is_verified ? (
+                            <ShieldX className="h-4 w-4" />
+                          ) : (
+                            <ShieldCheck className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteClick(account)}
+                          title="Remove account"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
