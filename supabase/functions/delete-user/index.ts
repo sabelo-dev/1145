@@ -93,14 +93,20 @@ serve(async (req) => {
     await supabaseAdmin.from("profiles").delete().eq("id", userId);
 
     // Finally, delete the user from auth.users
+    // Handle case where auth user may already be deleted but profile still exists
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
-      console.error("Error deleting user from auth:", deleteError);
-      return new Response(
-        JSON.stringify({ error: deleteError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // If user not found in auth, that's okay - we've cleaned up the profile data
+      if (deleteError.message?.includes("User not found") || deleteError.code === "user_not_found") {
+        console.log("Auth user already deleted, profile cleanup completed");
+      } else {
+        console.error("Error deleting user from auth:", deleteError);
+        return new Response(
+          JSON.stringify({ error: deleteError.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     return new Response(
