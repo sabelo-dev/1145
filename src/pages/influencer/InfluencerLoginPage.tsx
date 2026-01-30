@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,17 +7,43 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Crown, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const InfluencerLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isLoading, isInfluencer, refreshUserProfile } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect if already logged in as influencer
+  useEffect(() => {
+    if (!isLoading && user && isInfluencer) {
+      navigate('/influencer/dashboard', { replace: true });
+    }
+  }, [user, isLoading, isInfluencer, navigate]);
+
+  // Show loading while auth is initializing
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If already logged in as influencer, redirect
+  if (user && isInfluencer) {
+    return <Navigate to="/influencer/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -43,15 +69,20 @@ const InfluencerLoginPage: React.FC = () => {
             title: 'Access Denied',
             description: 'You do not have influencer access. Please contact an administrator.',
           });
+          setIsSubmitting(false);
           return;
         }
+
+        // Refresh the user profile to update isInfluencer flag
+        await refreshUserProfile();
 
         toast({
           title: 'Login Successful',
           description: 'Welcome to the Influencer Dashboard!',
         });
 
-        navigate('/influencer/dashboard');
+        // Navigate after auth state is updated
+        navigate('/influencer/dashboard', { replace: true });
       }
     } catch (error: any) {
       toast({
@@ -60,7 +91,7 @@ const InfluencerLoginPage: React.FC = () => {
         description: error.message || 'Invalid credentials',
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -89,6 +120,7 @@ const InfluencerLoginPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="space-y-2">
@@ -100,12 +132,13 @@ const InfluencerLoginPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
             </Button>
             <Link
               to="/"
