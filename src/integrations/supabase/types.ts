@@ -3102,6 +3102,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          is_banned: boolean | null
           name: string | null
           phone: string | null
           role: Database["public"]["Enums"]["app_role"]
@@ -3112,6 +3113,7 @@ export type Database = {
           created_at?: string
           email: string
           id: string
+          is_banned?: boolean | null
           name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -3122,6 +3124,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          is_banned?: boolean | null
           name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
