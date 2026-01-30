@@ -96,7 +96,7 @@ const InfluencerDashboard: React.FC = () => {
               <div>
                 <h1 className="text-xl font-bold">Influencer Dashboard</h1>
                 <p className="text-sm text-muted-foreground">
-                  Welcome, {user?.name || user?.email}
+                  Welcome, {profile?.display_name || user?.name || user?.email}
                 </p>
               </div>
             </div>
