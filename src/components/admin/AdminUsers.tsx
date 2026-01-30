@@ -47,6 +47,7 @@ interface ExtendedProfile extends Profile {
   lastOrderDate?: string | null;
 }
 
+const AdminUsers = () => {
   const [users, setUsers] = useState<ExtendedProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchEmail, setSearchEmail] = useState("");
