@@ -35,6 +35,7 @@ export interface InfluencerProfile {
   id: string;
   user_id: string;
   display_name?: string;
+  username?: string;
   bio?: string;
   assigned_by?: string;
   can_post: boolean;

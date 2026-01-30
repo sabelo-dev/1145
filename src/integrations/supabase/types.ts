@@ -2310,6 +2310,7 @@ export type Database = {
           platforms_access: string[] | null
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           assigned_by?: string | null
@@ -2325,6 +2326,7 @@ export type Database = {
           platforms_access?: string[] | null
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           assigned_by?: string | null
@@ -2340,6 +2342,7 @@ export type Database = {
           platforms_access?: string[] | null
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }

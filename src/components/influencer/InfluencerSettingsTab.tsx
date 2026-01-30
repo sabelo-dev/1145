@@ -17,13 +17,16 @@ interface InfluencerSettingsTabProps {
 export const InfluencerSettingsTab: React.FC<InfluencerSettingsTabProps> = ({ profile }) => {
   const { updateProfile } = useInfluencer();
   const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '');
+      setUsername(profile.username || '');
       setBio(profile.bio || '');
     }
   }, [profile]);
@@ -31,21 +34,35 @@ export const InfluencerSettingsTab: React.FC<InfluencerSettingsTabProps> = ({ pr
   useEffect(() => {
     if (profile) {
       const nameChanged = displayName !== (profile.display_name || '');
+      const usernameChanged = username !== (profile.username || '');
       const bioChanged = bio !== (profile.bio || '');
-      setHasChanges(nameChanged || bioChanged);
+      setHasChanges(nameChanged || usernameChanged || bioChanged);
     }
-  }, [displayName, bio, profile]);
+  }, [displayName, username, bio, profile]);
+
+  const validateUsername = (value: string) => {
+    if (value && !/^[a-zA-Z0-9_-]+$/.test(value)) {
+      setUsernameError('Username can only contain letters, numbers, underscores, and dashes');
+      return false;
+    }
+    setUsernameError('');
+    return true;
+  };
 
   const handleSave = async () => {
     if (!hasChanges) return;
+    if (!validateUsername(username)) return;
     
     setIsSaving(true);
-    await updateProfile({
+    const success = await updateProfile({
       display_name: displayName.trim() || undefined,
+      username: username.trim() || undefined,
       bio: bio.trim() || undefined,
     });
     setIsSaving(false);
-    setHasChanges(false);
+    if (success) {
+      setHasChanges(false);
+    }
   };
 
   if (!profile) {
@@ -110,6 +127,30 @@ export const InfluencerSettingsTab: React.FC<InfluencerSettingsTabProps> = ({ pr
               <p className="text-xs text-muted-foreground">
                 This name will be shown on posts you create
               </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                <Input
+                  id="username"
+                  placeholder="your_username"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    validateUsername(e.target.value);
+                  }}
+                  className="pl-7"
+                  maxLength={50}
+                />
+              </div>
+              {usernameError ? (
+                <p className="text-xs text-destructive">{usernameError}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  This will be your unique tag across the platform
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
