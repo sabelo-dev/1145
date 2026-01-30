@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -410,7 +411,7 @@ const AdminSettings: React.FC = () => {
 
             <div className="flex flex-col gap-3 md:flex-row md:items-end">
               <div className="flex-1 space-y-2">
-                <FormLabel>Type RESET to confirm</FormLabel>
+                <Label>Type RESET to confirm</Label>
                 <Input
                   value={resetConfirmText}
                   onChange={(e) => setResetConfirmText(e.target.value)}
