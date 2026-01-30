@@ -36,6 +36,7 @@ import { BanUserDialog, UnbanUserDialog, DeleteUserDialog } from "./users/UserAc
 
 interface ExtendedProfile extends Profile {
   is_banned?: boolean;
+  influencer_username?: string;
 }
 
 const AdminUsers: React.FC = () => {
@@ -77,7 +78,24 @@ const AdminUsers: React.FC = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Fetch influencer usernames for influencer users
+      const userIds = (data || []).map(u => u.id);
+      const { data: influencerData } = await supabase
+        .from('influencer_profiles')
+        .select('user_id, username')
+        .in('user_id', userIds);
+
+      const influencerMap = new Map(
+        (influencerData || []).map(i => [i.user_id, i.username])
+      );
+
+      const usersWithUsernames = (data || []).map(user => ({
+        ...user,
+        influencer_username: influencerMap.get(user.id) || null,
+      }));
+
+      setUsers(usersWithUsernames);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -173,25 +191,24 @@ const AdminUsers: React.FC = () => {
     
     setIsProcessing(true);
     try {
-      // Delete user roles first
-      await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', selectedUser.id);
+      // Call the edge function to properly delete the user from auth and all related data
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("You must be logged in to delete users");
+      }
 
-      // Delete influencer profile if exists
-      await supabase
-        .from('influencer_profiles')
-        .delete()
-        .eq('user_id', selectedUser.id);
+      const response = await supabase.functions.invoke('delete-user', {
+        body: { userId: selectedUser.id },
+      });
 
-      // Delete the profile
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', selectedUser.id);
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to delete user");
+      }
 
-      if (error) throw error;
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
 
       setUsers(users.filter(u => u.id !== selectedUser.id));
 
@@ -199,12 +216,12 @@ const AdminUsers: React.FC = () => {
         title: "User deleted",
         description: `${selectedUser.name || selectedUser.email} has been permanently deleted.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting user:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete user. They may have associated data that needs to be removed first.",
+        description: error.message || "Failed to delete user. They may have associated data that needs to be removed first.",
       });
     } finally {
       setIsProcessing(false);
@@ -502,7 +519,14 @@ const AdminUsers: React.FC = () => {
           ) : (
             users.map(user => (
               <TableRow key={user.id} className={user.is_banned ? "opacity-60" : ""}>
-                <TableCell>{user.name || 'N/A'}</TableCell>
+                <TableCell>
+                  <div>
+                    <div>{user.name || 'N/A'}</div>
+                    {user.influencer_username && (
+                      <div className="text-xs text-primary">@{user.influencer_username}</div>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'vendor' ? 'outline' : 'default'}>

@@ -278,12 +278,19 @@ export const useInfluencer = () => {
         .from('influencer_profiles')
         .update({
           display_name: updates.display_name,
+          username: updates.username,
           bio: updates.bio,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violation for username
+        if (error.code === '23505' && error.message.includes('username')) {
+          throw new Error('This username is already taken. Please choose a different one.');
+        }
+        throw error;
+      }
 
       toast({
         title: 'Profile Updated',
