@@ -274,14 +274,28 @@ export const useInfluencer = () => {
     }
 
     try {
+      const updateData: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Only include fields that are explicitly provided
+      if (updates.display_name !== undefined) updateData.display_name = updates.display_name;
+      if (updates.username !== undefined) updateData.username = updates.username;
+      if (updates.bio !== undefined) updateData.bio = updates.bio;
+      if (updates.first_name !== undefined) updateData.first_name = updates.first_name;
+      if (updates.last_name !== undefined) updateData.last_name = updates.last_name;
+      if (updates.phone !== undefined) updateData.phone = updates.phone;
+      if (updates.date_of_birth !== undefined) updateData.date_of_birth = updates.date_of_birth;
+      if (updates.id_number !== undefined) updateData.id_number = updates.id_number;
+      if (updates.street_address !== undefined) updateData.street_address = updates.street_address;
+      if (updates.city !== undefined) updateData.city = updates.city;
+      if (updates.province !== undefined) updateData.province = updates.province;
+      if (updates.postal_code !== undefined) updateData.postal_code = updates.postal_code;
+      if (updates.country !== undefined) updateData.country = updates.country;
+
       const { error } = await supabase
         .from('influencer_profiles')
-        .update({
-          display_name: updates.display_name,
-          username: updates.username,
-          bio: updates.bio,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('user_id', user.id);
 
       if (error) {
