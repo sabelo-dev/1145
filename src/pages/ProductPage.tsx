@@ -64,15 +64,15 @@ const ProductPage: React.FC = () => {
     loadProduct();
   }, [slug]);
 
-  // Get unique attribute types and values - filter out empty/invalid attributes
+  // Get unique attribute types and values - filter out empty/invalid and internal attributes
   const attributeTypes = React.useMemo(() => {
     if (!product?.variations || product.variations.length === 0) return [];
     const types = new Set<string>();
     product.variations.forEach(v => {
       if (v.attributes && typeof v.attributes === 'object') {
         Object.entries(v.attributes).forEach(([key, value]) => {
-          // Only include attributes with valid keys and non-empty values
-          if (key && value !== null && value !== undefined && String(value).trim() !== '') {
+          // Only include attributes with valid keys, non-empty values, and exclude internal attributes (prefixed with _)
+          if (key && !key.startsWith('_') && value !== null && value !== undefined && String(value).trim() !== '') {
             types.add(key);
           }
         });
@@ -82,7 +82,7 @@ const ProductPage: React.FC = () => {
   }, [product?.variations]);
 
   const getAttributeValues = (type: string) => {
-    if (!product?.variations) return [];
+    if (!product?.variations || type.startsWith('_')) return [];
     const values = new Set<string>();
     product.variations.forEach(v => {
       if (v.attributes && v.attributes[type]) {
@@ -378,12 +378,12 @@ const ProductPage: React.FC = () => {
                       );
                     })}
                   </div>
-                  {selectedVariation && Object.keys(selectedAttributes).filter(key => selectedAttributes[key]).length > 0 && (
+                  {selectedVariation && Object.keys(selectedAttributes).filter(key => !key.startsWith('_') && selectedAttributes[key]).length > 0 && (
                     <div className="mt-4 pt-4 border-t text-sm space-y-1">
                       <p className="text-muted-foreground">Selected Variation:</p>
                       <p className="font-medium">
                         {Object.entries(selectedAttributes)
-                          .filter(([_, value]) => value !== null && value !== undefined && String(value).trim() !== '')
+                          .filter(([key, value]) => !key.startsWith('_') && value !== null && value !== undefined && String(value).trim() !== '')
                           .map(([key, value]) => (
                             <span key={key} className="mr-2">
                               {key}: {String(value)}
