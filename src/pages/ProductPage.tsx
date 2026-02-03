@@ -31,6 +31,7 @@ const ProductPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
+  const [colorImage, setColorImage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -38,6 +39,7 @@ const ProductPage: React.FC = () => {
       
       try {
         setLoading(true);
+        setColorImage(null); // Reset color image when loading new product
         
         const productData = await fetchProductBySlug(slug);
         
@@ -103,13 +105,31 @@ const ProductPage: React.FC = () => {
     // Find matching variation
     const matchingVariation = product?.variations?.find(v => {
       return Object.keys(newAttributes).every(
-        key => v.attributes[key] === newAttributes[key]
+        key => !key.startsWith('_') && v.attributes[key] === newAttributes[key]
       );
     });
 
     if (matchingVariation) {
       setSelectedVariation(matchingVariation);
-      // Update main image if variation has one
+      
+      // Check for color-specific image in _images attribute
+      const imagesAttr = matchingVariation.attributes['_images'];
+      if (imagesAttr && type === 'Color') {
+        try {
+          const imagesMap = typeof imagesAttr === 'string' ? JSON.parse(imagesAttr) : imagesAttr;
+          const colorImage = imagesMap['Color'] || imagesMap[value];
+          if (colorImage && !colorImage.startsWith('blob:')) {
+            // Add the color image to the beginning of the images array for display
+            setColorImage(colorImage);
+            setSelectedImage(0);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing _images attribute:', e);
+        }
+      }
+      
+      // Fallback: Update main image if variation has a direct imageUrl
       if (matchingVariation.imageUrl && product?.images) {
         const varImageIndex = product.images.findIndex(img => img === matchingVariation.imageUrl);
         if (varImageIndex !== -1) {
@@ -205,7 +225,7 @@ const ProductPage: React.FC = () => {
           <div className="space-y-4">
             <div className="relative aspect-square overflow-hidden rounded-lg border bg-gray-100 group">
               <img
-                src={product.images && product.images.length > 0 ? product.images[selectedImage] : '/placeholder.svg'}
+                src={colorImage || (product.images && product.images.length > 0 ? product.images[selectedImage] : '/placeholder.svg')}
                 alt={product.name}
                 className="h-full w-full object-cover object-center"
                 onError={(e) => {
@@ -216,14 +236,20 @@ const ProductPage: React.FC = () => {
               {product.images && product.images.length > 1 && (
                 <>
                   <button
-                    onClick={() => setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1)}
+                    onClick={() => {
+                      setColorImage(null);
+                      setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1);
+                    }}
                     className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover:bg-background p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label="Previous image"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={() => setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1)}
+                    onClick={() => {
+                      setColorImage(null);
+                      setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1);
+                    }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm hover:bg-background p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label="Next image"
                   >
@@ -234,7 +260,7 @@ const ProductPage: React.FC = () => {
                     {product.images.map((_, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setSelectedImage(idx)}
+                        onClick={() => { setColorImage(null); setSelectedImage(idx); }}
                         className={cn(
                           "h-2 w-2 rounded-full transition-all",
                           selectedImage === idx 
@@ -258,7 +284,7 @@ const ProductPage: React.FC = () => {
                       ? "ring-2 ring-primary"
                       : "hover:ring-1 hover:ring-muted-foreground/30"
                   }`}
-                  onClick={() => setSelectedImage(idx)}
+                  onClick={() => { setColorImage(null); setSelectedImage(idx); }}
                 >
                   <img
                     src={image}
