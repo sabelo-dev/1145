@@ -20,15 +20,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const [selectedVariation, setSelectedVariation] = React.useState<string | null>(null);
 
-  // Get unique attribute types (e.g., color, size) - filter out empty/invalid attributes
+  // Get unique attribute types (e.g., color, size) - filter out empty/invalid and internal attributes
   const attributeTypes = React.useMemo(() => {
     if (!product.variations || product.variations.length === 0) return [];
     const types = new Set<string>();
     product.variations.forEach(v => {
       if (v.attributes && typeof v.attributes === 'object') {
         Object.entries(v.attributes).forEach(([key, value]) => {
-          // Only include attributes with valid keys and non-empty values
-          if (key && value !== null && value !== undefined && String(value).trim() !== '') {
+          // Only include attributes with valid keys, non-empty values, and exclude internal attributes (prefixed with _)
+          if (key && !key.startsWith('_') && value !== null && value !== undefined && String(value).trim() !== '') {
             types.add(key);
           }
         });
@@ -37,9 +37,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     return Array.from(types);
   }, [product.variations]);
 
-  // Get unique values for each attribute type - filter out empty values
+  // Get unique values for each attribute type - filter out empty values and internal attributes
   const getAttributeValues = (type: string) => {
-    if (!product.variations) return [];
+    if (!product.variations || type.startsWith('_')) return [];
     const values = new Set<string>();
     product.variations.forEach(v => {
       if (v.attributes && v.attributes[type]) {

@@ -35,3 +35,15 @@ verify_jwt = false
 
 [functions.update-gold-prices]
 verify_jwt = false
+
+[functions.social-oauth]
+verify_jwt = false
+
+[functions.social-oauth-callback]
+verify_jwt = false
+
+[functions.social-publish]
+verify_jwt = false
+
+[functions.social-analytics]
+verify_jwt = false
