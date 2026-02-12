@@ -3978,6 +3978,146 @@ export type Database = {
           },
         ]
       }
+      store_featured_products: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          product_id: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          product_id: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          product_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_featured_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_featured_products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storefront_customizations: {
+        Row: {
+          about_us: string | null
+          accent_color: string | null
+          announcement_bar_active: boolean | null
+          announcement_bar_text: string | null
+          created_at: string
+          cta_button_text: string | null
+          cta_button_url: string | null
+          custom_css: string | null
+          custom_domain: string | null
+          custom_font: string | null
+          custom_meta_description: string | null
+          custom_meta_title: string | null
+          email_capture_enabled: boolean | null
+          email_capture_title: string | null
+          faq_items: Json | null
+          ga_tracking_id: string | null
+          homepage_sections: Json | null
+          id: string
+          layout_type: string | null
+          mega_menu_config: Json | null
+          meta_pixel_id: string | null
+          secondary_color: string | null
+          social_links: Json | null
+          store_id: string
+          testimonials: Json | null
+          updated_at: string
+          video_banner_url: string | null
+          white_label: boolean | null
+        }
+        Insert: {
+          about_us?: string | null
+          accent_color?: string | null
+          announcement_bar_active?: boolean | null
+          announcement_bar_text?: string | null
+          created_at?: string
+          cta_button_text?: string | null
+          cta_button_url?: string | null
+          custom_css?: string | null
+          custom_domain?: string | null
+          custom_font?: string | null
+          custom_meta_description?: string | null
+          custom_meta_title?: string | null
+          email_capture_enabled?: boolean | null
+          email_capture_title?: string | null
+          faq_items?: Json | null
+          ga_tracking_id?: string | null
+          homepage_sections?: Json | null
+          id?: string
+          layout_type?: string | null
+          mega_menu_config?: Json | null
+          meta_pixel_id?: string | null
+          secondary_color?: string | null
+          social_links?: Json | null
+          store_id: string
+          testimonials?: Json | null
+          updated_at?: string
+          video_banner_url?: string | null
+          white_label?: boolean | null
+        }
+        Update: {
+          about_us?: string | null
+          accent_color?: string | null
+          announcement_bar_active?: boolean | null
+          announcement_bar_text?: string | null
+          created_at?: string
+          cta_button_text?: string | null
+          cta_button_url?: string | null
+          custom_css?: string | null
+          custom_domain?: string | null
+          custom_font?: string | null
+          custom_meta_description?: string | null
+          custom_meta_title?: string | null
+          email_capture_enabled?: boolean | null
+          email_capture_title?: string | null
+          faq_items?: Json | null
+          ga_tracking_id?: string | null
+          homepage_sections?: Json | null
+          id?: string
+          layout_type?: string | null
+          mega_menu_config?: Json | null
+          meta_pixel_id?: string | null
+          secondary_color?: string | null
+          social_links?: Json | null
+          store_id?: string
+          testimonials?: Json | null
+          updated_at?: string
+          video_banner_url?: string | null
+          white_label?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storefront_customizations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           banner_url: string | null
