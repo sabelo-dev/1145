@@ -66,7 +66,6 @@ import {
   Coins,
   Pickaxe,
   Inbox,
-  Share2,
   Crown,
 } from "lucide-react";
 
@@ -94,7 +93,6 @@ const AdminDashboard = () => {
     { id: "ucoin", title: "UCoin Management", icon: Coins },
     { id: "gold-pricing", title: "Gold Pricing", icon: Coins },
     { id: "social-mining", title: "Social Mining", icon: Pickaxe },
-    { id: "social-media", title: "Social Media", icon: Share2 },
     { id: "influencers", title: "Influencer Management", icon: Crown },
     { id: "categories", title: "Categories", icon: FileText },
     { id: "analytics", title: "Reports & Analytics", icon: BarChart3 },
@@ -254,9 +252,6 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="social-mining" className="mt-0">
               <AdminSocialMining />
-            </TabsContent>
-            <TabsContent value="social-media" className="mt-0">
-              <AdminSocialMedia />
             </TabsContent>
             <TabsContent value="influencers" className="mt-0">
               <AdminSocialMedia />
