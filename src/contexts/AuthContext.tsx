@@ -11,7 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ redirectPath?: string }>;
   register: (email: string, password: string, name: string, role?: 'consumer' | 'vendor') => Promise<{ redirectPath?: string }>;
   logout: () => Promise<void>;
-  isVendor: boolean;
+  isMerchant: boolean;
   isAdmin: boolean;
   isDriver: boolean;
   isInfluencer: boolean;
@@ -23,27 +23,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isVendor, setIsVendor] = useState(false);
+  const [isMerchant, setIsMerchant] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
   const [isInfluencer, setIsInfluencer] = useState(false);
   const { toast } = useToast();
   const loadingManager = useLoadingManager();
 
-  const getRedirectPathForRole = (userRole: string, isVendorApproved: boolean, isDriverUser: boolean, isInfluencerUser: boolean, isLogin: boolean = true): string => {
+  const getRedirectPathForRole = (userRole: string, isMerchantApproved: boolean, isDriverUser: boolean, isInfluencerUser: boolean, isLogin: boolean = true): string => {
     if (userRole === 'admin') return '/admin/dashboard';
     if (isInfluencerUser) return '/influencer/dashboard';
     if (isDriverUser) return '/driver/dashboard';
-    if (userRole === 'vendor') {
-      return isLogin ? '/vendor/dashboard' : '/login';
+    if (userRole === 'vendor' || isMerchantApproved) {
+      return isLogin ? '/merchant/dashboard' : '/login';
     }
-    return '/';
+    return '/dashboard';
   };
 
   const clearAuthState = () => {
     setUser(null);
     setSession(null);
-    setIsVendor(false);
+    setIsMerchant(false);
     setIsAdmin(false);
     setIsDriver(false);
     setIsInfluencer(false);
@@ -62,23 +62,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const checkVendorStatus = async (userId: string): Promise<boolean> => {
+  const checkMerchantStatus = async (userId: string): Promise<boolean> => {
     try {
-      console.log('Checking vendor status for user:', userId);
-      const { data: vendor } = await supabase
+      console.log('Checking merchant status for user:', userId);
+      const { data: merchant } = await supabase
         .from('vendors')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
       
-      console.log('Vendor status check result:', vendor);
-      // Return true if vendor record exists (regardless of approval status)
-      // This allows vendors to access their dashboard even while pending approval
-      const isVendor = !!vendor;
-      console.log('Is vendor:', isVendor);
-      return isVendor;
+      console.log('Merchant status check result:', merchant);
+      const isMerchant = !!merchant;
+      console.log('Is merchant:', isMerchant);
+      return isMerchant;
     } catch (error) {
-      console.error('Error checking vendor status:', error);
+      console.error('Error checking merchant status:', error);
       return false;
     }
   };
@@ -92,7 +90,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Fetch user profile and roles from separate tables (secure implementation)
       const [profileResult, rolesResult] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
         supabase.from('user_roles').select('role').eq('user_id', session.user.id)
@@ -110,20 +107,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userRoles = roles.map(r => r.role);
       
       if (profile) {
-        // Check vendor and driver status first (these are the most specific role checks)
-        const [vendorStatus, driverStatus] = await Promise.all([
-          checkVendorStatus(profile.id),
+        const [merchantStatus, driverStatus] = await Promise.all([
+          checkMerchantStatus(profile.id),
           checkDriverStatus(profile.id)
         ]);
         
-        // Determine primary role with proper priority
-        // Priority: admin > influencer > driver > vendor > consumer
         let primaryRole: 'admin' | 'vendor' | 'consumer' = 'consumer';
         if (userRoles.includes('admin')) {
           primaryRole = 'admin';
         } else if (driverStatus || userRoles.includes('driver')) {
-          primaryRole = 'consumer'; // Driver uses consumer as base role
-        } else if (vendorStatus || userRoles.includes('vendor')) {
+          primaryRole = 'consumer';
+        } else if (merchantStatus || userRoles.includes('vendor')) {
           primaryRole = 'vendor';
         }
         
@@ -137,22 +131,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(userData);
         
-        // Set role flags based on user_roles table AND actual status checks
         setIsAdmin(userRoles.includes('admin'));
         setIsInfluencer(userRoles.includes('influencer'));
-        setIsVendor(vendorStatus || userRoles.includes('vendor'));
+        setIsMerchant(merchantStatus || userRoles.includes('vendor'));
         setIsDriver(driverStatus || userRoles.includes('driver'));
         
         console.log('User profile loaded:', {
           userId: profile.id,
           roles: userRoles,
           isAdmin: userRoles.includes('admin'),
-          isVendor: vendorStatus || userRoles.includes('vendor'),
+          isMerchant: merchantStatus || userRoles.includes('vendor'),
           isDriver: driverStatus || userRoles.includes('driver'),
           isInfluencer: userRoles.includes('influencer')
         });
       } else {
-        // Create basic user data from session if no profile exists
         const userData: User = {
           id: session.user.id,
           email: session.user.email || '',
@@ -162,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(userData);
         setIsAdmin(false);
-        setIsVendor(false);
+        setIsMerchant(false);
         setIsDriver(false);
         setIsInfluencer(false);
       }
@@ -178,7 +170,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (session?.user) {
       loadingManager.startLoading('refresh');
       await loadUserProfile(session, 'refresh');
-      // Wait a bit for state to propagate
       await new Promise(resolve => setTimeout(resolve, 50));
     }
   };
@@ -187,7 +178,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mounted = true;
     loadingManager.startLoading('auth');
 
-    // Get initial session
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -215,7 +205,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     getInitialSession();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
@@ -223,12 +212,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mounted) {
           setSession(session);
           
-          // Handle auth events properly
           if (event === 'SIGNED_OUT') {
             clearAuthState();
             loadingManager.stopLoading('auth');
           } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            // Use setTimeout to prevent deadlock and allow proper state updates
             setTimeout(async () => {
               if (mounted && session) {
                 await loadUserProfile(session);
@@ -275,10 +262,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (data.user) {
-        // Get user roles from user_roles table and vendor status for redirect
-        const [rolesResult, vendorResult, driverResult] = await Promise.all([
+        const [rolesResult, merchantResult, driverResult] = await Promise.all([
           supabase.from('user_roles').select('role').eq('user_id', data.user.id),
-          checkVendorStatus(data.user.id),
+          checkMerchantStatus(data.user.id),
           checkDriverStatus(data.user.id)
         ]);
         
@@ -286,7 +272,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isInfluencerUser = userRoles.includes('influencer');
         const userRole = userRoles.includes('admin') ? 'admin' : 
                         userRoles.includes('vendor') ? 'vendor' : 'consumer';
-        const redirectPath = getRedirectPathForRole(userRole, vendorResult, driverResult, isInfluencerUser, true);
+        const redirectPath = getRedirectPathForRole(userRole, merchantResult, driverResult, isInfluencerUser, true);
         
         toast({
           title: "Login Successful",
@@ -336,7 +322,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Registration error:', error);
         loadingManager.stopLoading('register');
         
-        // Handle specific error cases
         let errorMessage = error.message;
         if (error.message.includes('already registered') || error.message.includes('already been registered')) {
           errorMessage = "This email is already registered. Please try logging in instead.";
@@ -352,9 +337,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      // Handle registration success
       if (data.user) {
-        // Check if email confirmation is required
         if (!data.user.email_confirmed_at && data.session === null) {
           loadingManager.stopLoading('register');
           toast({
@@ -363,7 +346,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           return {};
         } else {
-          // User is signed in immediately - always redirect to homepage after registration
           const redirectPath = '/';
           
           toast({
@@ -395,11 +377,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       loadingManager.startLoading('logout');
-      
-      // Clear state first to prevent any pending requests
       clearAuthState();
       
-      // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -428,7 +407,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isVendor, isAdmin, isDriver, isInfluencer, refreshUserProfile }}>
+    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isMerchant, isAdmin, isDriver, isInfluencer, refreshUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

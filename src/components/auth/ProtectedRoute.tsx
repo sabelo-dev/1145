@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
   requireAdmin?: boolean;
-  requireVendor?: boolean;
+  requireMerchant?: boolean;
   requireDriver?: boolean;
   requireInfluencer?: boolean;
   fallbackPath?: string;
@@ -16,14 +16,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireAuth = false,
   requireAdmin = false,
-  requireVendor = false,
+  requireMerchant = false,
   requireDriver = false,
   requireInfluencer = false,
   fallbackPath = '/'
 }) => {
-  const { user, isLoading, isAdmin, isVendor, isDriver, isInfluencer } = useAuth();
+  const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer } = useAuth();
 
-  // Show loading while auth is being determined
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -35,40 +34,34 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Redirect unauthenticated users if auth is required
   if (requireAuth && !user) {
     const loginPath = requireAdmin ? '/admin/login' : 
-                      requireVendor ? '/vendor/login' : 
+                      requireMerchant ? '/merchant/login' : 
                       requireDriver ? '/driver/login' : 
                       requireInfluencer ? '/influencer/login' : '/login';
     return <Navigate to={loginPath} replace />;
   }
 
-  // Redirect authenticated users away from auth pages
   if (!requireAuth && user) {
     if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
     if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
-    if (isVendor) return <Navigate to="/vendor/dashboard" replace />;
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
-    return <Navigate to="/" replace />;
+    if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
-  // Check admin access
   if (requireAdmin && (!user || !isAdmin)) {
     return <Navigate to="/admin/login" replace />;
   }
 
-  // Check vendor access
-  if (requireVendor && (!user || !isVendor)) {
-    return <Navigate to="/vendor/login" replace />;
+  if (requireMerchant && (!user || !isMerchant)) {
+    return <Navigate to="/merchant/login" replace />;
   }
 
-  // Check driver access
   if (requireDriver && (!user || !isDriver)) {
     return <Navigate to="/driver/login" replace />;
   }
 
-  // Check influencer access
   if (requireInfluencer && (!user || !isInfluencer)) {
     return <Navigate to="/influencer/login" replace />;
   }

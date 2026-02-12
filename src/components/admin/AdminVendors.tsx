@@ -132,15 +132,15 @@ const AdminVendors: React.FC = () => {
       );
 
       toast({
-        title: "Vendor status updated",
-        description: `Vendor has been ${newStatus}.`,
+        title: "Merchant status updated",
+        description: `Merchant has been ${newStatus}.`,
       });
     } catch (error) {
       console.error('Error updating vendor status:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update vendor status.",
+        description: "Failed to update merchant status.",
       });
     }
   };
@@ -156,8 +156,8 @@ const AdminVendors: React.FC = () => {
       setVendors(vendors.filter((vendor) => vendor.id !== vendorId));
 
       toast({
-        title: "Vendor removed",
-        description: "Vendor and all associated data have been permanently deleted.",
+        title: "Merchant removed",
+        description: "Merchant and all associated data have been permanently deleted.",
       });
     } catch (error) {
       console.error('Error removing vendor:', error);
@@ -191,15 +191,15 @@ const AdminVendors: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between mb-4">
-        <h2 className="text-2xl font-bold">Vendor Applications</h2>
+        <h2 className="text-2xl font-bold">Merchant Applications</h2>
         <AddVendorDialog onCreated={fetchVendors} />
       </div>
 
       {loading ? (
-        <div className="text-center py-8">Loading vendors...</div>
+        <div className="text-center py-8">Loading merchants...</div>
       ) : (
         <Table>
-          <TableCaption>List of vendor applications</TableCaption>
+          <TableCaption>List of merchant applications</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>Business Name</TableHead>
