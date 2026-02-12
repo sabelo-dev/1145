@@ -166,7 +166,8 @@ export const fetchStoreBySlug = async (storeSlug: string) => {
           id,
           business_name,
           description,
-          logo_url
+          logo_url,
+          subscription_tier
         )
       `)
       .eq('slug', storeSlug)
