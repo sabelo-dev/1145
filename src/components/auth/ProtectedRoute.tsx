@@ -45,9 +45,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (!requireAuth && user) {
     if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
     if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
-    if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
-    return <Navigate to="/" replace />;
+    if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (requireAdmin && (!user || !isAdmin)) {

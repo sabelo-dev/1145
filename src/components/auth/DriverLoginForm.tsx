@@ -5,70 +5,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 const DriverLoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Check if user is a registered driver
-        const { data: driver, error: driverError } = await supabase
-          .from("drivers")
-          .select("id, status")
-          .eq("user_id", data.user.id)
-          .maybeSingle();
-
-        if (driverError) throw driverError;
-
-        if (!driver) {
-          await supabase.auth.signOut();
-          toast({
-            variant: "destructive",
-            title: "Access Denied",
-            description: "You are not registered as a driver. Please contact admin or register as a driver.",
-          });
-          return;
-        }
-
-        if (driver.status === 'pending') {
-          toast({
-            title: "Pending Approval",
-            description: "Your driver application is pending approval. You'll be notified once approved.",
-          });
-        }
-
-        toast({
-          title: "Login Successful",
-          description: "Welcome to the Driver Portal!",
-        });
-
+      const result = await login(email, password);
+      if (result?.redirectPath) {
+        navigate(result.redirectPath);
+      } else {
         navigate("/driver/dashboard");
       }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message,
-      });
+      // Error toast is already handled in AuthContext
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -103,8 +65,8 @@ const DriverLoginForm: React.FC = () => {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in...

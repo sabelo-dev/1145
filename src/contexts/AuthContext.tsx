@@ -34,10 +34,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (userRole === 'admin') return '/admin/dashboard';
     if (isInfluencerUser) return '/influencer/dashboard';
     if (isDriverUser) return '/driver/dashboard';
-    if (userRole === 'vendor') {
+    if (userRole === 'vendor' || isMerchantApproved) {
       return isLogin ? '/merchant/dashboard' : '/login';
     }
-    return '/';
+    return '/dashboard';
   };
 
   const clearAuthState = () => {
