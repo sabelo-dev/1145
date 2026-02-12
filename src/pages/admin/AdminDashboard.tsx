@@ -86,7 +86,7 @@ const AdminDashboard = () => {
     { id: "overview", title: "Overview", icon: LayoutDashboard },
     { id: "inbox", title: "Email Inbox", icon: Inbox },
     { id: "users", title: "User Management", icon: Users },
-    { id: "vendors", title: "Vendor Management", icon: Store },
+    { id: "vendors", title: "Merchant Management", icon: Store },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
     { id: "products", title: "Products (All)", icon: Package },
     { id: "auctions", title: "Auctions", icon: Gavel },

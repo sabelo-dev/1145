@@ -23,7 +23,7 @@ const menuItems = [
 ];
 
 const HomeNavMenu: React.FC = () => {
-  const { user, logout, isVendor, isDriver, isAdmin } = useAuth();
+  const { user, logout, isMerchant, isDriver, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -141,13 +141,13 @@ const HomeNavMenu: React.FC = () => {
                       </Link>
                     </DropdownMenuItem>
                     
-                    {(!isVendor || !isDriver) && <DropdownMenuSeparator />}
+                    {(!isMerchant || !isDriver) && <DropdownMenuSeparator />}
                     
-                    {!isVendor && (
+                    {!isMerchant && (
                       <DropdownMenuItem asChild>
-                        <Link to="/vendor/register" className="flex items-center gap-2 cursor-pointer">
+                        <Link to="/merchant/register" className="flex items-center gap-2 cursor-pointer">
                           <Store className="h-4 w-4" />
-                          Become a Vendor
+                          Become a Merchant
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -230,7 +230,7 @@ const HomeNavMenu: React.FC = () => {
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         user={user}
-        isVendor={isVendor}
+        isMerchant={isMerchant}
         isDriver={isDriver}
         isAdmin={isAdmin}
         logout={logout}

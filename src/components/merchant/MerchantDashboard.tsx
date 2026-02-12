@@ -221,7 +221,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
         <SidebarHeader className="p-4 border-b">
           <div className="flex items-center gap-2">
             <Store className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-foreground">Vendor Dashboard</span>
+            <span className="font-semibold text-foreground">Merchant Dashboard</span>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -255,16 +255,16 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar_url || ''} alt={user?.name || 'Vendor'} />
+                  <AvatarImage src={user?.avatar_url || ''} alt={user?.name || 'Merchant'} />
                   <AvatarFallback>
-                    {user?.name?.charAt(0)?.toUpperCase() || 'V'}
+                    {user?.name?.charAt(0)?.toUpperCase() || 'M'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <div className="flex flex-col space-y-1 p-2">
-                <p className="text-sm font-medium leading-none">{user?.name || 'Vendor'}</p>
+                <p className="text-sm font-medium leading-none">{user?.name || 'Merchant'}</p>
                 <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
               </div>
               <DropdownMenuSeparator />
@@ -286,7 +286,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
               <h3 className="font-semibold text-destructive mb-2">Trial Expired</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Your trial period has ended. Please upgrade to continue using the vendor dashboard.
+                Your trial period has ended. Please upgrade to continue using the merchant dashboard.
               </p>
               <Button onClick={() => setShowUpgradeModal(true)} className="gap-1">
                 <Crown className="h-4 w-4" />

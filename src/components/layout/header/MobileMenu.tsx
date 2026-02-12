@@ -16,7 +16,7 @@ interface MobileMenuProps {
   setMobileMenuOpen: (open: boolean) => void;
   user: UserType | null;
   isAdmin: boolean;
-  isVendor: boolean;
+  isMerchant: boolean;
   isDriver: boolean;
   logout: () => Promise<void>;
 }
@@ -26,7 +26,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   setMobileMenuOpen,
   user,
   isAdmin,
-  isVendor,
+  isMerchant,
   isDriver,
   logout,
 }) => {
@@ -130,54 +130,18 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               <div>
                 <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clothing</p>
                 <div className="space-y-1">
-                  <Link
-                    to="/category/clothing/men"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Men's Clothing
-                  </Link>
-                  <Link
-                    to="/category/clothing/women"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Women's Clothing
-                  </Link>
-                  <Link
-                    to="/category/clothing/kids"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Kids' Clothing
-                  </Link>
+                  <Link to="/category/clothing/men" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Men's Clothing</Link>
+                  <Link to="/category/clothing/women" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Women's Clothing</Link>
+                  <Link to="/category/clothing/kids" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Kids' Clothing</Link>
                 </div>
               </div>
               
               <div>
                 <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Home</p>
                 <div className="space-y-1">
-                  <Link
-                    to="/category/home-kitchen/appliances"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Appliances
-                  </Link>
-                  <Link
-                    to="/category/home-kitchen/kitchen"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Electronics
-                  </Link>
-                  <Link
-                    to="/category/home-kitchen/furniture"
-                    className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Furniture
-                  </Link>
+                  <Link to="/category/home-kitchen/appliances" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Appliances</Link>
+                  <Link to="/category/home-kitchen/kitchen" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Electronics</Link>
+                  <Link to="/category/home-kitchen/furniture" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Furniture</Link>
                 </div>
               </div>
             </CollapsibleContent>
@@ -202,26 +166,26 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           </div>
 
           {/* Role-specific Links */}
-          {(isVendor || isDriver || isAdmin || (user && !isVendor)) && (
+          {(isMerchant || isDriver || isAdmin || (user && !isMerchant)) && (
             <div className="border-t border-border pt-4 space-y-1">
-              {user?.role === 'consumer' && !isVendor && (
+              {user?.role === 'consumer' && !isMerchant && (
                 <Link
-                  to="/vendor/register"
+                  to="/merchant/register"
                   className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Store className="h-4 w-4 text-muted-foreground" />
-                  Become a Vendor
+                  Become a Merchant
                 </Link>
               )}
-              {isVendor && (
+              {isMerchant && (
                 <Link
-                  to="/vendor/dashboard"
+                  to="/merchant/dashboard"
                   className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Store className="h-4 w-4 text-muted-foreground" />
-                  Vendor Dashboard
+                  Merchant Dashboard
                 </Link>
               )}
               {isDriver && (

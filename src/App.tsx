@@ -34,11 +34,11 @@ import NotFound from "@/pages/NotFound";
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 
-// Vendor pages
-import VendorLoginPage from "@/pages/VendorLoginPage";
-import VendorRegisterPage from "@/pages/VendorRegisterPage";
-import VendorOnboardingPage from "@/pages/VendorOnboardingPage";
-import VendorDashboardPage from "@/pages/VendorDashboardPage";
+// Merchant pages
+import MerchantLoginPage from "@/pages/MerchantLoginPage";
+import MerchantRegisterPage from "@/pages/MerchantRegisterPage";
+import MerchantOnboardingPage from "@/pages/MerchantOnboardingPage";
+import MerchantDashboardPage from "@/pages/MerchantDashboardPage";
 
 // Driver pages
 import DriverLoginPage from "@/pages/driver/DriverLoginPage";
@@ -147,19 +147,25 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* Vendor pages */}
-              <Route path="vendor/login" element={<VendorLoginPage />} />
-              <Route path="vendor/register" element={<VendorRegisterPage />} />
-              <Route path="vendor/onboarding" element={
-                <ProtectedRoute requireAuth requireVendor>
-                  <VendorOnboardingPage />
+              {/* Merchant pages */}
+              <Route path="merchant/login" element={<MerchantLoginPage />} />
+              <Route path="merchant/register" element={<MerchantRegisterPage />} />
+              <Route path="merchant/onboarding" element={
+                <ProtectedRoute requireAuth requireMerchant>
+                  <MerchantOnboardingPage />
                 </ProtectedRoute>
               } />
-              <Route path="vendor/dashboard" element={
-                <ProtectedRoute requireAuth requireVendor>
-                  <VendorDashboardPage />
+              <Route path="merchant/dashboard" element={
+                <ProtectedRoute requireAuth requireMerchant>
+                  <MerchantDashboardPage />
                 </ProtectedRoute>
               } />
+              
+              {/* Legacy vendor routes - redirect to merchant */}
+              <Route path="vendor/login" element={<Navigate to="/merchant/login" replace />} />
+              <Route path="vendor/register" element={<Navigate to="/merchant/register" replace />} />
+              <Route path="vendor/onboarding" element={<Navigate to="/merchant/onboarding" replace />} />
+              <Route path="vendor/dashboard" element={<Navigate to="/merchant/dashboard" replace />} />
               
               {/* Driver pages */}
               <Route path="driver/login" element={<DriverLoginPage />} />
