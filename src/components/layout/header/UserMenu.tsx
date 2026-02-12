@@ -15,12 +15,12 @@ import { User as UserType } from "@/types";
 interface UserMenuProps {
   user: UserType | null;
   isAdmin: boolean;
-  isVendor: boolean;
+  isMerchant: boolean;
   isDriver: boolean;
   logout: () => Promise<void>;
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, isDriver, logout }) => {
+const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isMerchant, isDriver, logout }) => {
   if (!user) {
     return (
       <Link to="/login">
@@ -61,11 +61,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, isDriver, 
           </Link>
         </DropdownMenuItem>
         
-        {!isVendor && user?.role === 'consumer' && (
+        {!isMerchant && user?.role === 'consumer' && (
           <DropdownMenuItem asChild>
-            <Link to="/vendor/register" className="flex items-center">
+            <Link to="/merchant/register" className="flex items-center">
               <Store className="h-4 w-4 mr-2" />
-              Become a Vendor
+              Become a Merchant
             </Link>
           </DropdownMenuItem>
         )}
@@ -79,11 +79,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isVendor, isDriver, 
           </DropdownMenuItem>
         )}
         
-        {isVendor && (
+        {isMerchant && (
           <DropdownMenuItem asChild>
-            <Link to="/vendor/dashboard" className="flex items-center">
+            <Link to="/merchant/dashboard" className="flex items-center">
               <Store className="h-4 w-4 mr-2" />
-              Vendor Dashboard
+              Merchant Dashboard
             </Link>
           </DropdownMenuItem>
         )}

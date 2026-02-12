@@ -27,7 +27,7 @@ const menuItems = [
 ];
 
 const Header: React.FC = () => {
-  const { user, logout, isVendor, isDriver, isAdmin } = useAuth();
+  const { user, logout, isMerchant, isDriver, isAdmin } = useAuth();
   const { cart, toggleCart, isCartOpen, setCartOpen } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -177,13 +177,13 @@ const Header: React.FC = () => {
                         </Link>
                       </DropdownMenuItem>
                       
-                      {(!isVendor || !isDriver) && <DropdownMenuSeparator />}
+                      {(!isMerchant || !isDriver) && <DropdownMenuSeparator />}
                       
-                      {!isVendor && (
+                      {!isMerchant && (
                         <DropdownMenuItem asChild>
-                          <Link to="/vendor/register" className="flex items-center gap-2 cursor-pointer">
+                          <Link to="/merchant/register" className="flex items-center gap-2 cursor-pointer">
                             <Store className="h-4 w-4" />
-                            Become a Vendor
+                            Become a Merchant
                           </Link>
                         </DropdownMenuItem>
                       )}
@@ -269,7 +269,7 @@ const Header: React.FC = () => {
         setMobileMenuOpen={setMobileMenuOpen}
         user={user}
         isAdmin={isAdmin}
-        isVendor={isVendor}
+        isMerchant={isMerchant}
         isDriver={isDriver}
         logout={logout}
       />

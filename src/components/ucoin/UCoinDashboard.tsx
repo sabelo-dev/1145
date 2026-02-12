@@ -13,11 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Coins, Gift, BookOpen, History, Pickaxe, Send } from 'lucide-react';
 
 export function UCoinDashboard() {
-  const { user, isVendor, isDriver } = useAuth();
+  const { user, isMerchant, isDriver } = useAuth();
   const { wallet, transactions, earningRules, spendingOptions, isLoading, spendUCoin } = useUCoin();
   const { limits, transfers, isTransferring, transfer, isLoading: transferLoading } = useUCoinTransfer();
 
-  const userType = isDriver ? 'driver' : isVendor ? 'vendor' : 'consumer';
+  const userType = isDriver ? 'driver' : isMerchant ? 'vendor' : 'consumer';
 
   if (!user) {
     return (
