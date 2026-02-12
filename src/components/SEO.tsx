@@ -12,25 +12,26 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "1145 - Premium Online Shopping",
-  description = "Shop 1145 for premium fashion, electronics, home goods & more. 1145 is your trusted South African marketplace with fast delivery and secure checkout.",
-  keywords = "1145, online shopping, ecommerce, fashion, electronics, home goods, South Africa, premium marketplace",
+  title = "1145 Lifestyle - Premium Online Shopping South Africa",
+  description = "Shop 1145 Lifestyle for premium fashion, electronics, home goods & more. 1145 is your trusted South African marketplace with fast delivery and secure checkout. Find everything at 1145.",
+  keywords = "1145, 1145 Lifestyle, 1145 online shopping, 1145 South Africa, 1145 marketplace, 1145 fashion, 1145 electronics, 1145 home goods, ecommerce, premium marketplace, online store South Africa",
   image = "https://1145lifestyle.com/og-image.png",
   url,
   type = "website",
   structuredData,
   noindex = false,
 }: SEOProps) => {
-  const fullTitle = title.includes("1145") ? title : `${title} | 1145 `;
+  const fullTitle = title.includes("1145") ? title : `${title} | 1145 Lifestyle`;
   const canonicalUrl = url || typeof window !== "undefined" ? window.location.href : "";
 
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "1145",
-    "alternateName": ["1145"],
+    "name": "1145 Lifestyle",
+    "alternateName": ["1145", "1145 Lifestyle", "1145lifestyle", "1145 SA", "1145 Shop"],
     "url": "https://1145lifestyle.com",
     "description": description,
+    "inLanguage": "en-ZA",
     "potentialAction": {
       "@type": "SearchAction",
       "target": "https://1145lifestyle.com/shop?q={search_term_string}",
