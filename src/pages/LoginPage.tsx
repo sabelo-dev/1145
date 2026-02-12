@@ -4,7 +4,7 @@ import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LoginPage: React.FC = () => {
-  const { user, isLoading } = useAuth();
+const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer } = useAuth();
 
   // Show loading while auth is initializing
   if (isLoading) {
@@ -18,8 +18,12 @@ const LoginPage: React.FC = () => {
     );
   }
 
-  // If user is already logged in, redirect to their dashboard
+  // If user is already logged in, redirect to their role-specific dashboard
   if (user) {
+    if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+    if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
+    if (isDriver) return <Navigate to="/driver/dashboard" replace />;
+    if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
