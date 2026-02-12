@@ -18,9 +18,9 @@ const LoginPage: React.FC = () => {
     );
   }
 
-  // If user is already logged in, redirect to homepage
+  // If user is already logged in, redirect to their dashboard
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
