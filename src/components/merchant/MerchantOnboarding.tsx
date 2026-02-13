@@ -1,435 +1,475 @@
-
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Steps } from "@/components/vendor/Steps";
-import { CheckCircle, Upload } from "lucide-react";
+import OnboardingProgress from "./onboarding/OnboardingProgress";
+import StepAccountCreation from "./onboarding/StepAccountCreation";
+import StepBusinessInfo, { BusinessInfoValues } from "./onboarding/StepBusinessInfo";
+import StepKYC from "./onboarding/StepKYC";
+import StepStoreSetup, { StoreSetupValues } from "./onboarding/StepStoreSetup";
+import StepPaymentTax, { PaymentTaxValues } from "./onboarding/StepPaymentTax";
+import StepFirstProduct, { FirstProductValues } from "./onboarding/StepFirstProduct";
+import StepReviewActivation from "./onboarding/StepReviewActivation";
 
-const VendorOnboarding: React.FC = () => {
+const STEPS = [
+  { id: 1, name: "Account Creation", shortName: "Account" },
+  { id: 2, name: "Business Information", shortName: "Business" },
+  { id: 3, name: "Identity & Compliance", shortName: "KYC" },
+  { id: 4, name: "Store Setup", shortName: "Store" },
+  { id: 5, name: "Payment & Tax", shortName: "Payment" },
+  { id: 6, name: "First Product", shortName: "Product" },
+  { id: 7, name: "Review & Activation", shortName: "Activate" },
+];
+
+const STATUS_TO_STEP: Record<string, number> = {
+  PENDING_PROFILE: 1,
+  PENDING_KYC: 2,
+  KYC_PENDING_REVIEW: 4, // Skip ahead, KYC submitted
+  KYC_APPROVED: 4,
+  KYC_REJECTED: 3, // Go back to KYC
+  PROFILE_COMPLETED: 5,
+  FIRST_PRODUCT_CREATED: 7,
+  ACTIVE: 7,
+};
+
+const MerchantOnboarding: React.FC = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [isUploading, setIsUploading] = useState(false);
-  const [documents, setDocuments] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [vendorData, setVendorData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [storeDetails, setStoreDetails] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    categories: [] as string[],
+  const [isActivated, setIsActivated] = useState(false);
+
+  // KYC state
+  const [kycDocuments, setKycDocuments] = useState<Record<string, string>>({});
+  const [bankDetails, setBankDetails] = useState({
+    accountHolder: "", accountNumber: "", routingCode: "",
   });
 
-  // Get or create vendor record
+  // Store state
+  const [shippingRegions, setShippingRegions] = useState<string[]>([]);
+  const [shippingMethods, setShippingMethods] = useState<string[]>([]);
+  const [logoFile, setLogoFile] = useState<string | null>(null);
+  const [bannerFile, setBannerFile] = useState<string | null>(null);
+
+  // Product state
+  const [productImage, setProductImage] = useState<string | null>(null);
+
+  // Initialize vendor
   useEffect(() => {
-    const initializeVendor = async () => {
-      // If user is null/undefined, we're still loading auth
-      if (user === null) {
-        setIsLoading(false);
-        return;
-      }
-      
-      // If user is defined but no id, there's an auth issue
-      if (!user?.id) {
-        console.error('User authenticated but no ID available');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Check if vendor exists
-        const { data: existingVendor } = await supabase
-          .from('vendors')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (existingVendor) {
-          setVendorData(existingVendor);
-        } else {
-          // Create new vendor record
-          const { data: newVendor, error } = await supabase
-            .from('vendors')
-            .insert({
-              user_id: user.id,
-              business_name: user.name || 'New Merchant',
-              status: 'pending'
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-          setVendorData(newVendor);
-        }
-      } catch (error) {
-        console.error('Error initializing vendor:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to initialize vendor profile.",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeVendor();
+    if (!user) {
+      setPageLoading(false);
+      return;
+    }
+    initVendor();
   }, [user]);
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
-    if (!e.target.files || e.target.files.length === 0 || !vendorData) return;
-    
-    const file = e.target.files[0];
-    setIsUploading(true);
-    
+  const initVendor = async () => {
+    if (!user) return;
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${vendorData.id}/${type}.${fileExt}`;
-      
-      // For now, we'll simulate upload by creating a blob URL
-      const documentUrl = URL.createObjectURL(file);
-      
-      // Save document in vendor_documents table
-      const { error: docError } = await supabase
-        .from('vendor_documents')
-        .upsert({
-          vendor_id: vendorData.id,
-          document_type: type,
-          document_url: documentUrl,
-        });
-        
-      if (docError) throw docError;
-      
-      setDocuments(prev => ({ ...prev, [type]: documentUrl }));
-      
-      toast({
-        title: "Document Uploaded",
-        description: `${type} was successfully uploaded.`,
-      });
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: "Failed to upload the document. Please try again.",
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const createStore = async () => {
-    if (!vendorData) return;
-
-    try {
-      // Generate slug from name if slug is empty
-      let slug = storeDetails.slug.trim();
-      if (!slug && storeDetails.name) {
-        slug = storeDetails.name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '');
-      }
-
-      // Check if slug already exists
-      const { data: existingStore } = await supabase
-        .from('stores')
-        .select('slug')
-        .eq('slug', slug)
+      const { data: vendor } = await supabase
+        .from("vendors")
+        .select("*")
+        .eq("user_id", user.id)
         .maybeSingle();
 
-      if (existingStore) {
-        // Generate unique slug by appending random number
-        slug = `${slug}-${Math.floor(Math.random() * 10000)}`;
-      }
+      if (vendor) {
+        setVendorData(vendor);
+        // Resume from saved status
+        const savedStep = STATUS_TO_STEP[vendor.onboarding_status] || 1;
+        setStep(savedStep);
+        if (vendor.onboarding_status === "ACTIVE") setIsActivated(true);
 
-      // Create store
-      const { data, error } = await supabase
-        .from('stores')
-        .insert({
-          vendor_id: vendorData.id,
-          name: storeDetails.name,
-          slug: slug,
-          description: storeDetails.description,
-        })
-        .select();
-        
-      if (error) {
-        // Check if it's still a duplicate slug error (race condition)
-        if (error.code === '23505' && error.message.includes('stores_slug_key')) {
-          toast({
-            variant: "destructive",
-            title: "Store URL Conflict",
-            description: "This store URL is taken. Please try a different name.",
+        // Load bank details if saved
+        if (vendor.bank_account_holder) {
+          setBankDetails({
+            accountHolder: vendor.bank_account_holder || "",
+            accountNumber: vendor.bank_account_number || "",
+            routingCode: vendor.bank_routing_code || "",
           });
-          return;
         }
-        throw error;
-      }
-      
-      // Add store categories
-      if (storeDetails.categories.length > 0) {
-        const categoryEntries = storeDetails.categories.map(categoryId => ({
-          store_id: data[0].id,
-          category_id: categoryId,
-        }));
-        
-        const { error: catError } = await supabase
-          .from('store_categories')
-          .insert(categoryEntries);
-          
-        if (catError) throw catError;
-      }
-      
-      // Update vendor status to indicate onboarding completion
-      const { error: vendorUpdateError } = await supabase
-        .from('vendors')
-        .update({ status: 'pending' })
-        .eq('id', vendorData.id);
+        if (vendor.shipping_regions) setShippingRegions(vendor.shipping_regions);
+        if (vendor.shipping_methods) setShippingMethods(vendor.shipping_methods);
 
-      if (vendorUpdateError) throw vendorUpdateError;
-      
-      toast({
-        title: "Store Created",
-        description: "Your store has been successfully created!",
-      });
-      
-      setStep(3); // Move to final step
+        // Load KYC docs
+        const { data: docs } = await supabase
+          .from("merchant_kyc_documents")
+          .select("document_type, document_url")
+          .eq("vendor_id", vendor.id);
+        if (docs) {
+          const docMap: Record<string, string> = {};
+          docs.forEach((d: any) => { docMap[d.document_type] = d.document_url; });
+          setKycDocuments(docMap);
+        }
+      } else {
+        // Create vendor record
+        const { data: newVendor, error } = await supabase
+          .from("vendors")
+          .insert({
+            user_id: user.id,
+            business_name: user.name || "New Merchant",
+            status: "pending",
+            onboarding_status: "PENDING_PROFILE",
+          })
+          .select()
+          .single();
+        if (error) throw error;
+        setVendorData(newVendor);
+      }
     } catch (error) {
-      console.error("Error creating store:", error);
-      toast({
-        variant: "destructive",
-        title: "Store Creation Failed",
-        description: "Failed to create your store. Please try again.",
-      });
+      console.error("Error initializing vendor:", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to load onboarding." });
+    } finally {
+      setPageLoading(false);
     }
   };
-  
-  const steps = [
-    { id: 1, name: "Upload Documents" },
-    { id: 2, name: "Store Details" },
-    { id: 3, name: "Complete" },
-  ];
 
-  if (isLoading) {
+  const updateOnboardingStatus = async (status: string) => {
+    if (!vendorData) return;
+    const { error } = await supabase
+      .from("vendors")
+      .update({ onboarding_status: status })
+      .eq("id", vendorData.id);
+    if (error) throw error;
+    setVendorData((prev: any) => ({ ...prev, onboarding_status: status }));
+  };
+
+  // Step 2: Save business info
+  const handleBusinessInfo = async (data: BusinessInfoValues) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("vendors")
+        .update({
+          legal_business_name: data.legalBusinessName,
+          business_name: data.legalBusinessName,
+          business_type: data.businessType,
+          tax_id: data.taxId || null,
+          business_address: data.businessAddress,
+          business_phone: data.businessPhone,
+          onboarding_status: "PENDING_KYC",
+        })
+        .eq("id", vendorData.id);
+      if (error) throw error;
+      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PENDING_KYC" }));
+      setStep(3);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 3: Upload KYC document
+  const handleKYCUpload = async (file: File, type: string) => {
+    if (!vendorData) return;
+    // For now simulate upload with blob URL. In production use Supabase storage.
+    const documentUrl = URL.createObjectURL(file);
+    const { error } = await supabase
+      .from("merchant_kyc_documents")
+      .upsert({
+        vendor_id: vendorData.id,
+        document_type: type,
+        document_url: documentUrl,
+        file_name: file.name,
+        status: "pending",
+      }, { onConflict: "vendor_id,document_type" });
+
+    if (error) {
+      // If upsert fails due to no unique constraint, try insert
+      await supabase.from("merchant_kyc_documents").insert({
+        vendor_id: vendorData.id,
+        document_type: type,
+        document_url: documentUrl,
+        file_name: file.name,
+        status: "pending",
+      });
+    }
+
+    setKycDocuments((prev) => ({ ...prev, [type]: documentUrl }));
+    toast({ title: "Uploaded", description: `${type} uploaded successfully.` });
+  };
+
+  // Step 3: Submit KYC
+  const handleKYCSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("vendors")
+        .update({
+          bank_account_holder: bankDetails.accountHolder,
+          bank_account_number: bankDetails.accountNumber,
+          bank_routing_code: bankDetails.routingCode,
+          onboarding_status: "KYC_PENDING_REVIEW",
+        })
+        .eq("id", vendorData.id);
+      if (error) throw error;
+      setVendorData((prev: any) => ({ ...prev, onboarding_status: "KYC_PENDING_REVIEW" }));
+      toast({ title: "KYC Submitted", description: "Your documents are under review. You can continue setting up your store." });
+      setStep(4);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // File upload helper (simulated)
+  const handleFileUpload = async (file: File, setter: (url: string) => void) => {
+    const url = URL.createObjectURL(file);
+    setter(url);
+  };
+
+  // Step 4: Save store
+  const handleStoreSetup = async (data: StoreSetupValues) => {
+    if (!vendorData) return;
+    setIsLoading(true);
+    try {
+      let slug = data.storeName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+      // Check slug uniqueness
+      const { data: existing } = await supabase.from("stores").select("slug").eq("slug", slug).maybeSingle();
+      if (existing) slug = `${slug}-${Math.floor(Math.random() * 10000)}`;
+
+      const { error } = await supabase.from("stores").insert({
+        vendor_id: vendorData.id,
+        name: data.storeName,
+        slug,
+        description: data.storeDescription,
+        return_policy: data.returnPolicy || null,
+      });
+      if (error) throw error;
+
+      // Update vendor with shipping info
+      await supabase.from("vendors").update({
+        shipping_regions: shippingRegions,
+        shipping_methods: shippingMethods,
+        return_policy: data.returnPolicy || null,
+        onboarding_status: "PROFILE_COMPLETED",
+      }).eq("id", vendorData.id);
+
+      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PROFILE_COMPLETED" }));
+      setStep(5);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 5: Payment & tax
+  const handlePaymentTax = async (data: PaymentTaxValues) => {
+    if (!vendorData) return;
+    setIsLoading(true);
+    try {
+      await supabase.from("vendors").update({
+        vat_registered: data.vatRegistered,
+        vat_number: data.vatNumber || null,
+        fee_agreement_accepted: data.feeAgreement,
+        payout_schedule: data.payoutSchedule,
+      }).eq("id", vendorData.id);
+      setStep(6);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 6: Create first product
+  const handleFirstProduct = async (data: FirstProductValues) => {
+    if (!vendorData) return;
+    setIsLoading(true);
+    try {
+      // Get store
+      const { data: store } = await supabase
+        .from("stores")
+        .select("id")
+        .eq("vendor_id", vendorData.id)
+        .maybeSingle();
+
+      if (!store) throw new Error("Store not found. Please go back and create your store.");
+
+      const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+      const { error } = await supabase.from("products").insert({
+        store_id: store.id,
+        name: data.title,
+        slug: `${slug}-${Date.now()}`,
+        description: data.description,
+        price: parseFloat(data.price),
+        quantity: parseInt(data.quantity),
+        category: data.category,
+        sku: data.sku || null,
+        status: "pending",
+      });
+      if (error) throw error;
+
+      await updateOnboardingStatus("FIRST_PRODUCT_CREATED");
+      setStep(7);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 7: Activate
+  const handleActivate = async () => {
+    setIsLoading(true);
+    try {
+      await supabase.from("vendors").update({
+        status: "approved",
+        onboarding_status: "ACTIVE",
+        onboarding_completed_at: new Date().toISOString(),
+      }).eq("id", vendorData.id);
+      setIsActivated(true);
+      await refreshUserProfile();
+      toast({ title: "Store Activated!", description: "You can now start selling." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Build activation checklist
+  const checklist = [
+    { label: "Email verified", completed: !!user },
+    { label: "Business information completed", completed: ["PENDING_KYC", "KYC_PENDING_REVIEW", "KYC_APPROVED", "KYC_REJECTED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
+    { label: "KYC documents submitted", completed: ["KYC_PENDING_REVIEW", "KYC_APPROVED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
+    { label: "Bank account on file", completed: !!vendorData?.bank_account_holder },
+    { label: "Store configured", completed: ["PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
+    { label: "At least 1 product created", completed: ["FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
+  ];
+  const allComplete = checklist.every(c => c.completed);
+
+  if (pageLoading) {
     return (
-      <div className="container max-w-4xl mx-auto py-8 px-4">
-        <div className="text-center">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="mt-2 text-muted-foreground">Loading onboarding...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="container max-w-2xl mx-auto py-12 text-center">
+        <p className="text-muted-foreground">Please log in to continue onboarding.</p>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6">Merchant Onboarding</h1>
-      
-      <Steps steps={steps} currentStep={step} />
-      
-      {step === 1 && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Upload Required Documents</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="businessLicense">Business License</Label>
-              <div className="flex items-center mt-2">
-                <Input
-                  id="businessLicense"
-                  type="file"
-                  onChange={(e) => handleDocumentUpload(e, "business-license")}
-                  disabled={isUploading}
-                  className="max-w-sm"
-                />
-                {documents["business-license"] && (
-                  <CheckCircle className="ml-2 h-5 w-5 text-green-600" />
-                )}
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="idProof">ID Proof</Label>
-              <div className="flex items-center mt-2">
-                <Input
-                  id="idProof"
-                  type="file"
-                  onChange={(e) => handleDocumentUpload(e, "id-proof")}
-                  disabled={isUploading}
-                  className="max-w-sm"
-                />
-                {documents["id-proof"] && (
-                  <CheckCircle className="ml-2 h-5 w-5 text-green-600" />
-                )}
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="bankDetails">Bank Details</Label>
-              <div className="flex items-center mt-2">
-                <Input
-                  id="bankDetails"
-                  type="file"
-                  onChange={(e) => handleDocumentUpload(e, "bank-details")}
-                  disabled={isUploading}
-                  className="max-w-sm"
-                />
-                {documents["bank-details"] && (
-                  <CheckCircle className="ml-2 h-5 w-5 text-green-600" />
-                )}
-              </div>
-            </div>
-            
-            <div className="flex justify-end">
-              <Button
-                onClick={() => setStep(2)}
-                disabled={!documents["business-license"] || !documents["id-proof"] || !documents["bank-details"]}
-              >
-                Continue
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      {step === 2 && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Create Your Store</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="storeName">Store Name</Label>
-              <Input
-                id="storeName"
-                value={storeDetails.name}
-                onChange={(e) => setStoreDetails(prev => ({ ...prev, name: e.target.value }))}
-                className="mt-2"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="storeSlug">Store URL</Label>
-              <Input
-                id="storeSlug"
-                value={storeDetails.slug}
-                onChange={(e) => setStoreDetails(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') }))}
-                className="mt-2"
-                placeholder="your-store-url"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This will be used in your store's URL: yourwebsite.com/store/{storeDetails.slug || 'your-store-url'}
-              </p>
-            </div>
-            
-            <div>
-              <Label htmlFor="storeDescription">Store Description</Label>
-              <Textarea
-                id="storeDescription"
-                value={storeDetails.description}
-                onChange={(e) => setStoreDetails(prev => ({ ...prev, description: e.target.value }))}
-                className="mt-2 min-h-[100px]"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="categories">Product Categories</Label>
-              <Select
-                onValueChange={(value) => {
-                  if (!storeDetails.categories.includes(value)) {
-                    setStoreDetails(prev => ({
-                      ...prev,
-                      categories: [...prev.categories, value]
-                    }));
-                  }
-                }}
-              >
-                <SelectTrigger id="categories" className="mt-2">
-                  <SelectValue placeholder="Select categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="clothing">Clothing</SelectItem>
-                  <SelectItem value="home-kitchen">Home & Kitchen</SelectItem>
-                  <SelectItem value="beauty">Beauty & Personal Care</SelectItem>
-                  <SelectItem value="books">Books</SelectItem>
-                  <SelectItem value="sports">Sports & Outdoors</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {storeDetails.categories.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {storeDetails.categories.map((category) => (
-                    <div key={category} className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center">
-                      {category}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-1 h-4 w-4 p-0"
-                        onClick={() => {
-                          setStoreDetails(prev => ({
-                            ...prev,
-                            categories: prev.categories.filter(c => c !== category)
-                          }));
-                        }}
-                      >
-                        &times;
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(1)}>
-                Back
-              </Button>
-              <Button 
-                onClick={createStore} 
-                disabled={!storeDetails.name || !storeDetails.slug}
-              >
-                Create Store
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      {step === 3 && (
-        <Card className="mt-6 text-center">
-          <CardHeader>
-            <CardTitle className="flex justify-center">
-              <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <h2 className="text-xl font-bold">Onboarding Complete!</h2>
-            <p>
-              Thank you for completing the merchant onboarding process. Your application is now under review.
-              You will receive a notification once your account has been approved.
-            </p>
-            <Button onClick={() => window.location.href = "/"}>
-              Return to Homepage
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-3xl mx-auto py-8 px-4 space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold">Merchant Onboarding</h1>
+          <p className="text-muted-foreground">Complete all steps to activate your store</p>
+        </div>
+
+        <OnboardingProgress steps={STEPS} currentStep={step} />
+
+        {step === 1 && (
+          <StepAccountCreation
+            email={user.email}
+            isVerified={true}
+            onNext={() => setStep(2)}
+          />
+        )}
+
+        {step === 2 && (
+          <StepBusinessInfo
+            defaultValues={{
+              legalBusinessName: vendorData?.legal_business_name || vendorData?.business_name || "",
+              businessType: vendorData?.business_type || "",
+              taxId: vendorData?.tax_id || "",
+              businessAddress: vendorData?.business_address || "",
+              businessPhone: vendorData?.business_phone || "",
+            }}
+            onNext={handleBusinessInfo}
+            onBack={() => setStep(1)}
+            isLoading={isLoading}
+          />
+        )}
+
+        {step === 3 && (
+          <StepKYC
+            documents={kycDocuments}
+            bankDetails={bankDetails}
+            onUpload={handleKYCUpload}
+            onBankDetailsChange={setBankDetails}
+            onNext={handleKYCSubmit}
+            onBack={() => setStep(2)}
+            isLoading={isLoading}
+            kycStatus={vendorData?.onboarding_status}
+          />
+        )}
+
+        {step === 4 && (
+          <StepStoreSetup
+            defaultValues={{
+              storeName: "",
+              storeDescription: "",
+              returnPolicy: vendorData?.return_policy || "",
+            }}
+            selectedRegions={shippingRegions}
+            selectedMethods={shippingMethods}
+            logoFile={logoFile}
+            bannerFile={bannerFile}
+            onRegionsChange={setShippingRegions}
+            onMethodsChange={setShippingMethods}
+            onLogoUpload={(f) => handleFileUpload(f, setLogoFile)}
+            onBannerUpload={(f) => handleFileUpload(f, setBannerFile)}
+            onNext={handleStoreSetup}
+            onBack={() => setStep(3)}
+            isLoading={isLoading}
+          />
+        )}
+
+        {step === 5 && (
+          <StepPaymentTax
+            commissionRate={vendorData?.commission_rate || 15}
+            defaultValues={{
+              vatRegistered: vendorData?.vat_registered || false,
+              vatNumber: vendorData?.vat_number || "",
+              feeAgreement: vendorData?.fee_agreement_accepted || false,
+              payoutSchedule: vendorData?.payout_schedule || "weekly",
+            }}
+            onNext={handlePaymentTax}
+            onBack={() => setStep(4)}
+            isLoading={isLoading}
+          />
+        )}
+
+        {step === 6 && (
+          <StepFirstProduct
+            productImage={productImage}
+            onImageUpload={(f) => handleFileUpload(f, setProductImage)}
+            onNext={handleFirstProduct}
+            onBack={() => setStep(5)}
+            isLoading={isLoading}
+          />
+        )}
+
+        {step === 7 && (
+          <StepReviewActivation
+            checklist={checklist}
+            allComplete={allComplete}
+            onActivate={handleActivate}
+            isLoading={isLoading}
+            isActivated={isActivated}
+          />
+        )}
+      </div>
     </div>
   );
 };
 
-export default VendorOnboarding;
+export default MerchantOnboarding;

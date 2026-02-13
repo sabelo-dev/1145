@@ -2420,6 +2420,56 @@ export type Database = {
           },
         ]
       }
+      merchant_kyc_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          document_url: string
+          file_name: string | null
+          id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          document_url: string
+          file_name?: string | null
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          document_url?: string
+          file_name?: string | null
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_kyc_documents_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -5154,6 +5204,9 @@ export type Database = {
         Row: {
           ad_credits: number | null
           approval_date: string | null
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_routing_code: string | null
           business_address: string | null
           business_email: string | null
           business_name: string
@@ -5164,12 +5217,20 @@ export type Database = {
           default_pricing_currency: string | null
           description: string | null
           features_config: Json | null
+          fee_agreement_accepted: boolean | null
           id: string
+          legal_business_name: string | null
           logo_url: string | null
           monthly_promotions_limit: number | null
           monthly_promotions_used: number | null
+          onboarding_completed_at: string | null
+          onboarding_status: string
           payout_days: number | null
+          payout_schedule: string | null
+          return_policy: string | null
           search_boost: number | null
+          shipping_methods: string[] | null
+          shipping_regions: string[] | null
           status: string
           subscription_expires_at: string | null
           subscription_status: string | null
@@ -5181,11 +5242,16 @@ export type Database = {
           trial_start_date: string | null
           updated_at: string
           user_id: string
+          vat_number: string | null
+          vat_registered: boolean | null
           website: string | null
         }
         Insert: {
           ad_credits?: number | null
           approval_date?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_routing_code?: string | null
           business_address?: string | null
           business_email?: string | null
           business_name: string
@@ -5196,12 +5262,20 @@ export type Database = {
           default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
+          fee_agreement_accepted?: boolean | null
           id?: string
+          legal_business_name?: string | null
           logo_url?: string | null
           monthly_promotions_limit?: number | null
           monthly_promotions_used?: number | null
+          onboarding_completed_at?: string | null
+          onboarding_status?: string
           payout_days?: number | null
+          payout_schedule?: string | null
+          return_policy?: string | null
           search_boost?: number | null
+          shipping_methods?: string[] | null
+          shipping_regions?: string[] | null
           status?: string
           subscription_expires_at?: string | null
           subscription_status?: string | null
@@ -5213,11 +5287,16 @@ export type Database = {
           trial_start_date?: string | null
           updated_at?: string
           user_id: string
+          vat_number?: string | null
+          vat_registered?: boolean | null
           website?: string | null
         }
         Update: {
           ad_credits?: number | null
           approval_date?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_routing_code?: string | null
           business_address?: string | null
           business_email?: string | null
           business_name?: string
@@ -5228,12 +5307,20 @@ export type Database = {
           default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
+          fee_agreement_accepted?: boolean | null
           id?: string
+          legal_business_name?: string | null
           logo_url?: string | null
           monthly_promotions_limit?: number | null
           monthly_promotions_used?: number | null
+          onboarding_completed_at?: string | null
+          onboarding_status?: string
           payout_days?: number | null
+          payout_schedule?: string | null
+          return_policy?: string | null
           search_boost?: number | null
+          shipping_methods?: string[] | null
+          shipping_regions?: string[] | null
           status?: string
           subscription_expires_at?: string | null
           subscription_status?: string | null
@@ -5245,6 +5332,8 @@ export type Database = {
           trial_start_date?: string | null
           updated_at?: string
           user_id?: string
+          vat_number?: string | null
+          vat_registered?: boolean | null
           website?: string | null
         }
         Relationships: [

@@ -151,7 +151,7 @@ function App() {
               <Route path="merchant/login" element={<MerchantLoginPage />} />
               <Route path="merchant/register" element={<MerchantRegisterPage />} />
               <Route path="merchant/onboarding" element={
-                <ProtectedRoute requireAuth requireMerchant>
+                <ProtectedRoute requireAuth>
                   <MerchantOnboardingPage />
                 </ProtectedRoute>
               } />

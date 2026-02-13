@@ -69,26 +69,45 @@ const DriverDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [driver, setDriver] = useState<Driver | null>(null);
+  const [isDriverLoading, setIsDriverLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchDriverInfo();
+    } else {
+      setIsDriverLoading(false);
     }
   }, [user]);
 
   const fetchDriverInfo = async () => {
     if (!user) return;
+    setIsDriverLoading(true);
     
-    const { data, error } = await supabase
-      .from("drivers")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("drivers")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
 
-    if (!error && data) {
-      setDriver(data);
+      if (!error && data) {
+        setDriver(data);
+      }
+    } finally {
+      setIsDriverLoading(false);
     }
   };
+
+  if (isDriverLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading driver dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     try {
