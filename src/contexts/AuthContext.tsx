@@ -30,12 +30,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const loadingManager = useLoadingManager();
 
-  const getRedirectPathForRole = (userRole: string, isMerchantApproved: boolean, isDriverUser: boolean, isInfluencerUser: boolean, isLogin: boolean = true): string => {
+  const getRedirectPathForRole = async (userRole: string, isMerchantApproved: boolean, isDriverUser: boolean, isInfluencerUser: boolean, userId: string, isLogin: boolean = true): Promise<string> => {
     if (userRole === 'admin') return '/admin/dashboard';
     if (isInfluencerUser) return '/influencer/dashboard';
     if (isDriverUser) return '/driver/dashboard';
     if (userRole === 'vendor' || isMerchantApproved) {
-      return isLogin ? '/merchant/dashboard' : '/login';
+      if (!isLogin) return '/login';
+      // Check onboarding status
+      const { data: vendor } = await supabase
+        .from('vendors')
+        .select('onboarding_status')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (vendor && vendor.onboarding_status !== 'ACTIVE') {
+        return '/merchant/onboarding';
+      }
+      return '/merchant/dashboard';
     }
     return '/dashboard';
   };
@@ -272,7 +282,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isInfluencerUser = userRoles.includes('influencer');
         const userRole = userRoles.includes('admin') ? 'admin' : 
                         userRoles.includes('vendor') ? 'vendor' : 'consumer';
-        const redirectPath = getRedirectPathForRole(userRole, merchantResult, driverResult, isInfluencerUser, true);
+        const redirectPath = await getRedirectPathForRole(userRole, merchantResult, driverResult, isInfluencerUser, data.user.id, true);
         
         toast({
           title: "Login Successful",
