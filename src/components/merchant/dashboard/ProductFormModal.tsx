@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload, X, Plus, Trash2, GripVertical } from "lucide-react";
 import { z } from "zod";
 import { fetchCategories, fetchSubcategoriesByCategory } from "@/services/products";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import {
   DndContext,
   closestCenter,
@@ -678,7 +679,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           .insert({
             product_id: productId,
             attributes: attributesObject,
-            price: variation.price,
+            price: applyPlatformMarkup(variation.price),
             quantity: variation.quantity,
             sku: variation.sku || `${productId.slice(0, 8)}-${variation.color}-${variation.size}`.toUpperCase().replace(/\s+/g, '-'),
             image_url: variation.imageUrl,
@@ -725,7 +726,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             .insert({
               product_id: productId,
               attributes: { ...attributesObject, _images: attributeImageUrls },
-              price: variation.price,
+              price: applyPlatformMarkup(variation.price),
               quantity: variation.quantity,
               sku: variation.sku
             })
@@ -876,8 +877,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             name: validatedData.name,
             slug: validatedData.name.toLowerCase().replace(/\s+/g, '-'),
             description: validatedData.description,
-            price: validatedData.price,
-            compare_at_price: validatedData.compareAtPrice,
+            price: applyPlatformMarkup(validatedData.price),
+            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice) : undefined,
             sku: validatedData.sku,
             quantity: validatedData.quantity,
             category: validatedData.category,
@@ -915,8 +916,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             name: validatedData.name,
             slug: validatedData.name.toLowerCase().replace(/\s+/g, '-'),
             description: validatedData.description,
-            price: validatedData.price,
-            compare_at_price: validatedData.compareAtPrice,
+            price: applyPlatformMarkup(validatedData.price),
+            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice) : undefined,
             sku: validatedData.sku,
             quantity: validatedData.quantity,
             category: validatedData.category,
