@@ -7,6 +7,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -19,12 +20,15 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { DEFAULT_PLATFORM_MARKUP_PERCENTAGE } from "@/utils/pricingMarkup";
 
 interface Vendor {
   id: string;
   business_name: string;
   subscription_tier?: string;
   subscription_status?: string;
+  custom_markup_percentage?: number | null;
 }
 
 interface EditVendorSubscriptionDialogProps {
@@ -59,6 +63,12 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
   const [tier, setTier] = useState(vendor?.subscription_tier || "starter");
   const [status, setStatus] = useState(vendor?.subscription_status || "trial");
   const [reason, setReason] = useState("");
+  const [useCustomMarkup, setUseCustomMarkup] = useState(vendor?.custom_markup_percentage !== null && vendor?.custom_markup_percentage !== undefined);
+  const [customMarkup, setCustomMarkup] = useState<string>(
+    vendor?.custom_markup_percentage !== null && vendor?.custom_markup_percentage !== undefined
+      ? String(vendor.custom_markup_percentage)
+      : ""
+  );
 
   // Update state when vendor changes
   React.useEffect(() => {
@@ -66,6 +76,9 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
       setTier(vendor.subscription_tier || "starter");
       setStatus(vendor.subscription_status || "trial");
       setReason("");
+      const hasCustom = vendor.custom_markup_percentage !== null && vendor.custom_markup_percentage !== undefined;
+      setUseCustomMarkup(hasCustom);
+      setCustomMarkup(hasCustom ? String(vendor.custom_markup_percentage) : "");
     }
   }, [vendor]);
 
@@ -74,11 +87,24 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
 
     const tierChanged = tier !== (vendor.subscription_tier || "starter");
     const statusChanged = status !== (vendor.subscription_status || "trial");
+    
+    const newMarkupValue = useCustomMarkup ? parseFloat(customMarkup) : null;
+    const oldMarkupValue = vendor.custom_markup_percentage ?? null;
+    const markupChanged = newMarkupValue !== oldMarkupValue;
 
-    if (!tierChanged && !statusChanged) {
+    if (useCustomMarkup && (isNaN(parseFloat(customMarkup)) || parseFloat(customMarkup) < 0 || parseFloat(customMarkup) > 100)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid markup",
+        description: "Custom markup must be between 0% and 100%.",
+      });
+      return;
+    }
+
+    if (!tierChanged && !statusChanged && !markupChanged) {
       toast({
         title: "No changes",
-        description: "No changes were made to the subscription.",
+        description: "No changes were made.",
       });
       onOpenChange(false);
       return;
@@ -90,12 +116,13 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Update vendor subscription
+      // Update vendor
       const { error: updateError } = await supabase
         .from("vendors")
         .update({
           subscription_tier: tier,
           subscription_status: status,
+          custom_markup_percentage: useCustomMarkup ? parseFloat(customMarkup) : null,
         })
         .eq("id", vendor.id);
 
@@ -106,7 +133,13 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
         ? "tier_and_status_change"
         : tierChanged
         ? "tier_change"
-        : "status_change";
+        : statusChanged
+        ? "status_change"
+        : "markup_change";
+
+      const auditReason = markupChanged
+        ? `${reason ? reason + '. ' : ''}Platform fee changed from ${oldMarkupValue ?? DEFAULT_PLATFORM_MARKUP_PERCENTAGE}% to ${newMarkupValue ?? DEFAULT_PLATFORM_MARKUP_PERCENTAGE}% (${newMarkupValue === null ? 'reset to default' : 'custom override'}).`
+        : reason.trim() || null;
 
       const { error: auditError } = await supabase
         .from("vendor_subscription_audit_log")
@@ -118,27 +151,26 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
           new_tier: tierChanged ? tier : null,
           old_status: statusChanged ? (vendor.subscription_status || "trial") : null,
           new_status: statusChanged ? status : null,
-          reason: reason.trim() || null,
+          reason: auditReason,
         });
 
       if (auditError) {
         console.error("Failed to create audit log:", auditError);
-        // Don't throw - the main update succeeded
       }
 
       toast({
-        title: "Subscription updated",
-        description: `${vendor.business_name}'s subscription has been updated.`,
+        title: "Vendor updated",
+        description: `${vendor.business_name}'s settings have been updated.`,
       });
 
       onUpdated();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error updating subscription:", error);
+      console.error("Error updating vendor:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update subscription.",
+        description: "Failed to update vendor.",
       });
     } finally {
       setLoading(false);
@@ -149,9 +181,9 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Edit Subscription</DialogTitle>
+          <DialogTitle>Edit Merchant Settings</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -196,11 +228,60 @@ const EditVendorSubscriptionDialog: React.FC<EditVendorSubscriptionDialogProps> 
             </Select>
           </div>
 
+          {/* Custom Platform Fee */}
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="custom-markup" className="text-sm font-medium">Custom Platform Fee</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Override the default {DEFAULT_PLATFORM_MARKUP_PERCENTAGE}% markup for this merchant
+                </p>
+              </div>
+              <Switch
+                id="custom-markup"
+                checked={useCustomMarkup}
+                onCheckedChange={(checked) => {
+                  setUseCustomMarkup(checked);
+                  if (!checked) setCustomMarkup("");
+                }}
+              />
+            </div>
+
+            {useCustomMarkup && (
+              <div className="space-y-2">
+                <Label htmlFor="markup-value">Fee Percentage (%)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="markup-value"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    placeholder="e.g. 5"
+                    value={customMarkup}
+                    onChange={(e) => setCustomMarkup(e.target.value)}
+                    className="max-w-[120px]"
+                  />
+                  <span className="text-sm text-muted-foreground">%</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Set to <strong>0</strong> for no platform fee (e.g. promotional offer).
+                </p>
+              </div>
+            )}
+
+            {!useCustomMarkup && (
+              <p className="text-xs text-muted-foreground">
+                Using default platform fee: <strong>{DEFAULT_PLATFORM_MARKUP_PERCENTAGE}%</strong>
+              </p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="reason">Reason for Change (optional)</Label>
             <Textarea
               id="reason"
-              placeholder="e.g., Upgraded per customer request, Promotional upgrade, etc."
+              placeholder="e.g., First Gold tier merchant — waived platform fee as promotion."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}

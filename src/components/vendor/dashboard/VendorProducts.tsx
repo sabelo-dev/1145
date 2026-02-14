@@ -233,7 +233,7 @@ const VendorProducts = () => {
       // Get vendor's store
       const { data: vendor, error: vendorError } = await supabase
         .from('vendors')
-        .select('id, business_name')
+        .select('id, business_name, custom_markup_percentage')
         .eq('user_id', user.id)
         .single();
 
