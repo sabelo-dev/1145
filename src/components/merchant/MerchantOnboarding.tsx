@@ -301,7 +301,7 @@ const MerchantOnboarding: React.FC = () => {
         name: data.title,
         slug: `${slug}-${Date.now()}`,
         description: data.description,
-        price: applyPlatformMarkup(parseFloat(data.price)),
+        price: applyPlatformMarkup(parseFloat(data.price), vendorData?.custom_markup_percentage),
         quantity: parseInt(data.quantity),
         category: data.category,
         sku: data.sku || null,
