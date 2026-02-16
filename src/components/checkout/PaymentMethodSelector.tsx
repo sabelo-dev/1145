@@ -64,7 +64,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ control }
           <FormControl>
             <RadioGroup
               onValueChange={field.onChange}
-              defaultValue={field.value}
+              value={field.value}
               className="space-y-3"
             >
               {paymentMethods.map((method) => {
