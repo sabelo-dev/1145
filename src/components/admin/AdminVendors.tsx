@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { DEFAULT_PLATFORM_MARKUP_PERCENTAGE } from "@/utils/pricingMarkup";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -33,6 +34,7 @@ interface Vendor {
   business_address?: string;
   website?: string;
   tax_id?: string;
+  custom_markup_percentage?: number | null;
   profiles?: {
     email: string;
     name?: string;
@@ -68,7 +70,8 @@ const AdminVendors: React.FC = () => {
             business_phone,
             business_address,
             website,
-            tax_id
+            tax_id,
+            custom_markup_percentage
           `)
         .order('created_at', { ascending: false });
 
@@ -206,6 +209,7 @@ const AdminVendors: React.FC = () => {
               <TableHead>Email</TableHead>
               <TableHead>Tier</TableHead>
               <TableHead>Sub Status</TableHead>
+              <TableHead>Fee</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Applied On</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -225,6 +229,16 @@ const AdminVendors: React.FC = () => {
                   <Badge variant="outline" className="capitalize">
                     {vendor.subscription_status || 'trial'}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className={vendor.custom_markup_percentage !== null && vendor.custom_markup_percentage !== undefined ? "font-medium text-primary" : "text-muted-foreground"}>
+                    {vendor.custom_markup_percentage !== null && vendor.custom_markup_percentage !== undefined
+                      ? `${vendor.custom_markup_percentage}%`
+                      : `${DEFAULT_PLATFORM_MARKUP_PERCENTAGE}%`}
+                  </span>
+                  {vendor.custom_markup_percentage !== null && vendor.custom_markup_percentage !== undefined && (
+                    <Badge variant="outline" className="ml-1 text-[10px]">Custom</Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Badge

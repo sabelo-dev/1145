@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload, X, Plus, Trash2, GripVertical } from "lucide-react";
 import { z } from "zod";
 import { fetchCategories, fetchSubcategoriesByCategory } from "@/services/products";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import {
   DndContext,
   closestCenter,
@@ -644,7 +645,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     await Promise.all(uploadPromises);
   };
 
-  const saveVariations = async (productId: string) => {
+  const saveVariations = async (productId: string, customMarkup?: number | null) => {
     // Delete existing variations if in edit mode
     if (mode === "edit") {
       await supabase
@@ -678,7 +679,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           .insert({
             product_id: productId,
             attributes: attributesObject,
-            price: variation.price,
+            price: applyPlatformMarkup(variation.price, customMarkup),
             quantity: variation.quantity,
             sku: variation.sku || `${productId.slice(0, 8)}-${variation.color}-${variation.size}`.toUpperCase().replace(/\s+/g, '-'),
             image_url: variation.imageUrl,
@@ -725,7 +726,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             .insert({
               product_id: productId,
               attributes: { ...attributesObject, _images: attributeImageUrls },
-              price: variation.price,
+              price: applyPlatformMarkup(variation.price, customMarkup),
               quantity: variation.quantity,
               sku: variation.sku
             })
@@ -828,7 +829,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       // Get vendor's store and info
       const { data: vendorData, error: vendorError } = await supabase
         .from('vendors')
-        .select('id, business_name, stores(id)')
+        .select('id, business_name, custom_markup_percentage, stores(id)')
         .eq('user_id', user?.id)
         .single();
 
@@ -876,8 +877,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             name: validatedData.name,
             slug: validatedData.name.toLowerCase().replace(/\s+/g, '-'),
             description: validatedData.description,
-            price: validatedData.price,
-            compare_at_price: validatedData.compareAtPrice,
+            price: applyPlatformMarkup(validatedData.price, vendorData.custom_markup_percentage),
+            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice, vendorData.custom_markup_percentage) : undefined,
             sku: validatedData.sku,
             quantity: validatedData.quantity,
             category: validatedData.category,
@@ -894,7 +895,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         const tasks = [uploadImages(newProduct.id)];
         
         if (validatedData.productType === 'variable') {
-          tasks.push(saveVariations(newProduct.id));
+          tasks.push(saveVariations(newProduct.id, vendorData.custom_markup_percentage));
         }
         
         if (validatedData.productType === 'downloadable') {
@@ -915,8 +916,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             name: validatedData.name,
             slug: validatedData.name.toLowerCase().replace(/\s+/g, '-'),
             description: validatedData.description,
-            price: validatedData.price,
-            compare_at_price: validatedData.compareAtPrice,
+            price: applyPlatformMarkup(validatedData.price, vendorData.custom_markup_percentage),
+            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice, vendorData.custom_markup_percentage) : undefined,
             sku: validatedData.sku,
             quantity: validatedData.quantity,
             category: validatedData.category,
@@ -931,7 +932,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         const tasks = [uploadImages(product.id)];
         
         if (validatedData.productType === 'variable') {
-          tasks.push(saveVariations(product.id));
+          tasks.push(saveVariations(product.id, vendorData.custom_markup_percentage));
         }
         
         if (validatedData.productType === 'downloadable') {

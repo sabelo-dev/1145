@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import { 
   Plus, 
   Search, 
@@ -232,7 +233,7 @@ const VendorProducts = () => {
       // Get vendor's store
       const { data: vendor, error: vendorError } = await supabase
         .from('vendors')
-        .select('id, business_name')
+        .select('id, business_name, custom_markup_percentage')
         .eq('user_id', user.id)
         .single();
 
@@ -282,8 +283,8 @@ const VendorProducts = () => {
             sku: row[1]?.trim() || null,
             category: row[2]?.trim() || 'Uncategorized',
             subcategory: row[3]?.trim() || null,
-            price: parseFloat(row[4]) || 0,
-            compare_at_price: row[5] ? parseFloat(row[5]) : null,
+            price: applyPlatformMarkup(parseFloat(row[4]) || 0),
+            compare_at_price: row[5] ? applyPlatformMarkup(parseFloat(row[5])) : null,
             quantity: parseInt(row[6]) || 0,
             description: row[7]?.replace(/;/g, ',') || '',
             status: 'pending',

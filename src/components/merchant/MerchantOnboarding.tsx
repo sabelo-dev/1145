@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import OnboardingProgress from "./onboarding/OnboardingProgress";
 import StepAccountCreation from "./onboarding/StepAccountCreation";
 import StepBusinessInfo, { BusinessInfoValues } from "./onboarding/StepBusinessInfo";
@@ -300,7 +301,7 @@ const MerchantOnboarding: React.FC = () => {
         name: data.title,
         slug: `${slug}-${Date.now()}`,
         description: data.description,
-        price: parseFloat(data.price),
+        price: applyPlatformMarkup(parseFloat(data.price), vendorData?.custom_markup_percentage),
         quantity: parseInt(data.quantity),
         category: data.category,
         sku: data.sku || null,

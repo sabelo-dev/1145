@@ -5214,6 +5214,7 @@ export type Database = {
           business_type: string | null
           commission_rate: number | null
           created_at: string
+          custom_markup_percentage: number | null
           default_pricing_currency: string | null
           description: string | null
           features_config: Json | null
@@ -5259,6 +5260,7 @@ export type Database = {
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
+          custom_markup_percentage?: number | null
           default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
@@ -5304,6 +5306,7 @@ export type Database = {
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
+          custom_markup_percentage?: number | null
           default_pricing_currency?: string | null
           description?: string | null
           features_config?: Json | null
