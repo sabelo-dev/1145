@@ -25,7 +25,7 @@ const paymentMethods = [
     iconColor: "text-blue-600",
   },
   {
-    value: "eft",
+    value: "ef",
     label: "Instant EFT",
     description: "Pay directly from your bank account",
     icon: Building,
@@ -46,7 +46,7 @@ const paymentMethods = [
     iconColor: "text-purple-600",
   },
   {
-    value: "sc",
+    value: "ss",
     label: "SnapScan",
     description: "Scan & pay with the SnapScan app",
     icon: QrCode,
