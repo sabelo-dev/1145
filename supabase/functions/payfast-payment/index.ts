@@ -15,8 +15,9 @@ interface PayFastPaymentData {
   customerEmail: string;
   customerFirstName?: string;
   customerLastName?: string;
-  customStr1?: string; // For passing registration ID
-  customStr2?: string; // For payment type identification
+  customStr1?: string;
+  customStr2?: string;
+  paymentMethod?: string; // cc, eft, mp, mc, sc
 }
 
 // MD5 hash implementation using Deno's built-in crypto
@@ -151,6 +152,10 @@ serve(async (req) => {
     }
     if (paymentData.customStr2) {
       formData.custom_str2 = paymentData.customStr2;
+    }
+    // Set payment method channel (cc, eft, mp, mc, sc)
+    if (paymentData.paymentMethod) {
+      formData.payment_method = paymentData.paymentMethod;
     }
 
     // Generate proper MD5 signature

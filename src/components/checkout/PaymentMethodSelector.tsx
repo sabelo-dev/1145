@@ -10,11 +10,49 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Smartphone } from "lucide-react";
+import { CreditCard, Smartphone, QrCode, Wallet, Building } from "lucide-react";
 
 interface PaymentMethodSelectorProps {
   control: Control<any>;
 }
+
+const paymentMethods = [
+  {
+    value: "cc",
+    label: "Credit / Debit Card",
+    description: "Visa, Mastercard, American Express, Diners Club",
+    icon: CreditCard,
+    iconColor: "text-blue-600",
+  },
+  {
+    value: "eft",
+    label: "Instant EFT",
+    description: "Pay directly from your bank account",
+    icon: Building,
+    iconColor: "text-green-600",
+  },
+  {
+    value: "mp",
+    label: "Masterpass",
+    description: "Pay with Masterpass by Mastercard",
+    icon: Wallet,
+    iconColor: "text-orange-500",
+  },
+  {
+    value: "mc",
+    label: "Mobicred",
+    description: "Buy now, pay later with Mobicred",
+    icon: Smartphone,
+    iconColor: "text-purple-600",
+  },
+  {
+    value: "sc",
+    label: "SnapScan",
+    description: "Scan & pay with the SnapScan app",
+    icon: QrCode,
+    iconColor: "text-blue-500",
+  },
+];
 
 const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ control }) => {
   return (
@@ -29,39 +67,38 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ control }
               defaultValue={field.value}
               className="space-y-3"
             >
-              <Card className="border-2 hover:border-wwe-navy/20 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="card" id="card" />
-                    <FormLabel htmlFor="card" className="flex items-center space-x-3 cursor-pointer flex-1">
-                      <CreditCard className="h-6 w-6 text-blue-600" />
-                      <div>
-                        <div className="font-medium">Credit/Debit Card</div>
-                        <div className="text-sm text-gray-500">
-                          Visa, Mastercard, American Express
-                        </div>
+              {paymentMethods.map((method) => {
+                const Icon = method.icon;
+                return (
+                  <Card
+                    key={method.value}
+                    className={`border-2 transition-colors cursor-pointer ${
+                      field.value === method.value
+                        ? "border-primary bg-primary/5"
+                        : "hover:border-muted-foreground/20"
+                    }`}
+                    onClick={() => field.onChange(method.value)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value={method.value} id={method.value} />
+                        <FormLabel
+                          htmlFor={method.value}
+                          className="flex items-center space-x-3 cursor-pointer flex-1"
+                        >
+                          <Icon className={`h-6 w-6 ${method.iconColor}`} />
+                          <div>
+                            <div className="font-medium">{method.label}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {method.description}
+                            </div>
+                          </div>
+                        </FormLabel>
                       </div>
-                    </FormLabel>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 hover:border-wwe-navy/20 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="eft" id="eft" />
-                    <FormLabel htmlFor="eft" className="flex items-center space-x-3 cursor-pointer flex-1">
-                      <Smartphone className="h-6 w-6 text-green-600" />
-                      <div>
-                        <div className="font-medium">EFT (Instant Transfer)</div>
-                        <div className="text-sm text-gray-500">
-                          Secure electronic funds transfer
-                        </div>
-                      </div>
-                    </FormLabel>
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </RadioGroup>
           </FormControl>
           <FormMessage />
