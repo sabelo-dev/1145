@@ -22,7 +22,7 @@ const checkoutSchema = z.object({
   city: z.string().min(1, "City is required"),
   postalCode: z.string().min(1, "Postal code is required"),
   phone: z.string().min(1, "Phone number is required"),
-  paymentMethod: z.enum(["cc", "eft", "mp", "mc", "sc"], {
+  paymentMethod: z.enum(["cc", "ef", "mp", "mc", "sc", "ss"], {
     required_error: "Please select a payment method",
   }),
 });
@@ -105,7 +105,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         userId: user?.id,
       };
 
-      if (["cc", "eft", "mp", "mc", "sc"].includes(values.paymentMethod)) {
+      if (["cc", "ef", "mp", "mc", "sc", "ss"].includes(values.paymentMethod)) {
         // Use the PayFast edge function for both card and EFT payments
         const { data: paymentData, error } = await supabase.functions.invoke('payfast-payment', {
           body: {
