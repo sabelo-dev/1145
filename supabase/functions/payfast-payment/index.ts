@@ -65,8 +65,8 @@ async function generatePayFastSignature(data: Record<string, any>, passphrase: s
     })
     .join("&");
 
-  // Add passphrase without URL encoding (PayFast requirement)
-  const stringToHash = `${paramString}&passphrase=${passphrase}`;
+  // Add passphrase with URL encoding (must match encoding of other values)
+  const stringToHash = `${paramString}&passphrase=${phpUrlencode(passphrase)}`;
 
   console.log("PayFast parameter string (field order):", paramString);
   console.log("Full string to hash:", stringToHash);
