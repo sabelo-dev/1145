@@ -153,13 +153,14 @@ serve(async (req) => {
     if (paymentData.customStr2) {
       formData.custom_str2 = paymentData.customStr2;
     }
-    // Set payment method channel (cc, eft, mp, mc, sc)
+    // Generate proper MD5 signature BEFORE adding payment_method
+    // payment_method must NOT be included in the signature calculation
+    const signature = await generatePayFastSignature(formData, passphrase);
+
+    // Add payment_method AFTER signature generation (it's not part of the signature)
     if (paymentData.paymentMethod) {
       formData.payment_method = paymentData.paymentMethod;
     }
-
-    // Generate proper MD5 signature
-    const signature = await generatePayFastSignature(formData, passphrase);
 
     // Log payment attempt for audit
     console.log(`Payment initiated by user ${user.id} for amount ${paymentData.amount}`);
