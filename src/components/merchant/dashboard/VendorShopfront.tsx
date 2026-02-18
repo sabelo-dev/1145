@@ -82,7 +82,7 @@ const VendorShopfront = () => {
     homepage_sections: ["hero", "featured", "products", "testimonials", "faq"] as string[],
   });
 
-  const capabilities = TIER_CAPABILITIES[tier];
+  const capabilities = TIER_CAPABILITIES[tier] || TIER_CAPABILITIES['starter'];
 
   useEffect(() => {
     fetchStoreData();
