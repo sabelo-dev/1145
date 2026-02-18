@@ -128,7 +128,8 @@ serve(async (req) => {
       );
     }
 
-    // Create payment form data
+    // Create payment form data — field order MUST match PayFast's attribute table order
+    // ALL non-blank fields (including payment_method) must be included BEFORE signature generation
     const formData: Record<string, any> = {
       merchant_id: merchantId,
       merchant_key: merchantKey,
@@ -138,29 +139,31 @@ serve(async (req) => {
       name_first: paymentData.customerFirstName || "",
       name_last: paymentData.customerLastName || "",
       email_address: paymentData.customerEmail,
-      m_payment_id: `WWE-${Date.now()}-${user.id}`, // Unique payment ID with user
+      m_payment_id: `WWE-${Date.now()}-${user.id}`,
       amount: paymentData.amount.toFixed(2),
       item_name: paymentData.itemName,
       item_description: paymentData.itemName,
-      email_confirmation: 1,
-      confirmation_address: paymentData.customerEmail,
     };
-    
-    // Add custom fields if provided (for auction registrations)
+
+    // Add custom fields if provided (for auction registrations) — before transaction options
     if (paymentData.customStr1) {
       formData.custom_str1 = paymentData.customStr1;
     }
     if (paymentData.customStr2) {
       formData.custom_str2 = paymentData.customStr2;
     }
-    // Generate proper MD5 signature BEFORE adding payment_method
-    // payment_method must NOT be included in the signature calculation
-    const signature = await generatePayFastSignature(formData, passphrase);
 
-    // Add payment_method AFTER signature generation (it's not part of the signature)
+    // Transaction options — email_confirmation and confirmation_address
+    formData.email_confirmation = 1;
+    formData.confirmation_address = paymentData.customerEmail;
+
+    // payment_method MUST be included in the signature (PayFast docs: all non-blank fields)
     if (paymentData.paymentMethod) {
       formData.payment_method = paymentData.paymentMethod;
     }
+
+    // Generate MD5 signature with ALL fields included
+    const signature = await generatePayFastSignature(formData, passphrase);
 
     // Log payment attempt for audit
     console.log(`Payment initiated by user ${user.id} for amount ${paymentData.amount}`);
