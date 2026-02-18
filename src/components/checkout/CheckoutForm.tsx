@@ -13,6 +13,14 @@ import ShippingForm from "./ShippingForm";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { calculateShipping } from "@/utils/shippingCalculator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 const checkoutSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -29,6 +37,19 @@ const checkoutSchema = z.object({
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
+interface SavedAddress {
+  id: string;
+  label: string;
+  name: string;
+  street: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+  phone: string | null;
+  is_default: boolean;
+}
+
 interface CheckoutFormProps {
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
@@ -43,6 +64,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const { toast } = useToast();
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [loadingShipping, setLoadingShipping] = useState(true);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -57,6 +80,71 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       paymentMethod: "cc",
     },
   });
+
+  // Fetch user profile and saved addresses
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user?.id) return;
+
+      const [profileResult, addressesResult] = await Promise.all([
+        supabase.from("profiles").select("name, email, phone").eq("id", user.id).maybeSingle(),
+        supabase.from("user_addresses").select("*").eq("user_id", user.id).order("is_default", { ascending: false }),
+      ]);
+
+      // Set email and name from profile
+      if (profileResult.data) {
+        const profile = profileResult.data;
+        form.setValue("email", profile.email || user.email || "");
+        if (profile.phone) form.setValue("phone", profile.phone);
+
+        // Split name into first/last
+        if (profile.name) {
+          const parts = profile.name.trim().split(/\s+/);
+          if (parts.length >= 2) {
+            form.setValue("firstName", parts.slice(0, -1).join(" "));
+            form.setValue("lastName", parts[parts.length - 1]);
+          } else {
+            form.setValue("firstName", parts[0]);
+          }
+        }
+      }
+
+      // Load saved addresses
+      if (addressesResult.data && addressesResult.data.length > 0) {
+        setSavedAddresses(addressesResult.data);
+        // Auto-select default address
+        const defaultAddr = addressesResult.data.find((a) => a.is_default) || addressesResult.data[0];
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id);
+          applyAddress(defaultAddr);
+        }
+      }
+    };
+
+    loadUserData();
+  }, [user?.id]);
+
+  const applyAddress = (addr: SavedAddress) => {
+    form.setValue("address", addr.street);
+    form.setValue("city", addr.city);
+    form.setValue("postalCode", addr.postal_code);
+    if (addr.phone) form.setValue("phone", addr.phone);
+    // Split address name into first/last if it has parts
+    if (addr.name) {
+      const parts = addr.name.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        form.setValue("firstName", parts.slice(0, -1).join(" "));
+        form.setValue("lastName", parts[parts.length - 1]);
+      }
+    }
+  };
+
+  const handleAddressChange = (addressId: string) => {
+    setSelectedAddressId(addressId);
+    if (addressId === "new") return; // User wants to type manually
+    const addr = savedAddresses.find((a) => a.id === addressId);
+    if (addr) applyAddress(addr);
+  };
 
   // Calculate shipping cost when cart changes
   useEffect(() => {
@@ -95,18 +183,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       const tax = subtotal * 0.15; // 15% VAT
       const total = subtotal + shipping + tax;
 
-      const orderData = {
-        ...values,
-        items: cart.items,
-        subtotal,
-        shipping,
-        tax,
-        total,
-        userId: user?.id,
-      };
-
       if (["cc", "ef", "mp", "mc", "sc", "ss"].includes(values.paymentMethod)) {
-        // Use the PayFast edge function for both card and EFT payments
         const { data: paymentData, error } = await supabase.functions.invoke('payfast-payment', {
           body: {
             amount: total,
@@ -117,7 +194,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
             customerEmail: values.email,
             customerFirstName: values.firstName,
             customerLastName: values.lastName,
-            paymentMethod: values.paymentMethod, // Pass the specific payment method
+            paymentMethod: values.paymentMethod,
           },
         });
 
@@ -126,37 +203,30 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           throw new Error(error.message || "Failed to create payment");
         }
 
-        console.log("PayFast response received:", paymentData);
-
         if (!paymentData) {
           throw new Error("No response from payment gateway");
         }
 
         if (paymentData?.success && paymentData?.formData) {
-          // Create and submit form to PayFast
           const form = document.createElement('form');
           form.method = 'POST';
           form.action = paymentData.action;
           form.style.display = 'none';
 
-          // Add all payment data as hidden inputs
           Object.entries(paymentData.formData).forEach(([key, value]) => {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = key;
-            input.value = value.toString();
+            input.value = value!.toString();
             form.appendChild(input);
           });
 
           document.body.appendChild(form);
-          console.log("Submitting form to:", paymentData.action);
           form.submit();
         } else {
-          console.error("Invalid payment data:", paymentData);
           throw new Error("No payment data received");
         }
       } else {
-        // Handle other payment methods here
         toast({
           title: "Payment method not implemented",
           description: "This payment method is not yet available.",
@@ -177,13 +247,32 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {savedAddresses.length > 0 && (
+          <div className="space-y-2">
+            <Label>Shipping Address</Label>
+            <Select value={selectedAddressId} onValueChange={handleAddressChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a saved address" />
+              </SelectTrigger>
+              <SelectContent>
+                {savedAddresses.map((addr) => (
+                  <SelectItem key={addr.id} value={addr.id}>
+                    {addr.label} — {addr.street}, {addr.city} {addr.postal_code}
+                  </SelectItem>
+                ))}
+                <SelectItem value="new">Enter a new address</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div>
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h2>
+          <h2 className="text-lg font-medium text-foreground mb-4">Contact & Shipping Information</h2>
           <ShippingForm control={form.control} />
         </div>
 
         <div>
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h2>
+          <h2 className="text-lg font-medium text-foreground mb-4">Payment Method</h2>
           <PaymentMethodSelector control={form.control} />
         </div>
 
