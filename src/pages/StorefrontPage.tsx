@@ -47,7 +47,9 @@ const StorefrontPage: React.FC = () => {
               .eq('id', vendor.id)
               .maybeSingle();
             if (vendorData) {
-              setVendorTier((vendorData.subscription_tier as StorefrontTier) || 'starter');
+              const tier = vendorData.subscription_tier as string;
+              const validTiers: StorefrontTier[] = ['starter', 'bronze', 'silver', 'gold'];
+              setVendorTier(validTiers.includes(tier as StorefrontTier) ? (tier as StorefrontTier) : 'starter');
             }
           }
 
