@@ -93,7 +93,7 @@ const StorefrontPage: React.FC = () => {
     );
   }
 
-  const capabilities = TIER_CAPABILITIES[vendorTier];
+  const capabilities = TIER_CAPABILITIES[vendorTier] || TIER_CAPABILITIES['starter'];
   const vendor = store.vendors;
   const accentColor = customization?.accent_color || '#6366f1';
   const secondaryColor = customization?.secondary_color || '#8b5cf6';
