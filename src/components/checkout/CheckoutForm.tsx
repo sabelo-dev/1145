@@ -195,6 +195,18 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
             customerFirstName: values.firstName,
             customerLastName: values.lastName,
             paymentMethod: values.paymentMethod,
+            shippingAddress: {
+              name: `${values.firstName} ${values.lastName}`,
+              street: values.address,
+              city: values.city,
+              postal_code: values.postalCode,
+              phone: values.phone,
+            },
+            cartItems: cart.items.map(item => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            })),
           },
         });
 
