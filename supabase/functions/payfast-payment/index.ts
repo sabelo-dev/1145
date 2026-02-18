@@ -17,19 +17,17 @@ interface PayFastPaymentData {
   customerLastName?: string;
   customStr1?: string;
   customStr2?: string;
-  paymentMethod?: string; // cc, eft, mp, mc, sc
+  paymentMethod?: string;
+  shippingAddress?: Record<string, any>;
+  cartItems?: Array<{ productId: string; quantity: number; price: number; storeId?: string }>;
 }
 
-// MD5 hash implementation using Deno's built-in crypto
 async function md5Hash(input: string): Promise<string> {
-  // Use Deno's native crypto module which is always available
   const crypto = await import("node:crypto");
   return crypto.createHash("md5").update(input).digest("hex");
 }
 
-// PHP urlencode equivalent for JavaScript with uppercase encoding
 function phpUrlencode(str: string): string {
-  // First encode the string
   let encoded = encodeURIComponent(str)
     .replace(/!/g, "%21")
     .replace(/'/g, "%27")
@@ -37,56 +35,41 @@ function phpUrlencode(str: string): string {
     .replace(/\)/g, "%29")
     .replace(/\*/g, "%2A")
     .replace(/~/g, "%7E")
-    .replace(/%20/g, "+"); // PHP urlencode uses + for spaces
-
-  // Convert all hex encoding to uppercase (PayFast requirement)
+    .replace(/%20/g, "+");
   return encoded.replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase());
 }
 
 async function generatePayFastSignature(data: Record<string, any>, passphrase: string): Promise<string> {
-  // Filter out empty values and signature field - PayFast requirement
   const filteredData: Record<string, any> = {};
-
   Object.keys(data).forEach((key) => {
     const value = data[key];
-    // Only include non-empty values
     if (key !== "signature" && value !== "" && value !== null && value !== undefined) {
       filteredData[key] = value;
     }
   });
 
-  // IMPORTANT: Use the order fields appear in data, NOT alphabetical order
-  // PayFast specifically requires: "Do not use the API signature format, which uses alphabetical ordering!"
   const paramString = Object.keys(filteredData)
     .map((key) => {
       const value = filteredData[key].toString().trim();
-      // Use PHP-compatible URL encoding with uppercase hex codes
       return `${key}=${phpUrlencode(value)}`;
     })
     .join("&");
 
-  // Add passphrase with URL encoding (must match encoding of other values)
   const stringToHash = `${paramString}&passphrase=${phpUrlencode(passphrase)}`;
-
   console.log("PayFast parameter string (field order):", paramString);
   console.log("Full string to hash:", stringToHash);
 
-  // Generate MD5 hash
   const signature = await md5Hash(stringToHash);
-
   console.log("Generated signature:", signature);
-
   return signature;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify user is authenticated
     const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
       global: {
         headers: { Authorization: req.headers.get("Authorization")! },
@@ -106,29 +89,93 @@ serve(async (req) => {
 
     const paymentData: PayFastPaymentData = await req.json();
 
-    // Get PayFast credentials from secrets
     const merchantId = Deno.env.get("PAYFAST_MERCHANT_ID") || "10000100";
     const merchantKey = Deno.env.get("PAYFAST_MERCHANT_KEY") || "46f0cd694581a";
     const passphrase = Deno.env.get("PAYFAST_PASSPHRASE") || "jt7NOE43FZPn";
-
-    // Use live PayFast URL for production
     const payfastUrl = "https://www.payfast.co.za/eng/process";
 
     if (!merchantId || !merchantKey || !passphrase) {
       console.error("PayFast credentials not configured");
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Payment gateway not configured properly" 
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ success: false, error: "Payment gateway not configured properly" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Create payment form data
+    // Use admin client to manage orders (bypass RLS for upsert logic)
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Check for existing pending order for this user — reuse instead of creating duplicate
+    let orderId: string | null = null;
+    const { data: existingOrder } = await supabaseAdmin
+      .from("orders")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("payment_status", "pending")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const shippingAddress = paymentData.shippingAddress || {};
+
+    if (existingOrder) {
+      // Reuse existing pending order — just update timestamp and totals
+      orderId = existingOrder.id;
+      await supabaseAdmin.from("orders").update({
+        total: paymentData.amount,
+        shipping_address: shippingAddress,
+        updated_at: new Date().toISOString(),
+      }).eq("id", orderId);
+
+      // Replace order items with current cart
+      await supabaseAdmin.from("order_items").delete().eq("order_id", orderId);
+      console.log(`Reusing existing pending order: ${orderId}`);
+    } else {
+      // Create new order
+      const { data: newOrder, error: orderError } = await supabaseAdmin.from("orders").insert({
+        user_id: user.id,
+        total: paymentData.amount,
+        status: "pending",
+        payment_method: "payfast",
+        payment_status: "pending",
+        shipping_address: shippingAddress,
+      }).select("id").single();
+
+      if (orderError || !newOrder) {
+        console.error("Failed to create order:", orderError);
+        return new Response(
+          JSON.stringify({ success: false, error: "Failed to create order" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      orderId = newOrder.id;
+      console.log(`Created new order: ${orderId}`);
+    }
+
+    // Insert current cart items into order_items
+    if (paymentData.cartItems && paymentData.cartItems.length > 0) {
+      const orderItems = paymentData.cartItems.map((item) => ({
+        order_id: orderId,
+        product_id: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+        store_id: item.storeId || null,
+        status: "pending",
+        vendor_status: "pending",
+      }));
+      const { error: itemsError } = await supabaseAdmin.from("order_items").insert(orderItems);
+      if (itemsError) {
+        console.error("Failed to insert order items:", itemsError);
+      }
+    }
+
+    // Use order ID as payment reference so ITN can match it
+    const mPaymentId = `ORDER-${orderId}`;
+
     const formData: Record<string, any> = {
       merchant_id: merchantId,
       merchant_key: merchantKey,
@@ -138,48 +185,25 @@ serve(async (req) => {
       name_first: paymentData.customerFirstName || "",
       name_last: paymentData.customerLastName || "",
       email_address: paymentData.customerEmail,
-      m_payment_id: `WWE-${Date.now()}-${user.id}`, // Unique payment ID with user
+      m_payment_id: mPaymentId,
       amount: paymentData.amount.toFixed(2),
       item_name: paymentData.itemName,
       item_description: paymentData.itemName,
-      email_confirmation: 1,
-      confirmation_address: paymentData.customerEmail,
     };
-    
-    // Add custom fields if provided (for auction registrations)
-    if (paymentData.customStr1) {
-      formData.custom_str1 = paymentData.customStr1;
-    }
-    if (paymentData.customStr2) {
-      formData.custom_str2 = paymentData.customStr2;
-    }
-    // Generate proper MD5 signature BEFORE adding payment_method
-    // payment_method must NOT be included in the signature calculation
-    const signature = await generatePayFastSignature(formData, passphrase);
 
-    // Add payment_method AFTER signature generation (it's not part of the signature)
+    if (paymentData.customStr1) formData.custom_str1 = paymentData.customStr1;
+    if (paymentData.customStr2) formData.custom_str2 = paymentData.customStr2;
+
+    formData.email_confirmation = 1;
+    formData.confirmation_address = paymentData.customerEmail;
+
     if (paymentData.paymentMethod) {
       formData.payment_method = paymentData.paymentMethod;
     }
 
-    // Log payment attempt for audit
-    console.log(`Payment initiated by user ${user.id} for amount ${paymentData.amount}`);
-    console.log(`Payment ID: ${formData.m_payment_id}`);
+    const signature = await generatePayFastSignature(formData, passphrase);
 
-    // Store payment record in database
-    const { error: orderError } = await supabaseClient.from("orders").insert({
-      user_id: user.id,
-      total: paymentData.amount,
-      status: "pending",
-      payment_method: "payfast",
-      payment_status: "pending",
-      shipping_address: {}, // This should be provided by the client
-    });
-
-    if (orderError) {
-      console.error("Failed to create order:", orderError);
-      // Continue anyway as the payment might still succeed
-    }
+    console.log(`Payment initiated by user ${user.id} for amount ${paymentData.amount}, order: ${orderId}`);
 
     return new Response(
       JSON.stringify({
@@ -187,9 +211,7 @@ serve(async (req) => {
         formData: { ...formData, signature },
         action: payfastUrl,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("PayFast payment creation failed:", error);
@@ -198,10 +220,7 @@ serve(async (req) => {
         success: false,
         error: error instanceof Error ? error.message : "Payment creation failed",
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

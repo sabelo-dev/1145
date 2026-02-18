@@ -287,29 +287,40 @@ serve(async (req) => {
       }
     }
     
-    // Handle regular order payments
-    if (paymentId && paymentId.startsWith("WWE-")) {
-      // Extract order info from payment ID
-      const orderParts = paymentId.split("-");
-      const userId = orderParts[2];
+    // Handle regular order payments — ORDER-{uuid} format
+    if (paymentId && paymentId.startsWith("ORDER-")) {
+      const orderId = paymentId.replace("ORDER-", "");
       
       if (paymentStatus === "COMPLETE") {
-        // Update order status
         const { error: orderError } = await supabaseAdmin
           .from("orders")
           .update({ 
             payment_status: "paid",
-            status: "processing"
+            status: "processing",
+            updated_at: new Date().toISOString(),
           })
-          .eq("user_id", userId)
-          .eq("payment_status", "pending")
-          .order("created_at", { ascending: false })
-          .limit(1);
+          .eq("id", orderId);
         
         if (orderError) {
           console.error("Failed to update order:", orderError);
         } else {
-          console.log(`Order payment confirmed for user ${userId}`);
+          console.log(`Order ${orderId} payment confirmed`);
+        }
+      } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
+        const { error: cancelError } = await supabaseAdmin
+          .from("orders")
+          .update({ 
+            payment_status: paymentStatus.toLowerCase(),
+            status: "cancelled",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", orderId)
+          .eq("payment_status", "pending");
+        
+        if (cancelError) {
+          console.error("Failed to cancel order:", cancelError);
+        } else {
+          console.log(`Order ${orderId} cancelled/failed`);
         }
       }
     }

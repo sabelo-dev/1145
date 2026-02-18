@@ -218,10 +218,20 @@ const MerchantOnboarding: React.FC = () => {
     }
   };
 
-  // File upload helper (simulated)
-  const handleFileUpload = async (file: File, setter: (url: string) => void) => {
-    const url = URL.createObjectURL(file);
-    setter(url);
+  // File upload helper — uploads to Supabase Storage
+  const handleFileUpload = async (file: File, setter: (url: string) => void, bucket: string = 'vendor-logos') => {
+    if (!vendorData) return;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${vendorData.id}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      setter(urlData.publicUrl);
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({ variant: "destructive", title: "Upload Failed", description: error.message });
+    }
   };
 
   // Step 4: Save store
@@ -241,6 +251,8 @@ const MerchantOnboarding: React.FC = () => {
         slug,
         description: data.storeDescription,
         return_policy: data.returnPolicy || null,
+        logo_url: logoFile || null,
+        banner_url: bannerFile || null,
       });
       if (error) throw error;
 
@@ -426,8 +438,8 @@ const MerchantOnboarding: React.FC = () => {
             bannerFile={bannerFile}
             onRegionsChange={setShippingRegions}
             onMethodsChange={setShippingMethods}
-            onLogoUpload={(f) => handleFileUpload(f, setLogoFile)}
-            onBannerUpload={(f) => handleFileUpload(f, setBannerFile)}
+            onLogoUpload={(f) => handleFileUpload(f, setLogoFile, 'vendor-logos')}
+            onBannerUpload={(f) => handleFileUpload(f, setBannerFile, 'vendor-banners')}
             onNext={handleStoreSetup}
             onBack={() => setStep(3)}
             isLoading={isLoading}
