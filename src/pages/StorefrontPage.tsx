@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Store, Mail, MessageSquare, Calendar, Clock, Shield, Crown, Medal, Award, ChevronDown, ExternalLink } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Store, Mail, MessageSquare, Calendar, Clock, Shield, Crown, Medal, Award, ChevronDown, ExternalLink, ChevronRight, Heart, Share2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { Product } from "@/types";
 import { fetchProductsByStore, fetchStoreBySlug } from "@/services/products";
@@ -24,6 +25,7 @@ const StorefrontPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [emailInput, setEmailInput] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const loadStorefrontData = async () => {
@@ -38,7 +40,6 @@ const StorefrontPage: React.FC = () => {
         setProducts(productsData);
 
         if (storeData) {
-          // Fetch vendor tier
           const vendor = storeData.vendors;
           if (vendor?.id) {
             const { data: vendorData } = await supabase
@@ -53,7 +54,6 @@ const StorefrontPage: React.FC = () => {
             }
           }
 
-          // Fetch customization
           const { data: cust } = await supabase
             .from('storefront_customizations')
             .select('*')
@@ -72,10 +72,11 @@ const StorefrontPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="min-h-screen bg-background">
+        <div className="flex items-center justify-center h-screen">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground animate-pulse">Loading store...</p>
           </div>
         </div>
       </div>
@@ -84,12 +85,19 @@ const StorefrontPage: React.FC = () => {
 
   if (!store) {
     return (
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-4 text-center py-12">
-          <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+            <Store className="h-10 w-10 text-muted-foreground" />
+          </div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Store Not Found</h1>
-          <p className="text-muted-foreground mb-6">The store you're looking for doesn't exist.</p>
-          <Link to="/shop"><Button><ArrowLeft className="h-4 w-4 mr-2" />Back to Shop</Button></Link>
+          <p className="text-muted-foreground mb-8">The store you're looking for doesn't exist or has been removed.</p>
+          <Link to="/shop">
+            <Button size="lg" className="w-full">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Shop
+            </Button>
+          </Link>
         </div>
       </div>
     );
@@ -116,8 +124,15 @@ const StorefrontPage: React.FC = () => {
     ? products.reduce((sum, p) => sum + p.rating, 0) / products.length
     : 0;
 
-  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
-  const paginatedProducts = products.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE);
+  // Get unique categories from products
+  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+
+  const filteredProducts = activeCategory
+    ? products.filter(p => p.category === activeCategory)
+    : products;
+
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE);
 
   const homepageSections: string[] = vendorTier === 'gold' && customization?.homepage_sections
     ? (customization.homepage_sections as unknown as string[])
@@ -127,12 +142,16 @@ const StorefrontPage: React.FC = () => {
 
   const fontStyle = customFont ? { fontFamily: `"${customFont}", sans-serif` } : {};
 
+  const isVideoUrl = (url: string) => {
+    return url.match(/\.(mp4|webm|ogg)(\?|$)/i) || url.includes('supabase.co/storage');
+  };
+
   const renderSection = (sectionId: string) => {
     switch (sectionId) {
       case 'announcement':
         if (!announcementActive || !capabilities.announcementBar) return null;
         return (
-          <div key="announcement" className="text-center py-2 px-4 text-sm font-medium" style={{ backgroundColor: accentColor, color: '#fff' }}>
+          <div key="announcement" className="text-center py-2.5 px-4 text-sm font-medium tracking-wide" style={{ backgroundColor: accentColor, color: '#fff' }}>
             {customization.announcement_bar_text}
           </div>
         );
@@ -142,19 +161,47 @@ const StorefrontPage: React.FC = () => {
         return (
           <div key="hero" className="relative">
             {videoBannerUrl && capabilities.videoBanner ? (
-              <div className="w-full h-48 md:h-64 lg:h-80 overflow-hidden bg-muted">
-                <iframe src={videoBannerUrl} className="w-full h-full" frameBorder="0" allowFullScreen title="Store video" />
+              <div className="w-full aspect-[21/9] max-h-[480px] overflow-hidden bg-muted relative">
+                {isVideoUrl(videoBannerUrl) ? (
+                  <video
+                    src={videoBannerUrl}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                  />
+                ) : (
+                  <iframe src={videoBannerUrl} className="w-full h-full" frameBorder="0" allowFullScreen title="Store video" />
+                )}
+                {capabilities.ctaButton && ctaUrl && (
+                  <div className="absolute inset-0 flex items-end justify-start p-6 md:p-12 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                    <div>
+                      <h2 className="text-white text-2xl md:text-4xl font-bold mb-3 drop-shadow-lg">{store.name}</h2>
+                      <Link to={ctaUrl}>
+                        <Button size="lg" className="text-white font-semibold px-8 rounded-full shadow-lg hover:scale-105 transition-transform" style={{ backgroundColor: accentColor }}>
+                          {ctaText}
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : store.banner_url ? (
-              <div className="w-full h-48 md:h-64 lg:h-80 overflow-hidden relative">
+              <div className="w-full aspect-[21/9] max-h-[480px] overflow-hidden relative">
                 <img src={store.banner_url} alt={`${store.name} banner`} className="w-full h-full object-cover" />
                 {capabilities.ctaButton && ctaUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <Link to={ctaUrl}>
-                      <Button size="lg" style={{ backgroundColor: accentColor }} className="text-white font-semibold px-8">
-                        {ctaText}
-                      </Button>
-                    </Link>
+                  <div className="absolute inset-0 flex items-end justify-start p-6 md:p-12 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                    <div>
+                      <h2 className="text-white text-2xl md:text-4xl font-bold mb-3 drop-shadow-lg">{store.name}</h2>
+                      <Link to={ctaUrl}>
+                        <Button size="lg" className="text-white font-semibold px-8 rounded-full shadow-lg hover:scale-105 transition-transform" style={{ backgroundColor: accentColor }}>
+                          {ctaText}
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -166,138 +213,214 @@ const StorefrontPage: React.FC = () => {
         if (!capabilities.featuredProducts || products.length === 0) return null;
         const featuredProducts = products.slice(0, 4);
         return (
-          <div key="featured" className="container mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Featured Products</h2>
-            <ProductGrid products={featuredProducts} />
-          </div>
+          <section key="featured" className="px-4 py-8 md:py-12">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground">Featured Products</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Hand-picked just for you</p>
+                </div>
+                <Link to="#products">
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    View all <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+              <ProductGrid products={featuredProducts} />
+            </div>
+          </section>
         );
 
       case 'products':
         return (
-          <div key="products" className="container mx-auto px-4 py-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-foreground">
-                {vendorTier === 'starter' ? 'Products' : 'All Products'} ({products.length})
-              </h2>
-            </div>
-            {paginatedProducts.length > 0 ? (
-              <>
-                <ProductGrid
-                  products={paginatedProducts}
-                  columns={layoutType === 'minimal' ? 3 : layoutType === 'modern' ? 3 : 4}
-                />
-                {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-8">
-                    {Array.from({ length: totalPages }, (_, i) => (
+          <section key="products" id="products" className="px-4 py-8 md:py-12">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex flex-col gap-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground">
+                    {vendorTier === 'starter' ? 'Products' : 'All Products'}
+                    <span className="text-base font-normal text-muted-foreground ml-2">({filteredProducts.length})</span>
+                  </h2>
+                </div>
+
+                {/* Category filter pills */}
+                {categories.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                    <Button
+                      variant={activeCategory === null ? "default" : "outline"}
+                      size="sm"
+                      className="rounded-full whitespace-nowrap flex-shrink-0"
+                      onClick={() => { setActiveCategory(null); setCurrentPage(1); }}
+                    >
+                      All
+                    </Button>
+                    {categories.map(cat => (
                       <Button
-                        key={i}
-                        variant={currentPage === i + 1 ? "default" : "outline"}
+                        key={cat}
+                        variant={activeCategory === cat ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setCurrentPage(i + 1)}
+                        className="rounded-full whitespace-nowrap flex-shrink-0"
+                        onClick={() => { setActiveCategory(cat); setCurrentPage(1); }}
                       >
-                        {i + 1}
+                        {cat}
                       </Button>
                     ))}
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">No Products Yet</h3>
-                <p className="text-muted-foreground">This store hasn't added any products yet.</p>
               </div>
-            )}
-          </div>
+
+              {paginatedProducts.length > 0 ? (
+                <>
+                  <ProductGrid
+                    products={paginatedProducts}
+                    columns={layoutType === 'minimal' ? 3 : layoutType === 'modern' ? 3 : 4}
+                  />
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-1 mt-10">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="rounded-full"
+                      >
+                        <ChevronDown className="h-4 w-4 rotate-90" />
+                      </Button>
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <Button
+                          key={i}
+                          variant={currentPage === i + 1 ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setCurrentPage(i + 1)}
+                          className="rounded-full w-9 h-9 p-0"
+                        >
+                          {i + 1}
+                        </Button>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="rounded-full"
+                      >
+                        <ChevronDown className="h-4 w-4 -rotate-90" />
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <ShoppingBag className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-1">No Products Yet</h3>
+                  <p className="text-sm text-muted-foreground">This store hasn't added any products yet.</p>
+                </div>
+              )}
+            </div>
+          </section>
         );
 
       case 'about':
         if (!capabilities.aboutUs || !aboutUs) return null;
         return (
-          <div key="about" className="container mx-auto px-4 py-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>About Us</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground whitespace-pre-line">{aboutUs}</p>
-              </CardContent>
-            </Card>
-          </div>
+          <section key="about" className="px-4 py-8 md:py-12" style={{ backgroundColor: `${accentColor}08` }}>
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">About Us</h2>
+              <Separator className="w-12 mx-auto mb-6" style={{ backgroundColor: accentColor }} />
+              <p className="text-muted-foreground whitespace-pre-line leading-relaxed">{aboutUs}</p>
+            </div>
+          </section>
         );
 
       case 'testimonials':
         if (!capabilities.testimonials || testimonials.length === 0) return null;
         return (
-          <div key="testimonials" className="container mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">What Our Customers Say</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {testimonials.map((t) => (
-                <Card key={t.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-1 mb-3">
-                      {[1, 2, 3, 4, 5].map(s => (
-                        <Star key={s} className={`h-4 w-4 ${s <= t.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground italic mb-3">"{t.text}"</p>
-                    <p className="font-semibold text-foreground text-sm">— {t.name}</p>
-                  </CardContent>
-                </Card>
-              ))}
+          <section key="testimonials" className="px-4 py-8 md:py-12">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground">What Our Customers Say</h2>
+                <p className="text-sm text-muted-foreground mt-1">Real reviews from real customers</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {testimonials.map((t) => (
+                  <Card key={t.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <CardContent className="p-5 md:p-6">
+                      <div className="flex items-center gap-0.5 mb-4">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <Star key={s} className={`h-4 w-4 ${s <= t.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`} />
+                        ))}
+                      </div>
+                      <p className="text-muted-foreground text-sm leading-relaxed mb-4">"{t.text}"</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: accentColor }}>
+                          {t.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-medium text-foreground text-sm">{t.name}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
+          </section>
         );
 
       case 'faq':
         if (!capabilities.faqSection || faqItems.length === 0) return null;
         return (
-          <div key="faq" className="container mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Frequently Asked Questions</h2>
-            <Accordion type="single" collapsible className="w-full max-w-2xl">
-              {faqItems.map((f) => (
-                <AccordionItem key={f.id} value={f.id}>
-                  <AccordionTrigger>{f.question}</AccordionTrigger>
-                  <AccordionContent>{f.answer}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
+          <section key="faq" className="px-4 py-8 md:py-12" style={{ backgroundColor: `${accentColor}05` }}>
+            <div className="max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground">Frequently Asked Questions</h2>
+              </div>
+              <Accordion type="single" collapsible className="w-full space-y-2">
+                {faqItems.map((f) => (
+                  <AccordionItem key={f.id} value={f.id} className="border rounded-lg px-4 bg-card">
+                    <AccordionTrigger className="text-sm md:text-base font-medium py-4">{f.question}</AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground pb-4">{f.answer}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          </section>
         );
 
       case 'newsletter':
         if (!emailCapture || !capabilities.emailCapture) return null;
         return (
-          <div key="newsletter" className="py-12" style={{ backgroundColor: `${accentColor}10` }}>
-            <div className="container mx-auto px-4 text-center max-w-lg">
+          <section key="newsletter" className="py-10 md:py-16" style={{ backgroundColor: `${accentColor}10` }}>
+            <div className="max-w-md mx-auto px-4 text-center">
               <h3 className="text-xl font-bold text-foreground mb-2">
-                {customization?.email_capture_title || 'Subscribe to our newsletter'}
+                {customization?.email_capture_title || 'Stay in the loop'}
               </h3>
-              <p className="text-muted-foreground mb-4">Get updates on new products and exclusive deals</p>
+              <p className="text-sm text-muted-foreground mb-6">Get exclusive deals and new arrivals straight to your inbox</p>
               <div className="flex gap-2">
                 <Input
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="Enter your email"
                   type="email"
+                  className="rounded-full"
                 />
-                <Button style={{ backgroundColor: accentColor }} className="text-white">Subscribe</Button>
+                <Button className="rounded-full text-white px-6" style={{ backgroundColor: accentColor }}>Subscribe</Button>
               </div>
             </div>
-          </div>
+          </section>
         );
 
       case 'social':
         if (!capabilities.socialLinks || Object.values(socialLinks).every(v => !v)) return null;
         return (
-          <div key="social" className="container mx-auto px-4 py-6">
-            <div className="flex items-center justify-center gap-4">
+          <div key="social" className="px-4 py-6">
+            <div className="flex items-center justify-center gap-3 flex-wrap">
               {Object.entries(socialLinks).filter(([, url]) => url).map(([platform, url]) => (
-                <a key={platform} href={url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Badge variant="outline" className="gap-1 capitalize">
+                <a key={platform} href={url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="sm" className="rounded-full gap-1.5 capitalize">
                     <ExternalLink className="h-3 w-3" />
                     {platform}
-                  </Badge>
+                  </Button>
                 </a>
               ))}
             </div>
@@ -307,23 +430,29 @@ const StorefrontPage: React.FC = () => {
       case 'policies':
         if (!store.shipping_policy && !store.return_policy) return null;
         return (
-          <div key="policies" className="container mx-auto px-4 py-8 border-t">
-            <h3 className="text-xl font-bold text-foreground mb-6">Store Policies</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              {store.shipping_policy && (
-                <div>
-                  <h4 className="font-semibold text-foreground mb-2">Shipping Policy</h4>
-                  <p className="text-muted-foreground">{store.shipping_policy}</p>
-                </div>
-              )}
-              {store.return_policy && (
-                <div>
-                  <h4 className="font-semibold text-foreground mb-2">Return Policy</h4>
-                  <p className="text-muted-foreground">{store.return_policy}</p>
-                </div>
-              )}
+          <section key="policies" className="px-4 py-8 md:py-12 border-t">
+            <div className="max-w-4xl mx-auto">
+              <h3 className="text-lg font-bold text-foreground mb-6 text-center">Store Policies</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {store.shipping_policy && (
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-5">
+                      <h4 className="font-semibold text-foreground mb-2 text-sm">Shipping Policy</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{store.shipping_policy}</p>
+                    </CardContent>
+                  </Card>
+                )}
+                {store.return_policy && (
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-5">
+                      <h4 className="font-semibold text-foreground mb-2 text-sm">Return Policy</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{store.return_policy}</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </div>
-          </div>
+          </section>
         );
 
       default:
@@ -339,98 +468,88 @@ const StorefrontPage: React.FC = () => {
       {/* Hero / Banner */}
       {homepageSections.includes('hero') && renderSection('hero')}
 
-      {/* Store Header */}
-      <div className="border-b" style={vendorTier !== 'starter' ? { borderBottomColor: `${accentColor}30` } : {}}>
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-start gap-4 md:gap-6">
+      {/* Store Header - Modern sticky-style */}
+      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30" style={vendorTier !== 'starter' ? { borderBottomColor: `${accentColor}20` } : {}}>
+        <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
+          <div className="flex items-center gap-3 md:gap-5">
             {/* Logo/Profile */}
             <div className="flex-shrink-0">
               {(store.logo_url || vendor?.logo_url) ? (
                 <img
                   src={store.logo_url || vendor.logo_url}
                   alt={store.name}
-                  className={`object-cover border-4 border-background shadow-lg ${
-                    vendorTier === 'starter' ? 'w-12 h-12 rounded-full' : 'w-20 h-20 rounded-full'
+                  className={`object-cover rounded-full ring-2 ring-background shadow-md ${
+                    vendorTier === 'starter' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-14 h-14 md:w-16 md:h-16'
                   }`}
                 />
               ) : (
-                <div className={`rounded-full bg-primary/20 flex items-center justify-center border-4 border-background shadow-lg ${
-                  vendorTier === 'starter' ? 'w-12 h-12' : 'w-20 h-20'
+                <div className={`rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background shadow-md ${
+                  vendorTier === 'starter' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-14 h-14 md:w-16 md:h-16'
                 }`}>
-                  <Store className={vendorTier === 'starter' ? 'h-5 w-5 text-primary' : 'h-8 w-8 text-primary'} />
+                  <Store className={vendorTier === 'starter' ? 'h-5 w-5 text-primary' : 'h-7 w-7 text-primary'} />
                 </div>
               )}
             </div>
 
             {/* Store Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h1 className={`font-bold text-foreground ${vendorTier === 'starter' ? 'text-xl' : 'text-2xl md:text-3xl'}`}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className={`font-bold text-foreground truncate ${vendorTier === 'starter' ? 'text-lg' : 'text-lg md:text-2xl'}`}>
                   {store.name}
                 </h1>
                 {capabilities.sellerBadge && (
-                  <Badge className="gap-1 text-xs" style={{ backgroundColor: vendorTier === 'gold' ? '#eab308' : accentColor, color: '#fff' }}>
+                  <Badge className="gap-1 text-xs flex-shrink-0 rounded-full" style={{ backgroundColor: vendorTier === 'gold' ? '#eab308' : accentColor, color: '#fff' }}>
                     {vendorTier === 'gold' ? <Crown className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
-                    {capabilities.sellerBadge}
+                    <span className="hidden sm:inline">{capabilities.sellerBadge}</span>
                   </Badge>
                 )}
               </div>
 
-              {vendorTier === 'starter' && (
-                <p className="text-sm text-muted-foreground mb-1">Sold by {store.name}</p>
-              )}
-
-              {vendor?.business_name && vendor.business_name !== store.name && vendorTier !== 'starter' && (
-                <p className="text-muted-foreground mb-1">by {vendor.business_name}</p>
-              )}
-
-              <div className="flex items-center gap-3 flex-wrap text-sm">
+              <div className="flex items-center gap-2 md:gap-3 flex-wrap text-xs md:text-sm mt-1">
                 {avgRating > 0 && (
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                     <span className="font-medium">{avgRating.toFixed(1)}</span>
-                    <span className="text-muted-foreground">({products.length} products)</span>
+                    <span className="text-muted-foreground hidden sm:inline">({products.length})</span>
                   </div>
                 )}
+                <span className="text-muted-foreground">·</span>
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <MapPin className="h-3 w-3" />
                   <span>South Africa</span>
                 </div>
                 {capabilities.trustIndicators && (
                   <>
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <span className="text-muted-foreground hidden md:inline">·</span>
+                    <div className="hidden md:flex items-center gap-1 text-muted-foreground">
                       <Calendar className="h-3 w-3" />
                       <span>Joined {store.created_at ? format(new Date(store.created_at), 'MMM yyyy') : 'Recently'}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span>Usually responds within 24h</span>
                     </div>
                   </>
                 )}
               </div>
 
               {vendorTier !== 'starter' && (store.description || vendor?.description) && (
-                <p className="text-muted-foreground mt-2 max-w-2xl text-sm">
+                <p className="text-muted-foreground mt-1.5 text-xs md:text-sm line-clamp-1 md:line-clamp-2 max-w-xl">
                   {store.description || vendor.description}
                 </p>
               )}
             </div>
 
             {/* Actions */}
-            <div className="flex-shrink-0 flex flex-col gap-2">
-              <Link to="/shop">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Shop
-                </Button>
-              </Link>
+            <div className="flex-shrink-0 flex items-center gap-2">
               {capabilities.contactForm && (
-                <Button variant="outline" size="sm">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Contact Seller
+                <Button variant="outline" size="sm" className="rounded-full hidden sm:flex">
+                  <MessageSquare className="h-4 w-4 mr-1.5" />
+                  Contact
                 </Button>
               )}
+              <Link to="/shop">
+                <Button variant="ghost" size="sm" className="rounded-full">
+                  <ArrowLeft className="h-4 w-4 md:mr-1.5" />
+                  <span className="hidden md:inline">Shop</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -443,7 +562,7 @@ const StorefrontPage: React.FC = () => {
 
       {/* Platform branding for free tier */}
       {capabilities.platformBranding && !whiteLabel && (
-        <div className="border-t py-4 text-center">
+        <div className="border-t py-6 text-center">
           <p className="text-xs text-muted-foreground">
             Powered by <span className="font-semibold">1145 Lifestyle</span>
           </p>
