@@ -72,6 +72,7 @@ const VendorShopfront = () => {
     announcement_bar_text: "",
     announcement_bar_active: false,
     email_capture_enabled: false,
+    email_capture_title: "Subscribe to our newsletter",
     custom_font: "",
     custom_domain: "",
     ga_tracking_id: "",
@@ -142,6 +143,7 @@ const VendorShopfront = () => {
             announcement_bar_text: cust.announcement_bar_text || "",
             announcement_bar_active: cust.announcement_bar_active || false,
             email_capture_enabled: cust.email_capture_enabled || false,
+            email_capture_title: cust.email_capture_title || "Subscribe to our newsletter",
             custom_font: cust.custom_font || "",
             custom_domain: cust.custom_domain || "",
             ga_tracking_id: cust.ga_tracking_id || "",
@@ -513,12 +515,6 @@ const VendorShopfront = () => {
             onSecondaryColorChange={(v) => setCustomData(p => ({ ...p, secondary_color: v }))}
             layoutType={customData.layout_type}
             onLayoutTypeChange={(v) => setCustomData(p => ({ ...p, layout_type: v }))}
-            ctaText={customData.cta_button_text}
-            onCtaTextChange={(v) => setCustomData(p => ({ ...p, cta_button_text: v }))}
-            ctaUrl={customData.cta_button_url}
-            onCtaUrlChange={(v) => setCustomData(p => ({ ...p, cta_button_url: v }))}
-            videoBannerUrl={customData.video_banner_url}
-            onVideoBannerUrlChange={(v) => setCustomData(p => ({ ...p, video_banner_url: v }))}
             customFont={customData.custom_font}
             onCustomFontChange={(v) => setCustomData(p => ({ ...p, custom_font: v }))}
             customDomain={customData.custom_domain}
@@ -535,6 +531,7 @@ const VendorShopfront = () => {
             onWhiteLabelChange={(v) => setCustomData(p => ({ ...p, white_label: v }))}
             tier={tier}
             isEditing={isEditing}
+            storeSlug={storeData?.slug}
           />
         </TabsContent>
 
@@ -553,8 +550,20 @@ const VendorShopfront = () => {
             onAnnouncementTextChange={(v) => setCustomData(p => ({ ...p, announcement_bar_text: v }))}
             announcementActive={customData.announcement_bar_active}
             onAnnouncementActiveChange={(v) => setCustomData(p => ({ ...p, announcement_bar_active: v }))}
+            videoBannerUrl={customData.video_banner_url}
+            onVideoBannerUrlChange={(v) => setCustomData(p => ({ ...p, video_banner_url: v }))}
+            ctaText={customData.cta_button_text}
+            onCtaTextChange={(v) => setCustomData(p => ({ ...p, cta_button_text: v }))}
+            ctaUrl={customData.cta_button_url}
+            onCtaUrlChange={(v) => setCustomData(p => ({ ...p, cta_button_url: v }))}
+            emailCaptureEnabled={customData.email_capture_enabled}
+            onEmailCaptureEnabledChange={(v) => setCustomData(p => ({ ...p, email_capture_enabled: v }))}
+            emailCaptureTitle={customData.email_capture_title || "Subscribe to our newsletter"}
+            onEmailCaptureTitleChange={(v) => setCustomData(p => ({ ...p, email_capture_title: v }))}
+            activeSections={tier === 'gold' ? customData.homepage_sections : ['hero', 'about', 'social', 'testimonials', 'faq', 'announcement', 'cta', 'newsletter', 'featured', 'products', 'categories', 'policies']}
             tier={tier}
             isEditing={isEditing}
+            userId={user?.id}
           />
         </TabsContent>
 

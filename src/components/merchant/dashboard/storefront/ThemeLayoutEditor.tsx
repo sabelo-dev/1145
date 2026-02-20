@@ -1,12 +1,11 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Palette, Type, Globe, BarChart3 } from "lucide-react";
+import { Palette, Type, Globe, BarChart3, ExternalLink } from "lucide-react";
 import { StorefrontLayout, StorefrontTier } from "@/types/storefront";
 
 interface ThemeLayoutEditorProps {
@@ -16,12 +15,6 @@ interface ThemeLayoutEditorProps {
   onSecondaryColorChange: (val: string) => void;
   layoutType: StorefrontLayout;
   onLayoutTypeChange: (val: StorefrontLayout) => void;
-  ctaText: string;
-  onCtaTextChange: (val: string) => void;
-  ctaUrl: string;
-  onCtaUrlChange: (val: string) => void;
-  videoBannerUrl: string;
-  onVideoBannerUrlChange: (val: string) => void;
   customFont: string;
   onCustomFontChange: (val: string) => void;
   customDomain: string;
@@ -38,6 +31,7 @@ interface ThemeLayoutEditorProps {
   onWhiteLabelChange: (val: boolean) => void;
   tier: StorefrontTier;
   isEditing: boolean;
+  storeSlug?: string;
 }
 
 const ThemeLayoutEditor: React.FC<ThemeLayoutEditorProps> = (props) => {
@@ -45,8 +39,6 @@ const ThemeLayoutEditor: React.FC<ThemeLayoutEditorProps> = (props) => {
     accentColor, onAccentColorChange,
     secondaryColor, onSecondaryColorChange,
     layoutType, onLayoutTypeChange,
-    ctaText, onCtaTextChange, ctaUrl, onCtaUrlChange,
-    videoBannerUrl, onVideoBannerUrlChange,
     customFont, onCustomFontChange,
     customDomain, onCustomDomainChange,
     gaTrackingId, onGaTrackingIdChange,
@@ -54,7 +46,7 @@ const ThemeLayoutEditor: React.FC<ThemeLayoutEditorProps> = (props) => {
     customMetaTitle, onCustomMetaTitleChange,
     customMetaDescription, onCustomMetaDescriptionChange,
     whiteLabel, onWhiteLabelChange,
-    tier, isEditing,
+    tier, isEditing, storeSlug,
   } = props;
 
   const isBronzePlus = tier !== 'starter';
@@ -142,55 +134,6 @@ const ThemeLayoutEditor: React.FC<ThemeLayoutEditorProps> = (props) => {
         </Card>
       )}
 
-      {/* CTA Button - Silver+ */}
-      {isSilverPlus && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Hero CTA Button</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Button Text</Label>
-                <Input
-                  value={ctaText}
-                  onChange={(e) => onCtaTextChange(e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="Shop Now"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Button Link</Label>
-                <Input
-                  value={ctaUrl}
-                  onChange={(e) => onCtaUrlChange(e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="/shop"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Video Banner - Silver+ */}
-      {isSilverPlus && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Video Banner</CardTitle>
-            <CardDescription>Add a video to your hero section</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Input
-              value={videoBannerUrl}
-              onChange={(e) => onVideoBannerUrlChange(e.target.value)}
-              disabled={!isEditing}
-              placeholder="https://youtube.com/embed/... or video URL"
-            />
-          </CardContent>
-        </Card>
-      )}
-
       {/* Gold-only features */}
       {isGold && (
         <>
@@ -230,6 +173,9 @@ const ThemeLayoutEditor: React.FC<ThemeLayoutEditorProps> = (props) => {
                 <Globe className="h-4 w-4" />
                 Custom Domain
               </CardTitle>
+              <CardDescription>
+                Connect your own domain to your storefront
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <Input
@@ -238,6 +184,22 @@ const ThemeLayoutEditor: React.FC<ThemeLayoutEditorProps> = (props) => {
                 disabled={!isEditing}
                 placeholder="mystore.com"
               />
+              {customDomain && (
+                <div className="p-3 rounded-lg bg-muted/50 border text-sm space-y-1">
+                  <p className="font-medium flex items-center gap-1">
+                    <ExternalLink className="h-3 w-3" />
+                    Your storefront URL:
+                  </p>
+                  <p className="text-primary font-mono text-xs">
+                    https://{customDomain}
+                  </p>
+                  {storeSlug && (
+                    <p className="text-muted-foreground text-xs">
+                      Default: /store/{storeSlug}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Switch
                   checked={whiteLabel}
