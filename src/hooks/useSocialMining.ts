@@ -285,10 +285,9 @@ export function useSocialMining() {
       return null;
     }
 
-    // Show pending message - UCoin only credited after verification
     toast({
-      title: 'Task Submitted',
-      description: result.message || `Pending verification. ${result.reward} UCoin will be credited once approved.`
+      title: 'Task Completed! 🎉',
+      description: result.message || `${result.reward} UCoin has been credited to your wallet.`
     });
 
     await Promise.all([fetchCompletions(), fetchDailyLimit(), fetchAffiliateStatus()]);

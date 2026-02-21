@@ -4314,7 +4314,8 @@ export type Database = {
           status: string | null
           subject: string
           updated_at: string | null
-          vendor_id: string
+          user_id: string | null
+          vendor_id: string | null
         }
         Insert: {
           category: string
@@ -4325,7 +4326,8 @@ export type Database = {
           status?: string | null
           subject: string
           updated_at?: string | null
-          vendor_id: string
+          user_id?: string | null
+          vendor_id?: string | null
         }
         Update: {
           category?: string
@@ -4336,7 +4338,8 @@ export type Database = {
           status?: string | null
           subject?: string
           updated_at?: string | null
-          vendor_id?: string
+          user_id?: string | null
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -4814,6 +4817,39 @@ export type Database = {
           id?: string
           preferred_currency?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []

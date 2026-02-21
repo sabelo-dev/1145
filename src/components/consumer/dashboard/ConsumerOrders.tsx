@@ -137,6 +137,7 @@ const ConsumerOrders: React.FC = () => {
           id,
           status,
           total,
+          payment_status,
           created_at,
           shipping_address,
           tracking_number,
@@ -156,6 +157,8 @@ const ConsumerOrders: React.FC = () => {
           )
         `)
         .eq("user_id", user.id)
+        .not("status", "in", '("abandoned","cart")')
+        .not("payment_status", "eq", "failed")
         .order("created_at", { ascending: false });
 
       if (ordersError) throw ordersError;
@@ -241,7 +244,7 @@ const ConsumerOrders: React.FC = () => {
     ).length;
     const deliveredOrders = orders.filter((o) => o.status === "delivered").length;
     const totalSpent = orders
-      .filter((o) => o.status !== "cancelled")
+      .filter((o) => ["delivered", "completed", "processing", "shipped", "in_transit"].includes(o.status))
       .reduce((sum, o) => sum + o.total, 0);
     return { activeOrders, deliveredOrders, totalSpent };
   }, [orders]);
