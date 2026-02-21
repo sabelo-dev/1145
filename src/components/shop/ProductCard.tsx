@@ -4,6 +4,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { Heart } from "lucide-react";
 import { Product } from "@/types";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -61,17 +62,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     addToCart({
       productId: product.id,
       name: product.name,
-      price: variation?.price || product.price,
+      price: applyPlatformMarkup(variation?.price || product.price),
       image: variation?.imageUrl || product.images[0],
       variationId: selectedVariation || undefined,
       variationAttributes: variation?.attributes,
     });
   };
 
+  const markedUpPrice = applyPlatformMarkup(product.price);
+  const markedUpCompareAt = product.compareAtPrice ? applyPlatformMarkup(product.compareAtPrice) : undefined;
   const isNew = new Date(product.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
+  const isOnSale = markedUpCompareAt && markedUpCompareAt > markedUpPrice;
   const discountPercent = isOnSale
-    ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
+    ? Math.round(((markedUpCompareAt! - markedUpPrice) / markedUpCompareAt!) * 100)
     : 0;
 
   return (
@@ -140,8 +143,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           
           <div className="flex items-baseline gap-2 mb-2">
             <GoldPriceDisplay 
-              price={selectedVariation ? (product.variations?.find(v => v.id === selectedVariation)?.price || product.price) : product.price} 
-              compareAtPrice={product.compareAtPrice}
+              price={applyPlatformMarkup(selectedVariation ? (product.variations?.find(v => v.id === selectedVariation)?.price || product.price) : product.price)} 
+              compareAtPrice={markedUpCompareAt}
               size="md"
             />
           </div>
