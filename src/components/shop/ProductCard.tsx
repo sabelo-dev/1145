@@ -140,7 +140,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           
           <div className="flex items-baseline gap-2 mb-2">
             <GoldPriceDisplay 
-              price={product.price} 
+              price={selectedVariation ? (product.variations?.find(v => v.id === selectedVariation)?.price || product.price) : product.price} 
               compareAtPrice={product.compareAtPrice}
               size="md"
             />
