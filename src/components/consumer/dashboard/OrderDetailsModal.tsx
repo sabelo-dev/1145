@@ -20,6 +20,8 @@ import {
   ShoppingBag,
   FileText,
   Download,
+  CreditCard,
+  Info,
 } from "lucide-react";
 import { generateInvoice } from "@/lib/invoiceGenerator";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,6 +49,10 @@ interface Order {
   courier_name?: string | null;
   courier_phone?: string | null;
   courier_company?: string | null;
+  payment_method?: string | null;
+  shipping_method?: string | null;
+  payment_status?: string | null;
+  notes?: string | null;
 }
 
 interface OrderDetailsModalProps {
@@ -295,6 +301,53 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               </div>
             )}
           </div>
+
+          <Separator />
+
+          {/* Payment & Shipping Method */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                <CreditCard className="h-4 w-4" />
+                Payment
+              </h3>
+              <div className="text-sm space-y-1">
+                <p>
+                  <span className="text-muted-foreground">Method:</span>{" "}
+                  <span className="capitalize">{order.payment_method?.replace(/_/g, " ") || "Not specified"}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Status:</span>{" "}
+                  <Badge variant={order.payment_status === "paid" ? "default" : "secondary"} className={order.payment_status === "paid" ? "bg-green-500" : ""}>
+                    {(order.payment_status || "pending").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                  </Badge>
+                </p>
+              </div>
+            </div>
+            {order.shipping_method && (
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                  <Truck className="h-4 w-4" />
+                  Shipping Method
+                </h3>
+                <p className="text-sm capitalize">{order.shipping_method.replace(/_/g, " ")}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          {order.notes && (
+            <>
+              <Separator />
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                  <Info className="h-4 w-4" />
+                  Order Notes
+                </h3>
+                <p className="text-sm text-muted-foreground">{order.notes}</p>
+              </div>
+            </>
+          )}
 
           <Separator />
 
