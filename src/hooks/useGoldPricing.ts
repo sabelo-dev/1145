@@ -144,15 +144,16 @@ export function useGoldPricing() {
 
   // Format currency amount
   const formatCurrencyAmount = useCallback((amount: number, currencyCode: string): string => {
+    const safeAmount = amount ?? 0;
     const currency = getCurrency(currencyCode);
     if (!currency) {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currencyCode,
-      }).format(amount);
+      }).format(safeAmount);
     }
 
-    return `${currency.currencySymbol}${amount.toLocaleString('en-US', {
+    return `${currency.currencySymbol}${safeAmount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;

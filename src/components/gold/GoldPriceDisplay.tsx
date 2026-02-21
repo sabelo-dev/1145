@@ -41,7 +41,8 @@ export function GoldPriceDisplay({
   } = useGoldPricingContext();
 
   // Calculate gold value if not provided
-  const goldValue = mgGold ?? currencyToMgGold(price, currency);
+  const safePrice = price ?? 0;
+  const goldValue = mgGold ?? currencyToMgGold(safePrice, currency);
   
   // Convert to display currency if different from original
   const displayPrice = currency === displayCurrency 
