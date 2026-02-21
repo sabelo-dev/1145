@@ -68,6 +68,10 @@ interface Order {
   courier_name?: string | null;
   courier_phone?: string | null;
   courier_company?: string | null;
+  payment_method?: string | null;
+  shipping_method?: string | null;
+  payment_status?: string | null;
+  notes?: string | null;
 }
 
 const ORDERS_PER_PAGE = 5;
@@ -145,10 +149,15 @@ const ConsumerOrders: React.FC = () => {
           courier_name,
           courier_phone,
           courier_company,
+          payment_method,
+          shipping_method,
+          notes,
           order_items (
             id,
             quantity,
             price,
+            product_id,
+            status,
             products (
               name,
               product_images (image_url, position)
@@ -199,6 +208,10 @@ const ConsumerOrders: React.FC = () => {
           courier_name: order.courier_name,
           courier_phone: order.courier_phone,
           courier_company: order.courier_company,
+          payment_method: order.payment_method,
+          shipping_method: order.shipping_method,
+          payment_status: order.payment_status,
+          notes: order.notes,
         };
       });
 
@@ -436,23 +449,57 @@ const ConsumerOrders: React.FC = () => {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
+    if (!confirm("Are you sure you want to cancel this order? This will permanently remove the order.")) return;
 
     try {
-      const { error } = await supabase
+      // Delete order items first (foreign key dependency)
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+
+      if (itemsError) throw itemsError;
+
+      // Delete any related order history
+      await supabase
+        .from("order_history")
+        .delete()
+        .eq("order_id", orderId);
+
+      // Delete any related order insurance
+      await supabase
+        .from("order_insurance")
+        .delete()
+        .eq("order_id", orderId);
+
+      // Delete any related delivery tips
+      await supabase
+        .from("delivery_tips")
+        .delete()
+        .eq("order_id", orderId);
+
+      // Delete any related delivery jobs
+      await supabase
+        .from("delivery_jobs")
+        .delete()
+        .eq("order_id", orderId);
+
+      // Delete the order itself
+      const { error: orderError } = await supabase
         .from("orders")
-        .update({ status: "cancelled" })
+        .delete()
         .eq("id", orderId);
 
-      if (error) throw error;
+      if (orderError) throw orderError;
 
       toast({
         title: "Order Cancelled",
-        description: "Your order has been cancelled successfully",
+        description: "Your order has been removed successfully",
       });
 
-      fetchOrders();
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
     } catch (error) {
+      console.error("Error deleting order:", error);
       toast({
         variant: "destructive",
         title: "Error",
