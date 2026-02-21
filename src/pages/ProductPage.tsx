@@ -356,29 +356,17 @@ const ProductPage: React.FC = () => {
             {/* Variation Selection - only show if there are valid attributes */}
             {attributeTypes.length > 0 && (
               <div className="space-y-5 border-t pt-6 mt-6">
-                <div className="bg-muted/50 rounded-lg p-4 border">
-                  <h3 className="font-semibold text-base mb-4 flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
-                    Select Options
-                  </h3>
+              <div className="bg-muted/50 rounded-lg p-4 border">
                   <div className="space-y-5">
                     {attributeTypes.map(attrType => {
                       const values = getAttributeValues(attrType);
-                      // Don't render if no valid values
                       if (values.length === 0) return null;
                       
                       return (
                         <div key={attrType} className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-sm capitalize">
-                              {attrType}
-                            </span>
-                            {selectedAttributes[attrType] && (
-                              <Badge variant="secondary" className="font-normal">
-                                Selected: {String(selectedAttributes[attrType])}
-                              </Badge>
-                            )}
-                          </div>
+                          <span className="font-medium text-sm capitalize">
+                            {attrType}
+                          </span>
                           <div className="flex flex-wrap gap-2">
                             {values.map(value => {
                               const isSelected = selectedAttributes[attrType] === value;
@@ -404,21 +392,6 @@ const ProductPage: React.FC = () => {
                       );
                     })}
                   </div>
-                  {selectedVariation && Object.keys(selectedAttributes).filter(key => !key.startsWith('_') && selectedAttributes[key]).length > 0 && (
-                    <div className="mt-4 pt-4 border-t text-sm space-y-1">
-                      <p className="text-muted-foreground">Selected Variation:</p>
-                      <p className="font-medium">
-                        {Object.entries(selectedAttributes)
-                          .filter(([key, value]) => !key.startsWith('_') && value !== null && value !== undefined && String(value).trim() !== '')
-                          .map(([key, value]) => (
-                            <span key={key} className="mr-2">
-                              {key}: {String(value)}
-                            </span>
-                          ))}
-                      </p>
-                      <p className="font-semibold text-lg">{formatCurrency(selectedVariation.price)}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
