@@ -105,7 +105,7 @@ const ProductPage: React.FC = () => {
     // Find matching variation
     const matchingVariation = product?.variations?.find(v => {
       return Object.keys(newAttributes).every(
-        key => !key.startsWith('_') && v.attributes[key] === newAttributes[key]
+        key => key.startsWith('_') || v.attributes[key] === newAttributes[key]
       );
     });
 
