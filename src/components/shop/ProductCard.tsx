@@ -140,7 +140,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           
           <div className="flex items-baseline gap-2 mb-2">
             <GoldPriceDisplay 
-              price={product.price} 
+              price={selectedVariation ? (product.variations?.find(v => v.id === selectedVariation)?.price || product.price) : product.price} 
               compareAtPrice={product.compareAtPrice}
               size="md"
             />
@@ -159,8 +159,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                 if (values.length === 0) return null;
                 
                 return (
-                  <div key={attrType} className="space-y-1">
-                    <div className="text-xs text-gray-500 capitalize">{attrType}:</div>
+                  <div key={attrType}>
                     <div className="flex flex-wrap gap-1">
                       {values.slice(0, 4).map(value => {
                         const matchingVariation = product.variations?.find(
