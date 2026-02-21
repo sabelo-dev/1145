@@ -19,6 +19,7 @@ import SEO from "@/components/SEO";
 import { Product, ProductVariation } from "@/types";
 import { fetchProductBySlug, fetchRelatedProducts } from "@/services/products";
 import { getProductSchema, getBreadcrumbSchema } from "@/utils/structuredData";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 
 const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -169,7 +170,7 @@ const ProductPage: React.FC = () => {
     addToCart({
       productId: product.id,
       name: product.name,
-      price: selectedVariation?.price || product.price,
+      price: applyPlatformMarkup(selectedVariation?.price || product.price),
       image: selectedVariation?.imageUrl || fallbackImage,
       variationId: selectedVariation?.id,
       variationAttributes: selectedVariation?.attributes,
@@ -182,8 +183,9 @@ const ProductPage: React.FC = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
-  const currentPrice = selectedVariation?.price || product.price;
-  const discountPercent = product.compareAtPrice ? Math.round(((product.compareAtPrice - currentPrice) / product.compareAtPrice) * 100) : 0;
+  const currentPrice = applyPlatformMarkup(selectedVariation?.price || product.price);
+  const compareAtPriceMarkup = product.compareAtPrice ? applyPlatformMarkup(product.compareAtPrice) : undefined;
+  const discountPercent = compareAtPriceMarkup ? Math.round(((compareAtPriceMarkup - currentPrice) / compareAtPriceMarkup) * 100) : 0;
   const isInStock = selectedVariation ? selectedVariation.quantity > 0 : product.inStock;
 
   const breadcrumbItems = [
@@ -318,10 +320,10 @@ const ProductPage: React.FC = () => {
                 <span className="text-2xl font-bold">
                   {formatCurrency(currentPrice)}
                 </span>
-                {product.compareAtPrice && product.compareAtPrice > currentPrice && (
+                {compareAtPriceMarkup && compareAtPriceMarkup > currentPrice && (
                   <>
                     <span className="text-gray-500 line-through">
-                      {formatCurrency(product.compareAtPrice)}
+                      {formatCurrency(compareAtPriceMarkup)}
                     </span>
                     <Badge className="bg-wwe-gold text-wwe-navy">
                       {discountPercent}% off
