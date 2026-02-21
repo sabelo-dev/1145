@@ -4,7 +4,7 @@
  * by this percentage before being stored in the database.
  * Individual vendors may have a custom override set by admin.
  */
-export const DEFAULT_PLATFORM_MARKUP_PERCENTAGE = 10;
+export const DEFAULT_PLATFORM_MARKUP_PERCENTAGE = 5;
 
 /**
  * Applies the platform markup to a merchant-set price.
