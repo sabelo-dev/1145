@@ -2420,6 +2420,154 @@ export type Database = {
           },
         ]
       }
+      merchant_api_keys: {
+        Row: {
+          api_key: string
+          api_secret_hash: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          name: string
+          rate_limit_per_hour: number | null
+          scopes: string[] | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          api_key: string
+          api_secret_hash: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name?: string
+          rate_limit_per_hour?: number | null
+          scopes?: string[] | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          api_key?: string
+          api_secret_hash?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name?: string
+          rate_limit_per_hour?: number | null
+          scopes?: string[] | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_api_keys_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merchant_api_logs: {
+        Row: {
+          api_key_id: string
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string | null
+          method: string
+          response_time_ms: number | null
+          status_code: number | null
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address?: string | null
+          method: string
+          response_time_ms?: number | null
+          status_code?: number | null
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string | null
+          method?: string
+          response_time_ms?: number | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_api_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merchant_custom_domains: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          ssl_status: string | null
+          status: string
+          store_id: string | null
+          updated_at: string
+          vendor_id: string
+          verification_token: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          ssl_status?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vendor_id: string
+          verification_token?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          ssl_status?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vendor_id?: string
+          verification_token?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_custom_domains_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merchant_custom_domains_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchant_kyc_documents: {
         Row: {
           created_at: string
@@ -4265,6 +4413,62 @@ export type Database = {
           },
         ]
       }
+      subscription_payments: {
+        Row: {
+          amount: number
+          billing_period: string
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payfast_payment_id: string | null
+          payment_method: string
+          reference: string | null
+          status: string
+          tier: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          billing_period?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payfast_payment_id?: string | null
+          payment_method: string
+          reference?: string | null
+          status?: string
+          tier: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          billing_period?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payfast_payment_id?: string | null
+          payment_method?: string
+          reference?: string | null
+          status?: string
+          tier?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           billing_period: string
@@ -4314,7 +4518,8 @@ export type Database = {
           status: string | null
           subject: string
           updated_at: string | null
-          vendor_id: string
+          user_id: string | null
+          vendor_id: string | null
         }
         Insert: {
           category: string
@@ -4325,7 +4530,8 @@ export type Database = {
           status?: string | null
           subject: string
           updated_at?: string | null
-          vendor_id: string
+          user_id?: string | null
+          vendor_id?: string | null
         }
         Update: {
           category?: string
@@ -4336,7 +4542,8 @@ export type Database = {
           status?: string | null
           subject?: string
           updated_at?: string | null
-          vendor_id?: string
+          user_id?: string | null
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -4818,6 +5025,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_referral_codes: {
         Row: {
           code: string
@@ -5228,12 +5468,16 @@ export type Database = {
           onboarding_status: string
           payout_days: number | null
           payout_schedule: string | null
+          platform_balance: number | null
           return_policy: string | null
           search_boost: number | null
           shipping_methods: string[] | null
           shipping_regions: string[] | null
           status: string
+          subscription_auto_renew: boolean | null
           subscription_expires_at: string | null
+          subscription_next_billing_date: string | null
+          subscription_payment_method: string | null
           subscription_status: string | null
           subscription_tier: string | null
           tax_id: string | null
@@ -5274,12 +5518,16 @@ export type Database = {
           onboarding_status?: string
           payout_days?: number | null
           payout_schedule?: string | null
+          platform_balance?: number | null
           return_policy?: string | null
           search_boost?: number | null
           shipping_methods?: string[] | null
           shipping_regions?: string[] | null
           status?: string
+          subscription_auto_renew?: boolean | null
           subscription_expires_at?: string | null
+          subscription_next_billing_date?: string | null
+          subscription_payment_method?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           tax_id?: string | null
@@ -5320,12 +5568,16 @@ export type Database = {
           onboarding_status?: string
           payout_days?: number | null
           payout_schedule?: string | null
+          platform_balance?: number | null
           return_policy?: string | null
           search_boost?: number | null
           shipping_methods?: string[] | null
           shipping_regions?: string[] | null
           status?: string
+          subscription_auto_renew?: boolean | null
           subscription_expires_at?: string | null
+          subscription_next_billing_date?: string | null
+          subscription_payment_method?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           tax_id?: string | null
@@ -5435,6 +5687,7 @@ export type Database = {
         Returns: undefined
       }
       evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
+      generate_api_key: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_current_gold_price: {
         Args: never

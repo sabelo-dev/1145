@@ -16,6 +16,8 @@ export const applyPlatformMarkup = (
   merchantPrice: number,
   customMarkupPercentage?: number | null
 ): number => {
+  if (merchantPrice == null || isNaN(merchantPrice)) return 0;
+  
   const markup = customMarkupPercentage !== null && customMarkupPercentage !== undefined
     ? customMarkupPercentage
     : DEFAULT_PLATFORM_MARKUP_PERCENTAGE;

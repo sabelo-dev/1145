@@ -128,16 +128,10 @@ export function MiningTaskList({
   const handleSubmit = async () => {
     if (!selectedTask) return;
     
-    // Proof URL is now required for ALL tasks
-    if (!proofUrl.trim()) {
-      return;
-    }
-    
     setIsSubmitting(true);
-    await onCompleteTask(selectedTask.id, proofUrl);
+    await onCompleteTask(selectedTask.id, undefined);
     setIsSubmitting(false);
     setSelectedTask(null);
-    setProofUrl('');
   };
 
   const renderTask = (task: MiningTask) => {
@@ -190,9 +184,9 @@ export function MiningTaskList({
                 <CheckCircle2 className="h-3 w-3" />
                 {completionsToday}/{task.max_daily_completions} today
               </span>
-              <span className="flex items-center gap-1 text-amber-600">
-                <AlertCircle className="h-3 w-3" />
-                Requires proof
+              <span className="flex items-center gap-1 text-green-600">
+                <CheckCircle2 className="h-3 w-3" />
+                Auto-verified
               </span>
             </div>
 
@@ -295,24 +289,11 @@ export function MiningTaskList({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="proof">Proof URL (required)</Label>
-              <Input
-                id="proof"
-                placeholder="https://instagram.com/p/... or https://twitter.com/..."
-                value={proofUrl}
-                onChange={(e) => setProofUrl(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Provide a direct link to your completed action (post, story, comment, etc.)
+            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+              <p className="text-xs text-green-700 dark:text-green-300">
+                <CheckCircle2 className="inline h-3 w-3 mr-1" />
+                UCoin will be credited instantly upon completion.
               </p>
-              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
-                <p className="text-xs text-amber-700 dark:text-amber-300">
-                  <AlertCircle className="inline h-3 w-3 mr-1" />
-                  UCoin will only be credited after your submission is verified. 
-                  Fraudulent submissions will be rejected.
-                </p>
-              </div>
             </div>
           </div>
 
@@ -322,9 +303,9 @@ export function MiningTaskList({
             </Button>
             <Button 
               onClick={handleSubmit} 
-              disabled={isSubmitting || !proofUrl.trim()}
+              disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
+              {isSubmitting ? 'Completing...' : 'Complete Task'}
             </Button>
           </DialogFooter>
         </DialogContent>

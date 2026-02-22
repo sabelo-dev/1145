@@ -224,7 +224,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                   </p>
                 </div>
                 <Link
-                  to="/dashboard"
+                  to={isAdmin ? "/admin/dashboard" : isDriver ? "/driver/dashboard" : isMerchant ? "/merchant/dashboard" : "/dashboard"}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out"
                   onClick={() => setMobileMenuOpen(false)}
                 >
