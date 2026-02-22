@@ -39,6 +39,9 @@ import VendorAuctionAnalytics from "./dashboard/VendorAuctionAnalytics";
 import VendorSubscriptionPage from "./dashboard/VendorSubscriptionPage";
 import { SubscriptionStatusCard, SubscriptionUpgradeModal } from "./subscription";
 import VendorAdCredits from "./dashboard/VendorAdCredits";
+import VendorSubscriptionPayments from "./dashboard/VendorSubscriptionPayments";
+import VendorApiAccess from "./dashboard/VendorApiAccess";
+import VendorCustomDomain from "./dashboard/VendorCustomDomain";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
@@ -58,7 +61,10 @@ import {
   TrendingUp,
   Coins,
   Crown,
-  Megaphone
+  Megaphone,
+  Key,
+  Globe,
+  CreditCard,
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
@@ -115,6 +121,7 @@ const VendorDashboard = () => {
   const sidebarItems = [
     { id: "overview", title: "Dashboard Home", icon: LayoutDashboard },
     { id: "subscription", title: "Subscription", icon: Crown },
+    { id: "billing", title: "Billing & Payments", icon: CreditCard },
     { id: "shopfront", title: "Shopfront", icon: Store },
     { id: "products", title: "Products", icon: Package },
     { id: "auctions", title: "Auctions", icon: Gavel },
@@ -126,6 +133,8 @@ const VendorDashboard = () => {
     { id: "ad-credits", title: "Ad Credits", icon: Megaphone },
     { id: "payouts", title: "Earnings / Wallet", icon: DollarSign },
     { id: "ucoin", title: "UCoin Rewards", icon: Coins },
+    { id: "api-access", title: "API Access", icon: Key },
+    { id: "custom-domain", title: "Custom Domain", icon: Globe },
     { id: "messages", title: "Messages", icon: MessageSquare },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
@@ -336,6 +345,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
                 onUpgrade={() => setShowUpgradeModal(true)}
               />
             </TabsContent>
+            <TabsContent value="billing" className="mt-0">
+              <VendorSubscriptionPayments />
+            </TabsContent>
             <TabsContent value="shopfront" className="mt-0">
               <VendorShopfront />
             </TabsContent>
@@ -368,6 +380,12 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="ucoin" className="mt-0">
               <UCoinDashboard />
+            </TabsContent>
+            <TabsContent value="api-access" className="mt-0">
+              <VendorApiAccess />
+            </TabsContent>
+            <TabsContent value="custom-domain" className="mt-0">
+              <VendorCustomDomain />
             </TabsContent>
             <TabsContent value="messages" className="mt-0">
               <VendorMessages />
