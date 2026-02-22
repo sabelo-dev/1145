@@ -38,6 +38,7 @@ import VendorAuctions from "./dashboard/VendorAuctions";
 import VendorAuctionAnalytics from "./dashboard/VendorAuctionAnalytics";
 import VendorSubscriptionPage from "./dashboard/VendorSubscriptionPage";
 import { SubscriptionStatusCard, SubscriptionUpgradeModal } from "./subscription";
+import VendorAdCredits from "./dashboard/VendorAdCredits";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
@@ -56,7 +57,8 @@ import {
   Gavel,
   TrendingUp,
   Coins,
-  Crown
+  Crown,
+  Megaphone
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
@@ -121,6 +123,7 @@ const VendorDashboard = () => {
     { id: "reviews", title: "Reviews", icon: Star },
     { id: "inventory", title: "Inventory Manager", icon: Warehouse },
     { id: "promotions", title: "Discounts / Coupons", icon: Percent },
+    { id: "ad-credits", title: "Ad Credits", icon: Megaphone },
     { id: "payouts", title: "Earnings / Wallet", icon: DollarSign },
     { id: "ucoin", title: "UCoin Rewards", icon: Coins },
     { id: "messages", title: "Messages", icon: MessageSquare },
@@ -356,6 +359,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="promotions" className="mt-0">
               <VendorPromotions />
+            </TabsContent>
+            <TabsContent value="ad-credits" className="mt-0">
+              <VendorAdCredits />
             </TabsContent>
             <TabsContent value="payouts" className="mt-0">
               <VendorPayouts />
