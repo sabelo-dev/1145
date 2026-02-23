@@ -4510,11 +4510,14 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          admin_response: string | null
           category: string
           created_at: string | null
           description: string
           id: string
           priority: string | null
+          responded_at: string | null
+          responded_by: string | null
           status: string | null
           subject: string
           updated_at: string | null
@@ -4522,11 +4525,14 @@ export type Database = {
           vendor_id: string | null
         }
         Insert: {
+          admin_response?: string | null
           category: string
           created_at?: string | null
           description: string
           id?: string
           priority?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
           status?: string | null
           subject: string
           updated_at?: string | null
@@ -4534,11 +4540,14 @@ export type Database = {
           vendor_id?: string | null
         }
         Update: {
+          admin_response?: string | null
           category?: string
           created_at?: string | null
           description?: string
           id?: string
           priority?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
           status?: string | null
           subject?: string
           updated_at?: string | null

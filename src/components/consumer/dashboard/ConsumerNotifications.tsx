@@ -112,6 +112,7 @@ const ConsumerNotifications: React.FC = () => {
       case "order": return <Package className="h-5 w-5 text-blue-500" />;
       case "promotion": return <Tag className="h-5 w-5 text-green-500" />;
       case "message": return <MessageCircle className="h-5 w-5 text-purple-500" />;
+      case "announcement": return <Bell className="h-5 w-5 text-orange-500" />;
       default: return <Bell className="h-5 w-5 text-muted-foreground" />;
     }
   };
@@ -158,9 +159,10 @@ const ConsumerNotifications: React.FC = () => {
       </div>
 
       <Tabs value={filter} onValueChange={setFilter}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="unread">Unread {unreadCount > 0 && `(${unreadCount})`}</TabsTrigger>
+          <TabsTrigger value="announcement">Announcements</TabsTrigger>
           <TabsTrigger value="order">Orders</TabsTrigger>
           <TabsTrigger value="promotion">Deals</TabsTrigger>
           <TabsTrigger value="message">Messages</TabsTrigger>
