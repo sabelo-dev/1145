@@ -18,8 +18,16 @@ import { format } from "date-fns";
 
 const PRODUCTS_PER_PAGE = 12;
 
-const StorefrontPage: React.FC = () => {
-  const { storeSlug } = useParams<{ storeSlug: string }>();
+interface StorefrontPageProps {
+  /** When provided via custom domain resolution, overrides URL params */
+  domainStoreSlug?: string;
+  /** Force white-label mode (used for custom domain access) */
+  forceWhiteLabel?: boolean;
+}
+
+const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceWhiteLabel }) => {
+  const { storeSlug: urlStoreSlug } = useParams<{ storeSlug: string }>();
+  const storeSlug = domainStoreSlug || urlStoreSlug;
   const [products, setProducts] = useState<Product[]>([]);
   const [store, setStore] = useState<any>(null);
   const [customization, setCustomization] = useState<any>(null);
@@ -462,7 +470,7 @@ const StorefrontPage: React.FC = () => {
     }
   };
 
-  const showPlatformBranding = !whiteLabel || !capabilities.whiteLabel;
+  const showPlatformBranding = forceWhiteLabel ? false : (!whiteLabel || !capabilities.whiteLabel);
 
   return (
     <div className="min-h-screen flex flex-col bg-background" style={fontStyle}>

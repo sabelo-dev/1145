@@ -26,6 +26,8 @@ import {
   Copy,
   Lock,
   RefreshCcw,
+  PauseCircle,
+  Info,
 } from "lucide-react";
 
 interface CustomDomain {
@@ -43,6 +45,7 @@ const VendorCustomDomain = () => {
   const { toast } = useToast();
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [storeId, setStoreId] = useState<string | null>(null);
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
   const [vendorTier, setVendorTier] = useState("starter");
   const [domains, setDomains] = useState<CustomDomain[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,11 +72,14 @@ const VendorCustomDomain = () => {
 
       const { data: store } = await supabase
         .from("stores")
-        .select("id")
+        .select("id, slug")
         .eq("vendor_id", vendor.id)
         .maybeSingle();
 
-      if (store) setStoreId(store.id);
+      if (store) {
+        setStoreId(store.id);
+        setStoreSlug(store.slug);
+      }
 
       const { data: domainData } = await supabase
         .from("merchant_custom_domains")
@@ -96,7 +102,6 @@ const VendorCustomDomain = () => {
     setAdding(true);
 
     try {
-      // Clean domain
       let domain = domainInput.trim().toLowerCase();
       domain = domain.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
 
@@ -114,7 +119,7 @@ const VendorCustomDomain = () => {
 
       if (error) throw error;
 
-      // Auto-enable white_label in storefront_customizations so branding is removed
+      // Auto-enable white_label and sync domain to storefront_customizations
       if (storeId) {
         const { data: existingCustomization } = await supabase
           .from("storefront_customizations")
@@ -123,16 +128,11 @@ const VendorCustomDomain = () => {
           .maybeSingle();
 
         if (existingCustomization) {
-          // Update existing customization to enable white label and set custom domain
           await supabase
             .from("storefront_customizations")
-            .update({ 
-              white_label: true, 
-              custom_domain: domain 
-            })
+            .update({ white_label: true, custom_domain: domain })
             .eq("store_id", storeId);
         } else {
-          // Create storefront customization with white label enabled and defaults
           await supabase
             .from("storefront_customizations")
             .insert({
@@ -151,12 +151,12 @@ const VendorCustomDomain = () => {
         }
       }
 
-      toast({ title: "Domain added", description: "White labelling has been enabled. Follow the DNS setup instructions to verify your domain." });
+      toast({ title: "Domain added", description: "White labelling enabled. Configure DNS records to verify your domain." });
       setAddDialogOpen(false);
       setDomainInput("");
       await fetchData();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message?.includes("unique") ? "This domain is already registered." : error.message });
+      toast({ variant: "destructive", title: "Error", description: error.message?.includes("unique") ? "This domain is already registered to another store." : error.message });
     } finally {
       setAdding(false);
     }
@@ -170,14 +170,14 @@ const VendorCustomDomain = () => {
 
       toast({ title: "Verification started", description: "DNS verification is in progress. This may take a few minutes." });
 
-      // Simulate verification (in production this would be a background check)
+      // Simulated verification (production would use background worker)
       setTimeout(async () => {
         await supabase.from("merchant_custom_domains")
           .update({ status: "active", verified_at: new Date().toISOString(), ssl_status: "active" })
           .eq("id", domainId);
         await fetchData();
       }, 3000);
-    } catch (error) {
+    } catch {
       toast({ variant: "destructive", title: "Verification failed" });
     }
   };
@@ -185,8 +185,8 @@ const VendorCustomDomain = () => {
   const deleteDomain = async (domainId: string) => {
     try {
       await supabase.from("merchant_custom_domains").delete().eq("id", domainId);
-      
-      // Check if this was the last domain - if so, disable white label
+
+      // If last domain removed, disable white-label
       const remaining = domains.filter(d => d.id !== domainId);
       if (remaining.length === 0 && storeId) {
         await supabase
@@ -194,10 +194,10 @@ const VendorCustomDomain = () => {
           .update({ white_label: false, custom_domain: null })
           .eq("store_id", storeId);
       }
-      
+
       toast({ title: "Domain removed" });
       await fetchData();
-    } catch (error) {
+    } catch {
       toast({ variant: "destructive", title: "Error", description: "Failed to remove domain" });
     }
   };
@@ -211,8 +211,18 @@ const VendorCustomDomain = () => {
     switch (status) {
       case "active": return <CheckCircle2 className="h-5 w-5 text-green-500" />;
       case "verifying": return <RefreshCcw className="h-5 w-5 text-yellow-500 animate-spin" />;
+      case "suspended": return <PauseCircle className="h-5 w-5 text-orange-500" />;
       case "failed": return <AlertCircle className="h-5 w-5 text-destructive" />;
       default: return <Clock className="h-5 w-5 text-muted-foreground" />;
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "active": return "default" as const;
+      case "suspended": return "outline" as const;
+      case "failed": return "destructive" as const;
+      default: return "secondary" as const;
     }
   };
 
@@ -254,6 +264,22 @@ const VendorCustomDomain = () => {
         </Button>
       </div>
 
+      {/* Architecture explanation */}
+      <Card className="bg-muted/30 border-dashed">
+        <CardContent className="flex items-start gap-3 py-4">
+          <Info className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+          <div className="text-sm text-muted-foreground">
+            <p className="font-medium text-foreground mb-1">Single Source of Truth</p>
+            <p>Your custom domain is an alternate access point to your storefront. All products, branding, content, and settings are managed exclusively from this dashboard — changes reflect automatically on both your platform URL and custom domain with zero manual sync.</p>
+            {storeSlug && (
+              <p className="mt-2 text-xs">
+                Platform URL: <code className="bg-muted px-1 py-0.5 rounded">/store/{storeSlug}</code>
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Domains */}
       {domains.length === 0 ? (
         <Card>
@@ -261,7 +287,7 @@ const VendorCustomDomain = () => {
             <Globe className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No custom domains yet</h3>
             <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
-              Connect your own domain to give your storefront a professional look. Your customers will see your brand instead of the marketplace URL.
+              Connect your own domain to give your storefront a professional look. Your customers will see your brand — no platform branding.
             </p>
             <Button onClick={() => setAddDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -279,15 +305,17 @@ const VendorCustomDomain = () => {
                   <div>
                     <CardTitle className="text-base flex items-center gap-2">
                       {domain.domain}
-                      <Badge variant={domain.status === "active" ? "default" : domain.status === "failed" ? "destructive" : "secondary"}>
+                      <Badge variant={getStatusBadgeVariant(domain.status)}>
                         {domain.status}
                       </Badge>
                     </CardTitle>
                     <CardDescription>
                       {domain.status === "active"
-                        ? `Verified on ${new Date(domain.verified_at!).toLocaleDateString()}`
+                        ? `Verified on ${new Date(domain.verified_at!).toLocaleDateString()} · All dashboard changes reflect automatically`
                         : domain.status === "verifying"
                         ? "DNS verification in progress..."
+                        : domain.status === "suspended"
+                        ? "Domain suspended — upgrade back to Gold to reactivate"
                         : "Awaiting DNS configuration"}
                     </CardDescription>
                   </div>
@@ -306,7 +334,32 @@ const VendorCustomDomain = () => {
                 </div>
               </div>
             </CardHeader>
-            {domain.status !== "active" && (
+
+            {/* Suspended notice */}
+            {domain.status === "suspended" && (
+              <CardContent>
+                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                  <p className="text-sm text-orange-700 dark:text-orange-400">
+                    This domain was suspended because your subscription was downgraded from Gold tier. Upgrading back to Gold will automatically reactivate it — no reconfiguration needed.
+                  </p>
+                </div>
+              </CardContent>
+            )}
+
+            {/* Verifying state */}
+            {domain.status === "verifying" && (
+              <CardContent>
+                <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-3">
+                  <RefreshCcw className="h-5 w-5 text-yellow-600 animate-spin shrink-0" />
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    DNS verification is in progress. This usually takes a few minutes.
+                  </p>
+                </div>
+              </CardContent>
+            )}
+
+            {/* DNS instructions for pending/failed domains */}
+            {(domain.status === "pending" || domain.status === "failed") && (
               <CardContent className="space-y-4">
                 <div className="p-4 bg-muted/50 rounded-lg space-y-3">
                   <h4 className="font-medium text-sm">DNS Setup Instructions</h4>
@@ -336,12 +389,8 @@ const VendorCustomDomain = () => {
                     </div>
                   </div>
 
-                  <Button size="sm" onClick={() => verifyDomain(domain.id)} disabled={domain.status === "verifying"}>
-                    {domain.status === "verifying" ? (
-                      <><RefreshCcw className="h-4 w-4 mr-2 animate-spin" /> Verifying...</>
-                    ) : (
-                      <><Shield className="h-4 w-4 mr-2" /> Verify Domain</>
-                    )}
+                  <Button size="sm" onClick={() => verifyDomain(domain.id)}>
+                    <Shield className="h-4 w-4 mr-2" /> Verify Domain
                   </Button>
                 </div>
 
@@ -362,7 +411,7 @@ const VendorCustomDomain = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Custom Domain</DialogTitle>
-            <DialogDescription>Connect your own domain to your storefront</DialogDescription>
+            <DialogDescription>Connect your own domain to your storefront. All store data is managed from this dashboard — your domain is simply an access point.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="grid gap-2">
@@ -376,10 +425,16 @@ const VendorCustomDomain = () => {
                 Enter the domain or subdomain you want to connect (e.g., shop.yourbrand.com or yourbrand.com)
               </p>
             </div>
-            <div className="p-3 bg-muted/50 rounded-lg">
+            <div className="p-3 bg-muted/50 rounded-lg space-y-2">
               <p className="text-xs text-muted-foreground">
-                After adding, you'll need to configure DNS records at your domain registrar. SSL will be automatically provisioned once DNS is verified.
+                <strong>What happens next:</strong>
               </p>
+              <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+                <li>White-labelling is automatically enabled (platform branding removed)</li>
+                <li>Your existing products, branding, and content are immediately accessible on the domain</li>
+                <li>Configure DNS records, verify, and your domain goes live</li>
+                <li>All future dashboard changes reflect on both URLs automatically</li>
+              </ul>
             </div>
           </div>
           <div className="flex justify-end gap-2">

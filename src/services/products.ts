@@ -483,3 +483,60 @@ export const fetchRelatedProducts = async (productId: string, category: string, 
     return [];
   }
 };
+
+/**
+ * Resolves a custom domain to a store slug.
+ * Returns the store slug if found and the domain is active, null otherwise.
+ */
+export const resolveCustomDomain = async (hostname: string): Promise<string | null> => {
+  try {
+    const { data: domainRecord, error } = await supabase
+      .from('merchant_custom_domains')
+      .select(`
+        domain,
+        status,
+        store_id,
+        vendor_id
+      `)
+      .eq('domain', hostname)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (error || !domainRecord?.store_id) return null;
+
+    // Verify vendor subscription is still Gold
+    const { data: vendor } = await supabase
+      .from('vendors')
+      .select('subscription_tier')
+      .eq('id', domainRecord.vendor_id)
+      .maybeSingle();
+
+    if (!vendor || vendor.subscription_tier !== 'gold') return null;
+
+    // Get store slug
+    const { data: store } = await supabase
+      .from('stores')
+      .select('slug')
+      .eq('id', domainRecord.store_id)
+      .maybeSingle();
+
+    return store?.slug || null;
+  } catch (error) {
+    console.error('Error resolving custom domain:', error);
+    return null;
+  }
+};
+
+/**
+ * Fetches store by custom domain - returns full store data
+ */
+export const fetchStoreByDomain = async (hostname: string) => {
+  try {
+    const storeSlug = await resolveCustomDomain(hostname);
+    if (!storeSlug) return null;
+    return await fetchStoreBySlug(storeSlug);
+  } catch (error) {
+    console.error('Error fetching store by domain:', error);
+    return null;
+  }
+};
