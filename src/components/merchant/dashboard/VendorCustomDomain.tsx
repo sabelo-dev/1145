@@ -114,7 +114,44 @@ const VendorCustomDomain = () => {
 
       if (error) throw error;
 
-      toast({ title: "Domain added", description: "Follow the DNS setup instructions to verify your domain." });
+      // Auto-enable white_label in storefront_customizations so branding is removed
+      if (storeId) {
+        const { data: existingCustomization } = await supabase
+          .from("storefront_customizations")
+          .select("id")
+          .eq("store_id", storeId)
+          .maybeSingle();
+
+        if (existingCustomization) {
+          // Update existing customization to enable white label and set custom domain
+          await supabase
+            .from("storefront_customizations")
+            .update({ 
+              white_label: true, 
+              custom_domain: domain 
+            })
+            .eq("store_id", storeId);
+        } else {
+          // Create storefront customization with white label enabled and defaults
+          await supabase
+            .from("storefront_customizations")
+            .insert({
+              store_id: storeId,
+              white_label: true,
+              custom_domain: domain,
+              accent_color: "#6366f1",
+              secondary_color: "#8b5cf6",
+              layout_type: "grid",
+              cta_button_text: "Shop Now",
+              announcement_bar_active: false,
+              email_capture_enabled: false,
+              email_capture_title: "Stay in the loop",
+              homepage_sections: ["announcement", "hero", "featured", "products", "about", "testimonials", "faq", "newsletter", "social", "policies"],
+            });
+        }
+      }
+
+      toast({ title: "Domain added", description: "White labelling has been enabled. Follow the DNS setup instructions to verify your domain." });
       setAddDialogOpen(false);
       setDomainInput("");
       await fetchData();
@@ -148,6 +185,16 @@ const VendorCustomDomain = () => {
   const deleteDomain = async (domainId: string) => {
     try {
       await supabase.from("merchant_custom_domains").delete().eq("id", domainId);
+      
+      // Check if this was the last domain - if so, disable white label
+      const remaining = domains.filter(d => d.id !== domainId);
+      if (remaining.length === 0 && storeId) {
+        await supabase
+          .from("storefront_customizations")
+          .update({ white_label: false, custom_domain: null })
+          .eq("store_id", storeId);
+      }
+      
       toast({ title: "Domain removed" });
       await fetchData();
     } catch (error) {
