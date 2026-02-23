@@ -163,8 +163,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                 
                 return (
                   <div key={attrType}>
-                    <div className="flex flex-wrap gap-1">
-                      {values.slice(0, 4).map(value => {
+                    <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+                      {values.map(value => {
                         const matchingVariation = product.variations?.find(
                           v => v.attributes && v.attributes[attrType] === value
                         );
