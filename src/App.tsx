@@ -92,9 +92,11 @@ function App() {
               {/* Home page with integrated header */}
               <Route path="home" element={<HomePage />} />
               
+              {/* Storefront outside layout for white-label support */}
+              <Route path="store/:storeSlug" element={<StorefrontPage />} />
+              
               <Route path="/" element={<Layout />}>
                 <Route path="shop" element={<ShopPage />} />
-                <Route path="store/:storeSlug" element={<StorefrontPage />} />
                 <Route path="product/:slug" element={<ProductPage />} />
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="category/:categorySlug/:subcategorySlug" element={<SubcategoryPage />} />

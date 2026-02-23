@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, MapPin, Star, Store, Mail, MessageSquare, Calendar, Clock, Shield, Crown, Medal, Award, ChevronDown, ExternalLink, ChevronRight, Heart, Share2, ShoppingBag } from "lucide-react";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -460,117 +462,148 @@ const StorefrontPage: React.FC = () => {
     }
   };
 
+  const showPlatformBranding = !whiteLabel || !capabilities.whiteLabel;
+
   return (
-    <div className="min-h-screen bg-background" style={fontStyle}>
-      {/* Announcement Bar */}
-      {homepageSections.includes('announcement') && renderSection('announcement')}
+    <div className="min-h-screen flex flex-col bg-background" style={fontStyle}>
+      {/* Platform Header - hidden when white-labeled */}
+      {showPlatformBranding && <Header />}
 
-      {/* Hero / Banner */}
-      {homepageSections.includes('hero') && renderSection('hero')}
+      <main className="flex-1">
+        {/* Announcement Bar */}
+        {homepageSections.includes('announcement') && renderSection('announcement')}
 
-      {/* Store Header - Modern sticky-style */}
-      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30" style={vendorTier !== 'starter' ? { borderBottomColor: `${accentColor}20` } : {}}>
-        <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
-          <div className="flex items-center gap-3 md:gap-5">
-            {/* Logo/Profile */}
-            <div className="flex-shrink-0">
-              {(store.logo_url || vendor?.logo_url) ? (
-                <img
-                  src={store.logo_url || vendor.logo_url}
-                  alt={store.name}
-                  className={`object-cover rounded-full ring-2 ring-background shadow-md ${
+        {/* Hero / Banner */}
+        {homepageSections.includes('hero') && renderSection('hero')}
+
+        {/* Store Header - Modern sticky-style */}
+        <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30" style={vendorTier !== 'starter' ? { borderBottomColor: `${accentColor}20` } : {}}>
+          <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
+            <div className="flex items-center gap-3 md:gap-5">
+              {/* Logo/Profile */}
+              <div className="flex-shrink-0">
+                {(store.logo_url || vendor?.logo_url) ? (
+                  <img
+                    src={store.logo_url || vendor.logo_url}
+                    alt={store.name}
+                    className={`object-cover rounded-full ring-2 ring-background shadow-md ${
+                      vendorTier === 'starter' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-14 h-14 md:w-16 md:h-16'
+                    }`}
+                  />
+                ) : (
+                  <div className={`rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background shadow-md ${
                     vendorTier === 'starter' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-14 h-14 md:w-16 md:h-16'
-                  }`}
-                />
-              ) : (
-                <div className={`rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background shadow-md ${
-                  vendorTier === 'starter' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-14 h-14 md:w-16 md:h-16'
-                }`}>
-                  <Store className={vendorTier === 'starter' ? 'h-5 w-5 text-primary' : 'h-7 w-7 text-primary'} />
-                </div>
-              )}
-            </div>
-
-            {/* Store Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className={`font-bold text-foreground truncate ${vendorTier === 'starter' ? 'text-lg' : 'text-lg md:text-2xl'}`}>
-                  {store.name}
-                </h1>
-                {capabilities.sellerBadge && (
-                  <Badge className="gap-1 text-xs flex-shrink-0 rounded-full" style={{ backgroundColor: vendorTier === 'gold' ? '#eab308' : accentColor, color: '#fff' }}>
-                    {vendorTier === 'gold' ? <Crown className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
-                    <span className="hidden sm:inline">{capabilities.sellerBadge}</span>
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 md:gap-3 flex-wrap text-xs md:text-sm mt-1">
-                {avgRating > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{avgRating.toFixed(1)}</span>
-                    <span className="text-muted-foreground hidden sm:inline">({products.length})</span>
+                  }`}>
+                    <Store className={vendorTier === 'starter' ? 'h-5 w-5 text-primary' : 'h-7 w-7 text-primary'} />
                   </div>
                 )}
-                <span className="text-muted-foreground">·</span>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MapPin className="h-3 w-3" />
-                  <span>South Africa</span>
+              </div>
+
+              {/* Store Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className={`font-bold text-foreground truncate ${vendorTier === 'starter' ? 'text-lg' : 'text-lg md:text-2xl'}`}>
+                    {store.name}
+                  </h1>
+                  {capabilities.sellerBadge && (
+                    <Badge className="gap-1 text-xs flex-shrink-0 rounded-full" style={{ backgroundColor: vendorTier === 'gold' ? '#eab308' : accentColor, color: '#fff' }}>
+                      {vendorTier === 'gold' ? <Crown className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
+                      <span className="hidden sm:inline">{capabilities.sellerBadge}</span>
+                    </Badge>
+                  )}
                 </div>
-                {capabilities.trustIndicators && (
-                  <>
-                    <span className="text-muted-foreground hidden md:inline">·</span>
-                    <div className="hidden md:flex items-center gap-1 text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>Joined {store.created_at ? format(new Date(store.created_at), 'MMM yyyy') : 'Recently'}</span>
+
+                <div className="flex items-center gap-2 md:gap-3 flex-wrap text-xs md:text-sm mt-1">
+                  {avgRating > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                      <span className="font-medium">{avgRating.toFixed(1)}</span>
+                      <span className="text-muted-foreground hidden sm:inline">({products.length})</span>
                     </div>
-                  </>
+                  )}
+                  <span className="text-muted-foreground">·</span>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    <span>South Africa</span>
+                  </div>
+                  {capabilities.trustIndicators && (
+                    <>
+                      <span className="text-muted-foreground hidden md:inline">·</span>
+                      <div className="hidden md:flex items-center gap-1 text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>Joined {store.created_at ? format(new Date(store.created_at), 'MMM yyyy') : 'Recently'}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {vendorTier !== 'starter' && (store.description || vendor?.description) && (
+                  <p className="text-muted-foreground mt-1.5 text-xs md:text-sm line-clamp-1 md:line-clamp-2 max-w-xl">
+                    {store.description || vendor.description}
+                  </p>
                 )}
               </div>
 
-              {vendorTier !== 'starter' && (store.description || vendor?.description) && (
-                <p className="text-muted-foreground mt-1.5 text-xs md:text-sm line-clamp-1 md:line-clamp-2 max-w-xl">
-                  {store.description || vendor.description}
-                </p>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex-shrink-0 flex items-center gap-2">
-              {capabilities.contactForm && (
-                <Button variant="outline" size="sm" className="rounded-full hidden sm:flex">
-                  <MessageSquare className="h-4 w-4 mr-1.5" />
-                  Contact
-                </Button>
-              )}
-              <Link to="/shop">
-                <Button variant="ghost" size="sm" className="rounded-full">
-                  <ArrowLeft className="h-4 w-4 md:mr-1.5" />
-                  <span className="hidden md:inline">Shop</span>
-                </Button>
-              </Link>
+              {/* Actions */}
+              <div className="flex-shrink-0 flex items-center gap-2">
+                {capabilities.contactForm && (
+                  <Button variant="outline" size="sm" className="rounded-full hidden sm:flex">
+                    <MessageSquare className="h-4 w-4 mr-1.5" />
+                    Contact
+                  </Button>
+                )}
+                {showPlatformBranding && (
+                  <Link to="/shop">
+                    <Button variant="ghost" size="sm" className="rounded-full">
+                      <ArrowLeft className="h-4 w-4 md:mr-1.5" />
+                      <span className="hidden md:inline">Shop</span>
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Sections - rendered in order */}
-      {homepageSections
-        .filter(s => s !== 'announcement' && s !== 'hero')
-        .map(sectionId => renderSection(sectionId))}
+        {/* Sections - rendered in order */}
+        {homepageSections
+          .filter(s => s !== 'announcement' && s !== 'hero')
+          .map(sectionId => renderSection(sectionId))}
 
-      {/* Platform branding for free tier */}
-      {capabilities.platformBranding && !whiteLabel && (
-        <div className="border-t py-6 text-center">
-          <p className="text-xs text-muted-foreground">
-            Powered by <span className="font-semibold">1145 Lifestyle</span>
-          </p>
-        </div>
+        {/* Platform branding for free tier */}
+        {capabilities.platformBranding && !whiteLabel && (
+          <div className="border-t py-6 text-center">
+            <p className="text-xs text-muted-foreground">
+              Powered by <span className="font-semibold">1145 Lifestyle</span>
+            </p>
+          </div>
+        )}
+
+        {/* Social links footer */}
+        {homepageSections.includes('social') && renderSection('social')}
+      </main>
+
+      {/* Platform Footer - hidden when white-labeled */}
+      {showPlatformBranding && <Footer />}
+
+      {/* White-labeled custom footer */}
+      {!showPlatformBranding && (
+        <footer className="border-t py-8 text-center bg-card">
+          <div className="max-w-7xl mx-auto px-4">
+            <p className="text-sm font-medium text-foreground mb-1">{store.name}</p>
+            {Object.values(socialLinks).some(v => v) && (
+              <div className="flex items-center justify-center gap-3 mt-3 mb-3">
+                {Object.entries(socialLinks).filter(([, url]) => url).map(([platform, url]) => (
+                  <a key={platform} href={url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground text-xs capitalize">
+                    {platform}
+                  </a>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {store.name}. All rights reserved.</p>
+          </div>
+        </footer>
       )}
-
-      {/* Social links footer */}
-      {homepageSections.includes('social') && renderSection('social')}
     </div>
   );
 };
