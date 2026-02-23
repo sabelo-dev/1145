@@ -230,11 +230,17 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
                   <h2 className="text-xl md:text-2xl font-bold text-foreground">Featured Products</h2>
                   <p className="text-sm text-muted-foreground mt-1">Hand-picked just for you</p>
                 </div>
-                <Link to="#products">
-                  <Button variant="ghost" size="sm" className="gap-1">
-                    View all <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => {
+                    const el = document.getElementById('products');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  View all <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
               <ProductGrid products={featuredProducts} />
             </div>
@@ -546,7 +552,7 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
                 </div>
 
                 {vendorTier !== 'starter' && (store.description || vendor?.description) && (
-                  <p className="text-muted-foreground mt-1.5 text-xs md:text-sm line-clamp-1 md:line-clamp-2 max-w-xl">
+                  <p className="text-muted-foreground mt-1.5 text-xs md:text-sm max-w-xl">
                     {store.description || vendor.description}
                   </p>
                 )}
