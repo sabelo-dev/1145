@@ -77,9 +77,7 @@ const Header: React.FC = () => {
           <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
-              <div className="px-2.5 py-1 bg-primary rounded-md flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">1145</span>
-              </div>
+              <img src="/logo.svg" alt="1145 Lifestyle" className="h-8 w-8 rounded-md" />
             </Link>
 
             {/* Desktop Search Bar */}
