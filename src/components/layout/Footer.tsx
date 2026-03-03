@@ -12,6 +12,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About Column */}
           <div>
+            <img src="/logo.svg" alt="1145 Lifestyle" className="h-10 w-10 rounded-md mb-3" />
             <h3 className="text-lg font-semibold mb-4">About 1145 Lifestyle</h3>
             <p className="text-sm text-gray-300 mb-4">
               1145 Lifestyle connecting buyers and sellers since 2025. Our mission is to provide the best shopping
