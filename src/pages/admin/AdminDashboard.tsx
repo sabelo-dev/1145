@@ -67,6 +67,7 @@ import {
   Pickaxe,
   Inbox,
   Crown,
+  Car,
 } from "lucide-react";
 
 const AdminDashboard = () => {
