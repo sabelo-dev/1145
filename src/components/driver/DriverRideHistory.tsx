@@ -27,7 +27,6 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
   const fetchHistory = async () => {
     if (!driver) return;
     setLoading(true);
-
     const { data } = await supabase
       .from("rides")
       .select("*")
@@ -40,7 +39,7 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
       setRides(data);
       const completed = data.filter((r) => r.status === "completed");
       const totalEarnings = completed.reduce((s, r) => s + (r.actual_fare || r.estimated_fare || 0), 0);
-      const ratings = completed.filter((r) => r.driver_rating).map((r) => r.driver_rating);
+      const ratings = completed.filter((r) => r.rating_by_passenger).map((r) => r.rating_by_passenger as number);
       setStats({
         totalRides: completed.length,
         totalEarnings,
@@ -48,14 +47,6 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
       });
     }
     setLoading(false);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      completed: "bg-green-600 text-white",
-      cancelled: "bg-red-600 text-white",
-    };
-    return <Badge className={variants[status] || ""}>{status}</Badge>;
   };
 
   if (loading) {
@@ -103,24 +94,21 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-3 w-3 text-green-600" />
+                      <MapPin className="h-3 w-3 text-primary" />
                       <span className="truncate max-w-xs">{ride.pickup_address}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Navigation className="h-3 w-3 text-blue-600" />
+                      <Navigation className="h-3 w-3 text-accent-foreground" />
                       <span className="truncate max-w-xs">{ride.dropoff_address}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(ride.created_at), "PPp")}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(ride.created_at), "PPp")}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    {getStatusBadge(ride.status)}
+                    <Badge variant={ride.status === "completed" ? "default" : "destructive"}>{ride.status}</Badge>
                     {ride.actual_fare && <span className="font-semibold text-sm">R{ride.actual_fare.toFixed(2)}</span>}
-                    {ride.driver_rating && (
-                      <span className="flex items-center gap-1 text-xs">
-                        <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                        {ride.driver_rating}
+                    {ride.rating_by_passenger && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Star className="h-3 w-3 text-primary fill-primary" />{ride.rating_by_passenger}
                       </span>
                     )}
                   </div>
