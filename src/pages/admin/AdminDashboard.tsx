@@ -43,7 +43,7 @@ import AdminUCoin from "@/components/admin/AdminUCoin";
 import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import AdminInbox from "@/components/admin/AdminInbox";
-import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
+import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
 import {
   LayoutDashboard,
   Users,
