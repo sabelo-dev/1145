@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import GoogleMap from "@/components/maps/GoogleMap";
+import PlacesAutocomplete from "@/components/maps/PlacesAutocomplete";
 
 interface VehicleOption {
   id: string;
@@ -32,9 +32,11 @@ const RideRequestPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
+  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [dropoffCoords, setDropoffCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [vehicleTypes, setVehicleTypes] = useState<VehicleOption[]>([]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
@@ -42,7 +44,7 @@ const RideRequestPage: React.FC = () => {
   const [estimatedDuration, setEstimatedDuration] = useState<number | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
-  const [step, setStep] = useState<'location' | 'vehicle' | 'confirm'>('location');
+  const [step, setStep] = useState<"location" | "vehicle" | "confirm">("location");
 
   const fetchVehicleTypes = async () => {
     const { data } = await supabase
@@ -54,34 +56,65 @@ const RideRequestPage: React.FC = () => {
   };
 
   const handleSearchRides = async () => {
-    if (!pickup.trim() || !dropoff.trim()) {
-      toast({ variant: "destructive", title: "Please enter both pickup and drop-off locations" });
+    if (!pickupCoords || !dropoffCoords) {
+      toast({ variant: "destructive", title: "Please select both locations from the suggestions" });
       return;
     }
     setIsSearching(true);
     await fetchVehicleTypes();
-    // Simulated distance/duration - in production this would use Google Maps Distance Matrix API
-    const mockDistance = Math.round((5 + Math.random() * 25) * 10) / 10;
-    const mockDuration = Math.round(mockDistance * 2.5 + Math.random() * 10);
-    setEstimatedDistance(mockDistance);
-    setEstimatedDuration(mockDuration);
+
+    // Use Google Maps Distance Matrix for real distance/duration
+    try {
+      const service = new google.maps.DistanceMatrixService();
+      const result = await service.getDistanceMatrix({
+        origins: [pickupCoords],
+        destinations: [dropoffCoords],
+        travelMode: google.maps.TravelMode.DRIVING,
+      });
+
+      const element = result.rows[0]?.elements[0];
+      if (element?.status === "OK") {
+        const distKm = Math.round((element.distance!.value / 1000) * 10) / 10;
+        const durMin = Math.round(element.duration!.value / 60);
+        setEstimatedDistance(distKm);
+        setEstimatedDuration(durMin);
+      } else {
+        // Fallback: haversine
+        const d = haversineKm(pickupCoords, dropoffCoords);
+        setEstimatedDistance(Math.round(d * 10) / 10);
+        setEstimatedDuration(Math.round(d * 2.5 + 5));
+      }
+    } catch {
+      const d = haversineKm(pickupCoords, dropoffCoords);
+      setEstimatedDistance(Math.round(d * 10) / 10);
+      setEstimatedDuration(Math.round(d * 2.5 + 5));
+    }
+
     setIsSearching(false);
-    setStep('vehicle');
+    setStep("vehicle");
+  };
+
+  const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const R = 6371;
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+    const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+    const x =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
   };
 
   const calculateFare = (type: VehicleOption) => {
     if (!estimatedDistance || !estimatedDuration) return type.minimum_fare;
-    const fare = type.base_fare + (estimatedDistance * type.per_km_rate) + (estimatedDuration * type.per_minute_rate);
+    const fare = type.base_fare + estimatedDistance * type.per_km_rate + estimatedDuration * type.per_minute_rate;
     return Math.max(fare, type.minimum_fare);
   };
 
   const handleSelectVehicle = (typeId: string) => {
     setSelectedType(typeId);
-    const type = vehicleTypes.find(t => t.id === typeId);
-    if (type) {
-      setEstimatedFare(Math.round(calculateFare(type) * 100) / 100);
-    }
-    setStep('confirm');
+    const type = vehicleTypes.find((t) => t.id === typeId);
+    if (type) setEstimatedFare(Math.round(calculateFare(type) * 100) / 100);
+    setStep("confirm");
   };
 
   const handleRequestRide = async () => {
@@ -90,24 +123,31 @@ const RideRequestPage: React.FC = () => {
       navigate("/login");
       return;
     }
-    if (!selectedType || !estimatedFare) return;
+    if (!selectedType || !estimatedFare || !pickupCoords || !dropoffCoords) return;
 
     setIsRequesting(true);
     try {
-      const { data, error } = await supabase.from("rides").insert({
-        passenger_id: user.id,
-        vehicle_type_id: selectedType,
-        pickup_address: pickup,
-        dropoff_address: dropoff,
-        estimated_distance_km: estimatedDistance,
-        estimated_duration_minutes: estimatedDuration,
-        estimated_fare: estimatedFare,
-        status: "requested",
-        payment_method: "wallet",
-      }).select().single();
+      const { data, error } = await supabase
+        .from("rides")
+        .insert({
+          passenger_id: user.id,
+          vehicle_type_id: selectedType,
+          pickup_address: pickup,
+          dropoff_address: dropoff,
+          pickup_lat: pickupCoords.lat,
+          pickup_lng: pickupCoords.lng,
+          dropoff_lat: dropoffCoords.lat,
+          dropoff_lng: dropoffCoords.lng,
+          estimated_distance_km: estimatedDistance,
+          estimated_duration_minutes: estimatedDuration,
+          estimated_fare: estimatedFare,
+          status: "requested",
+          payment_method: "wallet",
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-
       toast({ title: "Ride Requested!", description: "Looking for nearby drivers..." });
       navigate(`/rides/track/${data.id}`);
     } catch (err: any) {
@@ -116,6 +156,16 @@ const RideRequestPage: React.FC = () => {
       setIsRequesting(false);
     }
   };
+
+  const mapMarkers = [
+    ...(pickupCoords ? [{ position: pickupCoords, title: "Pickup", label: "A" }] : []),
+    ...(dropoffCoords ? [{ position: dropoffCoords, title: "Drop-off", label: "B" }] : []),
+  ];
+
+  const mapRoute =
+    pickupCoords && dropoffCoords && step !== "location"
+      ? { origin: pickupCoords, destination: dropoffCoords }
+      : undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,6 +183,15 @@ const RideRequestPage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6 max-w-lg">
+        {/* Map */}
+        <GoogleMap
+          className="w-full h-56 rounded-xl overflow-hidden mb-4 border border-border"
+          markers={mapMarkers}
+          route={mapRoute}
+          center={pickupCoords || { lat: -26.2041, lng: 28.0473 }}
+          zoom={pickupCoords ? 14 : 12}
+        />
+
         {/* Location Input */}
         <Card className="mb-6">
           <CardContent className="p-4 space-y-4">
@@ -145,32 +204,34 @@ const RideRequestPage: React.FC = () => {
               <div className="flex-1 space-y-3">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">PICKUP</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
-                    <Input
-                      placeholder="Enter pickup location"
-                      value={pickup}
-                      onChange={e => setPickup(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                  <PlacesAutocomplete
+                    value={pickup}
+                    onChange={setPickup}
+                    onPlaceSelect={(p) => {
+                      setPickup(p.address);
+                      setPickupCoords({ lat: p.lat, lng: p.lng });
+                    }}
+                    placeholder="Enter pickup location"
+                    icon={<MapPin className="h-4 w-4 text-emerald-500" />}
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">DROP-OFF</label>
-                  <div className="relative">
-                    <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                    <Input
-                      placeholder="Enter destination"
-                      value={dropoff}
-                      onChange={e => setDropoff(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                  <PlacesAutocomplete
+                    value={dropoff}
+                    onChange={setDropoff}
+                    onPlaceSelect={(p) => {
+                      setDropoff(p.address);
+                      setDropoffCoords({ lat: p.lat, lng: p.lng });
+                    }}
+                    placeholder="Enter destination"
+                    icon={<Navigation className="h-4 w-4 text-destructive" />}
+                  />
                 </div>
               </div>
             </div>
-            {step === 'location' && (
-              <Button className="w-full" size="lg" onClick={handleSearchRides} disabled={isSearching}>
+            {step === "location" && (
+              <Button className="w-full" size="lg" onClick={handleSearchRides} disabled={isSearching || !pickupCoords || !dropoffCoords}>
                 {isSearching ? "Finding rides..." : "Search Rides"}
               </Button>
             )}
@@ -178,7 +239,7 @@ const RideRequestPage: React.FC = () => {
         </Card>
 
         {/* Trip estimate */}
-        {estimatedDistance && estimatedDuration && step !== 'location' && (
+        {estimatedDistance && estimatedDuration && step !== "location" && (
           <div className="flex items-center justify-center gap-6 mb-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4" />
@@ -192,16 +253,16 @@ const RideRequestPage: React.FC = () => {
         )}
 
         {/* Vehicle Selection */}
-        {step === 'vehicle' && vehicleTypes.length > 0 && (
+        {step === "vehicle" && vehicleTypes.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-lg font-semibold">Choose your ride</h2>
-            {vehicleTypes.map(type => {
+            {vehicleTypes.map((type) => {
               const Icon = vehicleIcons[type.icon] || Car;
               const fare = Math.round(calculateFare(type) * 100) / 100;
               return (
                 <Card
                   key={type.id}
-                  className={`cursor-pointer transition-all hover:shadow-md ${selectedType === type.id ? 'ring-2 ring-primary' : ''}`}
+                  className={`cursor-pointer transition-all hover:shadow-md ${selectedType === type.id ? "ring-2 ring-primary" : ""}`}
                   onClick={() => handleSelectVehicle(type.id)}
                 >
                   <CardContent className="p-4 flex items-center justify-between">
@@ -226,7 +287,7 @@ const RideRequestPage: React.FC = () => {
         )}
 
         {/* Confirmation */}
-        {step === 'confirm' && estimatedFare && (
+        {step === "confirm" && estimatedFare && (
           <Card className="mt-4">
             <CardContent className="p-6 space-y-4">
               <h2 className="text-lg font-semibold">Confirm your ride</h2>
@@ -242,7 +303,7 @@ const RideRequestPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Vehicle</span>
-                  <span className="font-medium">{vehicleTypes.find(t => t.id === selectedType)?.display_name}</span>
+                  <span className="font-medium">{vehicleTypes.find((t) => t.id === selectedType)?.display_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Distance</span>
@@ -262,7 +323,7 @@ const RideRequestPage: React.FC = () => {
                 <span className="text-2xl font-bold">R{estimatedFare.toFixed(2)}</span>
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={() => setStep('vehicle')}>
+                <Button variant="outline" className="flex-1" onClick={() => setStep("vehicle")}>
                   Back
                 </Button>
                 <Button className="flex-1" size="lg" onClick={handleRequestRide} disabled={isRequesting}>

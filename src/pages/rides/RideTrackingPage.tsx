@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Phone, MessageSquare, MapPin, Navigation, Clock, Star, X } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import GoogleMap from "@/components/maps/GoogleMap";
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   requested: { label: "Finding a driver...", color: "bg-yellow-500" },
@@ -30,6 +30,7 @@ const RideTrackingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
   const [showRating, setShowRating] = useState(false);
+  const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     if (!rideId) return;
@@ -45,6 +46,28 @@ const RideTrackingPage: React.FC = () => {
 
     return () => { supabase.removeChannel(channel); };
   }, [rideId]);
+
+  // Subscribe to driver location updates
+  useEffect(() => {
+    if (!ride?.driver_id) return;
+
+    const channel = supabase
+      .channel(`driver-loc-${ride.driver_id}`)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "drivers",
+        filter: `id=eq.${ride.driver_id}`,
+      }, (payload) => {
+        const loc = (payload.new as any).current_location;
+        if (loc?.lat && loc?.lng) {
+          setDriverLocation({ lat: loc.lat, lng: loc.lng });
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [ride?.driver_id]);
 
   const fetchRide = async () => {
     if (!rideId) return;
@@ -94,6 +117,16 @@ const RideTrackingPage: React.FC = () => {
   const status = statusLabels[ride.status] || { label: ride.status, color: "bg-muted" };
   const canCancel = ["requested", "searching", "driver_assigned", "driver_arriving"].includes(ride.status);
 
+  const pickupCoords = ride.pickup_lat && ride.pickup_lng ? { lat: ride.pickup_lat, lng: ride.pickup_lng } : null;
+  const dropoffCoords = ride.dropoff_lat && ride.dropoff_lng ? { lat: ride.dropoff_lat, lng: ride.dropoff_lng } : null;
+
+  const mapMarkers = [
+    ...(pickupCoords ? [{ position: pickupCoords, title: "Pickup", label: "A" }] : []),
+    ...(dropoffCoords ? [{ position: dropoffCoords, title: "Drop-off", label: "B" }] : []),
+  ];
+
+  const mapRoute = pickupCoords && dropoffCoords ? { origin: pickupCoords, destination: dropoffCoords } : undefined;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-to-r from-[#3A0CA3] to-[#4361EE] text-white p-4">
@@ -109,6 +142,16 @@ const RideTrackingPage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6 max-w-lg space-y-4">
+        {/* Live Map */}
+        <GoogleMap
+          className="w-full h-56 rounded-xl overflow-hidden border border-border"
+          markers={mapMarkers}
+          route={mapRoute}
+          driverLocation={driverLocation || undefined}
+          center={pickupCoords || { lat: -26.2041, lng: 28.0473 }}
+          zoom={13}
+        />
+
         {/* Status Banner */}
         <Card>
           <CardContent className="p-4">
@@ -146,11 +189,11 @@ const RideTrackingPage: React.FC = () => {
             <div className="flex justify-between text-sm">
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>{ride.estimated_distance_km || ride.actual_distance_km || '—'} km</span>
+                <span>{ride.estimated_distance_km || ride.actual_distance_km || "—"} km</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>~{ride.estimated_duration_minutes || ride.actual_duration_minutes || '—'} min</span>
+                <span>~{ride.estimated_duration_minutes || ride.actual_duration_minutes || "—"} min</span>
               </div>
               <div className="font-bold text-foreground">
                 R{(ride.actual_fare || ride.estimated_fare || 0).toFixed(2)}
@@ -173,9 +216,9 @@ const RideTrackingPage: React.FC = () => {
             <CardContent className="p-6 text-center space-y-4">
               <h3 className="font-semibold text-lg">Rate your trip</h3>
               <div className="flex justify-center gap-2">
-                {[1, 2, 3, 4, 5].map(star => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <button key={star} onClick={() => setRating(star)} className="p-1">
-                    <Star className={`h-8 w-8 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`} />
+                    <Star className={`h-8 w-8 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
                   </button>
                 ))}
               </div>

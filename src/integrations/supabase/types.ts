@@ -3884,7 +3884,9 @@ export type Database = {
           created_at: string
           driver_id: string | null
           dropoff_address: string
+          dropoff_lat: number | null
           dropoff_latitude: number | null
+          dropoff_lng: number | null
           dropoff_longitude: number | null
           estimated_distance_km: number | null
           estimated_duration_minutes: number | null
@@ -3896,7 +3898,9 @@ export type Database = {
           payment_method: string
           payment_status: string
           pickup_address: string
+          pickup_lat: number | null
           pickup_latitude: number | null
+          pickup_lng: number | null
           pickup_longitude: number | null
           rating_by_driver: number | null
           rating_by_passenger: number | null
@@ -3921,7 +3925,9 @@ export type Database = {
           created_at?: string
           driver_id?: string | null
           dropoff_address: string
+          dropoff_lat?: number | null
           dropoff_latitude?: number | null
+          dropoff_lng?: number | null
           dropoff_longitude?: number | null
           estimated_distance_km?: number | null
           estimated_duration_minutes?: number | null
@@ -3933,7 +3939,9 @@ export type Database = {
           payment_method?: string
           payment_status?: string
           pickup_address: string
+          pickup_lat?: number | null
           pickup_latitude?: number | null
+          pickup_lng?: number | null
           pickup_longitude?: number | null
           rating_by_driver?: number | null
           rating_by_passenger?: number | null
@@ -3958,7 +3966,9 @@ export type Database = {
           created_at?: string
           driver_id?: string | null
           dropoff_address?: string
+          dropoff_lat?: number | null
           dropoff_latitude?: number | null
+          dropoff_lng?: number | null
           dropoff_longitude?: number | null
           estimated_distance_km?: number | null
           estimated_duration_minutes?: number | null
@@ -3970,7 +3980,9 @@ export type Database = {
           payment_method?: string
           payment_status?: string
           pickup_address?: string
+          pickup_lat?: number | null
           pickup_latitude?: number | null
+          pickup_lng?: number | null
           pickup_longitude?: number | null
           rating_by_driver?: number | null
           rating_by_passenger?: number | null
