@@ -1737,6 +1737,60 @@ export type Database = {
           },
         ]
       }
+      driver_locations: {
+        Row: {
+          current_vehicle_id: string | null
+          driver_id: string
+          heading: number | null
+          id: string
+          is_available: boolean
+          is_online: boolean
+          last_updated: string
+          latitude: number
+          longitude: number
+          speed: number | null
+        }
+        Insert: {
+          current_vehicle_id?: string | null
+          driver_id: string
+          heading?: number | null
+          id?: string
+          is_available?: boolean
+          is_online?: boolean
+          last_updated?: string
+          latitude: number
+          longitude: number
+          speed?: number | null
+        }
+        Update: {
+          current_vehicle_id?: string | null
+          driver_id?: string
+          heading?: number | null
+          id?: string
+          is_available?: boolean
+          is_online?: boolean
+          last_updated?: string
+          latitude?: number
+          longitude?: number
+          speed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_locations_current_vehicle_id_fkey"
+            columns: ["current_vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_locations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_payouts: {
         Row: {
           amount: number
@@ -2162,6 +2216,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fleets: {
+        Row: {
+          active_vehicles: number
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          status: string
+          total_vehicles: number
+          updated_at: string
+        }
+        Insert: {
+          active_vehicles?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          status?: string
+          total_vehicles?: number
+          updated_at?: string
+        }
+        Update: {
+          active_vehicles?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          status?: string
+          total_vehicles?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       gold_price_cache: {
         Row: {
@@ -3159,6 +3249,48 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_wallets: {
+        Row: {
+          balance_zar: number
+          created_at: string
+          id: string
+          is_verified: boolean
+          lifetime_deposited: number
+          lifetime_earned: number
+          lifetime_spent: number
+          lifetime_withdrawn: number
+          pending_balance_zar: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance_zar?: number
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          lifetime_deposited?: number
+          lifetime_earned?: number
+          lifetime_spent?: number
+          lifetime_withdrawn?: number
+          pending_balance_zar?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance_zar?: number
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          lifetime_deposited?: number
+          lifetime_earned?: number
+          lifetime_spent?: number
+          lifetime_withdrawn?: number
+          pending_balance_zar?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
@@ -3699,6 +3831,222 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ride_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          notes: string | null
+          old_status: string | null
+          ride_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          notes?: string | null
+          old_status?: string | null
+          ride_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          notes?: string | null
+          old_status?: string | null
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_status_history_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          accepted_at: string | null
+          actual_distance_km: number | null
+          actual_duration_minutes: number | null
+          actual_fare: number | null
+          arrived_at: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          created_at: string
+          driver_id: string | null
+          dropoff_address: string
+          dropoff_latitude: number | null
+          dropoff_longitude: number | null
+          estimated_distance_km: number | null
+          estimated_duration_minutes: number | null
+          estimated_fare: number | null
+          feedback_by_driver: string | null
+          feedback_by_passenger: string | null
+          id: string
+          passenger_id: string
+          payment_method: string
+          payment_status: string
+          pickup_address: string
+          pickup_latitude: number | null
+          pickup_longitude: number | null
+          rating_by_driver: number | null
+          rating_by_passenger: number | null
+          requested_at: string
+          started_at: string | null
+          status: string
+          surge_multiplier: number
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_type_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          actual_distance_km?: number | null
+          actual_duration_minutes?: number | null
+          actual_fare?: number | null
+          arrived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          driver_id?: string | null
+          dropoff_address: string
+          dropoff_latitude?: number | null
+          dropoff_longitude?: number | null
+          estimated_distance_km?: number | null
+          estimated_duration_minutes?: number | null
+          estimated_fare?: number | null
+          feedback_by_driver?: string | null
+          feedback_by_passenger?: string | null
+          id?: string
+          passenger_id: string
+          payment_method?: string
+          payment_status?: string
+          pickup_address: string
+          pickup_latitude?: number | null
+          pickup_longitude?: number | null
+          rating_by_driver?: number | null
+          rating_by_passenger?: number | null
+          requested_at?: string
+          started_at?: string | null
+          status?: string
+          surge_multiplier?: number
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_type_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          actual_distance_km?: number | null
+          actual_duration_minutes?: number | null
+          actual_fare?: number | null
+          arrived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          driver_id?: string | null
+          dropoff_address?: string
+          dropoff_latitude?: number | null
+          dropoff_longitude?: number | null
+          estimated_distance_km?: number | null
+          estimated_duration_minutes?: number | null
+          estimated_fare?: number | null
+          feedback_by_driver?: string | null
+          feedback_by_passenger?: string | null
+          id?: string
+          passenger_id?: string
+          payment_method?: string
+          payment_status?: string
+          pickup_address?: string
+          pickup_latitude?: number | null
+          pickup_longitude?: number | null
+          rating_by_driver?: number | null
+          rating_by_passenger?: number | null
+          requested_at?: string
+          started_at?: string | null
+          status?: string
+          surge_multiplier?: number
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_modules: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          display_name: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          required_role: string | null
+          route: string
+          sort_order: number
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          icon: string
+          id?: string
+          is_active?: boolean
+          name: string
+          required_role?: string | null
+          route: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          required_role?: string | null
+          route?: string
+          sort_order?: number
+        }
+        Relationships: []
       }
       shipping_rates: {
         Row: {
@@ -5153,6 +5501,136 @@ export type Database = {
           },
         ]
       }
+      vehicle_types: {
+        Row: {
+          base_fare: number
+          created_at: string
+          description: string | null
+          display_name: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          max_passengers: number
+          minimum_fare: number
+          name: string
+          per_km_rate: number
+          per_minute_rate: number
+        }
+        Insert: {
+          base_fare?: number
+          created_at?: string
+          description?: string | null
+          display_name: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          max_passengers?: number
+          minimum_fare?: number
+          name: string
+          per_km_rate?: number
+          per_minute_rate?: number
+        }
+        Update: {
+          base_fare?: number
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          max_passengers?: number
+          minimum_fare?: number
+          name?: string
+          per_km_rate?: number
+          per_minute_rate?: number
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          color: string
+          created_at: string
+          documents: Json | null
+          driver_id: string | null
+          fleet_id: string | null
+          id: string
+          inspection_status: string | null
+          insurance_expiry: string | null
+          is_fleet_vehicle: boolean
+          license_plate: string
+          make: string
+          model: string
+          registration_expiry: string | null
+          status: string
+          updated_at: string
+          vehicle_type_id: string | null
+          vin_number: string | null
+          year: number
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          documents?: Json | null
+          driver_id?: string | null
+          fleet_id?: string | null
+          id?: string
+          inspection_status?: string | null
+          insurance_expiry?: string | null
+          is_fleet_vehicle?: boolean
+          license_plate: string
+          make: string
+          model: string
+          registration_expiry?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_type_id?: string | null
+          vin_number?: string | null
+          year: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          documents?: Json | null
+          driver_id?: string | null
+          fleet_id?: string | null
+          id?: string
+          inspection_status?: string | null
+          insurance_expiry?: string | null
+          is_fleet_vehicle?: boolean
+          license_plate?: string
+          make?: string
+          model?: string
+          registration_expiry?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_type_id?: string | null
+          vin_number?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_documents: {
         Row: {
           document_type: string
@@ -5610,6 +6088,71 @@ export type Database = {
           },
         ]
       }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          counterparty_id: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          fee: number
+          id: string
+          metadata: Json | null
+          net_amount: number
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          counterparty_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          fee?: number
+          id?: string
+          metadata?: Json | null
+          net_amount: number
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          counterparty_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          fee?: number
+          id?: string
+          metadata?: Json | null
+          net_amount?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "platform_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wishlists: {
         Row: {
           created_at: string
@@ -5663,6 +6206,15 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_ride_fare: {
+        Args: {
+          p_distance_km: number
+          p_duration_minutes: number
+          p_surge_multiplier?: number
+          p_vehicle_type_id: string
+        }
+        Returns: number
+      }
       can_vendor_add_product: {
         Args: { p_vendor_id: string }
         Returns: boolean
@@ -5711,6 +6263,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_or_create_wallet: { Args: { p_user_id: string }; Returns: string }
       get_ucoin_transfers: {
         Args: { p_limit?: number; p_user_id: string }
         Returns: {
@@ -5827,7 +6380,15 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "consumer" | "vendor" | "admin" | "driver" | "influencer"
+      app_role:
+        | "consumer"
+        | "vendor"
+        | "admin"
+        | "driver"
+        | "influencer"
+        | "passenger"
+        | "fleet_manager"
+        | "service_provider"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5955,7 +6516,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["consumer", "vendor", "admin", "driver", "influencer"],
+      app_role: [
+        "consumer",
+        "vendor",
+        "admin",
+        "driver",
+        "influencer",
+        "passenger",
+        "fleet_manager",
+        "service_provider",
+      ],
     },
   },
 } as const

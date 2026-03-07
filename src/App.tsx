@@ -74,6 +74,13 @@ import PrivacyPage from "@/pages/PrivacyPage";
 // Auth pages
 import AuthConfirmPage from "@/pages/AuthConfirmPage";
 
+// Super App pages
+import ServiceHubPage from "@/pages/ServiceHubPage";
+import RideRequestPage from "@/pages/rides/RideRequestPage";
+import RideTrackingPage from "@/pages/rides/RideTrackingPage";
+import RideHistoryPage from "@/pages/rides/RideHistoryPage";
+import WalletPage from "@/pages/wallet/WalletPage";
+
 const queryClient = new QueryClient();
 
 function AppRouter() {
@@ -149,6 +156,17 @@ function AppRouter() {
         <Route path="terms" element={<TermsPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
       </Route>
+      
+      {/* Super App Service Hub */}
+      <Route path="services" element={<ServiceHubPage />} />
+      
+      {/* Ride pages */}
+      <Route path="rides" element={<RideHistoryPage />} />
+      <Route path="rides/request" element={<RideRequestPage />} />
+      <Route path="rides/track/:rideId" element={<RideTrackingPage />} />
+      
+      {/* Wallet page */}
+      <Route path="wallet" element={<WalletPage />} />
       
       {/* Track Order page */}
       <Route path="track-order" element={<TrackOrderPage />} />
