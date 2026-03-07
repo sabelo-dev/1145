@@ -74,6 +74,13 @@ import PrivacyPage from "@/pages/PrivacyPage";
 // Auth pages
 import AuthConfirmPage from "@/pages/AuthConfirmPage";
 
+// Super App pages
+import ServiceHubPage from "@/pages/ServiceHubPage";
+import RideRequestPage from "@/pages/rides/RideRequestPage";
+import RideTrackingPage from "@/pages/rides/RideTrackingPage";
+import RideHistoryPage from "@/pages/rides/RideHistoryPage";
+import WalletPage from "@/pages/wallet/WalletPage";
+
 const queryClient = new QueryClient();
 
 function AppRouter() {
