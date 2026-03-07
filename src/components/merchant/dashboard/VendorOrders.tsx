@@ -39,6 +39,7 @@ import EditOrderDialog from "./dialogs/EditOrderDialog";
 import OrderDetailsDialog from "./dialogs/OrderDetailsDialog";
 import RefundReturnDialog from "./dialogs/RefundReturnDialog";
 import { generateInvoice } from "@/lib/invoiceGenerator";
+import { RequestDeliveryButton } from "@/components/delivery/OrderDeliveryIntegration";
 
 const VendorOrders = () => {
   const { user } = useAuth();
