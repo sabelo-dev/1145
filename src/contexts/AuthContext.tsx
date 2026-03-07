@@ -188,6 +188,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mounted = true;
     loadingManager.startLoading('auth');
 
+    // Safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (mounted) {
+        console.warn('Auth loading safety timeout reached, forcing loading complete');
+        loadingManager.stopLoading();
+      }
+    }, 10000);
+
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -224,7 +232,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (event === 'SIGNED_OUT') {
             clearAuthState();
-            loadingManager.stopLoading('auth');
+            loadingManager.stopLoading();
           } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
             setTimeout(async () => {
               if (mounted && session) {
@@ -248,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
