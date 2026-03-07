@@ -81,6 +81,7 @@ import RideRequestPage from "@/pages/rides/RideRequestPage";
 import RideTrackingPage from "@/pages/rides/RideTrackingPage";
 import RideHistoryPage from "@/pages/rides/RideHistoryPage";
 import WalletPage from "@/pages/wallet/WalletPage";
+import InstallPage from "@/pages/InstallPage";
 
 const queryClient = new QueryClient();
 
