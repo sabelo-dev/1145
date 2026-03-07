@@ -39,6 +39,7 @@ import EditOrderDialog from "./dialogs/EditOrderDialog";
 import OrderDetailsDialog from "./dialogs/OrderDetailsDialog";
 import RefundReturnDialog from "./dialogs/RefundReturnDialog";
 import { generateInvoice } from "@/lib/invoiceGenerator";
+import { RequestDeliveryButton } from "@/components/delivery/OrderDeliveryIntegration";
 
 const VendorOrders = () => {
   const { user } = useAuth();
@@ -455,6 +456,18 @@ const VendorOrders = () => {
                         {(order.status === 'pending' || order.status === 'confirmed') && (
                           <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'shipped')}>
                             Mark as Shipped
+                          </DropdownMenuItem>
+                        )}
+                        {(order.status === 'confirmed' || order.status === 'processing') && (
+                          <DropdownMenuItem asChild>
+                            <div>
+                              <RequestDeliveryButton
+                                orderId={order.id}
+                                shippingAddress={order.shippingAddress}
+                                storeName={storeName}
+                                onDeliveryRequested={fetchOrders}
+                              />
+                            </div>
                           </DropdownMenuItem>
                         )}
                         {order.status === 'shipped' && (

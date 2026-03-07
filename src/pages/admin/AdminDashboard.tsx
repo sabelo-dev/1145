@@ -44,6 +44,7 @@ import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import AdminInbox from "@/components/admin/AdminInbox";
 import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
+import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
 import {
   LayoutDashboard,
   Users,
@@ -67,6 +68,7 @@ import {
   Pickaxe,
   Inbox,
   Crown,
+  Car,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -103,6 +105,7 @@ const AdminDashboard = () => {
     { id: "audit", title: "Logs / Audit Trail", icon: AuditIcon },
     { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "drivers", title: "Driver Management", icon: Truck },
+    { id: "rides", title: "Ride Monitoring", icon: Car },
   ];
 
   return (
@@ -288,6 +291,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="drivers" className="mt-0">
               <AdminDrivers />
+            </TabsContent>
+            <TabsContent value="rides" className="mt-0">
+              <AdminRideMonitoring />
             </TabsContent>
           </Tabs>
         </main>
