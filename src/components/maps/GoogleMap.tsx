@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import React, { useEffect, useRef, useState, useCallback } from "react";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDdvMPREt7NEPYNtDhU0qowu4hidtrDJwo";
