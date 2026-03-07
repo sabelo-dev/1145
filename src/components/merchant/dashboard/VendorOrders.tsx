@@ -458,6 +458,18 @@ const VendorOrders = () => {
                             Mark as Shipped
                           </DropdownMenuItem>
                         )}
+                        {(order.status === 'confirmed' || order.status === 'processing') && (
+                          <DropdownMenuItem asChild>
+                            <div>
+                              <RequestDeliveryButton
+                                orderId={order.id}
+                                shippingAddress={order.shippingAddress}
+                                storeName={storeName}
+                                onDeliveryRequested={fetchOrders}
+                              />
+                            </div>
+                          </DropdownMenuItem>
+                        )}
                         {order.status === 'shipped' && (
                           <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'delivered')}>
                             Mark as Delivered
