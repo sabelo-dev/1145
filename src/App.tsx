@@ -45,6 +45,7 @@ import MerchantDashboardPage from "@/pages/MerchantDashboardPage";
 import DriverLoginPage from "@/pages/driver/DriverLoginPage";
 import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
 import DriverRegisterPage from "@/pages/driver/DriverRegisterPage";
+import FleetDashboardPage from "@/pages/fleet/FleetDashboardPage";
 
 // Influencer pages
 import InfluencerLoginPage from "@/pages/influencer/InfluencerLoginPage";
@@ -73,6 +74,14 @@ import PrivacyPage from "@/pages/PrivacyPage";
 
 // Auth pages
 import AuthConfirmPage from "@/pages/AuthConfirmPage";
+
+// Super App pages
+import ServiceHubPage from "@/pages/ServiceHubPage";
+import RideRequestPage from "@/pages/rides/RideRequestPage";
+import RideTrackingPage from "@/pages/rides/RideTrackingPage";
+import RideHistoryPage from "@/pages/rides/RideHistoryPage";
+import WalletPage from "@/pages/wallet/WalletPage";
+import InstallPage from "@/pages/InstallPage";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +118,9 @@ function AppRouter() {
       
       {/* Home page with integrated header */}
       <Route path="home" element={<HomePage />} />
+      
+      {/* Install page for PWA */}
+      <Route path="install" element={<InstallPage />} />
       
       {/* Storefront outside layout for white-label support */}
       <Route path="store/:storeSlug" element={<StorefrontPage />} />
@@ -149,6 +161,17 @@ function AppRouter() {
         <Route path="terms" element={<TermsPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
       </Route>
+      
+      {/* Super App Service Hub */}
+      <Route path="services" element={<ServiceHubPage />} />
+      
+      {/* Ride pages */}
+      <Route path="rides" element={<RideHistoryPage />} />
+      <Route path="rides/request" element={<RideRequestPage />} />
+      <Route path="rides/track/:rideId" element={<RideTrackingPage />} />
+      
+      {/* Wallet page */}
+      <Route path="wallet" element={<WalletPage />} />
       
       {/* Track Order page */}
       <Route path="track-order" element={<TrackOrderPage />} />
@@ -193,6 +216,11 @@ function AppRouter() {
       <Route path="driver/dashboard" element={
         <ProtectedRoute requireAuth requireDriver>
           <DriverDashboardPage />
+        </ProtectedRoute>
+      } />
+      <Route path="fleet/dashboard" element={
+        <ProtectedRoute requireAuth>
+          <FleetDashboardPage />
         </ProtectedRoute>
       } />
       
