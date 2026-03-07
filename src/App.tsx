@@ -81,6 +81,7 @@ import RideRequestPage from "@/pages/rides/RideRequestPage";
 import RideTrackingPage from "@/pages/rides/RideTrackingPage";
 import RideHistoryPage from "@/pages/rides/RideHistoryPage";
 import WalletPage from "@/pages/wallet/WalletPage";
+import InstallPage from "@/pages/InstallPage";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,9 @@ function AppRouter() {
       
       {/* Home page with integrated header */}
       <Route path="home" element={<HomePage />} />
+      
+      {/* Install page for PWA */}
+      <Route path="install" element={<InstallPage />} />
       
       {/* Storefront outside layout for white-label support */}
       <Route path="store/:storeSlug" element={<StorefrontPage />} />
