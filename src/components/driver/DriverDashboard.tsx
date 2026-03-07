@@ -138,6 +138,8 @@ const DriverDashboard: React.FC = () => {
 
   const sidebarItems = [
     { id: "overview", title: "Overview", icon: LayoutDashboard },
+    { id: "ride-requests", title: "Ride Requests", icon: Car },
+    { id: "ride-history", title: "Ride History", icon: History },
     { id: "smart-matching", title: "Smart Matching", icon: Target },
     { id: "available-jobs", title: "Available Jobs", icon: MapPin },
     { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
