@@ -1,11 +1,13 @@
 
+export type AppRole = 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer' | 'passenger' | 'fleet_manager' | 'service_provider';
+
 export interface User {
   id: string;
   email: string;
   name?: string;
   avatar_url?: string;
   phone?: string;
-  role: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer';
+  role: AppRole;
 }
 
 export interface Profile {
@@ -13,7 +15,7 @@ export interface Profile {
   email: string;
   name?: string;
   avatar_url?: string;
-  role: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer';
+  role: AppRole;
   created_at: string;
   updated_at: string;
 }
