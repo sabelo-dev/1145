@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import {
   MapPin, Navigation, Clock, DollarSign, Car, RefreshCw, Check, X,
 } from "lucide-react";
 import { format } from "date-fns";
+import GoogleMap from "@/components/maps/GoogleMap";
 
 interface Driver {
   id: string;
@@ -113,9 +115,24 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
     setActionLoading(null);
   };
 
+  const openGoogleMapsNav = (address: string, lat?: number, lng?: number) => {
+    const dest = lat && lng ? `${lat},${lng}` : encodeURIComponent(address);
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`, "_blank");
+  };
+
   if (loading && !activeRide) {
     return <div className="flex items-center justify-center h-64"><RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
   }
+
+  // Build active ride map data
+  const activeRideMapMarkers = activeRide ? [
+    ...(activeRide.pickup_lat ? [{ position: { lat: Number(activeRide.pickup_lat), lng: Number(activeRide.pickup_lng) }, title: "Pickup", label: "A" }] : []),
+    ...(activeRide.dropoff_lat ? [{ position: { lat: Number(activeRide.dropoff_lat), lng: Number(activeRide.dropoff_lng) }, title: "Dropoff", label: "B" }] : []),
+  ] : [];
+
+  const activeRideRoute = activeRide?.pickup_lat && activeRide?.dropoff_lat
+    ? { origin: { lat: Number(activeRide.pickup_lat), lng: Number(activeRide.pickup_lng) }, destination: { lat: Number(activeRide.dropoff_lat), lng: Number(activeRide.dropoff_lng) } }
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -128,14 +145,41 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Map for active ride */}
+            {activeRideMapMarkers.length > 0 && (
+              <GoogleMap
+                className="w-full h-48 rounded-xl overflow-hidden border border-border"
+                markers={activeRideMapMarkers}
+                route={activeRideRoute}
+                center={activeRideMapMarkers[0]?.position || { lat: -26.2041, lng: 28.0473 }}
+                zoom={13}
+              />
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-primary/10"><MapPin className="h-4 w-4 text-primary" /></div>
-                <div><p className="text-xs text-muted-foreground">Pickup</p><p className="font-medium text-sm">{activeRide.pickup_address}</p></div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">Pickup</p>
+                  <p className="font-medium text-sm">{activeRide.pickup_address}</p>
+                  {["accepted", "arriving"].includes(activeRide.status) && (
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => openGoogleMapsNav(activeRide.pickup_address, activeRide.pickup_lat, activeRide.pickup_lng)}>
+                      <Navigation className="h-3 w-3 mr-1" />Navigate
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-accent"><Navigation className="h-4 w-4 text-accent-foreground" /></div>
-                <div><p className="text-xs text-muted-foreground">Dropoff</p><p className="font-medium text-sm">{activeRide.dropoff_address}</p></div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">Dropoff</p>
+                  <p className="font-medium text-sm">{activeRide.dropoff_address}</p>
+                  {activeRide.status === "in_progress" && (
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => openGoogleMapsNav(activeRide.dropoff_address, activeRide.dropoff_lat, activeRide.dropoff_lng)}>
+                      <Navigation className="h-3 w-3 mr-1" />Navigate
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -144,10 +188,26 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
               {activeRide.estimated_duration_minutes && <span><Clock className="h-4 w-4 inline" />{activeRide.estimated_duration_minutes} min</span>}
             </div>
             <div className="flex gap-2 pt-2">
-              {activeRide.status === "accepted" && <Button onClick={() => updateRideStatus(activeRide.id, "arriving")} disabled={!!actionLoading}>Arriving at Pickup</Button>}
-              {activeRide.status === "arriving" && <Button onClick={() => updateRideStatus(activeRide.id, "in_progress")} disabled={!!actionLoading}>Start Trip</Button>}
-              {activeRide.status === "in_progress" && <Button onClick={() => updateRideStatus(activeRide.id, "completed")} disabled={!!actionLoading}><Check className="h-4 w-4 mr-2" />Complete Trip</Button>}
-              {activeRide.status !== "in_progress" && <Button variant="destructive" onClick={() => updateRideStatus(activeRide.id, "cancelled")} disabled={!!actionLoading}><X className="h-4 w-4 mr-2" />Cancel</Button>}
+              {activeRide.status === "accepted" && (
+                <Button onClick={() => updateRideStatus(activeRide.id, "arriving")} disabled={!!actionLoading}>
+                  <Navigation className="h-4 w-4 mr-2" />Arriving at Pickup
+                </Button>
+              )}
+              {activeRide.status === "arriving" && (
+                <Button onClick={() => updateRideStatus(activeRide.id, "in_progress")} disabled={!!actionLoading}>
+                  <Car className="h-4 w-4 mr-2" />Start Trip
+                </Button>
+              )}
+              {activeRide.status === "in_progress" && (
+                <Button onClick={() => updateRideStatus(activeRide.id, "completed")} disabled={!!actionLoading}>
+                  <Check className="h-4 w-4 mr-2" />Complete Trip
+                </Button>
+              )}
+              {activeRide.status !== "in_progress" && (
+                <Button variant="destructive" onClick={() => updateRideStatus(activeRide.id, "cancelled")} disabled={!!actionLoading}>
+                  <X className="h-4 w-4 mr-2" />Cancel
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -166,34 +226,53 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
         </CardContent></Card>
       ) : (
         <div className="grid gap-4">
-          {rides.map((ride) => (
-            <Card key={ride.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10"><MapPin className="h-4 w-4 text-primary" /></div>
-                      <div><p className="text-xs text-muted-foreground">Pickup</p><p className="font-medium text-sm">{ride.pickup_address}</p></div>
+          {rides.map((ride) => {
+            const hasCoords = ride.pickup_lat && ride.dropoff_lat;
+            return (
+              <Card key={ride.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6 space-y-3">
+                  {/* Mini map preview */}
+                  {hasCoords && (
+                    <GoogleMap
+                      className="w-full h-32 rounded-lg overflow-hidden border border-border"
+                      markers={[
+                        { position: { lat: Number(ride.pickup_lat), lng: Number(ride.pickup_lng) }, title: "Pickup", label: "A" },
+                        { position: { lat: Number(ride.dropoff_lat), lng: Number(ride.dropoff_lng) }, title: "Dropoff", label: "B" },
+                      ]}
+                      route={{
+                        origin: { lat: Number(ride.pickup_lat), lng: Number(ride.pickup_lng) },
+                        destination: { lat: Number(ride.dropoff_lat), lng: Number(ride.dropoff_lng) },
+                      }}
+                      center={{ lat: Number(ride.pickup_lat), lng: Number(ride.pickup_lng) }}
+                      zoom={12}
+                    />
+                  )}
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10"><MapPin className="h-4 w-4 text-primary" /></div>
+                        <div><p className="text-xs text-muted-foreground">Pickup</p><p className="font-medium text-sm">{ride.pickup_address}</p></div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-accent"><Navigation className="h-4 w-4 text-accent-foreground" /></div>
+                        <div><p className="text-xs text-muted-foreground">Dropoff</p><p className="font-medium text-sm">{ride.dropoff_address}</p></div>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-accent"><Navigation className="h-4 w-4 text-accent-foreground" /></div>
-                      <div><p className="text-xs text-muted-foreground">Dropoff</p><p className="font-medium text-sm">{ride.dropoff_address}</p></div>
+                    <div className="flex flex-col items-end gap-3">
+                      <div className="flex items-center gap-3">
+                        {ride.estimated_distance_km && <Badge variant="outline">{ride.estimated_distance_km.toFixed(1)} km</Badge>}
+                        {ride.estimated_fare && <Badge>R{ride.estimated_fare.toFixed(2)}</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground"><Clock className="h-3 w-3 inline mr-1" />{format(new Date(ride.created_at), "p")}</p>
+                      <Button onClick={() => acceptRide(ride.id)} disabled={!!actionLoading || !!activeRide || driver?.status !== "available"}>
+                        {actionLoading === ride.id ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}Accept Ride
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-3">
-                    <div className="flex items-center gap-3">
-                      {ride.estimated_distance_km && <Badge variant="outline">{ride.estimated_distance_km.toFixed(1)} km</Badge>}
-                      {ride.estimated_fare && <Badge>R{ride.estimated_fare.toFixed(2)}</Badge>}
-                    </div>
-                    <p className="text-xs text-muted-foreground"><Clock className="h-3 w-3 inline mr-1" />{format(new Date(ride.created_at), "p")}</p>
-                    <Button onClick={() => acceptRide(ride.id)} disabled={!!actionLoading || !!activeRide || driver?.status !== "available"}>
-                      {actionLoading === ride.id ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}Accept Ride
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
