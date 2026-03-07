@@ -32,6 +32,8 @@ import DriverSettings from "./DriverSettings";
 import DriverVerification from "./DriverVerification";
 import DriverLiveTracking from "./DriverLiveTracking";
 import DriverJobMatching from "./DriverJobMatching";
+import DriverRideRequests from "./DriverRideRequests";
+import DriverRideHistory from "./DriverRideHistory";
 import {
   LayoutDashboard,
   Truck,
@@ -45,6 +47,8 @@ import {
   Navigation,
   Target,
   Coins,
+  Car,
+  History,
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 
