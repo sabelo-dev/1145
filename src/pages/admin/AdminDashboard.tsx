@@ -104,6 +104,7 @@ const AdminDashboard = () => {
     { id: "audit", title: "Logs / Audit Trail", icon: AuditIcon },
     { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "drivers", title: "Driver Management", icon: Truck },
+    { id: "rides", title: "Ride Monitoring", icon: Car },
   ];
 
   return (
