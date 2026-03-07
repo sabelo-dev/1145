@@ -32,6 +32,8 @@ import DriverSettings from "./DriverSettings";
 import DriverVerification from "./DriverVerification";
 import DriverLiveTracking from "./DriverLiveTracking";
 import DriverJobMatching from "./DriverJobMatching";
+import DriverRideRequests from "./DriverRideRequests";
+import DriverRideHistory from "./DriverRideHistory";
 import {
   LayoutDashboard,
   Truck,
@@ -45,6 +47,8 @@ import {
   Navigation,
   Target,
   Coins,
+  Car,
+  History,
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 
@@ -134,6 +138,8 @@ const DriverDashboard: React.FC = () => {
 
   const sidebarItems = [
     { id: "overview", title: "Overview", icon: LayoutDashboard },
+    { id: "ride-requests", title: "Ride Requests", icon: Car },
+    { id: "ride-history", title: "Ride History", icon: History },
     { id: "smart-matching", title: "Smart Matching", icon: Target },
     { id: "available-jobs", title: "Available Jobs", icon: MapPin },
     { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
@@ -289,6 +295,12 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
 
             <TabsContent value="overview" className="mt-0">
               <DriverOverview driver={driver} onRefresh={fetchDriverInfo} />
+            </TabsContent>
+            <TabsContent value="ride-requests" className="mt-0">
+              <DriverRideRequests driver={driver} onRideAccepted={fetchDriverInfo} />
+            </TabsContent>
+            <TabsContent value="ride-history" className="mt-0">
+              <DriverRideHistory driver={driver} />
             </TabsContent>
             <TabsContent value="smart-matching" className="mt-0">
               <DriverJobMatching driver={driver} onJobClaimed={fetchDriverInfo} />

@@ -45,6 +45,7 @@ import MerchantDashboardPage from "@/pages/MerchantDashboardPage";
 import DriverLoginPage from "@/pages/driver/DriverLoginPage";
 import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
 import DriverRegisterPage from "@/pages/driver/DriverRegisterPage";
+import FleetDashboardPage from "@/pages/fleet/FleetDashboardPage";
 
 // Influencer pages
 import InfluencerLoginPage from "@/pages/influencer/InfluencerLoginPage";
@@ -211,6 +212,11 @@ function AppRouter() {
       <Route path="driver/dashboard" element={
         <ProtectedRoute requireAuth requireDriver>
           <DriverDashboardPage />
+        </ProtectedRoute>
+      } />
+      <Route path="fleet/dashboard" element={
+        <ProtectedRoute requireAuth>
+          <FleetDashboardPage />
         </ProtectedRoute>
       } />
       
