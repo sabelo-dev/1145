@@ -157,6 +157,17 @@ function AppRouter() {
         <Route path="privacy" element={<PrivacyPage />} />
       </Route>
       
+      {/* Super App Service Hub */}
+      <Route path="services" element={<ServiceHubPage />} />
+      
+      {/* Ride pages */}
+      <Route path="rides" element={<RideHistoryPage />} />
+      <Route path="rides/request" element={<RideRequestPage />} />
+      <Route path="rides/track/:rideId" element={<RideTrackingPage />} />
+      
+      {/* Wallet page */}
+      <Route path="wallet" element={<WalletPage />} />
+      
       {/* Track Order page */}
       <Route path="track-order" element={<TrackOrderPage />} />
       
