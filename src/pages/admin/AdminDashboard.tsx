@@ -291,6 +291,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             <TabsContent value="drivers" className="mt-0">
               <AdminDrivers />
             </TabsContent>
+            <TabsContent value="rides" className="mt-0">
+              <AdminRideMonitoring />
+            </TabsContent>
           </Tabs>
         </main>
       </SidebarInset>
