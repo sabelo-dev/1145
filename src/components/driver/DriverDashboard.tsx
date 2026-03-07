@@ -81,6 +81,13 @@ const DriverDashboard: React.FC = () => {
     } else {
       setIsDriverLoading(false);
     }
+
+    // Safety timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      setIsDriverLoading(false);
+    }, 8000);
+
+    return () => clearTimeout(timeout);
   }, [user]);
 
   const fetchDriverInfo = async () => {
