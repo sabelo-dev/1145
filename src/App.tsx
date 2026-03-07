@@ -214,6 +214,11 @@ function AppRouter() {
           <DriverDashboardPage />
         </ProtectedRoute>
       } />
+      <Route path="fleet/dashboard" element={
+        <ProtectedRoute requireAuth>
+          <FleetDashboardPage />
+        </ProtectedRoute>
+      } />
       
       {/* Influencer pages */}
       <Route path="influencer/login" element={<InfluencerLoginPage />} />
