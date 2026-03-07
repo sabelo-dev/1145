@@ -5,6 +5,12 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyDdvMPREt7NEPYNtDhU0qowu4hidtrDJwo";
 
 let googleMapsPromise: Promise<void> | null = null;
 
+declare global {
+  interface Window {
+    google?: typeof google;
+  }
+}
+
 export function loadGoogleMaps(): Promise<void> {
   if (window.google?.maps) return Promise.resolve();
   if (googleMapsPromise) return googleMapsPromise;
