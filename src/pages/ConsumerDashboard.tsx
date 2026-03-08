@@ -166,6 +166,12 @@ const ConsumerDashboard: React.FC = () => {
       description: "Contact help desk or view ticket status"
     },
     {
+      id: "leases",
+      title: "My Leases",
+      icon: Package,
+      description: "View active leases, payment schedules, and contracts"
+    },
+    {
       id: "settings",
       title: "Settings",
       icon: Settings,
