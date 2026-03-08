@@ -205,6 +205,8 @@ const ConsumerDashboard: React.FC = () => {
         return <ConsumerWallet />;
       case "mining":
         return <SocialMiningDashboard />;
+      case "leases":
+        return <ConsumerLeases />;
       case "notifications":
         return <ConsumerNotifications />;
       case "support":
