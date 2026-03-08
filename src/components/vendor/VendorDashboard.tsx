@@ -59,6 +59,7 @@ import {
   Crown
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
+import MerchantLeases from "./dashboard/MerchantLeases";
 import { toast } from "sonner";
 
 const VendorDashboard = () => {
