@@ -45,6 +45,7 @@ import ConsumerSupport from "@/components/consumer/dashboard/ConsumerSupport";
 import ConsumerAuctionWatchlist from "@/components/consumer/dashboard/ConsumerAuctionWatchlist";
 import ConsumerSettings from "@/components/consumer/dashboard/ConsumerSettings";
 import { SocialMiningDashboard } from "@/components/mining/SocialMiningDashboard";
+import ConsumerLeases from "@/components/consumer/dashboard/ConsumerLeases";
 
 // Map URL tab params to module IDs
 const tabToModuleMap: Record<string, string> = {
@@ -60,6 +61,7 @@ const tabToModuleMap: Record<string, string> = {
   support: "support",
   settings: "settings",
   "auction-watchlist": "auction-watchlist",
+  leases: "leases",
 };
 
 const ConsumerDashboard: React.FC = () => {
@@ -164,6 +166,12 @@ const ConsumerDashboard: React.FC = () => {
       description: "Contact help desk or view ticket status"
     },
     {
+      id: "leases",
+      title: "My Leases",
+      icon: Package,
+      description: "View active leases, payment schedules, and contracts"
+    },
+    {
       id: "settings",
       title: "Settings",
       icon: Settings,
@@ -197,6 +205,8 @@ const ConsumerDashboard: React.FC = () => {
         return <ConsumerWallet />;
       case "mining":
         return <SocialMiningDashboard />;
+      case "leases":
+        return <ConsumerLeases />;
       case "notifications":
         return <ConsumerNotifications />;
       case "support":

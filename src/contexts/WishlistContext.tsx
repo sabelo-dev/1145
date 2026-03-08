@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,10 +20,8 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [wishlistItems, setWishlistItems] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch wishlist from database when user logs in
   const fetchWishlist = useCallback(async () => {
     if (!user) {
-      // Fall back to localStorage for non-authenticated users
       const stored = localStorage.getItem("wishlist");
       setWishlistItems(stored ? JSON.parse(stored) : []);
       return;
@@ -37,12 +35,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .eq("user_id", user.id);
 
       if (error) throw error;
-
-      const productIds = data?.map((item) => item.product_id) || [];
-      setWishlistItems(productIds);
+      setWishlistItems(data?.map((item) => item.product_id) || []);
     } catch (error) {
       console.error("Error fetching wishlist:", error);
-      // Fall back to localStorage on error
       const stored = localStorage.getItem("wishlist");
       setWishlistItems(stored ? JSON.parse(stored) : []);
     } finally {
@@ -54,17 +49,15 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     fetchWishlist();
   }, [fetchWishlist]);
 
-  // Sync to localStorage for non-authenticated users
   useEffect(() => {
     if (!user) {
       localStorage.setItem("wishlist", JSON.stringify(wishlistItems));
     }
   }, [wishlistItems, user]);
 
-  const addToWishlist = async (productId: string) => {
+  const addToWishlist = useCallback(async (productId: string) => {
     if (wishlistItems.includes(productId)) return;
 
-    // Optimistic update
     setWishlistItems((prev) => [...prev, productId]);
 
     if (user) {
@@ -72,33 +65,18 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const { error } = await supabase
           .from("wishlists")
           .insert({ user_id: user.id, product_id: productId });
-
         if (error) throw error;
-
-        toast({
-          title: "Added to Wishlist",
-          description: "Product has been added to your wishlist.",
-        });
-      } catch (error: any) {
-        // Revert optimistic update
+        toast({ title: "Added to Wishlist", description: "Product has been added to your wishlist." });
+      } catch (error) {
         setWishlistItems((prev) => prev.filter((id) => id !== productId));
-        console.error("Error adding to wishlist:", error);
-        toast({
-          title: "Error",
-          description: "Failed to add product to wishlist.",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to add product to wishlist.", variant: "destructive" });
       }
     } else {
-      toast({
-        title: "Added to Wishlist",
-        description: "Product has been added to your wishlist.",
-      });
+      toast({ title: "Added to Wishlist", description: "Product has been added to your wishlist." });
     }
-  };
+  }, [user, wishlistItems, toast]);
 
-  const removeFromWishlist = async (productId: string) => {
-    // Optimistic update
+  const removeFromWishlist = useCallback(async (productId: string) => {
     setWishlistItems((prev) => prev.filter((id) => id !== productId));
 
     if (user) {
@@ -108,54 +86,40 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .delete()
           .eq("user_id", user.id)
           .eq("product_id", productId);
-
         if (error) throw error;
-
-        toast({
-          title: "Removed from Wishlist",
-          description: "Product has been removed from your wishlist.",
-        });
-      } catch (error: any) {
-        // Revert optimistic update
+        toast({ title: "Removed from Wishlist", description: "Product has been removed from your wishlist." });
+      } catch (error) {
         setWishlistItems((prev) => [...prev, productId]);
-        console.error("Error removing from wishlist:", error);
-        toast({
-          title: "Error",
-          description: "Failed to remove product from wishlist.",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to remove product from wishlist.", variant: "destructive" });
       }
     } else {
-      toast({
-        title: "Removed from Wishlist",
-        description: "Product has been removed from your wishlist.",
-      });
+      toast({ title: "Removed from Wishlist", description: "Product has been removed from your wishlist." });
     }
-  };
+  }, [user, toast]);
 
-  const isInWishlist = (productId: string) => {
+  const isInWishlist = useCallback((productId: string) => {
     return wishlistItems.includes(productId);
-  };
+  }, [wishlistItems]);
 
-  const toggleWishlist = (productId: string) => {
-    if (isInWishlist(productId)) {
+  const toggleWishlist = useCallback((productId: string) => {
+    if (wishlistItems.includes(productId)) {
       removeFromWishlist(productId);
     } else {
       addToWishlist(productId);
     }
-  };
+  }, [wishlistItems, removeFromWishlist, addToWishlist]);
+
+  const value = useMemo(() => ({
+    wishlistItems,
+    addToWishlist,
+    removeFromWishlist,
+    isInWishlist,
+    toggleWishlist,
+    isLoading,
+  }), [wishlistItems, addToWishlist, removeFromWishlist, isInWishlist, toggleWishlist, isLoading]);
 
   return (
-    <WishlistContext.Provider
-      value={{
-        wishlistItems,
-        addToWishlist,
-        removeFromWishlist,
-        isInWishlist,
-        toggleWishlist,
-        isLoading,
-      }}
-    >
+    <WishlistContext.Provider value={value}>
       {children}
     </WishlistContext.Provider>
   );

@@ -101,6 +101,114 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_maintenance: {
+        Row: {
+          asset_id: string
+          completed_date: string | null
+          contract_id: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          id: string
+          maintenance_type: string
+          notes: string | null
+          performed_by: string | null
+          scheduled_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          completed_date?: string | null
+          contract_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          performed_by?: string | null
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          completed_date?: string | null
+          contract_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          performed_by?: string | null
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "leaseable_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "lease_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_providers: {
+        Row: {
+          business_registration: string | null
+          commission_rate: number | null
+          company_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          status: string
+          total_assets: number | null
+          total_revenue: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_registration?: string | null
+          commission_rate?: number | null
+          company_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          total_assets?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_registration?: string | null
+          commission_rate?: number | null
+          company_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          total_assets?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       attribute_types: {
         Row: {
           category: string | null
@@ -2506,6 +2614,331 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: true
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lease_applications: {
+        Row: {
+          applicant_email: string | null
+          applicant_name: string | null
+          applicant_phone: string | null
+          asset_id: string
+          created_at: string
+          credit_score: number | null
+          employment_status: string | null
+          id: string
+          id_document_url: string | null
+          lease_duration_months: number
+          monthly_income: number | null
+          monthly_payment: number
+          notes: string | null
+          proof_of_income_url: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          security_deposit: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applicant_email?: string | null
+          applicant_name?: string | null
+          applicant_phone?: string | null
+          asset_id: string
+          created_at?: string
+          credit_score?: number | null
+          employment_status?: string | null
+          id?: string
+          id_document_url?: string | null
+          lease_duration_months?: number
+          monthly_income?: number | null
+          monthly_payment?: number
+          notes?: string | null
+          proof_of_income_url?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          security_deposit?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applicant_email?: string | null
+          applicant_name?: string | null
+          applicant_phone?: string | null
+          asset_id?: string
+          created_at?: string
+          credit_score?: number | null
+          employment_status?: string | null
+          id?: string
+          id_document_url?: string | null
+          lease_duration_months?: number
+          monthly_income?: number | null
+          monthly_payment?: number
+          notes?: string | null
+          proof_of_income_url?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          security_deposit?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_applications_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "leaseable_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lease_contracts: {
+        Row: {
+          application_id: string | null
+          asset_id: string
+          contract_document_url: string | null
+          contract_number: string
+          created_at: string
+          deposit_returned: boolean | null
+          e_signature_url: string | null
+          end_date: string
+          id: string
+          late_payments: number | null
+          monthly_payment: number
+          next_payment_date: string | null
+          payments_made: number | null
+          payments_remaining: number | null
+          renewal_count: number | null
+          security_deposit: number | null
+          signed_at: string | null
+          start_date: string
+          status: string
+          terminated_at: string | null
+          termination_reason: string | null
+          total_due: number | null
+          total_paid: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          asset_id: string
+          contract_document_url?: string | null
+          contract_number: string
+          created_at?: string
+          deposit_returned?: boolean | null
+          e_signature_url?: string | null
+          end_date: string
+          id?: string
+          late_payments?: number | null
+          monthly_payment: number
+          next_payment_date?: string | null
+          payments_made?: number | null
+          payments_remaining?: number | null
+          renewal_count?: number | null
+          security_deposit?: number | null
+          signed_at?: string | null
+          start_date?: string
+          status?: string
+          terminated_at?: string | null
+          termination_reason?: string | null
+          total_due?: number | null
+          total_paid?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          asset_id?: string
+          contract_document_url?: string | null
+          contract_number?: string
+          created_at?: string
+          deposit_returned?: boolean | null
+          e_signature_url?: string | null
+          end_date?: string
+          id?: string
+          late_payments?: number | null
+          monthly_payment?: number
+          next_payment_date?: string | null
+          payments_made?: number | null
+          payments_remaining?: number | null
+          renewal_count?: number | null
+          security_deposit?: number | null
+          signed_at?: string | null
+          start_date?: string
+          status?: string
+          terminated_at?: string | null
+          termination_reason?: string | null
+          total_due?: number | null
+          total_paid?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_contracts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "lease_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lease_contracts_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "leaseable_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lease_payments: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          due_date: string
+          id: string
+          late_fee: number | null
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          payment_type: string
+          status: string
+          transaction_reference: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          contract_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          late_fee?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_type?: string
+          status?: string
+          transaction_reference?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          late_fee?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_type?: string
+          status?: string
+          transaction_reference?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_payments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "lease_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaseable_assets: {
+        Row: {
+          category: string
+          condition: string | null
+          created_at: string
+          description: string | null
+          id: string
+          images: string[] | null
+          is_available: boolean | null
+          is_purchasable: boolean | null
+          lease_price_monthly: number
+          lease_price_weekly: number | null
+          maintenance_requirements: string | null
+          max_lease_duration_months: number | null
+          min_lease_duration_months: number | null
+          product_id: string | null
+          provider_id: string | null
+          purchase_price: number | null
+          security_deposit: number | null
+          status: string
+          terms_and_conditions: string | null
+          title: string
+          total_leases: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          condition?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_available?: boolean | null
+          is_purchasable?: boolean | null
+          lease_price_monthly?: number
+          lease_price_weekly?: number | null
+          maintenance_requirements?: string | null
+          max_lease_duration_months?: number | null
+          min_lease_duration_months?: number | null
+          product_id?: string | null
+          provider_id?: string | null
+          purchase_price?: number | null
+          security_deposit?: number | null
+          status?: string
+          terms_and_conditions?: string | null
+          title: string
+          total_leases?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          condition?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_available?: boolean | null
+          is_purchasable?: boolean | null
+          lease_price_monthly?: number
+          lease_price_weekly?: number | null
+          maintenance_requirements?: string | null
+          max_lease_duration_months?: number | null
+          min_lease_duration_months?: number | null
+          product_id?: string | null
+          provider_id?: string | null
+          purchase_price?: number | null
+          security_deposit?: number | null
+          status?: string
+          terms_and_conditions?: string | null
+          title?: string
+          total_leases?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaseable_assets_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaseable_assets_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "asset_providers"
             referencedColumns: ["id"]
           },
         ]
