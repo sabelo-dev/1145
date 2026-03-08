@@ -45,6 +45,7 @@ import ConsumerSupport from "@/components/consumer/dashboard/ConsumerSupport";
 import ConsumerAuctionWatchlist from "@/components/consumer/dashboard/ConsumerAuctionWatchlist";
 import ConsumerSettings from "@/components/consumer/dashboard/ConsumerSettings";
 import { SocialMiningDashboard } from "@/components/mining/SocialMiningDashboard";
+import ConsumerLeases from "@/components/consumer/dashboard/ConsumerLeases";
 
 // Map URL tab params to module IDs
 const tabToModuleMap: Record<string, string> = {
