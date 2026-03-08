@@ -125,6 +125,7 @@ const VendorDashboard = () => {
     { id: "payouts", title: "Earnings / Wallet", icon: DollarSign },
     { id: "ucoin", title: "UCoin Rewards", icon: Coins },
     { id: "messages", title: "Messages", icon: MessageSquare },
+    { id: "leasing", title: "Leasing", icon: Package },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
