@@ -1,35 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
-  MapPin,
-  DollarSign,
-  Clock,
-  Navigation,
-  RefreshCw,
-  Zap,
-  TrendingUp,
-  Target,
-  AlertTriangle,
-  ExternalLink,
+  MapPin, DollarSign, Clock, Navigation, RefreshCw, Zap, TrendingUp, Target, AlertTriangle, ExternalLink, Route, Loader2, Crown,
 } from "lucide-react";
 import { matchingEngine, type MatchResult } from "@/services/matchingEngine";
 import { pricingEngine } from "@/services/pricingEngine";
 import { trackingService } from "@/services/trackingService";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
 import type { GeoLocation } from "@/services/driverService";
 
 interface DriverJobMatchingProps {
-  driver: {
-    id: string;
-    name: string;
-    status: string;
-  } | null;
+  driver: { id: string; name: string; status: string } | null;
   onJobClaimed: () => void;
 }
 
@@ -43,31 +30,17 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
   const [currentLocation, setCurrentLocation] = useState<GeoLocation | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchSurgeInfo();
-    fetchLoadBalanceInfo();
-    getLocation();
-  }, []);
-
-  const getLocation = async () => {
-    const location = await trackingService.getCurrentPosition();
-    if (location) {
-      setCurrentLocation(location);
-      findMatches(location);
-    }
-  };
-
-  const fetchSurgeInfo = async () => {
+  const fetchSurgeInfo = useCallback(async () => {
     const info = await pricingEngine.getSurgeInfo();
     setSurgeInfo(info);
-  };
+  }, []);
 
-  const fetchLoadBalanceInfo = async () => {
+  const fetchLoadBalanceInfo = useCallback(async () => {
     const info = await matchingEngine.getLoadBalanceInfo();
     setLoadBalanceInfo(info);
-  };
+  }, []);
 
-  const findMatches = async (location: GeoLocation) => {
+  const findMatches = useCallback(async (location: GeoLocation) => {
     setLoading(true);
     try {
       const results = await matchingEngine.findNearbyJobs(location, maxDistance);
@@ -76,75 +49,56 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
       console.error("Error finding matches:", error);
     }
     setLoading(false);
-  };
+  }, [maxDistance]);
+
+  const getLocation = useCallback(async () => {
+    const location = await trackingService.getCurrentPosition();
+    if (location) {
+      setCurrentLocation(location);
+      findMatches(location);
+    }
+  }, [findMatches]);
+
+  useEffect(() => {
+    fetchSurgeInfo();
+    fetchLoadBalanceInfo();
+    getLocation();
+  }, []);
 
   const refreshMatches = async () => {
     await fetchSurgeInfo();
     await fetchLoadBalanceInfo();
-    if (currentLocation) {
-      await findMatches(currentLocation);
-    } else {
-      await getLocation();
-    }
+    if (currentLocation) await findMatches(currentLocation);
+    else await getLocation();
   };
 
   const claimJob = async (jobId: string) => {
     if (!driver) return;
-
-    if (driver.status === "pending") {
-      toast({
-        variant: "destructive",
-        title: "Cannot Claim Job",
-        description: "Your driver account is still pending approval.",
-      });
-      return;
-    }
-
-    if (driver.status === "offline") {
-      toast({
-        variant: "destructive",
-        title: "Cannot Claim Job",
-        description: "Please go online to claim jobs.",
-      });
-      return;
-    }
+    if (driver.status === "pending") { toast({ variant: "destructive", title: "Cannot Claim", description: "Account still pending approval." }); return; }
+    if (driver.status === "offline") { toast({ variant: "destructive", title: "Cannot Claim", description: "Go online to claim jobs." }); return; }
 
     setClaiming(jobId);
-
     const { error } = await supabase
       .from("delivery_jobs")
-      .update({
-        driver_id: driver.id,
-        status: "accepted",
-      })
-      .eq("id", jobId)
-      .eq("status", "pending")
-      .is("driver_id", null);
+      .update({ driver_id: driver.id, status: "accepted" })
+      .eq("id", jobId).eq("status", "pending").is("driver_id", null);
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to Claim",
-        description: "This job may have been claimed by another driver.",
-      });
+      toast({ variant: "destructive", title: "Failed to Claim", description: "Job may have been claimed by another driver." });
     } else {
-      toast({
-        title: "Job Claimed!",
-        description: "You have successfully claimed this delivery.",
-      });
+      toast({ title: "Job Claimed!", description: "Successfully claimed this delivery." });
       onJobClaimed();
       refreshMatches();
     }
-
     setClaiming(null);
   };
 
   const getSurgeColor = (color: string) => {
     switch (color) {
-      case "red": return "bg-red-500";
-      case "orange": return "bg-orange-500";
-      case "yellow": return "bg-amber-500";
-      default: return "bg-green-500";
+      case "red": return "from-red-500 to-red-600";
+      case "orange": return "from-orange-500 to-orange-600";
+      case "yellow": return "from-amber-400 to-amber-500";
+      default: return "from-emerald-500 to-emerald-600";
     }
   };
 
@@ -155,57 +109,42 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
   };
 
   const openGoogleMaps = (address: any) => {
-    let addressString = "";
-    if (typeof address === "string") {
-      addressString = address;
-    } else if (address) {
-      addressString = [
-        address.street,
-        address.city,
-        address.province,
-        address.postal_code,
-      ].filter(Boolean).join(", ");
-    }
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressString)}`;
-    window.open(url, "_blank");
+    const str = typeof address === "string" ? address : [address?.street, address?.city, address?.province, address?.postal_code].filter(Boolean).join(", ");
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(str)}`, "_blank");
   };
 
-  if (!driver) {
-    return null;
-  }
+  if (!driver) return null;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Smart Job Matching</h2>
-        <Button variant="outline" onClick={refreshMatches} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+        <h2 className="text-xl font-bold">Smart Matching</h2>
+        <Button variant="ghost" size="sm" onClick={refreshMatches} disabled={loading} className="rounded-xl">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh
         </Button>
       </div>
 
-      {/* Surge & Load Balance Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Surge & Market */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {surgeInfo && (
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="overflow-hidden border-0 ring-1 ring-border">
+            <div className={`h-1 bg-gradient-to-r ${getSurgeColor(surgeInfo.color)}`} />
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${getSurgeColor(surgeInfo.color)}`}>
+                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${getSurgeColor(surgeInfo.color)} shadow-sm`}>
                     <Zap className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium">{surgeInfo.status}</p>
-                    <p className="text-sm text-muted-foreground">Surge Pricing Active</p>
+                    <p className="font-semibold text-sm">{surgeInfo.status}</p>
+                    <p className="text-xs text-muted-foreground">Surge Pricing</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-lg font-bold">
-                  {surgeInfo.multiplier}x
-                </Badge>
+                <span className="text-2xl font-black tracking-tight">{surgeInfo.multiplier}x</span>
               </div>
               {surgeInfo.multiplier > 1 && (
-                <p className="text-sm text-green-600 mt-3">
-                  +{Math.round((surgeInfo.multiplier - 1) * 100)}% extra earnings on deliveries!
+                <p className="text-xs text-emerald-600 font-medium mt-2.5 pl-[52px]">
+                  +{Math.round((surgeInfo.multiplier - 1) * 100)}% extra earnings!
                 </p>
               )}
             </CardContent>
@@ -213,16 +152,16 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
         )}
 
         {loadBalanceInfo && (
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="border-0 ring-1 ring-border">
+            <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-primary/10">
+                <div className="p-2.5 rounded-xl bg-primary/10">
                   <Target className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium">Market Status</p>
-                  <p className="text-sm text-muted-foreground">
-                    {loadBalanceInfo.pendingJobs} jobs available • {loadBalanceInfo.availableDrivers} drivers online
+                  <p className="font-semibold text-sm">Market Status</p>
+                  <p className="text-xs text-muted-foreground">
+                    {loadBalanceInfo.pendingJobs} jobs • {loadBalanceInfo.availableDrivers} drivers
                   </p>
                 </div>
               </div>
@@ -231,46 +170,31 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
         )}
       </div>
 
-      {/* Distance Filter */}
-      <Card>
-        <CardContent className="pt-6">
-          <Label>Maximum Pickup Distance: {maxDistance} km</Label>
-          <Slider
-            value={[maxDistance]}
-            onValueChange={(value) => setMaxDistance(value[0])}
-            min={1}
-            max={30}
-            step={1}
-            className="mt-3"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>1 km</span>
-            <span>30 km</span>
+      {/* Distance filter */}
+      <Card className="border-0 ring-1 ring-border">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-sm font-medium">Pickup distance</Label>
+            <Badge variant="secondary" className="rounded-full font-mono">{maxDistance} km</Badge>
           </div>
+          <Slider value={[maxDistance]} onValueChange={(v) => setMaxDistance(v[0])} min={1} max={30} step={1} />
+          <div className="flex justify-between text-[10px] text-muted-foreground mt-1.5"><span>1 km</span><span>30 km</span></div>
         </CardContent>
       </Card>
 
-      {/* Location Warning */}
+      {/* Location warning */}
       {!currentLocation && (
-        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-900/20">
-          <CardContent className="pt-6">
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+              <div className="p-2 rounded-xl bg-amber-500/10">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+              </div>
               <div>
-                <p className="font-medium text-amber-800 dark:text-amber-200">
-                  Location Required
-                </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  Enable location services to find nearby jobs optimized for your position.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={getLocation}
-                >
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Get My Location
+                <p className="font-semibold text-sm">Location Required</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Enable location services to find nearby jobs.</p>
+                <Button variant="outline" size="sm" className="mt-2 rounded-xl h-8" onClick={getLocation}>
+                  <MapPin className="h-3.5 w-3.5 mr-1.5" />Get My Location
                 </Button>
               </div>
             </div>
@@ -278,115 +202,85 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
         </Card>
       )}
 
-      {/* Matched Jobs */}
+      {/* Matches */}
       {matches.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-semibold mb-2">No Nearby Jobs</h3>
-              <p className="text-sm text-muted-foreground">
-                No deliveries found within {maxDistance}km of your location.
-              </p>
+        <Card className="border-dashed">
+          <CardContent className="pt-6 text-center py-16">
+            <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-muted mb-4">
+              <MapPin className="h-8 w-8 text-muted-foreground" />
             </div>
+            <h3 className="font-semibold text-lg mb-1">No Nearby Jobs</h3>
+            <p className="text-sm text-muted-foreground">No deliveries found within {maxDistance}km of your location.</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {matches.map((match, index) => (
             <Card
               key={match.job.id}
-              className={`hover:shadow-md transition-shadow ${index === 0 ? "border-2 border-primary" : ""}`}
+              className={`overflow-hidden border-0 ring-1 hover:shadow-lg transition-all duration-200 ${index === 0 ? "ring-2 ring-primary/40 shadow-md" : "ring-border hover:ring-primary/20"}`}
             >
               {index === 0 && (
-                <div className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  Best Match for You
+                <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-semibold px-4 py-1.5 flex items-center gap-1.5">
+                  <Crown className="h-3.5 w-3.5" />Best Match
                 </div>
               )}
-              <CardContent className={index === 0 ? "pt-4" : "pt-6"}>
-                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                  <div className="flex-1 space-y-3">
-                    {/* Pickup */}
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
-                        <MapPin className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-muted-foreground">Pickup</p>
-                          <Badge variant="outline" className="text-xs">
-                            {match.distance_to_pickup.toFixed(1)} km away
-                          </Badge>
-                        </div>
-                        <p className="font-medium">{formatAddress(match.job.pickup_address)}</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-xs text-green-600"
-                          onClick={() => openGoogleMaps(match.job.pickup_address)}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          View Map
-                        </Button>
-                      </div>
-                    </div>
+              <CardContent className="p-4 space-y-3">
+                {/* Route */}
+                <div className="relative space-y-2">
+                  <div className="absolute left-[15px] top-[28px] bottom-[28px] w-px border-l-2 border-dashed border-muted-foreground/20" />
 
-                    {/* Delivery */}
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                        <Navigation className="h-4 w-4 text-blue-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="relative z-10 p-1.5 rounded-lg bg-emerald-500/10 ring-1 ring-emerald-500/20">
+                      <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 rounded-full">{match.distance_to_pickup.toFixed(1)} km away</Badge>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground">Deliver to</p>
-                        <p className="font-medium">{formatAddress(match.job.delivery_address)}</p>
-                      </div>
+                      <p className="font-medium text-sm truncate">{formatAddress(match.job.pickup_address)}</p>
+                      <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[11px] text-emerald-600" onClick={() => openGoogleMaps(match.job.pickup_address)}>
+                        <ExternalLink className="h-3 w-3 mr-1" />Map
+                      </Button>
                     </div>
                   </div>
 
-                  {/* Stats & Actions */}
-                  <div className="flex flex-col items-end gap-3 min-w-[140px]">
-                    <div className="flex flex-wrap gap-2 justify-end">
-                      {match.job.distance_km && (
-                        <Badge variant="outline">
-                          {match.job.distance_km.toFixed(1)} km total
-                        </Badge>
-                      )}
-                      <Badge variant="outline">
-                        <Clock className="h-3 w-3 mr-1" />
-                        ~{match.estimated_time_mins} min
-                      </Badge>
+                  <div className="flex items-start gap-3">
+                    <div className="relative z-10 p-1.5 rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
+                      <Navigation className="h-3.5 w-3.5 text-blue-600" />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Deliver to</p>
+                      <p className="font-medium text-sm truncate">{formatAddress(match.job.delivery_address)}</p>
+                    </div>
+                  </div>
+                </div>
 
-                    {match.job.earnings && (
-                      <div className="text-right">
-                        <Badge className="bg-green-500 text-lg px-3 py-1">
-                          <DollarSign className="h-4 w-4 mr-1" />
-                          R{match.job.earnings.toFixed(2)}
-                        </Badge>
-                        {match.surge_multiplier > 1 && (
-                          <p className="text-xs text-green-600 mt-1">
-                            Includes {Math.round((match.surge_multiplier - 1) * 100)}% surge
-                          </p>
-                        )}
-                      </div>
+                <Separator />
+
+                {/* Footer */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {match.job.distance_km && (
+                      <Badge variant="secondary" className="rounded-full text-xs"><Route className="h-3 w-3 mr-1" />{match.job.distance_km.toFixed(1)} km</Badge>
                     )}
-
-                    <Button
-                      onClick={() => claimJob(match.job.id)}
-                      disabled={claiming === match.job.id || driver.status === "pending" || driver.status === "offline"}
-                      className="w-full"
-                    >
-                      {claiming === match.job.id ? (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Claiming...
-                        </>
-                      ) : (
-                        "Claim Job"
-                      )}
-                    </Button>
+                    <Badge variant="secondary" className="rounded-full text-xs"><Clock className="h-3 w-3 mr-1" />~{match.estimated_time_mins} min</Badge>
+                    {match.job.earnings && (
+                      <Badge className="rounded-full bg-emerald-600 text-xs font-semibold">
+                        R{match.job.earnings.toFixed(2)}
+                        {match.surge_multiplier > 1 && <Zap className="h-3 w-3 ml-1 text-amber-300" />}
+                      </Badge>
+                    )}
                   </div>
+                  <Button
+                    size="sm"
+                    onClick={() => claimJob(match.job.id)}
+                    disabled={claiming === match.job.id || driver.status === "pending" || driver.status === "offline"}
+                    className="rounded-xl h-9 px-4 font-semibold shadow-sm"
+                  >
+                    {claiming === match.job.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Claim"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
