@@ -137,6 +137,7 @@ const VendorDashboard = () => {
     { id: "api-access", title: "API Access", icon: Key },
     { id: "custom-domain", title: "Custom Domain", icon: Globe },
     { id: "messages", title: "Messages", icon: MessageSquare },
+    { id: "leasing", title: "Leasing", icon: Package },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
