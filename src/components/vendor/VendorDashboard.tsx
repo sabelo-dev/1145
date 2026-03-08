@@ -59,6 +59,7 @@ import {
   Crown
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
+import MerchantLeases from "@/components/merchant/dashboard/MerchantLeases";
 import { toast } from "sonner";
 
 const VendorDashboard = () => {
@@ -124,6 +125,7 @@ const VendorDashboard = () => {
     { id: "payouts", title: "Earnings / Wallet", icon: DollarSign },
     { id: "ucoin", title: "UCoin Rewards", icon: Coins },
     { id: "messages", title: "Messages", icon: MessageSquare },
+    { id: "leasing", title: "Leasing", icon: Package },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
@@ -371,6 +373,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="support" className="mt-0">
               <VendorSupport />
+            </TabsContent>
+            <TabsContent value="leasing" className="mt-0">
+              <MerchantLeases />
             </TabsContent>
           </Tabs>
         </main>
