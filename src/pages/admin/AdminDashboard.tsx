@@ -45,6 +45,10 @@ import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import AdminInbox from "@/components/admin/AdminInbox";
 import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
 import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
+import AdminLeases from "@/components/admin/AdminLeases";
+import AdminAssetLifecycle from "@/components/admin/AdminAssetLifecycle";
+import AdminLeaseAnalytics from "@/components/admin/AdminLeaseAnalytics";
+import AdminRiskMonitoring from "@/components/admin/AdminRiskMonitoring";
 import {
   LayoutDashboard,
   Users,
