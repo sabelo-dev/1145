@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -8,82 +8,93 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeCustomizationProvider } from "@/contexts/ThemeCustomizationContext";
 import { GoldPricingProvider } from "@/contexts/GoldPricingContext";
 import { Toaster } from "@/components/ui/toaster";
-import TrackOrderPage from "./pages/TrackOrderPage";
-import StorefrontPage from "@/pages/StorefrontPage";
-import Layout from "@/components/layout/Layout";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { PageLoader } from "@/components/ui/page-loader";
 import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 
-// Page imports
-import Index from "@/pages/Index";
-import HomePage from "@/pages/HomePage";
-import ShopPage from "@/pages/ShopPage";
-import ProductPage from "@/pages/ProductPage";
-import CategoryPage from "@/pages/CategoryPage";
-import CategoriesPage from "@/pages/CategoriesPage";
-import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
-import CheckoutPage from "@/pages/CheckoutPage";
-import CheckoutSuccessPage from "@/pages/CheckoutSuccessPage";
-import CheckoutCancelPage from "@/pages/CheckoutCancelPage";
-import ConsumerDashboard from "@/pages/ConsumerDashboard";
-import ContactPage from "@/pages/ContactPage";
-import FAQPage from "@/pages/FAQPage";
-import NotFound from "@/pages/NotFound";
+// Eagerly loaded (critical path)
+import Layout from "@/components/layout/Layout";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-// Admin pages
-import AdminLoginPage from "@/pages/admin/AdminLoginPage";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
+// Lazy loaded pages
+const Index = lazy(() => import("@/pages/Index"));
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const ShopPage = lazy(() => import("@/pages/ShopPage"));
+const ProductPage = lazy(() => import("@/pages/ProductPage"));
+const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
+const CategoriesPage = lazy(() => import("@/pages/CategoriesPage"));
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
+const CheckoutSuccessPage = lazy(() => import("@/pages/CheckoutSuccessPage"));
+const CheckoutCancelPage = lazy(() => import("@/pages/CheckoutCancelPage"));
+const ConsumerDashboard = lazy(() => import("@/pages/ConsumerDashboard"));
+const ContactPage = lazy(() => import("@/pages/ContactPage"));
+const FAQPage = lazy(() => import("@/pages/FAQPage"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const StorefrontPage = lazy(() => import("@/pages/StorefrontPage"));
+const TrackOrderPage = lazy(() => import("@/pages/TrackOrderPage"));
 
-// Merchant pages
-import MerchantLoginPage from "@/pages/MerchantLoginPage";
-import MerchantRegisterPage from "@/pages/MerchantRegisterPage";
-import MerchantOnboardingPage from "@/pages/MerchantOnboardingPage";
-import MerchantDashboardPage from "@/pages/MerchantDashboardPage";
+// Admin
+const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 
-// Driver pages
-import DriverLoginPage from "@/pages/driver/DriverLoginPage";
-import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
-import DriverRegisterPage from "@/pages/driver/DriverRegisterPage";
-import FleetDashboardPage from "@/pages/fleet/FleetDashboardPage";
+// Merchant
+const MerchantLoginPage = lazy(() => import("@/pages/MerchantLoginPage"));
+const MerchantRegisterPage = lazy(() => import("@/pages/MerchantRegisterPage"));
+const MerchantOnboardingPage = lazy(() => import("@/pages/MerchantOnboardingPage"));
+const MerchantDashboardPage = lazy(() => import("@/pages/MerchantDashboardPage"));
 
-// Influencer pages
-import InfluencerLoginPage from "@/pages/influencer/InfluencerLoginPage";
-import InfluencerDashboardPage from "@/pages/influencer/InfluencerDashboardPage";
+// Driver
+const DriverLoginPage = lazy(() => import("@/pages/driver/DriverLoginPage"));
+const DriverDashboardPage = lazy(() => import("@/pages/driver/DriverDashboardPage"));
+const DriverRegisterPage = lazy(() => import("@/pages/driver/DriverRegisterPage"));
+const FleetDashboardPage = lazy(() => import("@/pages/fleet/FleetDashboardPage"));
 
-// Subcategory pages
-import SubcategoryPage from "@/pages/SubcategoryPage";
+// Influencer
+const InfluencerLoginPage = lazy(() => import("@/pages/influencer/InfluencerLoginPage"));
+const InfluencerDashboardPage = lazy(() => import("@/pages/influencer/InfluencerDashboardPage"));
 
-// Special pages
-import BestSellersPage from "@/pages/BestSellersPage";
-import NewArrivalsPage from "@/pages/NewArrivalsPage";
-import DealsPage from "@/pages/DealsPage";
-import PopularPage from "@/pages/PopularPage";
-import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
-import AuctionsPage from "@/pages/AuctionsPage";
-import AuctionRegistrationPage from "@/pages/AuctionRegistrationPage";
-import AuctionRegistrationSuccessPage from "@/pages/AuctionRegistrationSuccessPage";
-import AuctionCheckoutPage from "@/pages/AuctionCheckoutPage";
-import AuctionCheckoutSuccessPage from "@/pages/AuctionCheckoutSuccessPage";
+// Subcategory & special pages
+const SubcategoryPage = lazy(() => import("@/pages/SubcategoryPage"));
+const BestSellersPage = lazy(() => import("@/pages/BestSellersPage"));
+const NewArrivalsPage = lazy(() => import("@/pages/NewArrivalsPage"));
+const DealsPage = lazy(() => import("@/pages/DealsPage"));
+const PopularPage = lazy(() => import("@/pages/PopularPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+const AuctionsPage = lazy(() => import("@/pages/AuctionsPage"));
+const AuctionRegistrationPage = lazy(() => import("@/pages/AuctionRegistrationPage"));
+const AuctionRegistrationSuccessPage = lazy(() => import("@/pages/AuctionRegistrationSuccessPage"));
+const AuctionCheckoutPage = lazy(() => import("@/pages/AuctionCheckoutPage"));
+const AuctionCheckoutSuccessPage = lazy(() => import("@/pages/AuctionCheckoutSuccessPage"));
 
 // Policy pages
-import ShippingPage from "@/pages/ShippingPage";
-import ReturnsPage from "@/pages/ReturnsPage";
-import TermsPage from "@/pages/TermsPage";
-import PrivacyPage from "@/pages/PrivacyPage";
+const ShippingPage = lazy(() => import("@/pages/ShippingPage"));
+const ReturnsPage = lazy(() => import("@/pages/ReturnsPage"));
+const TermsPage = lazy(() => import("@/pages/TermsPage"));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 
-// Auth pages
-import AuthConfirmPage from "@/pages/AuthConfirmPage";
+// Auth
+const AuthConfirmPage = lazy(() => import("@/pages/AuthConfirmPage"));
 
-// Super App pages
-import ServiceHubPage from "@/pages/ServiceHubPage";
-import RideRequestPage from "@/pages/rides/RideRequestPage";
-import RideTrackingPage from "@/pages/rides/RideTrackingPage";
-import RideHistoryPage from "@/pages/rides/RideHistoryPage";
-import WalletPage from "@/pages/wallet/WalletPage";
-import InstallPage from "@/pages/InstallPage";
+// Super App
+const ServiceHubPage = lazy(() => import("@/pages/ServiceHubPage"));
+const RideRequestPage = lazy(() => import("@/pages/rides/RideRequestPage"));
+const RideTrackingPage = lazy(() => import("@/pages/rides/RideTrackingPage"));
+const RideHistoryPage = lazy(() => import("@/pages/rides/RideHistoryPage"));
+const WalletPage = lazy(() => import("@/pages/wallet/WalletPage"));
+const InstallPage = lazy(() => import("@/pages/InstallPage"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AppRouter() {
   const { isCustomDomain, resolvedStoreSlug, loading } = useCustomDomainResolver();
@@ -99,165 +110,142 @@ function AppRouter() {
     );
   }
 
-  // If accessed via a custom domain, render ONLY the storefront
-  // This is the single-source-of-truth: same data, alternate access point
   if (isCustomDomain && resolvedStoreSlug) {
     return (
-      <Routes>
-        {/* All routes on a custom domain resolve to the storefront */}
-        <Route path="*" element={<StorefrontPage domainStoreSlug={resolvedStoreSlug} forceWhiteLabel />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="*" element={<StorefrontPage domainStoreSlug={resolvedStoreSlug} forceWhiteLabel />} />
+        </Routes>
+      </Suspense>
     );
   }
 
-  // Standard platform routing
   return (
-    <Routes>
-      {/* Landing page without layout */}
-      <Route index element={<Index />} />
-      
-      {/* Home page with integrated header */}
-      <Route path="home" element={<HomePage />} />
-      
-      {/* Install page for PWA */}
-      <Route path="install" element={<InstallPage />} />
-      
-      {/* Storefront outside layout for white-label support */}
-      <Route path="store/:storeSlug" element={<StorefrontPage />} />
-      
-      <Route path="/" element={<Layout />}>
-        <Route path="shop" element={<ShopPage />} />
-        <Route path="product/:slug" element={<ProductPage />} />
-        <Route path="categories" element={<CategoriesPage />} />
-        <Route path="category/:categorySlug/:subcategorySlug" element={<SubcategoryPage />} />
-        <Route path="category/:slug" element={<CategoryPage />} />
-        <Route path="checkout" element={<CheckoutPage />} />
-        <Route path="checkout/success" element={<CheckoutSuccessPage />} />
-        <Route path="checkout/cancel" element={<CheckoutCancelPage />} />
-        <Route path="account" element={<Navigate to="/dashboard" replace />} />
-        <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={
-          <ProtectedRoute requireAuth>
-            <ConsumerDashboard />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route index element={<Index />} />
+        <Route path="home" element={<HomePage />} />
+        <Route path="install" element={<InstallPage />} />
+        <Route path="store/:storeSlug" element={<StorefrontPage />} />
+        
+        <Route path="/" element={<Layout />}>
+          <Route path="shop" element={<ShopPage />} />
+          <Route path="product/:slug" element={<ProductPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="category/:categorySlug/:subcategorySlug" element={<SubcategoryPage />} />
+          <Route path="category/:slug" element={<CategoryPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="checkout/success" element={<CheckoutSuccessPage />} />
+          <Route path="checkout/cancel" element={<CheckoutCancelPage />} />
+          <Route path="account" element={<Navigate to="/dashboard" replace />} />
+          <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={
+            <ProtectedRoute requireAuth>
+              <ConsumerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="faq" element={<FAQPage />} />
+          <Route path="best-sellers" element={<BestSellersPage />} />
+          <Route path="new-arrivals" element={<NewArrivalsPage />} />
+          <Route path="deals" element={<DealsPage />} />
+          <Route path="popular" element={<PopularPage />} />
+          <Route path="auctions" element={<AuctionsPage />} />
+          <Route path="auction-registration" element={<AuctionRegistrationPage />} />
+          <Route path="auction-registration/success" element={<AuctionRegistrationSuccessPage />} />
+          <Route path="auction-checkout" element={<AuctionCheckoutPage />} />
+          <Route path="auction-checkout/success" element={<AuctionCheckoutSuccessPage />} />
+          <Route path="shipping" element={<ShippingPage />} />
+          <Route path="returns" element={<ReturnsPage />} />
+          <Route path="terms" element={<TermsPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
+        </Route>
+        
+        <Route path="services" element={<ServiceHubPage />} />
+        <Route path="rides" element={<RideHistoryPage />} />
+        <Route path="rides/request" element={<RideRequestPage />} />
+        <Route path="rides/track/:rideId" element={<RideTrackingPage />} />
+        <Route path="wallet" element={<WalletPage />} />
+        <Route path="track-order" element={<TrackOrderPage />} />
+        
+        <Route path="auth/confirm" element={<AuthConfirmPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        
+        <Route path="admin/login" element={<AdminLoginPage />} />
+        <Route path="admin/dashboard" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminDashboard />
           </ProtectedRoute>
         } />
-        <Route path="contact" element={<ContactPage />} />
-        <Route path="faq" element={<FAQPage />} />
         
-        {/* Special category pages */}
-        <Route path="best-sellers" element={<BestSellersPage />} />
-        <Route path="new-arrivals" element={<NewArrivalsPage />} />
-        <Route path="deals" element={<DealsPage />} />
-        <Route path="popular" element={<PopularPage />} />
-        <Route path="auctions" element={<AuctionsPage />} />
-        <Route path="auction-registration" element={<AuctionRegistrationPage />} />
-        <Route path="auction-registration/success" element={<AuctionRegistrationSuccessPage />} />
-        <Route path="auction-checkout" element={<AuctionCheckoutPage />} />
-        <Route path="auction-checkout/success" element={<AuctionCheckoutSuccessPage />} />
+        <Route path="merchant/login" element={<MerchantLoginPage />} />
+        <Route path="merchant/register" element={<MerchantRegisterPage />} />
+        <Route path="merchant/onboarding" element={
+          <ProtectedRoute requireAuth>
+            <MerchantOnboardingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="merchant/dashboard" element={
+          <ProtectedRoute requireAuth requireMerchant>
+            <MerchantDashboardPage />
+          </ProtectedRoute>
+        } />
         
-        {/* Policy pages */}
-        <Route path="shipping" element={<ShippingPage />} />
-        <Route path="returns" element={<ReturnsPage />} />
-        <Route path="terms" element={<TermsPage />} />
-        <Route path="privacy" element={<PrivacyPage />} />
-      </Route>
-      
-      {/* Super App Service Hub */}
-      <Route path="services" element={<ServiceHubPage />} />
-      
-      {/* Ride pages */}
-      <Route path="rides" element={<RideHistoryPage />} />
-      <Route path="rides/request" element={<RideRequestPage />} />
-      <Route path="rides/track/:rideId" element={<RideTrackingPage />} />
-      
-      {/* Wallet page */}
-      <Route path="wallet" element={<WalletPage />} />
-      
-      {/* Track Order page */}
-      <Route path="track-order" element={<TrackOrderPage />} />
-      
-      {/* Auth pages without layout */}
-      <Route path="auth/confirm" element={<AuthConfirmPage />} />
-      <Route path="login" element={<LoginPage />} />
-      <Route path="register" element={<RegisterPage />} />
-      <Route path="forgot-password" element={<ForgotPasswordPage />} />
-      
-      {/* Admin pages */}
-      <Route path="admin/login" element={<AdminLoginPage />} />
-      <Route path="admin/dashboard" element={
-        <ProtectedRoute requireAuth requireAdmin>
-          <AdminDashboard />
-        </ProtectedRoute>
-      } />
-      
-      {/* Merchant pages */}
-      <Route path="merchant/login" element={<MerchantLoginPage />} />
-      <Route path="merchant/register" element={<MerchantRegisterPage />} />
-      <Route path="merchant/onboarding" element={
-        <ProtectedRoute requireAuth>
-          <MerchantOnboardingPage />
-        </ProtectedRoute>
-      } />
-      <Route path="merchant/dashboard" element={
-        <ProtectedRoute requireAuth requireMerchant>
-          <MerchantDashboardPage />
-        </ProtectedRoute>
-      } />
-      
-      {/* Legacy vendor routes - redirect to merchant */}
-      <Route path="vendor/login" element={<Navigate to="/merchant/login" replace />} />
-      <Route path="vendor/register" element={<Navigate to="/merchant/register" replace />} />
-      <Route path="vendor/onboarding" element={<Navigate to="/merchant/onboarding" replace />} />
-      <Route path="vendor/dashboard" element={<Navigate to="/merchant/dashboard" replace />} />
-      
-      {/* Driver pages */}
-      <Route path="driver/login" element={<DriverLoginPage />} />
-      <Route path="driver/register" element={<DriverRegisterPage />} />
-      <Route path="driver/dashboard" element={
-        <ProtectedRoute requireAuth requireDriver>
-          <DriverDashboardPage />
-        </ProtectedRoute>
-      } />
-      <Route path="fleet/dashboard" element={
-        <ProtectedRoute requireAuth>
-          <FleetDashboardPage />
-        </ProtectedRoute>
-      } />
-      
-      {/* Influencer pages */}
-      <Route path="influencer/login" element={<InfluencerLoginPage />} />
-      <Route path="influencer/dashboard" element={
-        <ProtectedRoute requireAuth requireInfluencer>
-          <InfluencerDashboardPage />
-        </ProtectedRoute>
-      } />
-      
-      {/* 404 page */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="vendor/login" element={<Navigate to="/merchant/login" replace />} />
+        <Route path="vendor/register" element={<Navigate to="/merchant/register" replace />} />
+        <Route path="vendor/onboarding" element={<Navigate to="/merchant/onboarding" replace />} />
+        <Route path="vendor/dashboard" element={<Navigate to="/merchant/dashboard" replace />} />
+        
+        <Route path="driver/login" element={<DriverLoginPage />} />
+        <Route path="driver/register" element={<DriverRegisterPage />} />
+        <Route path="driver/dashboard" element={
+          <ProtectedRoute requireAuth requireDriver>
+            <DriverDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="fleet/dashboard" element={
+          <ProtectedRoute requireAuth>
+            <FleetDashboardPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="influencer/login" element={<InfluencerLoginPage />} />
+        <Route path="influencer/dashboard" element={
+          <ProtectedRoute requireAuth requireInfluencer>
+            <InfluencerDashboardPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-    <ThemeCustomizationProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <GoldPricingProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <Router>
-            <AppRouter />
-            <Toaster />
-            </Router>
-          </CartProvider>
-        </WishlistProvider>
-        </GoldPricingProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-    </ThemeCustomizationProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeCustomizationProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <GoldPricingProvider>
+                <WishlistProvider>
+                  <CartProvider>
+                    <Router>
+                      <AppRouter />
+                      <Toaster />
+                    </Router>
+                  </CartProvider>
+                </WishlistProvider>
+              </GoldPricingProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </ThemeCustomizationProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

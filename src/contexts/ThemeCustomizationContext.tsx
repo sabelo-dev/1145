@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 interface ThemeColors {
   primary: string;
@@ -90,33 +90,35 @@ export const ThemeCustomizationProvider: React.FC<{ children: React.ReactNode }>
 
   useEffect(() => {
     localStorage.setItem("theme-colors", JSON.stringify(colors));
-    
-    // Apply colors to CSS variables
     const root = document.documentElement;
     root.style.setProperty("--primary", colors.primary);
     root.style.setProperty("--secondary", colors.secondary);
     root.style.setProperty("--accent", colors.accent);
   }, [colors]);
 
-  const setColors = (newColors: Partial<ThemeColors>) => {
+  const setColors = useCallback((newColors: Partial<ThemeColors>) => {
     setColorsState((prev) => ({ ...prev, ...newColors }));
-  };
+  }, []);
 
-  const resetColors = () => {
+  const resetColors = useCallback(() => {
     setColorsState(defaultColors);
-  };
+  }, []);
 
-  const applyPreset = (presetName: string) => {
+  const applyPreset = useCallback((presetName: string) => {
     const preset = colorPresets.find((p) => p.name === presetName);
-    if (preset) {
-      setColorsState(preset.colors);
-    }
-  };
+    if (preset) setColorsState(preset.colors);
+  }, []);
+
+  const value = useMemo(() => ({
+    colors,
+    setColors,
+    resetColors,
+    presets: colorPresets,
+    applyPreset,
+  }), [colors, setColors, resetColors, applyPreset]);
 
   return (
-    <ThemeCustomizationContext.Provider
-      value={{ colors, setColors, resetColors, presets: colorPresets, applyPreset }}
-    >
+    <ThemeCustomizationContext.Provider value={value}>
       {children}
     </ThemeCustomizationContext.Provider>
   );
