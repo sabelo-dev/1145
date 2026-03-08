@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin, Navigation, DollarSign, Clock, Star, Car } from "lucide-react";
+import { MapPin, Navigation, DollarSign, Clock, Star, Car, TrendingUp, Route } from "lucide-react";
 import { format } from "date-fns";
 
 interface Driver {
@@ -20,11 +21,7 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalRides: 0, totalEarnings: 0, avgRating: 0 });
 
-  useEffect(() => {
-    if (driver) fetchHistory();
-  }, [driver]);
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     if (!driver) return;
     setLoading(true);
     const { data } = await supabase
@@ -47,68 +44,120 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
       });
     }
     setLoading(false);
-  };
+  }, [driver]);
+
+  useEffect(() => {
+    if (driver) fetchHistory();
+  }, [driver, fetchHistory]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-8 w-40" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 rounded-xl" />
+        ))}
+      </div>
+    );
   }
+
+  const statCards = [
+    {
+      label: "Total Rides",
+      value: stats.totalRides.toString(),
+      icon: Car,
+      color: "text-primary",
+      bg: "bg-primary/10",
+    },
+    {
+      label: "Ride Earnings",
+      value: `R${stats.totalEarnings.toFixed(2)}`,
+      icon: TrendingUp,
+      color: "text-emerald-600",
+      bg: "bg-emerald-500/10",
+    },
+    {
+      label: "Avg Rating",
+      value: stats.avgRating ? stats.avgRating.toFixed(1) : "N/A",
+      icon: Star,
+      color: "text-amber-500",
+      bg: "bg-amber-500/10",
+    },
+  ];
 
   return (
     <div className="space-y-6">
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
-            <Car className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats.totalRides}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ride Earnings</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold">R{stats.totalEarnings.toFixed(2)}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Rating</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats.avgRating ? stats.avgRating.toFixed(1) : "N/A"}</div></CardContent>
-        </Card>
+        {statCards.map((stat) => (
+          <Card key={stat.label} className="border-0 ring-1 ring-border overflow-hidden">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                  <p className="text-2xl font-black mt-1.5 tracking-tight">{stat.value}</p>
+                </div>
+                <div className={`p-2.5 rounded-xl ${stat.bg}`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <h2 className="text-xl font-semibold">Ride History</h2>
+      <h2 className="text-xl font-bold">Ride History</h2>
 
       {rides.length === 0 ? (
-        <Card><CardContent className="pt-6 text-center py-12">
-          <Car className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No ride history yet.</p>
-        </CardContent></Card>
+        <Card className="border-dashed">
+          <CardContent className="pt-6 text-center py-16">
+            <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-muted mb-4">
+              <Car className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold text-lg mb-1">No Ride History</h3>
+            <p className="text-sm text-muted-foreground">Your completed rides will appear here.</p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {rides.map((ride) => (
-            <Card key={ride.id}>
-              <CardContent className="pt-4 pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-3 w-3 text-primary" />
-                      <span className="truncate max-w-xs">{ride.pickup_address}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Navigation className="h-3 w-3 text-accent-foreground" />
-                      <span className="truncate max-w-xs">{ride.dropoff_address}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{format(new Date(ride.created_at), "PPp")}</p>
+            <Card key={ride.id} className="border-0 ring-1 ring-border hover:ring-primary/20 transition-all">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  {/* Left: Status indicator */}
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${ride.status === "completed" ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
+                    <Car className={`h-5 w-5 ${ride.status === "completed" ? "text-emerald-600" : "text-destructive"}`} />
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Badge variant={ride.status === "completed" ? "default" : "destructive"}>{ride.status}</Badge>
-                    {ride.actual_fare && <span className="font-semibold text-sm">R{ride.actual_fare.toFixed(2)}</span>}
+
+                  {/* Center: Route info */}
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <MapPin className="h-3 w-3 text-emerald-600 flex-shrink-0" />
+                      <span className="truncate font-medium">{ride.pickup_address}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Navigation className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                      <span className="truncate">{ride.dropoff_address}</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{format(new Date(ride.created_at), "PPp")}</p>
+                  </div>
+
+                  {/* Right: Stats */}
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <Badge variant={ride.status === "completed" ? "secondary" : "destructive"} className="rounded-full text-xs capitalize">
+                      {ride.status}
+                    </Badge>
+                    {ride.actual_fare && (
+                      <span className="font-bold text-sm">R{ride.actual_fare.toFixed(2)}</span>
+                    )}
                     {ride.rating_by_passenger && (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Star className="h-3 w-3 text-primary fill-primary" />{ride.rating_by_passenger}
+                        <Star className="h-3 w-3 text-amber-500 fill-amber-500" />{ride.rating_by_passenger}
                       </span>
                     )}
                   </div>

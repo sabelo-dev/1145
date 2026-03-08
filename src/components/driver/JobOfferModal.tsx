@@ -18,6 +18,7 @@ import {
   X,
   Check,
   AlertTriangle,
+  Route,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,61 +54,43 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
       const now = Date.now();
       const remaining = Math.max(0, (expiresAt - now) / 1000);
       setTimeLeft(remaining);
-
-      if (remaining <= 0) {
-        onExpire(offer.id);
-      }
+      if (remaining <= 0) onExpire(offer.id);
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 100);
-
     return () => clearInterval(interval);
   }, [offer, onExpire]);
 
-  const handleAccept = async () => {
+  const handleAccept = useCallback(async () => {
     if (!offer) return;
     setIsProcessing(true);
 
     try {
       const { error } = await supabase
         .from("delivery_jobs")
-        .update({
-          driver_id: offer.driver_id,
-          status: "accepted",
-        })
+        .update({ driver_id: offer.driver_id, status: "accepted" })
         .eq("id", offer.job.id)
         .eq("status", "pending")
         .is("driver_id", null);
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Job Already Taken",
-          description: "This job was claimed by another driver.",
-        });
+        toast({ variant: "destructive", title: "Job Already Taken", description: "This job was claimed by another driver." });
       } else {
-        toast({
-          title: "Job Accepted!",
-          description: "Head to the pickup location now.",
-        });
+        toast({ title: "Job Accepted!", description: "Head to the pickup location now." });
         onAccept(offer.id);
       }
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to accept job. Please try again.",
-      });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to accept job. Please try again." });
     }
 
     setIsProcessing(false);
-  };
+  }, [offer, onAccept, toast]);
 
-  const handleDecline = () => {
+  const handleDecline = useCallback(() => {
     if (!offer) return;
     onDecline(offer.id);
-  };
+  }, [offer, onDecline]);
 
   const formatAddress = (address: any) => {
     if (!address) return "Address not available";
@@ -122,101 +105,120 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
 
   return (
     <Dialog open={!!offer} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            New Delivery Request
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
+        {/* Gradient header */}
+        <div className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/70 px-6 pt-6 pb-8 text-primary-foreground">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary-foreground)/0.1),transparent_70%)]" />
+          <DialogHeader className="relative">
+            <DialogTitle className="flex items-center gap-2.5 text-primary-foreground text-lg">
+              <div className="p-2 rounded-xl bg-primary-foreground/15 backdrop-blur-sm">
+                <Package className="h-5 w-5" />
+              </div>
+              New Delivery Request
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Timer */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className={isUrgent ? "text-destructive font-medium" : "text-muted-foreground"}>
-                {isUrgent && <AlertTriangle className="h-4 w-4 inline mr-1" />}
-                Time to respond
-              </span>
-              <span className={`font-mono font-bold ${isUrgent ? "text-destructive" : ""}`}>
-                {Math.ceil(timeLeft)}s
-              </span>
-            </div>
-            <Progress 
-              value={progressPercent} 
-              className={`h-2 ${isUrgent ? "[&>div]:bg-destructive" : ""}`}
-            />
-          </div>
-
-          {/* Earnings */}
-          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <DollarSign className="h-6 w-6 text-green-600" />
-              <span className="text-3xl font-bold text-green-600">
-                R{offer.earnings.toFixed(2)}
+          {/* Earnings hero */}
+          <div className="relative mt-5 text-center">
+            <div className="inline-flex items-baseline gap-1">
+              <span className="text-sm opacity-80">R</span>
+              <span className="text-5xl font-black tracking-tight">
+                {offer.earnings.toFixed(2)}
               </span>
             </div>
             {offer.surge_multiplier > 1 && (
-              <div className="flex items-center justify-center gap-1 mt-1">
-                <Zap className="h-4 w-4 text-amber-500" />
-                <span className="text-sm text-amber-600 font-medium">
-                  {offer.surge_multiplier}x surge pricing active
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 backdrop-blur-sm px-3 py-1">
+                <Zap className="h-3.5 w-3.5 text-amber-300" />
+                <span className="text-xs font-semibold text-amber-200">
+                  {offer.surge_multiplier}x surge active
                 </span>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Addresses */}
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <MapPin className="h-4 w-4 text-green-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-muted-foreground">PICKUP</p>
-                <p className="font-medium truncate">{formatAddress(offer.job.pickup_address)}</p>
-              </div>
+        <div className="px-6 pb-6 -mt-3 space-y-5">
+          {/* Timer card */}
+          <div className={`rounded-xl border p-3.5 transition-colors ${isUrgent ? "border-destructive/50 bg-destructive/5" : "border-border bg-card"}`}>
+            <div className="flex items-center justify-between mb-2.5">
+              <span className={`text-xs font-medium flex items-center gap-1.5 ${isUrgent ? "text-destructive" : "text-muted-foreground"}`}>
+                {isUrgent && <AlertTriangle className="h-3.5 w-3.5 animate-pulse" />}
+                Time remaining
+              </span>
+              <span className={`text-lg font-mono font-black tabular-nums ${isUrgent ? "text-destructive animate-pulse" : "text-foreground"}`}>
+                {Math.ceil(timeLeft)}s
+              </span>
             </div>
+            <Progress
+              value={progressPercent}
+              className={`h-1.5 ${isUrgent ? "[&>div]:bg-destructive" : "[&>div]:bg-primary"}`}
+            />
+          </div>
 
-            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                <Navigation className="h-4 w-4 text-blue-600" />
+          {/* Route */}
+          <div className="relative">
+            {/* Connector line */}
+            <div className="absolute left-[23px] top-[44px] bottom-[44px] w-px border-l-2 border-dashed border-muted-foreground/25" />
+
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
+                <div className="relative z-10 p-2 rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
+                  <MapPin className="h-4 w-4 text-emerald-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pickup</p>
+                  <p className="font-medium text-sm truncate">{formatAddress(offer.job.pickup_address)}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-muted-foreground">DELIVER TO</p>
-                <p className="font-medium truncate">{formatAddress(offer.job.delivery_address)}</p>
+
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
+                <div className="relative z-10 p-2 rounded-xl bg-blue-500/10 ring-1 ring-blue-500/20">
+                  <Navigation className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Drop-off</p>
+                  <p className="font-medium text-sm truncate">{formatAddress(offer.job.delivery_address)}</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="flex gap-2 justify-center">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             {offer.job.distance_km && (
-              <Badge variant="outline">
+              <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
+                <Route className="h-3 w-3 mr-1.5" />
                 {offer.job.distance_km.toFixed(1)} km
               </Badge>
             )}
-            <Badge variant="outline">
-              <Clock className="h-3 w-3 mr-1" />
+            <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
+              <Clock className="h-3 w-3 mr-1.5" />
               ~{Math.round((offer.job.distance_km || 5) * 3)} min
             </Badge>
             {offer.job.priority === "urgent" && (
-              <Badge variant="destructive">Urgent</Badge>
+              <Badge variant="destructive" className="rounded-full px-3 py-1 text-xs font-semibold animate-pulse">
+                Urgent
+              </Badge>
             )}
           </div>
 
-          {/* Time Window */}
           {offer.job.time_window_end && (
-            <div className="text-center text-sm text-muted-foreground">
-              Deliver by {new Date(offer.job.time_window_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
+            <p className="text-center text-xs text-muted-foreground">
+              Deliver by{" "}
+              <span className="font-semibold text-foreground">
+                {new Date(offer.job.time_window_end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </p>
           )}
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-1">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 h-12 rounded-xl text-sm font-semibold"
               onClick={handleDecline}
               disabled={isProcessing}
             >
@@ -224,12 +226,12 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
               Decline
             </Button>
             <Button
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 h-12 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/25"
               onClick={handleAccept}
               disabled={isProcessing}
             >
               <Check className="h-4 w-4 mr-2" />
-              {isProcessing ? "Accepting..." : "Accept"}
+              {isProcessing ? "Accepting..." : "Accept Job"}
             </Button>
           </div>
         </div>
