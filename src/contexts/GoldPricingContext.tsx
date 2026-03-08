@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useGoldPricing } from '@/hooks/useGoldPricing';
 import { GoldPrice, CurrencyRate, UserCurrencyPreference } from '@/types/gold';
 
@@ -26,8 +26,18 @@ const GoldPricingContext = createContext<GoldPricingContextType | undefined>(und
 export function GoldPricingProvider({ children }: { children: ReactNode }) {
   const goldPricing = useGoldPricing();
 
+  const value = useMemo(() => goldPricing, [
+    goldPricing.goldPrice,
+    goldPricing.currencies,
+    goldPricing.userPreference,
+    goldPricing.isLoading,
+    goldPricing.displayCurrency,
+    goldPricing.displayMode,
+    goldPricing.goldUnit,
+  ]);
+
   return (
-    <GoldPricingContext.Provider value={goldPricing}>
+    <GoldPricingContext.Provider value={value}>
       {children}
     </GoldPricingContext.Provider>
   );
