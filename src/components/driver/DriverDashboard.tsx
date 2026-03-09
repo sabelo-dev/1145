@@ -50,6 +50,7 @@ import {
   Coins,
   Car,
   History,
+  PieChart,
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 
