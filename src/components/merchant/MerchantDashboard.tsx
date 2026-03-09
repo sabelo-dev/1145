@@ -57,6 +57,7 @@ import {
   MessageSquare,
   Settings, 
   Headphones,
+  Truck,
   LogOut,
   User,
   Gavel,
