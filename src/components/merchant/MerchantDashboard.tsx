@@ -42,6 +42,7 @@ import VendorAdCredits from "./dashboard/VendorAdCredits";
 import VendorSubscriptionPayments from "./dashboard/VendorSubscriptionPayments";
 import VendorApiAccess from "./dashboard/VendorApiAccess";
 import VendorCustomDomain from "./dashboard/VendorCustomDomain";
+import MerchantLeases from "./dashboard/MerchantLeases";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
@@ -136,6 +137,7 @@ const VendorDashboard = () => {
     { id: "api-access", title: "API Access", icon: Key },
     { id: "custom-domain", title: "Custom Domain", icon: Globe },
     { id: "messages", title: "Messages", icon: MessageSquare },
+    { id: "leasing", title: "Leasing", icon: Package },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
@@ -395,6 +397,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="support" className="mt-0">
               <VendorSupport />
+            </TabsContent>
+            <TabsContent value="leasing" className="mt-0">
+              <MerchantLeases />
             </TabsContent>
           </Tabs>
         </main>
