@@ -64,6 +64,7 @@ const tabToModuleMap: Record<string, string> = {
   settings: "settings",
   "auction-watchlist": "auction-watchlist",
   leases: "leases",
+  rides: "rides",
 };
 
 const ConsumerDashboard: React.FC = () => {
