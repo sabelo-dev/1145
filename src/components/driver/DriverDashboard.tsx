@@ -149,6 +149,7 @@ const DriverDashboard: React.FC = () => {
     { id: "overview", title: "Overview", icon: LayoutDashboard },
     { id: "ride-requests", title: "Ride Requests", icon: Car },
     { id: "ride-history", title: "Ride History", icon: History },
+    { id: "ride-analytics", title: "Ride Analytics", icon: PieChart },
     { id: "smart-matching", title: "Smart Matching", icon: Target },
     { id: "available-jobs", title: "Available Jobs", icon: MapPin },
     { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
