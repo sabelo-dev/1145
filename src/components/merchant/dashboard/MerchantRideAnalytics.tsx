@@ -45,13 +45,14 @@ const MerchantRideAnalytics: React.FC = () => {
       return;
     }
 
-    const { data: rawJobs } = await supabase
+    const resp = await (supabase as any)
       .from("delivery_jobs")
       .select("*")
       .eq("vendor_id", vendor.id)
-      .order("created_at", { ascending: false }) as { data: any[] | null };
+      .order("created_at", { ascending: false });
+    const deliveryJobs = (resp.data || []) as any[];
 
-    if (deliveryJobs) {
+    if (deliveryJobs.length > 0) {
       setJobs(deliveryJobs);
       const completed = deliveryJobs.filter((j: any) => j.status === "delivered");
       const totalCost = deliveryJobs.reduce((s: number, j: any) => s + (j.earnings || 0), 0);
