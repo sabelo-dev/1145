@@ -175,6 +175,12 @@ const ConsumerDashboard: React.FC = () => {
       description: "View active leases, payment schedules, and contracts"
     },
     {
+      id: "rides",
+      title: "My Rides",
+      icon: Car,
+      description: "Request rides and view ride history"
+    },
+    {
       id: "settings",
       title: "Settings",
       icon: Settings,
