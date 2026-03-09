@@ -34,6 +34,7 @@ import DriverLiveTracking from "./DriverLiveTracking";
 import DriverJobMatching from "./DriverJobMatching";
 import DriverRideRequests from "./DriverRideRequests";
 import DriverRideHistory from "./DriverRideHistory";
+import DriverRideAnalytics from "./DriverRideAnalytics";
 import {
   LayoutDashboard,
   Truck,
