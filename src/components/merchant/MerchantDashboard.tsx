@@ -43,6 +43,7 @@ import VendorSubscriptionPayments from "./dashboard/VendorSubscriptionPayments";
 import VendorApiAccess from "./dashboard/VendorApiAccess";
 import VendorCustomDomain from "./dashboard/VendorCustomDomain";
 import MerchantLeases from "./dashboard/MerchantLeases";
+import MerchantRideAnalytics from "./dashboard/MerchantRideAnalytics";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
