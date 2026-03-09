@@ -32,11 +32,13 @@ const MerchantRideAnalytics: React.FC = () => {
     setLoading(true);
 
     // Get vendor's store to find delivery jobs
-    const { data: vendor } = await supabase
+    const { data: vendorRow } = await supabase
       .from("vendors")
       .select("id")
       .eq("user_id", user.id)
       .maybeSingle();
+
+    const vendor = vendorRow as any;
 
     if (!vendor) {
       setLoading(false);
