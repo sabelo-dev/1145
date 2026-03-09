@@ -111,6 +111,7 @@ const AdminDashboard = () => {
     { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "drivers", title: "Driver Management", icon: Truck },
     { id: "rides", title: "Ride Monitoring", icon: Car },
+    { id: "ride-analytics", title: "Ride Analytics", icon: TrendingUp },
     { id: "leases", title: "Lease Management", icon: FileText },
     { id: "asset-lifecycle", title: "Asset Lifecycle", icon: Package },
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
