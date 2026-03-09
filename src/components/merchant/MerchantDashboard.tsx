@@ -404,6 +404,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <TabsContent value="leasing" className="mt-0">
               <MerchantLeases />
             </TabsContent>
+            <TabsContent value="delivery-analytics" className="mt-0">
+              <MerchantRideAnalytics />
+            </TabsContent>
           </Tabs>
         </main>
       </SidebarInset>

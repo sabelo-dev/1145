@@ -312,6 +312,9 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
             <TabsContent value="ride-history" className="mt-0">
               <DriverRideHistory driver={driver} />
             </TabsContent>
+            <TabsContent value="ride-analytics" className="mt-0">
+              <DriverRideAnalytics driver={driver} />
+            </TabsContent>
             <TabsContent value="smart-matching" className="mt-0">
               <DriverJobMatching driver={driver} onJobClaimed={fetchDriverInfo} />
             </TabsContent>
