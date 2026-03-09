@@ -47,12 +47,13 @@ const MerchantRideAnalytics: React.FC = () => {
       .from("delivery_jobs")
       .select("*")
       .eq("vendor_id", vendor.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .returns<any[]>();
 
     if (deliveryJobs) {
       setJobs(deliveryJobs);
-      const completed = deliveryJobs.filter((j) => j.status === "delivered");
-      const totalCost = deliveryJobs.reduce((s, j) => s + (j.delivery_fee || 0), 0);
+      const completed = deliveryJobs.filter((j: any) => j.status === "delivered");
+      const totalCost = deliveryJobs.reduce((s: number, j: any) => s + (j.earnings || 0), 0);
 
       setStats({
         totalDeliveries: deliveryJobs.length,
