@@ -29,6 +29,7 @@ import {
   LayoutDashboard,
   Settings,
   Pickaxe,
+  Car,
 } from "lucide-react";
 
 // Import dashboard components
