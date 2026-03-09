@@ -45,12 +45,11 @@ const MerchantRideAnalytics: React.FC = () => {
       return;
     }
 
-    const { data: deliveryJobs } = await supabase
+    const { data: rawJobs } = await supabase
       .from("delivery_jobs")
       .select("*")
       .eq("vendor_id", vendor.id)
-      .order("created_at", { ascending: false })
-      .returns<any[]>();
+      .order("created_at", { ascending: false }) as { data: any[] | null };
 
     if (deliveryJobs) {
       setJobs(deliveryJobs);
