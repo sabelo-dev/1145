@@ -140,6 +140,7 @@ const VendorDashboard = () => {
     { id: "custom-domain", title: "Custom Domain", icon: Globe },
     { id: "messages", title: "Messages", icon: MessageSquare },
     { id: "leasing", title: "Leasing", icon: Package },
+    { id: "delivery-analytics", title: "Delivery Analytics", icon: Truck },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
