@@ -45,6 +45,7 @@ import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import AdminInbox from "@/components/admin/AdminInbox";
 import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
 import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
+import AdminRideAnalytics from "@/components/admin/AdminRideAnalytics";
 import AdminLeases from "@/components/admin/AdminLeases";
 import AdminAssetLifecycle from "@/components/admin/AdminAssetLifecycle";
 import AdminLeaseAnalytics from "@/components/admin/AdminLeaseAnalytics";
@@ -110,6 +111,7 @@ const AdminDashboard = () => {
     { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "drivers", title: "Driver Management", icon: Truck },
     { id: "rides", title: "Ride Monitoring", icon: Car },
+    { id: "ride-analytics", title: "Ride Analytics", icon: TrendingUp },
     { id: "leases", title: "Lease Management", icon: FileText },
     { id: "asset-lifecycle", title: "Asset Lifecycle", icon: Package },
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
@@ -302,6 +304,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="rides" className="mt-0">
               <AdminRideMonitoring />
+            </TabsContent>
+            <TabsContent value="ride-analytics" className="mt-0">
+              <AdminRideAnalytics />
             </TabsContent>
             <TabsContent value="leases" className="mt-0">
               <AdminLeases />

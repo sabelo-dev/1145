@@ -34,6 +34,7 @@ import DriverLiveTracking from "./DriverLiveTracking";
 import DriverJobMatching from "./DriverJobMatching";
 import DriverRideRequests from "./DriverRideRequests";
 import DriverRideHistory from "./DriverRideHistory";
+import DriverRideAnalytics from "./DriverRideAnalytics";
 import {
   LayoutDashboard,
   Truck,
@@ -49,6 +50,7 @@ import {
   Coins,
   Car,
   History,
+  PieChart,
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 
@@ -147,6 +149,7 @@ const DriverDashboard: React.FC = () => {
     { id: "overview", title: "Overview", icon: LayoutDashboard },
     { id: "ride-requests", title: "Ride Requests", icon: Car },
     { id: "ride-history", title: "Ride History", icon: History },
+    { id: "ride-analytics", title: "Ride Analytics", icon: PieChart },
     { id: "smart-matching", title: "Smart Matching", icon: Target },
     { id: "available-jobs", title: "Available Jobs", icon: MapPin },
     { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
@@ -308,6 +311,9 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="ride-history" className="mt-0">
               <DriverRideHistory driver={driver} />
+            </TabsContent>
+            <TabsContent value="ride-analytics" className="mt-0">
+              <DriverRideAnalytics driver={driver} />
             </TabsContent>
             <TabsContent value="smart-matching" className="mt-0">
               <DriverJobMatching driver={driver} onJobClaimed={fetchDriverInfo} />

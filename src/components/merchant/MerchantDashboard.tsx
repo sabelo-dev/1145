@@ -43,6 +43,7 @@ import VendorSubscriptionPayments from "./dashboard/VendorSubscriptionPayments";
 import VendorApiAccess from "./dashboard/VendorApiAccess";
 import VendorCustomDomain from "./dashboard/VendorCustomDomain";
 import MerchantLeases from "./dashboard/MerchantLeases";
+import MerchantRideAnalytics from "./dashboard/MerchantRideAnalytics";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
@@ -56,6 +57,7 @@ import {
   MessageSquare,
   Settings, 
   Headphones,
+  Truck,
   LogOut,
   User,
   Gavel,
@@ -138,6 +140,7 @@ const VendorDashboard = () => {
     { id: "custom-domain", title: "Custom Domain", icon: Globe },
     { id: "messages", title: "Messages", icon: MessageSquare },
     { id: "leasing", title: "Leasing", icon: Package },
+    { id: "delivery-analytics", title: "Delivery Analytics", icon: Truck },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
@@ -400,6 +403,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="leasing" className="mt-0">
               <MerchantLeases />
+            </TabsContent>
+            <TabsContent value="delivery-analytics" className="mt-0">
+              <MerchantRideAnalytics />
             </TabsContent>
           </Tabs>
         </main>

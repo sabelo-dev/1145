@@ -29,6 +29,7 @@ import {
   LayoutDashboard,
   Settings,
   Pickaxe,
+  Car,
 } from "lucide-react";
 
 // Import dashboard components
@@ -46,6 +47,7 @@ import ConsumerAuctionWatchlist from "@/components/consumer/dashboard/ConsumerAu
 import ConsumerSettings from "@/components/consumer/dashboard/ConsumerSettings";
 import { SocialMiningDashboard } from "@/components/mining/SocialMiningDashboard";
 import ConsumerLeases from "@/components/consumer/dashboard/ConsumerLeases";
+import ConsumerRides from "@/components/consumer/dashboard/ConsumerRides";
 
 // Map URL tab params to module IDs
 const tabToModuleMap: Record<string, string> = {
@@ -62,6 +64,7 @@ const tabToModuleMap: Record<string, string> = {
   settings: "settings",
   "auction-watchlist": "auction-watchlist",
   leases: "leases",
+  rides: "rides",
 };
 
 const ConsumerDashboard: React.FC = () => {
@@ -172,6 +175,12 @@ const ConsumerDashboard: React.FC = () => {
       description: "View active leases, payment schedules, and contracts"
     },
     {
+      id: "rides",
+      title: "My Rides",
+      icon: Car,
+      description: "Request rides and view ride history"
+    },
+    {
       id: "settings",
       title: "Settings",
       icon: Settings,
@@ -207,6 +216,8 @@ const ConsumerDashboard: React.FC = () => {
         return <SocialMiningDashboard />;
       case "leases":
         return <ConsumerLeases />;
+      case "rides":
+        return <ConsumerRides />;
       case "notifications":
         return <ConsumerNotifications />;
       case "support":
