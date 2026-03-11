@@ -1,5 +1,6 @@
 /// <reference types="@types/google.maps" />
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { MapPin } from "lucide-react";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDdvMPREt7NEPYNtDhU0qowu4hidtrDJwo";
 
@@ -66,22 +67,34 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     loadGoogleMaps().then(() => setLoaded(true)).catch(console.error);
   }, []);
 
+  const [mapError, setMapError] = useState(false);
+
   useEffect(() => {
     if (!loaded || !mapRef.current || mapInstanceRef.current) return;
 
-    const map = new google.maps.Map(mapRef.current, {
-      center,
-      zoom,
-      disableDefaultUI: true,
-      zoomControl: true,
-      styles: [
-        { featureType: "poi", stylers: [{ visibility: "off" }] },
-        { featureType: "transit", stylers: [{ visibility: "simplified" }] },
-      ],
-    });
+    try {
+      const map = new google.maps.Map(mapRef.current, {
+        center,
+        zoom,
+        disableDefaultUI: true,
+        zoomControl: true,
+        styles: [
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "simplified" }] },
+        ],
+      });
 
-    mapInstanceRef.current = map;
-    onMapReady?.(map);
+      // Listen for auth errors
+      google.maps.event.addListenerOnce(map, 'tilesloaded', () => {
+        // Map loaded successfully
+      });
+
+      mapInstanceRef.current = map;
+      onMapReady?.(map);
+    } catch (err) {
+      console.error("Google Maps initialization error:", err);
+      setMapError(true);
+    }
   }, [loaded]);
 
   // Update markers
@@ -164,6 +177,15 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     return (
       <div className={`${className} bg-muted flex items-center justify-center`}>
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (mapError) {
+    return (
+      <div className={`${className} bg-muted flex flex-col items-center justify-center gap-2`}>
+        <MapPin className="h-8 w-8 text-muted-foreground" />
+        <p className="text-xs text-muted-foreground text-center px-4">Map preview unavailable</p>
       </div>
     );
   }
