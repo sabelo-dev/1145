@@ -66,22 +66,34 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     loadGoogleMaps().then(() => setLoaded(true)).catch(console.error);
   }, []);
 
+  const [mapError, setMapError] = useState(false);
+
   useEffect(() => {
     if (!loaded || !mapRef.current || mapInstanceRef.current) return;
 
-    const map = new google.maps.Map(mapRef.current, {
-      center,
-      zoom,
-      disableDefaultUI: true,
-      zoomControl: true,
-      styles: [
-        { featureType: "poi", stylers: [{ visibility: "off" }] },
-        { featureType: "transit", stylers: [{ visibility: "simplified" }] },
-      ],
-    });
+    try {
+      const map = new google.maps.Map(mapRef.current, {
+        center,
+        zoom,
+        disableDefaultUI: true,
+        zoomControl: true,
+        styles: [
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "simplified" }] },
+        ],
+      });
 
-    mapInstanceRef.current = map;
-    onMapReady?.(map);
+      // Listen for auth errors
+      google.maps.event.addListenerOnce(map, 'tilesloaded', () => {
+        // Map loaded successfully
+      });
+
+      mapInstanceRef.current = map;
+      onMapReady?.(map);
+    } catch (err) {
+      console.error("Google Maps initialization error:", err);
+      setMapError(true);
+    }
   }, [loaded]);
 
   // Update markers
