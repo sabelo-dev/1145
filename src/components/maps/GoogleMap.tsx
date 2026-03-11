@@ -180,6 +180,15 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     );
   }
 
+  if (mapError) {
+    return (
+      <div className={`${className} bg-muted flex flex-col items-center justify-center gap-2`}>
+        <MapPin className="h-8 w-8 text-muted-foreground" />
+        <p className="text-xs text-muted-foreground text-center px-4">Map preview unavailable</p>
+      </div>
+    );
+  }
+
   return <div ref={mapRef} className={className} />;
 };
 
