@@ -44,6 +44,7 @@ const productSchema = z.object({
   category: z.string().min(1, "Category is required"),
   subcategories: z.array(z.string()).optional(),
   productType: z.enum(['simple', 'variable', 'downloadable']),
+  listingType: z.enum(['sale', 'lease', 'both', 'lease_to_own']).default('sale'),
 });
 
 const variationSchema = z.object({
