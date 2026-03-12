@@ -23,13 +23,22 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    loadGoogleMaps().then(() => setReady(true)).catch(console.error);
+    loadGoogleMaps()
+      .then(() => {
+        setReady(true);
+        setLoadError(false);
+      })
+      .catch((error) => {
+        console.error("Google Places loading error:", error);
+        setLoadError(true);
+      });
   }, []);
 
   useEffect(() => {
-    if (!ready || !inputRef.current || autocompleteRef.current) return;
+    if (!ready || loadError || !inputRef.current || autocompleteRef.current) return;
 
     const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
       componentRestrictions: { country: "za" },
@@ -50,22 +59,22 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
     });
 
     autocompleteRef.current = autocomplete;
-  }, [ready]);
+  }, [ready, loadError, onChange, onPlaceSelect]);
 
   return (
     <div className={`relative ${className}`}>
-      {icon && (
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
-          {icon}
-        </div>
-      )}
+      {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">{icon}</div>}
       <Input
         ref={inputRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className={icon ? "pl-10" : ""}
+        autoComplete="off"
       />
+      {loadError && (
+        <p className="mt-1 text-xs text-muted-foreground">Autocomplete unavailable, enter address manually.</p>
+      )}
     </div>
   );
 };
