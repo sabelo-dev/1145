@@ -401,55 +401,84 @@ const ProductPage: React.FC = () => {
 
             {/* Actions */}
             <div className="flex flex-col space-y-4 mt-6">
-              {/* Quantity Selector */}
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700">Quantity:</span>
-                <div className="flex items-center">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-r-none"
-                    onClick={decrementQuantity}
-                    disabled={quantity <= 1}
-                  >
-                    -
-                  </Button>
-                  <div className="h-8 w-12 flex items-center justify-center border-y">
-                    {quantity}
+              {/* Lease Option */}
+              {product.listingType && product.listingType !== 'sale' && (
+                <ProductLeaseOption
+                  productId={product.id}
+                  productName={product.name}
+                  listingType={product.listingType}
+                  salePrice={currentPrice}
+                />
+              )}
+
+              {/* Purchase option - show if listing is 'sale' or 'both' */}
+              {(!product.listingType || product.listingType === 'sale' || product.listingType === 'both') && (
+                <>
+                  {/* Quantity Selector */}
+                  <div className="flex items-center space-x-4">
+                    <span className="text-gray-700">Quantity:</span>
+                    <div className="flex items-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-r-none"
+                        onClick={decrementQuantity}
+                        disabled={quantity <= 1}
+                      >
+                        -
+                      </Button>
+                      <div className="h-8 w-12 flex items-center justify-center border-y">
+                        {quantity}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-l-none"
+                        onClick={incrementQuantity}
+                      >
+                        +
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    type="button"
+
+                  {/* Add to Cart & Wishlist */}
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={handleAddToCart}
+                      className="flex-1 bg-wwe-navy hover:bg-wwe-navy/90"
+                      disabled={!isInStock}
+                    >
+                      {isInStock ? "Add to Cart" : "Out of Stock"}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => toggleWishlist(product.id)}
+                      className={isInWishlist(product.id) ? "text-red-500" : ""}
+                    >
+                      <Heart 
+                        className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-current" : ""}`} 
+                      />
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Lease-only products - just wishlist */}
+              {product.listingType === 'lease' && (
+                <div className="flex space-x-3">
+                  <Button 
                     variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-l-none"
-                    onClick={incrementQuantity}
+                    onClick={() => toggleWishlist(product.id)}
+                    className={`flex-1 ${isInWishlist(product.id) ? "text-red-500" : ""}`}
                   >
-                    +
+                    <Heart className={`h-5 w-5 mr-2 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
+                    {isInWishlist(product.id) ? "Saved" : "Save to Wishlist"}
                   </Button>
                 </div>
-              </div>
-
-              {/* Add to Cart & Wishlist */}
-              <div className="flex space-x-3">
-                <Button
-                  onClick={handleAddToCart}
-                  className="flex-1 bg-wwe-navy hover:bg-wwe-navy/90"
-                  disabled={!isInStock}
-                >
-                  {isInStock ? "Add to Cart" : "Out of Stock"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => toggleWishlist(product.id)}
-                  className={isInWishlist(product.id) ? "text-red-500" : ""}
-                >
-                  <Heart 
-                    className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-current" : ""}`} 
-                  />
-                </Button>
-              </div>
+              )}
             </div>
 
             {/* Shipping & Returns */}
