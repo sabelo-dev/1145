@@ -1054,7 +1054,85 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </SelectContent>
             </Select>
             {errors.productType && <p className="text-sm text-destructive">{errors.productType}</p>}
+
+            {/* Listing Type */}
+            <div className="mt-4 space-y-2">
+              <Label className="text-base font-semibold">Listing Type</Label>
+              <Select value={formData.listingType || 'sale'} onValueChange={(v: any) => handleInputChange("listingType", v)}>
+                <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-[9999]">
+                  <SelectItem value="sale">For Sale Only</SelectItem>
+                  <SelectItem value="lease">For Lease Only</SelectItem>
+                  <SelectItem value="both">Both (Sale & Lease)</SelectItem>
+                  <SelectItem value="lease_to_own">Lease-to-Own</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {/* Lease Parameters - show when lease is enabled */}
+          {formData.listingType && formData.listingType !== 'sale' && (
+            <div className="space-y-4 border-2 border-primary/20 rounded-lg p-4 bg-primary/5">
+              <Label className="text-base font-semibold">Lease Parameters</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Monthly Lease Price (R) *</Label>
+                  <Input type="number" min={0} step="0.01" value={leaseParams.leasePriceMonthly || ""} onChange={e => setLeaseParams(p => ({ ...p, leasePriceMonthly: Number(e.target.value) }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Security Deposit (R) *</Label>
+                  <Input type="number" min={0} step="0.01" value={leaseParams.securityDeposit || ""} onChange={e => setLeaseParams(p => ({ ...p, securityDeposit: Number(e.target.value) }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Min Duration (months)</Label>
+                  <Input type="number" min={1} value={leaseParams.minDuration} onChange={e => setLeaseParams(p => ({ ...p, minDuration: Number(e.target.value) }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Duration (months)</Label>
+                  <Input type="number" min={1} value={leaseParams.maxDuration} onChange={e => setLeaseParams(p => ({ ...p, maxDuration: Number(e.target.value) }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Maintenance Responsibility</Label>
+                  <Select value={leaseParams.maintenanceResponsibility} onValueChange={v => setLeaseParams(p => ({ ...p, maintenanceResponsibility: v }))}>
+                    <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-[9999]">
+                      <SelectItem value="owner">Asset Owner</SelectItem>
+                      <SelectItem value="lessee">Lessee</SelectItem>
+                      <SelectItem value="shared">Shared</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={leaseParams.insuranceRequired} onCheckedChange={c => setLeaseParams(p => ({ ...p, insuranceRequired: !!c }))} id="insReq" />
+                  <label htmlFor="insReq" className="text-sm">Insurance Required</label>
+                </div>
+                {leaseParams.insuranceRequired && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Insurance Cost (R/mo)</Label>
+                    <Input type="number" min={0} className="w-32 h-8" value={leaseParams.insuranceMonthlyCost || ""} onChange={e => setLeaseParams(p => ({ ...p, insuranceMonthlyCost: Number(e.target.value) }))} />
+                  </div>
+                )}
+              </div>
+              {(formData.listingType === 'lease_to_own' || leaseParams.leaseToOwn) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
+                  <div className="space-y-2">
+                    <Label>Ownership Price (R)</Label>
+                    <Input type="number" min={0} value={leaseParams.leaseToOwnPrice || ""} onChange={e => setLeaseParams(p => ({ ...p, leaseToOwnPrice: Number(e.target.value) }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Months to Own</Label>
+                    <Input type="number" min={1} value={leaseParams.leaseToOwnMonths} onChange={e => setLeaseParams(p => ({ ...p, leaseToOwnMonths: Number(e.target.value) }))} />
+                  </div>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label>Terms & Conditions</Label>
+                <Textarea value={leaseParams.termsAndConditions} onChange={e => setLeaseParams(p => ({ ...p, termsAndConditions: e.target.value }))} placeholder="Lease terms, penalties, return conditions..." rows={3} />
+              </div>
+            </div>
+          )}
 
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
