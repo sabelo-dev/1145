@@ -30,6 +30,8 @@ export interface ProductVariation {
   imageUrl?: string;
 }
 
+export type ListingType = 'sale' | 'lease' | 'both' | 'lease_to_own';
+
 export interface Product {
   id: string;
   name: string;
@@ -49,6 +51,8 @@ export interface Product {
   createdAt: string;
   variations?: ProductVariation[];
   productType?: string;
+  listingType?: ListingType;
+  leaseAssetId?: string;
 }
 
 export interface Category {

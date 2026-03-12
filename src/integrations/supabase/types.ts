@@ -2702,6 +2702,7 @@ export type Database = {
         Row: {
           application_id: string | null
           asset_id: string
+          auto_pay_enabled: boolean | null
           contract_document_url: string | null
           contract_number: string
           created_at: string
@@ -2709,9 +2710,16 @@ export type Database = {
           e_signature_url: string | null
           end_date: string
           id: string
+          insurance_active: boolean | null
+          insurance_monthly_cost: number | null
+          insurance_provider: string | null
+          is_lease_to_own: boolean | null
           late_payments: number | null
           monthly_payment: number
           next_payment_date: string | null
+          ownership_transfer_amount: number | null
+          ownership_transferred: boolean | null
+          payment_method_id: string | null
           payments_made: number | null
           payments_remaining: number | null
           renewal_count: number | null
@@ -2729,6 +2737,7 @@ export type Database = {
         Insert: {
           application_id?: string | null
           asset_id: string
+          auto_pay_enabled?: boolean | null
           contract_document_url?: string | null
           contract_number: string
           created_at?: string
@@ -2736,9 +2745,16 @@ export type Database = {
           e_signature_url?: string | null
           end_date: string
           id?: string
+          insurance_active?: boolean | null
+          insurance_monthly_cost?: number | null
+          insurance_provider?: string | null
+          is_lease_to_own?: boolean | null
           late_payments?: number | null
           monthly_payment: number
           next_payment_date?: string | null
+          ownership_transfer_amount?: number | null
+          ownership_transferred?: boolean | null
+          payment_method_id?: string | null
           payments_made?: number | null
           payments_remaining?: number | null
           renewal_count?: number | null
@@ -2756,6 +2772,7 @@ export type Database = {
         Update: {
           application_id?: string | null
           asset_id?: string
+          auto_pay_enabled?: boolean | null
           contract_document_url?: string | null
           contract_number?: string
           created_at?: string
@@ -2763,9 +2780,16 @@ export type Database = {
           e_signature_url?: string | null
           end_date?: string
           id?: string
+          insurance_active?: boolean | null
+          insurance_monthly_cost?: number | null
+          insurance_provider?: string | null
+          is_lease_to_own?: boolean | null
           late_payments?: number | null
           monthly_payment?: number
           next_payment_date?: string | null
+          ownership_transfer_amount?: number | null
+          ownership_transferred?: boolean | null
+          payment_method_id?: string | null
           payments_made?: number | null
           payments_remaining?: number | null
           renewal_count?: number | null
@@ -2793,6 +2817,65 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "leaseable_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lease_insurance: {
+        Row: {
+          claim_count: number | null
+          contract_id: string
+          coverage_amount: number
+          coverage_type: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          monthly_premium: number
+          policy_number: string | null
+          provider: string
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claim_count?: number | null
+          contract_id: string
+          coverage_amount?: number
+          coverage_type?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_premium?: number
+          policy_number?: string | null
+          provider: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claim_count?: number | null
+          contract_id?: string
+          coverage_amount?: number
+          coverage_type?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_premium?: number
+          policy_number?: string | null
+          provider?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_insurance_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "lease_contracts"
             referencedColumns: ["id"]
           },
         ]
@@ -2855,17 +2938,25 @@ export type Database = {
       }
       leaseable_assets: {
         Row: {
+          accumulated_payments: number | null
           category: string
           condition: string | null
           created_at: string
           description: string | null
           id: string
           images: string[] | null
+          insurance_monthly_cost: number | null
+          insurance_provider: string | null
+          insurance_required: boolean | null
           is_available: boolean | null
           is_purchasable: boolean | null
           lease_price_monthly: number
           lease_price_weekly: number | null
+          lease_to_own: boolean | null
+          lease_to_own_months: number | null
+          lease_to_own_price: number | null
           maintenance_requirements: string | null
+          maintenance_responsibility: string | null
           max_lease_duration_months: number | null
           min_lease_duration_months: number | null
           product_id: string | null
@@ -2879,17 +2970,25 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accumulated_payments?: number | null
           category?: string
           condition?: string | null
           created_at?: string
           description?: string | null
           id?: string
           images?: string[] | null
+          insurance_monthly_cost?: number | null
+          insurance_provider?: string | null
+          insurance_required?: boolean | null
           is_available?: boolean | null
           is_purchasable?: boolean | null
           lease_price_monthly?: number
           lease_price_weekly?: number | null
+          lease_to_own?: boolean | null
+          lease_to_own_months?: number | null
+          lease_to_own_price?: number | null
           maintenance_requirements?: string | null
+          maintenance_responsibility?: string | null
           max_lease_duration_months?: number | null
           min_lease_duration_months?: number | null
           product_id?: string | null
@@ -2903,17 +3002,25 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accumulated_payments?: number | null
           category?: string
           condition?: string | null
           created_at?: string
           description?: string | null
           id?: string
           images?: string[] | null
+          insurance_monthly_cost?: number | null
+          insurance_provider?: string | null
+          insurance_required?: boolean | null
           is_available?: boolean | null
           is_purchasable?: boolean | null
           lease_price_monthly?: number
           lease_price_weekly?: number | null
+          lease_to_own?: boolean | null
+          lease_to_own_months?: number | null
+          lease_to_own_price?: number | null
           maintenance_requirements?: string | null
+          maintenance_responsibility?: string | null
           max_lease_duration_months?: number | null
           min_lease_duration_months?: number | null
           product_id?: string | null
@@ -3815,6 +3922,7 @@ export type Database = {
           external_id: string | null
           external_source: string | null
           id: string
+          listing_type: string
           name: string
           price: number
           price_currency: string | null
@@ -3840,6 +3948,7 @@ export type Database = {
           external_id?: string | null
           external_source?: string | null
           id?: string
+          listing_type?: string
           name: string
           price: number
           price_currency?: string | null
@@ -3865,6 +3974,7 @@ export type Database = {
           external_id?: string | null
           external_source?: string | null
           id?: string
+          listing_type?: string
           name?: string
           price?: number
           price_currency?: string | null
