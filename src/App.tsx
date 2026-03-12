@@ -160,6 +160,11 @@ function AppRouter() {
           <Route path="returns" element={<ReturnsPage />} />
           <Route path="terms" element={<TermsPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="lease/apply/:assetId" element={
+            <ProtectedRoute requireAuth>
+              <LeaseApplyPage />
+            </ProtectedRoute>
+          } />
         </Route>
         
         <Route path="services" element={<ServiceHubPage />} />
