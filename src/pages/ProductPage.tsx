@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { Star, Truck, ShieldCheck, Heart, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import ProductLeaseOption from "@/components/leasing/ProductLeaseOption";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
