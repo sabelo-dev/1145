@@ -907,6 +907,30 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
         if (productError) throw productError;
 
+        // Create leaseable asset if listing type includes lease
+        if (['lease', 'both', 'lease_to_own'].includes(validatedData.listingType || 'sale')) {
+          await supabase.from('leaseable_assets').insert({
+            product_id: newProduct.id,
+            title: validatedData.name,
+            description: validatedData.description,
+            category: validatedData.category,
+            lease_price_monthly: leaseParams.leasePriceMonthly,
+            security_deposit: leaseParams.securityDeposit,
+            min_lease_duration_months: leaseParams.minDuration,
+            max_lease_duration_months: leaseParams.maxDuration,
+            insurance_required: leaseParams.insuranceRequired,
+            insurance_monthly_cost: leaseParams.insuranceMonthlyCost,
+            lease_to_own: validatedData.listingType === 'lease_to_own' || leaseParams.leaseToOwn,
+            lease_to_own_price: leaseParams.leaseToOwnPrice,
+            lease_to_own_months: leaseParams.leaseToOwnMonths,
+            maintenance_responsibility: leaseParams.maintenanceResponsibility,
+            terms_and_conditions: leaseParams.termsAndConditions,
+            purchase_price: validatedData.price,
+            is_purchasable: validatedData.listingType === 'both',
+            provider_id: vendorData.id,
+          });
+        }
+
         // Upload images, save variations, and handle downloadable files
         const tasks = [uploadImages(newProduct.id)];
         
