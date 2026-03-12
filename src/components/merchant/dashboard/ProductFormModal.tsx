@@ -899,6 +899,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             category: validatedData.category,
             subcategory: validatedData.subcategories?.join(', ') || null,
             product_type: validatedData.productType,
+            listing_type: validatedData.listingType || 'sale',
             status: 'pending'
           })
           .select()
