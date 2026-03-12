@@ -163,6 +163,20 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     category: "",
     subcategories: [],
     productType: 'simple',
+    listingType: 'sale',
+  });
+  const [leaseParams, setLeaseParams] = useState({
+    leasePriceMonthly: 0,
+    securityDeposit: 0,
+    minDuration: 1,
+    maxDuration: 24,
+    insuranceRequired: false,
+    insuranceMonthlyCost: 0,
+    leaseToOwn: false,
+    leaseToOwnPrice: 0,
+    leaseToOwnMonths: 12,
+    maintenanceResponsibility: 'owner',
+    termsAndConditions: '',
   });
   
   const [variations, setVariations] = useState<ProductVariation[]>([]);
