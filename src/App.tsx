@@ -84,6 +84,7 @@ const RideTrackingPage = lazy(() => import("@/pages/rides/RideTrackingPage"));
 const RideHistoryPage = lazy(() => import("@/pages/rides/RideHistoryPage"));
 const WalletPage = lazy(() => import("@/pages/wallet/WalletPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
+const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
