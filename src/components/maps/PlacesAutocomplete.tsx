@@ -1,6 +1,5 @@
 /// <reference types="@types/google.maps" />
 import React, { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
 import { loadGoogleMaps } from "./GoogleMap";
 
 interface PlacesAutocompleteProps {
@@ -20,8 +19,8 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   className = "",
   icon,
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const elementRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
@@ -38,43 +37,65 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!ready || loadError || !inputRef.current || autocompleteRef.current) return;
+    if (!ready || loadError || !containerRef.current || elementRef.current) return;
 
-    const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-      componentRestrictions: { country: "za" },
-      fields: ["formatted_address", "geometry"],
-    });
+    try {
+      const autocomplete = new google.maps.places.PlaceAutocompleteElement({
+        componentRestrictions: { country: "za" },
+      });
 
-    autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
-      if (place.geometry?.location) {
-        const address = place.formatted_address || "";
-        onChange(address);
-        onPlaceSelect({
-          address,
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng(),
-        });
-      }
-    });
+      // Style the element to match our design
+      autocomplete.style.width = "100%";
+      autocomplete.style.height = "40px";
+      autocomplete.style.fontSize = "14px";
 
-    autocompleteRef.current = autocomplete;
+      autocomplete.addEventListener("gmp-placeselect", async (event: any) => {
+        const place = event.place;
+        if (place) {
+          await place.fetchFields({ fields: ["displayName", "formattedAddress", "location"] });
+          const address = place.formattedAddress || "";
+          const location = place.location;
+          onChange(address);
+          if (location) {
+            onPlaceSelect({
+              address,
+              lat: location.lat(),
+              lng: location.lng(),
+            });
+          }
+        }
+      });
+
+      containerRef.current.appendChild(autocomplete);
+      elementRef.current = autocomplete;
+    } catch {
+      // Fallback: PlaceAutocompleteElement not available, try legacy Autocomplete
+      console.warn("PlaceAutocompleteElement not available, falling back to legacy input");
+      setLoadError(true);
+    }
   }, [ready, loadError, onChange, onPlaceSelect]);
+
+  if (loadError) {
+    return (
+      <div className={`relative ${className}`}>
+        {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">{icon}</div>}
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${icon ? "pl-10" : ""}`}
+          autoComplete="off"
+        />
+        <p className="mt-1 text-xs text-muted-foreground">Autocomplete unavailable, enter address manually.</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative ${className}`}>
       {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">{icon}</div>}
-      <Input
-        ref={inputRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={icon ? "pl-10" : ""}
-        autoComplete="off"
-      />
-      {loadError && (
-        <p className="mt-1 text-xs text-muted-foreground">Autocomplete unavailable, enter address manually.</p>
-      )}
+      <div ref={containerRef} className={`w-full [&_input]:flex [&_input]:h-10 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-input [&_input]:bg-background [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:ring-offset-background [&_input]:placeholder:text-muted-foreground [&_input]:focus-visible:outline-none [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-ring [&_input]:focus-visible:ring-offset-2 ${icon ? "[&_input]:pl-10" : ""}`} />
     </div>
   );
 };
