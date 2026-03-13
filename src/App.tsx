@@ -84,6 +84,7 @@ const RideTrackingPage = lazy(() => import("@/pages/rides/RideTrackingPage"));
 const RideHistoryPage = lazy(() => import("@/pages/rides/RideHistoryPage"));
 const WalletPage = lazy(() => import("@/pages/wallet/WalletPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
+const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -159,6 +160,11 @@ function AppRouter() {
           <Route path="returns" element={<ReturnsPage />} />
           <Route path="terms" element={<TermsPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="lease/apply/:assetId" element={
+            <ProtectedRoute requireAuth>
+              <LeaseApplyPage />
+            </ProtectedRoute>
+          } />
         </Route>
         
         <Route path="services" element={<ServiceHubPage />} />

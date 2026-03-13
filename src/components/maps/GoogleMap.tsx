@@ -43,9 +43,28 @@ export function loadGoogleMaps(): Promise<void> {
       reject(new Error(message));
     };
 
+    const importLibraries = async () => {
+      try {
+        if (!window.google?.maps) {
+          fail("Google Maps loaded without the maps object");
+          return;
+        }
+        // Import required libraries so constructors become available
+        await Promise.all([
+          google.maps.importLibrary("maps"),
+          google.maps.importLibrary("places"),
+          google.maps.importLibrary("geometry"),
+          google.maps.importLibrary("routes"),
+        ]);
+        succeed();
+      } catch (e) {
+        fail("Failed to import Google Maps libraries");
+      }
+    };
+
     const validateGoogleMapsLoaded = () => {
       if (window.google?.maps) {
-        succeed();
+        importLibraries();
       } else {
         fail("Google Maps loaded without the maps object");
       }
@@ -79,7 +98,7 @@ export function loadGoogleMaps(): Promise<void> {
     script.id = GOOGLE_MAPS_SCRIPT_ID;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
       GOOGLE_MAPS_API_KEY
-    )}&libraries=${GOOGLE_MAPS_LIBRARIES}`;
+    )}&libraries=${GOOGLE_MAPS_LIBRARIES}&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = () => {
