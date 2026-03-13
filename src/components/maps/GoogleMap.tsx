@@ -156,7 +156,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const driverMarkerRef = useRef<google.maps.Marker | null>(null);
 
-  const [loaded, setLoaded] = useState(() => typeof window !== "undefined" && Boolean(window.google?.maps));
+  const [loaded, setLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
