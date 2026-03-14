@@ -45,20 +45,27 @@ export function loadGoogleMaps(): Promise<void> {
 
     const importLibraries = async () => {
       try {
-        if (!window.google?.maps) {
-          fail("Google Maps loaded without the maps object");
+        if (!window.google?.maps?.importLibrary) {
+          fail("Google Maps importLibrary API is unavailable");
           return;
         }
-        // Import required libraries so constructors become available
-        await Promise.all([
-          google.maps.importLibrary("maps"),
-          google.maps.importLibrary("places"),
-          google.maps.importLibrary("geometry"),
-          google.maps.importLibrary("routes"),
-        ]);
+
+        // Required by current app features
+        await google.maps.importLibrary("maps");
+        await google.maps.importLibrary("places");
+        await google.maps.importLibrary("geometry");
+
+        // Optional: routes is not required for current RideRequest flow
+        try {
+          await google.maps.importLibrary("routes");
+        } catch (routesError) {
+          console.warn("Google Maps routes library unavailable:", routesError);
+        }
+
         succeed();
-      } catch (e) {
-        fail("Failed to import Google Maps libraries");
+      } catch (error) {
+        const details = error instanceof Error ? `: ${error.message}` : "";
+        fail(`Failed to import Google Maps libraries${details}`);
       }
     };
 
