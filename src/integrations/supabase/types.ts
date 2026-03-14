@@ -2394,6 +2394,65 @@ export type Database = {
         }
         Relationships: []
       }
+      gold_trades: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          fiat_amount: number
+          fiat_currency: string
+          gold_mg: number
+          gold_price_per_mg_usd: number
+          gold_price_snapshot_id: string | null
+          id: string
+          platform_fee: number
+          spread_percent: number
+          status: string
+          trade_type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          fiat_amount: number
+          fiat_currency?: string
+          gold_mg: number
+          gold_price_per_mg_usd: number
+          gold_price_snapshot_id?: string | null
+          id?: string
+          platform_fee?: number
+          spread_percent?: number
+          status?: string
+          trade_type: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          fiat_amount?: number
+          fiat_currency?: string
+          gold_mg?: number
+          gold_price_per_mg_usd?: number
+          gold_price_snapshot_id?: string | null
+          id?: string
+          platform_fee?: number
+          spread_percent?: number
+          status?: string
+          trade_type?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gold_trades_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "platform_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_jobs: {
         Row: {
           completed_at: string | null
@@ -3793,10 +3852,13 @@ export type Database = {
         Row: {
           balance_zar: number
           created_at: string
+          gold_balance_mg: number
           id: string
           is_verified: boolean
           lifetime_deposited: number
           lifetime_earned: number
+          lifetime_gold_bought_mg: number
+          lifetime_gold_sold_mg: number
           lifetime_spent: number
           lifetime_withdrawn: number
           pending_balance_zar: number
@@ -3806,10 +3868,13 @@ export type Database = {
         Insert: {
           balance_zar?: number
           created_at?: string
+          gold_balance_mg?: number
           id?: string
           is_verified?: boolean
           lifetime_deposited?: number
           lifetime_earned?: number
+          lifetime_gold_bought_mg?: number
+          lifetime_gold_sold_mg?: number
           lifetime_spent?: number
           lifetime_withdrawn?: number
           pending_balance_zar?: number
@@ -3819,10 +3884,13 @@ export type Database = {
         Update: {
           balance_zar?: number
           created_at?: string
+          gold_balance_mg?: number
           id?: string
           is_verified?: boolean
           lifetime_deposited?: number
           lifetime_earned?: number
+          lifetime_gold_bought_mg?: number
+          lifetime_gold_sold_mg?: number
           lifetime_spent?: number
           lifetime_withdrawn?: number
           pending_balance_zar?: number
@@ -6646,6 +6714,7 @@ export type Database = {
       wallet_transactions: {
         Row: {
           amount: number
+          asset_type: string
           completed_at: string | null
           counterparty_id: string | null
           created_at: string
@@ -6664,6 +6733,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          asset_type?: string
           completed_at?: string | null
           counterparty_id?: string | null
           created_at?: string
@@ -6682,6 +6752,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          asset_type?: string
           completed_at?: string | null
           counterparty_id?: string | null
           created_at?: string
