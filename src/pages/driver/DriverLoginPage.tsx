@@ -4,7 +4,7 @@ import DriverLoginForm from "@/components/auth/DriverLoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 
 const DriverLoginPage: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isDriver, isAdmin } = useAuth();
 
   if (isLoading) {
     return (
@@ -18,7 +18,9 @@ const DriverLoginPage: React.FC = () => {
   }
 
   if (user) {
-    return <Navigate to="/driver/dashboard" replace />;
+    if (isDriver) return <Navigate to="/driver/dashboard" replace />;
+    if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
