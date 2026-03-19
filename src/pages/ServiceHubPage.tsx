@@ -46,6 +46,16 @@ const services = [
     route: "/wallet",
   },
   {
+    id: "lease",
+    name: "Lease",
+    description: "Lease electronics, vehicles, and equipment with flexible terms",
+    icon: KeyRound,
+    color: "from-teal-500 to-cyan-600",
+    textColor: "text-teal-600",
+    bgColor: "bg-teal-50",
+    route: "/shop?listing_type=lease",
+  },
+  {
     id: "business",
     name: "Business",
     description: "Tools for merchants and service providers",
