@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight } from "lucide-react";
+import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 
