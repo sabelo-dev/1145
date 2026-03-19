@@ -168,10 +168,26 @@ function AppRouter() {
         </Route>
         
         <Route path="services" element={<ServiceHubPage />} />
-        <Route path="rides" element={<RideHistoryPage />} />
-        <Route path="rides/request" element={<RideRequestPage />} />
-        <Route path="rides/track/:rideId" element={<RideTrackingPage />} />
-        <Route path="wallet" element={<WalletPage />} />
+        <Route path="rides" element={
+          <ProtectedRoute requireAuth>
+            <RideHistoryPage />
+          </ProtectedRoute>
+        } />
+        <Route path="rides/request" element={
+          <ProtectedRoute requireAuth>
+            <RideRequestPage />
+          </ProtectedRoute>
+        } />
+        <Route path="rides/track/:rideId" element={
+          <ProtectedRoute requireAuth>
+            <RideTrackingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="wallet" element={
+          <ProtectedRoute requireAuth>
+            <WalletPage />
+          </ProtectedRoute>
+        } />
         <Route path="track-order" element={<TrackOrderPage />} />
         
         <Route path="auth/confirm" element={<AuthConfirmPage />} />
