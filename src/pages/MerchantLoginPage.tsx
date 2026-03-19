@@ -4,7 +4,7 @@ import MerchantLoginForm from "@/components/auth/MerchantLoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 
 const MerchantLoginPage: React.FC = () => {
-  const { user, isLoading, isMerchant } = useAuth();
+  const { user, isLoading, isMerchant, isAdmin } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,12 +17,10 @@ const MerchantLoginPage: React.FC = () => {
     );
   }
 
-  if (user && (user.role === "vendor" || isMerchant)) {
-    return <Navigate to="/merchant/dashboard" replace />;
-  }
-
-  if (user && user.role !== "vendor" && !isMerchant) {
-    return <Navigate to="/" replace />;
+  if (user) {
+    if (isMerchant || user.role === "vendor") return <Navigate to="/merchant/dashboard" replace />;
+    if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
