@@ -82,10 +82,9 @@ const ServiceHubPage: React.FC = () => {
         <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
           <div className="flex items-center gap-3 mb-4">
             <img src="/logo.svg" alt="1145" className="h-12 w-12 rounded-xl" />
-            <span className="text-2xl font-bold tracking-tight">1145</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">
-            Your Super App
+            1145 Lifestyle
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-xl">
             Shop, Travel, Transact — everything you need in one place.
