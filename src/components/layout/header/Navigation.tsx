@@ -15,15 +15,6 @@ const Navigation: React.FC = () => {
       <NavigationMenuList className="space-x-6">
         <NavigationMenuItem>
           <Link
-            to="/services"
-            className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2 font-medium"
-          >
-            Services
-          </Link>
-        </NavigationMenuItem>
-
-        <NavigationMenuItem>
-          <Link
             to="/"
             className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2"
           >
@@ -88,6 +79,15 @@ const Navigation: React.FC = () => {
             className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2"
           >
             Deals
+          </Link>
+        </NavigationMenuItem>
+        
+        <NavigationMenuItem>
+          <Link
+            to="/services"
+            className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2 font-medium"
+          >
+            Services
           </Link>
         </NavigationMenuItem>
 

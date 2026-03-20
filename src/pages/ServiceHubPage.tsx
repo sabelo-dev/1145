@@ -17,7 +17,7 @@ const services = [
   },
   {
     id: "rides",
-    name: "Rides",
+    name: "Travel",
     description: "Request a ride to your destination",
     icon: Car,
     color: "from-purple-600 to-violet-700",
@@ -27,17 +27,17 @@ const services = [
   },
   {
     id: "delivery",
-    name: "Delivery",
+    name: "Drive",
     description: "Send and receive packages across the city",
     icon: Package,
     color: "from-pink-500 to-rose-600",
     textColor: "text-pink-600",
     bgColor: "bg-pink-50",
-    route: "/delivery",
+    route: "/driver/dashboard",
   },
   {
     id: "wallet",
-    name: "Wallet",
+    name: "Transact",
     description: "Manage your money, payments, and transfers",
     icon: Wallet,
     color: "from-amber-500 to-orange-600",
@@ -78,11 +78,11 @@ const ServiceHubPage: React.FC = () => {
             Your Super App
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-xl">
-            Shop, ride, deliver, pay — everything you need in one place.
+            Shop, Travel, Transact — everything you need in one place.
           </p>
           {user && (
             <p className="mt-4 text-white/60 text-sm">
-              Welcome back, {user.name || user.email}
+              Hi there, {user.name || user.email}
             </p>
           )}
         </div>

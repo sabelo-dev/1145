@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search, X, ShoppingCart, Menu } from "lucide-react";
+import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search, X, ShoppingCart, Menu,  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
@@ -16,11 +16,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import path from "path";
 
 const menuItems = [
   { label: "Home", path: "/", icon: Home },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
   { label: "Categories", path: "/categories", icon: Grid3X3 },
+  { label: "Services", path: "/services", icon: Truck },
   { label: "Best Sellers", path: "/best-sellers", icon: TrendingUp },
   { label: "Deals", path: "/deals", icon: Percent },
   { label: "Auctions", path: "/auctions", icon: Gavel },
@@ -77,7 +79,7 @@ const Header: React.FC = () => {
           <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
-              <img src="/logo.svg" alt="1145 Lifestyle" className="h-8 w-8 rounded-md" />
+              <img src="/logo.svg" alt="1145" className="h-8 w-8 rounded-md" />
             </Link>
 
             {/* Desktop Search Bar */}

@@ -34,6 +34,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   const mainMenuItems = [
     { label: "Home", path: "/", icon: Home },
     { label: "Shop", path: "/shop", icon: ShoppingBag },
+    { label: "Services", path: "/services", icon: Truck },
     { label: "Best Sellers", path: "/best-sellers", icon: TrendingUp },
     { label: "Deals", path: "/deals", icon: Percent },
     { label: "Auctions", path: "/auctions", icon: Gavel },
@@ -48,22 +49,22 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   return (
     <>
       {/* Dark overlay with backdrop blur */}
-      <div 
+      <div
         className={cn(
           "fixed inset-0 z-40 md:hidden transition-all duration-300 ease-out",
-          mobileMenuOpen 
-            ? "bg-black/40 backdrop-blur-sm opacity-100" 
+          mobileMenuOpen
+            ? "bg-black/40 backdrop-blur-sm opacity-100"
             : "bg-transparent backdrop-blur-none opacity-0 pointer-events-none"
         )}
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
-      
+
       {/* Menu content with slide animation */}
       <div className={cn(
         "md:hidden bg-white border-l border-border shadow-2xl fixed top-0 right-0 h-[100dvh] w-[80vw] max-w-[320px] z-50 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out",
-        mobileMenuOpen 
-          ? "translate-x-0 opacity-100" 
+        mobileMenuOpen
+          ? "translate-x-0 opacity-100"
           : "translate-x-full opacity-0"
       )}>
         {/* Header */}
@@ -126,7 +127,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               >
                 All Categories
               </Link>
-              
+
               <div>
                 <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clothing</p>
                 <div className="space-y-1">
@@ -135,7 +136,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                   <Link to="/category/clothing/kids" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Kids' Clothing</Link>
                 </div>
               </div>
-              
+
               <div>
                 <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Home</p>
                 <div className="space-y-1">
