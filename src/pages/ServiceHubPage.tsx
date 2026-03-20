@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight } from "lucide-react";
+import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -44,6 +44,16 @@ const services = [
     textColor: "text-amber-600",
     bgColor: "bg-amber-50",
     route: "/wallet",
+  },
+  {
+    id: "lease",
+    name: "Lease",
+    description: "Lease electronics, vehicles, and equipment with flexible terms",
+    icon: KeyRound,
+    color: "from-teal-500 to-cyan-600",
+    textColor: "text-teal-600",
+    bgColor: "bg-teal-50",
+    route: "/shop?listing_type=lease",
   },
   {
     id: "business",
