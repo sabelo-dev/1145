@@ -1,9 +1,7 @@
-//import LandingPage from "./LandingPage";
-import HomePage from "./HomePage";
+import ServiceHubPage from "./ServiceHubPage";
 
 const Index = () => {
-  //return <LandingPage />;
-  return <HomePage />;
+  return <ServiceHubPage />;
 };
 
 export default Index;
