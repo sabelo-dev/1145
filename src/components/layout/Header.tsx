@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import path from "path";
+
 
 const menuItems = [
   { label: "Home", path: "/", icon: Home },
