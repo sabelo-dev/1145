@@ -6,7 +6,6 @@ const GOOGLE_MAPS_API_KEY =
   (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() ||
   "AIzaSyDdvMPREt7NEPYNtDhU0qowu4hidtrDJwo";
 const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
-const GOOGLE_MAPS_LIBRARIES = "places,geometry";
 
 let googleMapsPromise: Promise<void> | null = null;
 let librariesImported = false;
@@ -17,12 +16,48 @@ declare global {
   }
 }
 
+type GoogleMapsLibrary = "maps" | "places" | "geometry" | "routes";
+
+const ensureGoogleMapsBootstrap = () => {
+  if (window.google?.maps?.importLibrary) return;
+
+  document
+    .querySelectorAll(`script[src*="maps.googleapis.com/maps/api/js"], script#${GOOGLE_MAPS_SCRIPT_ID}`)
+    .forEach((script) => script.remove());
+
+  const bootstrap = document.createElement("script");
+  bootstrap.id = GOOGLE_MAPS_SCRIPT_ID;
+  bootstrap.text = `(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise((f,n)=>{a=m.createElement("script");e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src="https://maps.googleapis.com/maps/api/js?"+e;d[q]=f;a.onerror=()=>n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:${JSON.stringify(
+    GOOGLE_MAPS_API_KEY
+  )},v:"weekly"});`;
+  document.head.appendChild(bootstrap);
+};
+
+const importGoogleMapsLibraries = async (libraries: GoogleMapsLibrary[]) => {
+  if (!window.google?.maps?.importLibrary) {
+    throw new Error("Google Maps importLibrary API is unavailable");
+  }
+
+  for (const library of libraries) {
+    if (library === "routes") {
+      try {
+        await window.google.maps.importLibrary(library);
+      } catch (routesError) {
+        console.warn("Google Maps routes library unavailable:", routesError);
+      }
+      continue;
+    }
+
+    await window.google.maps.importLibrary(library);
+  }
+};
+
 export function loadGoogleMaps(): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Google Maps can only be loaded in the browser"));
   }
 
-  if (window.google?.maps && librariesImported) return Promise.resolve();
+  if (window.google?.maps?.importLibrary && librariesImported) return Promise.resolve();
   if (!GOOGLE_MAPS_API_KEY) {
     return Promise.reject(new Error("Missing Google Maps API key"));
   }
@@ -40,42 +75,15 @@ export function loadGoogleMaps(): Promise<void> {
     const fail = (message: string) => {
       if (settled) return;
       settled = true;
+      librariesImported = false;
       googleMapsPromise = null;
       reject(new Error(message));
     };
 
-    const waitForImportLibrary = (): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        let attempts = 0;
-        const check = () => {
-          if (window.google?.maps?.importLibrary) {
-            resolve();
-          } else if (++attempts > 50) {
-            reject(new Error("importLibrary not available after waiting"));
-          } else {
-            setTimeout(check, 100);
-          }
-        };
-        check();
-      });
-    };
-
-    const importLibraries = async () => {
+    const loadLibraries = async () => {
       try {
-        await waitForImportLibrary();
-
-        // Required by current app features
-        await google.maps.importLibrary("maps");
-        await google.maps.importLibrary("places");
-        await google.maps.importLibrary("geometry");
-
-        // Optional: routes is not required for current RideRequest flow
-        try {
-          await google.maps.importLibrary("routes");
-        } catch (routesError) {
-          console.warn("Google Maps routes library unavailable:", routesError);
-        }
-
+        ensureGoogleMapsBootstrap();
+        await importGoogleMapsLibraries(["maps", "places", "geometry", "routes"]);
         librariesImported = true;
         succeed();
       } catch (error) {
@@ -84,71 +92,10 @@ export function loadGoogleMaps(): Promise<void> {
       }
     };
 
-    const validateGoogleMapsLoaded = () => {
-      if (window.google?.maps) {
-        importLibraries();
-      } else if (window.google?.maps?.importLibrary) {
-        importLibraries();
-      } else {
-        // Script loaded but google.maps not ready yet — poll briefly
-        let retries = 0;
-        const poll = setInterval(() => {
-          if (window.google?.maps) {
-            clearInterval(poll);
-            importLibraries();
-          } else if (++retries > 30) {
-            clearInterval(poll);
-            fail("Google Maps loaded without the maps object");
-          }
-        }, 100);
-      }
-    };
-
-    const existingScript = document.getElementById(
-      GOOGLE_MAPS_SCRIPT_ID
-    ) as HTMLScriptElement | null;
-
-    if (existingScript) {
-      if (existingScript.dataset.loaded === "true") {
-        validateGoogleMapsLoaded();
-        return;
-      }
-
-      existingScript.addEventListener("load", validateGoogleMapsLoaded, { once: true });
-      existingScript.addEventListener("error", () => fail("Failed to load Google Maps script"), {
-        once: true,
-      });
-
-      window.setTimeout(() => {
-        if (!window.google?.maps) {
-          fail("Google Maps loading timed out");
-        }
-      }, 12000);
-
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = GOOGLE_MAPS_SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      GOOGLE_MAPS_API_KEY
-    )}&loading=async&v=weekly`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      script.dataset.loaded = "true";
-      validateGoogleMapsLoaded();
-    };
-    script.onerror = () => {
-      script.dataset.failed = "true";
-      script.remove();
-      fail("Failed to load Google Maps script");
-    };
-
-    document.head.appendChild(script);
+    void loadLibraries();
 
     window.setTimeout(() => {
-      if (!window.google?.maps) {
+      if (!librariesImported) {
         fail("Google Maps loading timed out");
       }
     }, 12000);
