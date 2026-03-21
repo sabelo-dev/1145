@@ -9,6 +9,7 @@ const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
 const GOOGLE_MAPS_LIBRARIES = "places,geometry";
 
 let googleMapsPromise: Promise<void> | null = null;
+let librariesImported = false;
 
 declare global {
   interface Window {
@@ -21,7 +22,7 @@ export function loadGoogleMaps(): Promise<void> {
     return Promise.reject(new Error("Google Maps can only be loaded in the browser"));
   }
 
-  if (window.google?.maps) return Promise.resolve();
+  if (window.google?.maps && librariesImported) return Promise.resolve();
   if (!GOOGLE_MAPS_API_KEY) {
     return Promise.reject(new Error("Missing Google Maps API key"));
   }
@@ -43,12 +44,25 @@ export function loadGoogleMaps(): Promise<void> {
       reject(new Error(message));
     };
 
+    const waitForImportLibrary = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const check = () => {
+          if (window.google?.maps?.importLibrary) {
+            resolve();
+          } else if (++attempts > 50) {
+            reject(new Error("importLibrary not available after waiting"));
+          } else {
+            setTimeout(check, 100);
+          }
+        };
+        check();
+      });
+    };
+
     const importLibraries = async () => {
       try {
-        if (!window.google?.maps?.importLibrary) {
-          fail("Google Maps importLibrary API is unavailable");
-          return;
-        }
+        await waitForImportLibrary();
 
         // Required by current app features
         await google.maps.importLibrary("maps");
@@ -62,6 +76,7 @@ export function loadGoogleMaps(): Promise<void> {
           console.warn("Google Maps routes library unavailable:", routesError);
         }
 
+        librariesImported = true;
         succeed();
       } catch (error) {
         const details = error instanceof Error ? `: ${error.message}` : "";
@@ -72,8 +87,20 @@ export function loadGoogleMaps(): Promise<void> {
     const validateGoogleMapsLoaded = () => {
       if (window.google?.maps) {
         importLibraries();
+      } else if (window.google?.maps?.importLibrary) {
+        importLibraries();
       } else {
-        fail("Google Maps loaded without the maps object");
+        // Script loaded but google.maps not ready yet — poll briefly
+        let retries = 0;
+        const poll = setInterval(() => {
+          if (window.google?.maps) {
+            clearInterval(poll);
+            importLibraries();
+          } else if (++retries > 30) {
+            clearInterval(poll);
+            fail("Google Maps loaded without the maps object");
+          }
+        }, 100);
       }
     };
 
