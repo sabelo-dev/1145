@@ -484,7 +484,7 @@ const RideRequestPage: React.FC = () => {
           {/* Confirmation — cinematic summary */}
           {step === "confirm" && estimatedFare && selectedVehicle && (
             <div className="space-y-4 animate-fade-in">
-              <div className="rounded-2xl border border-border/50 bg-card overflow-hidden shadow-lg">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden shadow-lg">
                 {/* Header with gradient */}
                 <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-5 py-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
