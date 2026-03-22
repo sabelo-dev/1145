@@ -489,7 +489,7 @@ const RideRequestPage: React.FC = () => {
                 <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-5 py-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CircleDot className="h-4 w-4 text-primary" />
-                    <h2 className="text-base font-bold tracking-tight text-foreground">Trip Summary</h2>
+                    <h2 className="text-base font-bold tracking-tight text-white">Trip Summary</h2>
                   </div>
                   <button
                     onClick={() => setStep("vehicle")}
