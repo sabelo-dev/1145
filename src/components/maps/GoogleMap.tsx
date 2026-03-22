@@ -165,12 +165,9 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
+        mapId: "ride_map_id",
         disableDefaultUI: true,
         zoomControl: true,
-        styles: [
-          { featureType: "poi", stylers: [{ visibility: "off" }] },
-          { featureType: "transit", stylers: [{ visibility: "simplified" }] },
-        ],
       });
 
       mapInstanceRef.current = map;
