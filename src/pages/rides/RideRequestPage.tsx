@@ -581,7 +581,7 @@ const RideRequestPage: React.FC = () => {
                 )}
               </Button>
 
-              <p className="text-center text-[11px] text-muted-foreground/70">
+              <p className="text-center text-[11px] text-white/30">
                 By requesting, you agree to our terms. Fare may vary based on traffic.
               </p>
             </div>
