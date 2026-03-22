@@ -345,7 +345,7 @@ const RideRequestPage: React.FC = () => {
                 <Button
                   className="w-full h-14 rounded-2xl text-base font-bold shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl"
                   onClick={handleSearchRides}
-                  disabled={isSearching || !pickupCoords || !dropoffCoords}
+                  disabled={isSearching || !pickup || !dropoff}
                 >
                   {isSearching ? (
                     <>
