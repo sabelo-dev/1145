@@ -522,7 +522,7 @@ const RideRequestPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <Separator className="bg-border/50" />
+                  <Separator className="bg-white/10" />
 
                   {/* Stats grid */}
                   <div className="grid grid-cols-3 gap-2">
