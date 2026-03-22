@@ -286,14 +286,14 @@ const RideRequestPage: React.FC = () => {
         {/* Floating trip stats */}
         {estimatedDistance && estimatedDuration && step !== "location" && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
-            <div className="flex items-center gap-1 p-1 rounded-2xl bg-card/90 backdrop-blur-xl shadow-2xl border border-border/30">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10">
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-[hsl(222,30%,10%)]/95 backdrop-blur-xl shadow-2xl border border-white/10">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/15">
                 <Route className="h-4 w-4 text-primary" />
-                <span className="text-sm font-bold text-foreground">{estimatedDistance} km</span>
+                <span className="text-sm font-bold text-white">{estimatedDistance} km</span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/10">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/15">
                 <Clock className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-bold text-foreground">~{estimatedDuration} min</span>
+                <span className="text-sm font-bold text-white">~{estimatedDuration} min</span>
               </div>
             </div>
           </div>
