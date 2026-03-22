@@ -435,7 +435,7 @@ const RideRequestPage: React.FC = () => {
                           ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
                           : isPremium
                             ? "bg-secondary/15 text-secondary group-hover:bg-secondary/25"
-                            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                            : "bg-white/5 text-white/50 group-hover:bg-primary/15 group-hover:text-primary"
                       }`}>
                         <Icon className="h-6 w-6" />
                       </div>
