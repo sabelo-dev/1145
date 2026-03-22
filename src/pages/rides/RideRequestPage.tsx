@@ -507,9 +507,9 @@ const RideRequestPage: React.FC = () => {
                         <MapPin className="h-4 w-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Pickup</p>
-                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{pickup}</p>
-                      </div>
+                         <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Pickup</p>
+                         <p className="text-sm font-medium text-white truncate mt-0.5">{pickup}</p>
+                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5 w-8 h-8 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
