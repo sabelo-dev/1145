@@ -121,8 +121,31 @@ const RideRequestPage: React.FC = () => {
     if (data) setVehicleTypes(data);
   };
 
+  const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      await loadGoogleMaps();
+      const geocoder = new google.maps.Geocoder();
+      const result = await geocoder.geocode({ address });
+      const loc = result.results?.[0]?.geometry?.location;
+      if (loc) return { lat: loc.lat(), lng: loc.lng() };
+    } catch {}
+    return null;
+  };
+
   const handleSearchRides = async () => {
-    if (!pickupCoords || !dropoffCoords) {
+    let pCoords = pickupCoords;
+    let dCoords = dropoffCoords;
+
+    if (!pCoords && pickup) {
+      pCoords = await geocodeAddress(pickup);
+      if (pCoords) setPickupCoords(pCoords);
+    }
+    if (!dCoords && dropoff) {
+      dCoords = await geocodeAddress(dropoff);
+      if (dCoords) setDropoffCoords(dCoords);
+    }
+
+    if (!pCoords || !dCoords) {
       toast({ variant: "destructive", title: "Please select both locations from the suggestions" });
       return;
     }
