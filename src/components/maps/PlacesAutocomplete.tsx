@@ -110,7 +110,7 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   return (
     <div className={`relative ${className}`}>
       {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">{icon}</div>}
-      <div ref={containerRef} className={`w-full [&_input]:flex [&_input]:h-10 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-input [&_input]:bg-background [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:ring-offset-background [&_input]:placeholder:text-muted-foreground [&_input]:focus-visible:outline-none [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-ring [&_input]:focus-visible:ring-offset-2 ${icon ? "[&_input]:pl-10" : ""}`} />
+      <div ref={containerRef} className={`w-full [&_input]:flex [&_input]:h-10 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-input [&_input]:bg-background [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:text-foreground [&_input]:ring-offset-background [&_input]:placeholder:text-muted-foreground [&_input]:focus-visible:outline-none [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-ring [&_input]:focus-visible:ring-offset-2 ${icon ? "[&_input]:pl-10" : ""}`} />
     </div>
   );
 };
