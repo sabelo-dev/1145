@@ -421,8 +421,8 @@ const RideRequestPage: React.FC = () => {
                       onClick={() => handleSelectVehicle(type.id)}
                       className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 text-left group relative overflow-hidden
                         ${isSelected
-                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 scale-[1.01]"
-                          : "border-border/50 hover:border-primary/40 hover:bg-accent/30 hover:shadow-md hover:scale-[1.01]"
+                          ? "border-primary bg-primary/10 shadow-lg shadow-primary/15 scale-[1.01]"
+                          : "border-white/8 hover:border-primary/40 bg-white/[0.03] hover:bg-white/[0.06] hover:shadow-md hover:scale-[1.01]"
                         }`}
                     >
                       {/* Subtle shine effect */}
