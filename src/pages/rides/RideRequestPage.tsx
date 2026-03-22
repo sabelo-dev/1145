@@ -301,7 +301,6 @@ const RideRequestPage: React.FC = () => {
                         setPickupCoords({ lat: p.lat, lng: p.lng });
                       }}
                       placeholder={isLocating ? "Detecting location..." : "Pickup location"}
-                      />
                     />
                   </div>
                   <button
