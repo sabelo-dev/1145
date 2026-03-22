@@ -401,7 +401,7 @@ const RideRequestPage: React.FC = () => {
                 </div>
                 <button
                   onClick={() => { setStep("location"); setSelectedType(null); }}
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-xs font-medium text-white/50 hover:text-white transition-colors"
                 >
                   Edit route
                 </button>
