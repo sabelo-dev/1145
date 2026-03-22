@@ -1,8 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet, Locate, Loader2 } from "lucide-react";
+import {
+  ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet,
+  Locate, Loader2, ChevronRight, Shield, Zap, Route,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -51,7 +54,6 @@ const RideRequestPage: React.FC = () => {
   const detectAndSetPickup = useCallback(async () => {
     setIsLocating(true);
     try {
-      // Try high accuracy first, fall back to low accuracy
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: false,
@@ -71,7 +73,6 @@ const RideRequestPage: React.FC = () => {
       const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
       setPickupCoords(coords);
 
-      // Reverse geocode to get address
       try {
         await loadGoogleMaps();
         const geocoder = new google.maps.Geocoder();
@@ -96,7 +97,6 @@ const RideRequestPage: React.FC = () => {
     }
   }, [toast]);
 
-  // Auto-detect location on mount
   useEffect(() => {
     if ("geolocation" in navigator && !pickupCoords) {
       detectAndSetPickup();
@@ -104,7 +104,6 @@ const RideRequestPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-search rides when both locations are set
   useEffect(() => {
     if (pickupCoords && dropoffCoords && step === "location") {
       handleSearchRides();
@@ -129,7 +128,6 @@ const RideRequestPage: React.FC = () => {
     setIsSearching(true);
     await fetchVehicleTypes();
 
-    // Use Google Maps Distance Matrix for real distance/duration
     try {
       const service = new google.maps.DistanceMatrixService();
       const result = await service.getDistanceMatrix({
@@ -140,12 +138,9 @@ const RideRequestPage: React.FC = () => {
 
       const element = result.rows[0]?.elements[0];
       if (element?.status === "OK") {
-        const distKm = Math.round((element.distance!.value / 1000) * 10) / 10;
-        const durMin = Math.round(element.duration!.value / 60);
-        setEstimatedDistance(distKm);
-        setEstimatedDuration(durMin);
+        setEstimatedDistance(Math.round((element.distance!.value / 1000) * 10) / 10);
+        setEstimatedDuration(Math.round(element.duration!.value / 60));
       } else {
-        // Fallback: haversine
         const d = haversineKm(pickupCoords, dropoffCoords);
         setEstimatedDistance(Math.round(d * 10) / 10);
         setEstimatedDuration(Math.round(d * 2.5 + 5));
@@ -233,186 +228,283 @@ const RideRequestPage: React.FC = () => {
       ? { origin: pickupCoords, destination: dropoffCoords }
       : undefined;
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#3A0CA3] to-[#4361EE] text-white p-4">
-        <div className="container mx-auto flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">Request a Ride</h1>
-            <p className="text-white/70 text-sm">Get where you need to go</p>
-          </div>
-        </div>
-      </div>
+  const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
-      <div className="container mx-auto px-4 py-6 max-w-lg">
-        {/* Map */}
+  return (
+    <div className="min-h-screen bg-background relative">
+      {/* Full-bleed Map */}
+      <div className="relative">
         <GoogleMap
-          className="w-full h-56 rounded-xl overflow-hidden mb-4 border border-border"
+          className="w-full h-[38vh] md:h-[42vh]"
           markers={mapMarkers}
           route={mapRoute}
           center={pickupCoords || { lat: -26.2041, lng: 28.0473 }}
           zoom={pickupCoords ? 14 : 12}
         />
 
-        {/* Location Input */}
-        <Card className="mb-6">
-          <CardContent className="p-4 space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center mt-3">
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <div className="w-0.5 h-8 bg-border" />
-                <div className="w-3 h-3 rounded-full bg-destructive" />
+        {/* Floating back button */}
+        <div className="absolute top-4 left-4 z-10">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="h-10 w-10 rounded-full shadow-lg bg-background/90 backdrop-blur-sm border border-border"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Trip info pill overlay */}
+        {estimatedDistance && estimatedDuration && step !== "location" && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
+            <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-background/95 backdrop-blur-md shadow-lg border border-border">
+              <div className="flex items-center gap-1.5 text-sm font-medium">
+                <Route className="h-3.5 w-3.5 text-primary" />
+                <span>{estimatedDistance} km</span>
               </div>
-              <div className="flex-1 space-y-3">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">PICKUP</label>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <PlacesAutocomplete
-                        value={pickup}
-                        onChange={setPickup}
-                        onPlaceSelect={(p) => {
-                          setPickup(p.address);
-                          setPickupCoords({ lat: p.lat, lng: p.lng });
-                        }}
-                        placeholder={isLocating ? "Detecting your location..." : "Enter pickup location"}
-                        icon={<MapPin className="h-4 w-4 text-emerald-500" />}
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 shrink-0"
-                      onClick={detectAndSetPickup}
-                      disabled={isLocating}
-                      title="Use current location"
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-1.5 text-sm font-medium">
+                <Clock className="h-3.5 w-3.5 text-primary" />
+                <span>~{estimatedDuration} min</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Sheet */}
+      <div className="relative -mt-6 rounded-t-3xl bg-background border-t border-border shadow-[0_-8px_30px_-12px_hsl(var(--foreground)/0.1)] min-h-[56vh]">
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
+        </div>
+
+        <div className="px-5 pb-8 max-w-lg mx-auto space-y-5">
+          {/* Location Inputs */}
+          <div className="space-y-0">
+            <div className="flex items-stretch gap-3">
+              {/* Route line indicator */}
+              <div className="flex flex-col items-center py-4 gap-0.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-primary/20" />
+                <div className="flex-1 w-px bg-gradient-to-b from-primary/40 to-destructive/40 my-1" />
+                <div className="w-2.5 h-2.5 rounded-full bg-destructive ring-2 ring-destructive/20" />
+              </div>
+
+              <div className="flex-1 space-y-2">
+                {/* Pickup */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 relative">
+                    <PlacesAutocomplete
+                      value={pickup}
+                      onChange={setPickup}
+                      onPlaceSelect={(p) => {
+                        setPickup(p.address);
+                        setPickupCoords({ lat: p.lat, lng: p.lng });
+                      }}
+                      placeholder={isLocating ? "Detecting location..." : "Pickup location"}
+                      icon={<MapPin className="h-4 w-4 text-primary" />}
+                    />
+                  </div>
+                  <button
+                    onClick={detectAndSetPickup}
+                    disabled={isLocating}
+                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-colors disabled:opacity-50"
+                    title="Use current location"
+                  >
+                    {isLocating ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    ) : (
+                      <Locate className="h-4 w-4 text-primary" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Dropoff */}
+                <PlacesAutocomplete
+                  value={dropoff}
+                  onChange={setDropoff}
+                  onPlaceSelect={(p) => {
+                    setDropoff(p.address);
+                    setDropoffCoords({ lat: p.lat, lng: p.lng });
+                  }}
+                  placeholder="Where to?"
+                  icon={<Navigation className="h-4 w-4 text-destructive" />}
+                />
+              </div>
+            </div>
+
+            {/* Search button — only when in location step and not auto-searching */}
+            {step === "location" && (
+              <div className="pt-3">
+                <Button
+                  className="w-full h-12 rounded-2xl text-base font-semibold shadow-md"
+                  onClick={handleSearchRides}
+                  disabled={isSearching || !pickupCoords || !dropoffCoords}
+                >
+                  {isSearching ? (
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  ) : (
+                    <Zap className="h-5 w-5 mr-2" />
+                  )}
+                  {isSearching ? "Finding rides..." : "Find Rides"}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Vehicle Selection */}
+          {step === "vehicle" && vehicleTypes.length > 0 && (
+            <div className="space-y-3 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold tracking-tight">Choose your ride</h2>
+                <Badge variant="secondary" className="rounded-full text-xs font-medium">
+                  {vehicleTypes.length} available
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                {vehicleTypes.map((type, index) => {
+                  const Icon = vehicleIcons[type.icon] || Car;
+                  const fare = Math.round(calculateFare(type) * 100) / 100;
+                  const isSelected = selectedType === type.id;
+                  const isCheapest = index === 0;
+
+                  return (
+                    <button
+                      key={type.id}
+                      onClick={() => handleSelectVehicle(type.id)}
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 text-left group
+                        ${isSelected
+                          ? "border-primary bg-primary/5 ring-1 ring-primary/30 shadow-sm"
+                          : "border-border hover:border-primary/30 hover:bg-accent/50 hover:shadow-sm"
+                        }`}
                     >
-                      {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Locate className="h-4 w-4 text-primary" />}
-                    </Button>
+                      <div className={`p-3 rounded-xl transition-colors ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-primary/10"}`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{type.display_name}</span>
+                          {isCheapest && (
+                            <Badge className="text-[10px] h-4 px-1.5 rounded-full bg-primary/10 text-primary border-0 font-semibold">
+                              Best value
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {type.max_passengers} seats • ~{estimatedDuration} min
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-lg font-bold tracking-tight">R{fare.toFixed(2)}</p>
+                      </div>
+                      <ChevronRight className={`h-4 w-4 shrink-0 transition-colors ${isSelected ? "text-primary" : "text-muted-foreground/40"}`} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Confirmation */}
+          {step === "confirm" && estimatedFare && selectedVehicle && (
+            <div className="space-y-4 animate-fade-in">
+              {/* Summary card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold tracking-tight">Trip Summary</h2>
+                  <button
+                    onClick={() => setStep("vehicle")}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Change ride
+                  </button>
+                </div>
+
+                {/* Route summary */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 p-1.5 rounded-lg bg-primary/10">
+                      <MapPin className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
+                      <p className="text-sm font-medium truncate">{pickup}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 p-1.5 rounded-lg bg-destructive/10">
+                      <Navigation className="h-3.5 w-3.5 text-destructive" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Drop-off</p>
+                      <p className="text-sm font-medium truncate">{dropoff}</p>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">DROP-OFF</label>
-                  <PlacesAutocomplete
-                    value={dropoff}
-                    onChange={setDropoff}
-                    onPlaceSelect={(p) => {
-                      setDropoff(p.address);
-                      setDropoffCoords({ lat: p.lat, lng: p.lng });
-                    }}
-                    placeholder="Enter destination"
-                    icon={<Navigation className="h-4 w-4 text-destructive" />}
-                  />
+
+                <Separator />
+
+                {/* Details grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center p-2.5 rounded-xl bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Vehicle</p>
+                    <p className="text-sm font-semibold mt-0.5">{selectedVehicle.display_name}</p>
+                  </div>
+                  <div className="text-center p-2.5 rounded-xl bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Distance</p>
+                    <p className="text-sm font-semibold mt-0.5">{estimatedDistance} km</p>
+                  </div>
+                  <div className="text-center p-2.5 rounded-xl bg-muted/50">
+                    <p className="text-xs text-muted-foreground">ETA</p>
+                    <p className="text-sm font-semibold mt-0.5">~{estimatedDuration} min</p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Fare + Payment */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-muted">
+                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Wallet</p>
+                      <p className="text-[10px] text-muted-foreground">Payment method</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-black tracking-tight">R{estimatedFare.toFixed(2)}</p>
+                    <p className="text-[10px] text-muted-foreground">estimated fare</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            {step === "location" && (
-              <Button className="w-full" size="lg" onClick={handleSearchRides} disabled={isSearching || !pickupCoords || !dropoffCoords}>
-                {isSearching ? "Finding rides..." : "Search Rides"}
+
+              {/* CTA */}
+              <Button
+                className="w-full h-14 rounded-2xl text-base font-bold shadow-lg"
+                onClick={handleRequestRide}
+                disabled={isRequesting}
+              >
+                {isRequesting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Finding your driver...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-5 w-5 mr-2" />
+                    Confirm & Request Ride
+                  </>
+                )}
               </Button>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Trip estimate */}
-        {estimatedDistance && estimatedDuration && step !== "location" && (
-          <div className="flex items-center justify-center gap-6 mb-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" />
-              <span>{estimatedDistance} km</span>
+              <p className="text-center text-[11px] text-muted-foreground">
+                By requesting, you agree to our terms. Fare may vary based on traffic.
+              </p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
-              <span>~{estimatedDuration} min</span>
-            </div>
-          </div>
-        )}
-
-        {/* Vehicle Selection */}
-        {step === "vehicle" && vehicleTypes.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold">Choose your ride</h2>
-            {vehicleTypes.map((type) => {
-              const Icon = vehicleIcons[type.icon] || Car;
-              const fare = Math.round(calculateFare(type) * 100) / 100;
-              return (
-                <Card
-                  key={type.id}
-                  className={`cursor-pointer transition-all hover:shadow-md ${selectedType === type.id ? "ring-2 ring-primary" : ""}`}
-                  onClick={() => handleSelectVehicle(type.id)}
-                >
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2.5 bg-primary/10 rounded-xl">
-                        <Icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{type.display_name}</h3>
-                        <p className="text-xs text-muted-foreground">Up to {type.max_passengers} passengers</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg">R{fare.toFixed(2)}</p>
-                      <p className="text-xs text-muted-foreground">est. fare</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Confirmation */}
-        {step === "confirm" && estimatedFare && (
-          <Card className="mt-4">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="text-lg font-semibold">Confirm your ride</h2>
-              <Separator />
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">From</span>
-                  <span className="font-medium text-right max-w-[60%] truncate">{pickup}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">To</span>
-                  <span className="font-medium text-right max-w-[60%] truncate">{dropoff}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Vehicle</span>
-                  <span className="font-medium">{vehicleTypes.find((t) => t.id === selectedType)?.display_name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Distance</span>
-                  <span className="font-medium">{estimatedDistance} km</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Est. time</span>
-                  <span className="font-medium">~{estimatedDuration} min</span>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Wallet className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Wallet Payment</span>
-                </div>
-                <span className="text-2xl font-bold">R{estimatedFare.toFixed(2)}</span>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={() => setStep("vehicle")}>
-                  Back
-                </Button>
-                <Button className="flex-1" size="lg" onClick={handleRequestRide} disabled={isRequesting}>
-                  {isRequesting ? "Requesting..." : "Request Ride"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
