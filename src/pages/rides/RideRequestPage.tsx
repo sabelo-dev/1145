@@ -531,10 +531,10 @@ const RideRequestPage: React.FC = () => {
                       { label: "Distance", value: `${estimatedDistance} km`, icon: Route },
                       { label: "ETA", value: `~${estimatedDuration} min`, icon: Clock },
                     ].map((stat) => (
-                      <div key={stat.label} className="text-center p-3 rounded-xl bg-muted/50 border border-border/30">
-                        <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1.5" />
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</p>
-                        <p className="text-xs font-bold text-foreground mt-0.5">{stat.value}</p>
+                      <div key={stat.label} className="text-center p-3 rounded-xl bg-white/[0.04] border border-white/8">
+                        <stat.icon className="h-4 w-4 mx-auto text-white/40 mb-1.5" />
+                        <p className="text-[10px] text-white/40 uppercase tracking-wider font-medium">{stat.label}</p>
+                        <p className="text-xs font-bold text-white mt-0.5">{stat.value}</p>
                       </div>
                     ))}
                   </div>
