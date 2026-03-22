@@ -272,7 +272,7 @@ const RideRequestPage: React.FC = () => {
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="h-11 w-11 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/50 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+            className="h-11 w-11 rounded-2xl bg-[hsl(222,30%,12%)]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
           >
             <ArrowLeft className="h-5 w-5 text-foreground" />
           </button>
