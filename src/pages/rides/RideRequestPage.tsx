@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet, Locate, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import GoogleMap from "@/components/maps/GoogleMap";
 import PlacesAutocomplete from "@/components/maps/PlacesAutocomplete";
+import { loadGoogleMaps } from "@/components/maps/GoogleMap";
 
 interface VehicleOption {
   id: string;
@@ -44,7 +45,55 @@ const RideRequestPage: React.FC = () => {
   const [estimatedDuration, setEstimatedDuration] = useState<number | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [step, setStep] = useState<"location" | "vehicle" | "confirm">("location");
+
+  const detectAndSetPickup = useCallback(async () => {
+    setIsLocating(true);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        });
+      });
+
+      const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+      setPickupCoords(coords);
+
+      // Reverse geocode to get address
+      try {
+        await loadGoogleMaps();
+        const geocoder = new google.maps.Geocoder();
+        const result = await geocoder.geocode({ location: coords });
+        if (result.results?.[0]) {
+          setPickup(result.results[0].formatted_address);
+        } else {
+          setPickup(`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
+        }
+      } catch {
+        setPickup(`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
+      }
+    } catch (err: any) {
+      console.warn("Location detection failed:", err.message);
+      toast({
+        title: "Location unavailable",
+        description: "Please enter your pickup location manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLocating(false);
+    }
+  }, [toast]);
+
+  // Auto-detect location on mount
+  useEffect(() => {
+    if ("geolocation" in navigator && !pickupCoords) {
+      detectAndSetPickup();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchVehicleTypes = async () => {
     const { data } = await supabase
