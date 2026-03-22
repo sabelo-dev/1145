@@ -539,7 +539,7 @@ const RideRequestPage: React.FC = () => {
                     ))}
                   </div>
 
-                  <Separator className="bg-border/50" />
+                  <Separator className="bg-white/10" />
 
                   {/* Payment & Fare */}
                   <div className="flex items-center justify-between">
