@@ -544,19 +544,19 @@ const RideRequestPage: React.FC = () => {
                   {/* Payment & Fare */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
+                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                        <CreditCard className="h-5 w-5 text-white/40" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground">Wallet</p>
-                        <p className="text-[10px] text-muted-foreground">Payment method</p>
+                        <p className="text-sm font-semibold text-white">Wallet</p>
+                        <p className="text-[10px] text-white/40">Payment method</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-black tracking-tighter text-foreground">
+                      <p className="text-3xl font-black tracking-tighter text-white">
                         R{estimatedFare.toFixed(2)}
                       </p>
-                      <p className="text-[10px] text-muted-foreground font-medium">estimated</p>
+                      <p className="text-[10px] text-white/40 font-medium">estimated</p>
                     </div>
                   </div>
                 </div>
