@@ -516,9 +516,9 @@ const RideRequestPage: React.FC = () => {
                         <Navigation className="h-4 w-4 text-destructive" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Drop-off</p>
-                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{dropoff}</p>
-                      </div>
+                         <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Drop-off</p>
+                         <p className="text-sm font-medium text-white truncate mt-0.5">{dropoff}</p>
+                       </div>
                     </div>
                   </div>
 
