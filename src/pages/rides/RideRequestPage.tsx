@@ -338,7 +338,7 @@ const RideRequestPage: React.FC = () => {
                   <button
                     onClick={detectAndSetPickup}
                     disabled={isLocating}
-                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-2xl bg-primary/15 hover:bg-primary/25 border border-primary/30 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
                     title="Use current location"
                   >
                     {isLocating ? (
