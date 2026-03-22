@@ -301,7 +301,6 @@ const RideRequestPage: React.FC = () => {
                         setPickupCoords({ lat: p.lat, lng: p.lng });
                       }}
                       placeholder={isLocating ? "Detecting location..." : "Pickup location"}
-                      icon={<MapPin className="h-4 w-4 text-primary" />}
                     />
                   </div>
                   <button
@@ -327,7 +326,6 @@ const RideRequestPage: React.FC = () => {
                     setDropoffCoords({ lat: p.lat, lng: p.lng });
                   }}
                   placeholder="Where to?"
-                  icon={<Navigation className="h-4 w-4 text-destructive" />}
                 />
               </div>
             </div>
