@@ -121,8 +121,31 @@ const RideRequestPage: React.FC = () => {
     if (data) setVehicleTypes(data);
   };
 
+  const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      await loadGoogleMaps();
+      const geocoder = new google.maps.Geocoder();
+      const result = await geocoder.geocode({ address });
+      const loc = result.results?.[0]?.geometry?.location;
+      if (loc) return { lat: loc.lat(), lng: loc.lng() };
+    } catch {}
+    return null;
+  };
+
   const handleSearchRides = async () => {
-    if (!pickupCoords || !dropoffCoords) {
+    let pCoords = pickupCoords;
+    let dCoords = dropoffCoords;
+
+    if (!pCoords && pickup) {
+      pCoords = await geocodeAddress(pickup);
+      if (pCoords) setPickupCoords(pCoords);
+    }
+    if (!dCoords && dropoff) {
+      dCoords = await geocodeAddress(dropoff);
+      if (dCoords) setDropoffCoords(dCoords);
+    }
+
+    if (!pCoords || !dCoords) {
       toast({ variant: "destructive", title: "Please select both locations from the suggestions" });
       return;
     }
@@ -132,8 +155,8 @@ const RideRequestPage: React.FC = () => {
     try {
       const service = new google.maps.DistanceMatrixService();
       const result = await service.getDistanceMatrix({
-        origins: [pickupCoords],
-        destinations: [dropoffCoords],
+        origins: [pCoords],
+        destinations: [dCoords],
         travelMode: google.maps.TravelMode.DRIVING,
       });
 
@@ -142,12 +165,12 @@ const RideRequestPage: React.FC = () => {
         setEstimatedDistance(Math.round((element.distance!.value / 1000) * 10) / 10);
         setEstimatedDuration(Math.round(element.duration!.value / 60));
       } else {
-        const d = haversineKm(pickupCoords, dropoffCoords);
+        const d = haversineKm(pCoords, dCoords);
         setEstimatedDistance(Math.round(d * 10) / 10);
         setEstimatedDuration(Math.round(d * 2.5 + 5));
       }
     } catch {
-      const d = haversineKm(pickupCoords, dropoffCoords);
+      const d = haversineKm(pCoords, dCoords);
       setEstimatedDistance(Math.round(d * 10) / 10);
       setEstimatedDuration(Math.round(d * 2.5 + 5));
     }
@@ -345,7 +368,7 @@ const RideRequestPage: React.FC = () => {
                 <Button
                   className="w-full h-14 rounded-2xl text-base font-bold shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl"
                   onClick={handleSearchRides}
-                  disabled={isSearching || !pickupCoords || !dropoffCoords}
+                  disabled={isSearching || !pickup || !dropoff}
                 >
                   {isSearching ? (
                     <>
