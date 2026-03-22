@@ -59,7 +59,7 @@ export function loadGoogleMaps(): Promise<void> {
 
       const script = document.createElement("script");
       script.id = GOOGLE_MAPS_SCRIPT_ID;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry&loading=async&callback=__gmapsInit`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry,marker&loading=async&callback=__gmapsInit`;
       script.async = true;
       script.defer = true;
 
@@ -75,7 +75,7 @@ export function loadGoogleMaps(): Promise<void> {
     await waitForGoogleMaps();
 
     // Import required libraries
-    const libs = ["maps", "places", "geometry"] as const;
+    const libs = ["maps", "places", "geometry", "marker"] as const;
     for (const lib of libs) {
       try {
         await window.google!.maps.importLibrary(lib);
@@ -131,9 +131,9 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
-  const driverMarkerRef = useRef<google.maps.Marker | null>(null);
+  const driverMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
   const [loaded, setLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -165,12 +165,9 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
+        mapId: "ride_map_id",
         disableDefaultUI: true,
         zoomControl: true,
-        styles: [
-          { featureType: "poi", stylers: [{ visibility: "off" }] },
-          { featureType: "transit", stylers: [{ visibility: "simplified" }] },
-        ],
       });
 
       mapInstanceRef.current = map;
@@ -185,15 +182,21 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current.forEach((marker) => (marker.map = null));
     markersRef.current = [];
 
     markers.forEach((markerData) => {
-      const marker = new google.maps.Marker({
+      const content = document.createElement("div");
+      if (markerData.label) {
+        content.textContent = markerData.label;
+        content.style.cssText = "background:#4361EE;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);";
+      }
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
         position: markerData.position,
         map: mapInstanceRef.current!,
         title: markerData.title,
-        label: markerData.label,
+        ...(markerData.label ? { content } : {}),
       });
       markersRef.current.push(marker);
     });
@@ -245,36 +248,32 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     if (!mapInstanceRef.current) return;
 
     if (!driverLocation) {
-      driverMarkerRef.current?.setMap(null);
+      if (driverMarkerRef.current) driverMarkerRef.current.map = null;
       driverMarkerRef.current = null;
       return;
     }
 
     if (!driverMarkerRef.current) {
-      driverMarkerRef.current = new google.maps.Marker({
+      const el = document.createElement("div");
+      el.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="#4361EE" stroke="#fff" stroke-width="2"><path d="M12 2L4 20h16L12 2z"/></svg>`;
+      el.style.cssText = "filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));";
+
+      driverMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
         map: mapInstanceRef.current,
         title: "Driver",
-        icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: "#4361EE",
-          fillOpacity: 1,
-          strokeWeight: 2,
-          strokeColor: "#fff",
-          rotation: 0,
-        },
+        content: el,
       });
     }
 
-    driverMarkerRef.current.setPosition(driverLocation);
+    driverMarkerRef.current.position = driverLocation;
     mapInstanceRef.current.panTo(driverLocation);
   }, [driverLocation, loaded]);
 
   useEffect(() => {
     return () => {
-      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current.forEach((marker) => (marker.map = null));
       directionsRendererRef.current?.setMap(null);
-      driverMarkerRef.current?.setMap(null);
+      if (driverMarkerRef.current) driverMarkerRef.current.map = null;
       mapInstanceRef.current = null;
     };
   }, []);
