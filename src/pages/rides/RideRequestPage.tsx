@@ -255,8 +255,8 @@ const RideRequestPage: React.FC = () => {
   const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
   return (
-    <div className="min-h-screen bg-[hsl(222,30%,6%)] text-white relative overflow-hidden">
-      {/* Cinematic Map Hero */}
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Map Hero */}
       <div className="relative">
         <GoogleMap
           className="w-full h-[44vh] md:h-[48vh]"
@@ -265,20 +265,19 @@ const RideRequestPage: React.FC = () => {
           center={pickupCoords || { lat: -26.2041, lng: 28.0473 }}
           zoom={pickupCoords ? 14 : 12}
         />
-        {/* Cinematic gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(222,30%,6%)]/70 via-transparent to-[hsl(222,30%,6%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background pointer-events-none" />
 
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="h-11 w-11 rounded-2xl bg-[hsl(222,30%,12%)]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+            className="h-11 w-11 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/50 flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
           >
-            <ArrowLeft className="h-5 w-5 text-white" />
+            <ArrowLeft className="h-5 w-5 text-foreground" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="px-4 py-2 rounded-2xl bg-[hsl(222,30%,12%)]/90 backdrop-blur-xl border border-white/10 shadow-lg">
-              <span className="text-xs font-bold tracking-widest uppercase text-emerald-400">● Live</span>
+            <div className="px-4 py-2 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/50 shadow-md">
+              <span className="text-xs font-bold tracking-widest uppercase text-emerald-600">● Live</span>
             </div>
           </div>
         </div>
@@ -286,32 +285,30 @@ const RideRequestPage: React.FC = () => {
         {/* Floating trip stats */}
         {estimatedDistance && estimatedDuration && step !== "location" && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
-            <div className="flex items-center gap-1 p-1 rounded-2xl bg-[hsl(222,30%,10%)]/95 backdrop-blur-xl shadow-2xl border border-white/10">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/15">
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-card/95 backdrop-blur-xl shadow-xl border border-border/40">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10">
                 <Route className="h-4 w-4 text-primary" />
-                <span className="text-sm font-bold text-white">{estimatedDistance} km</span>
+                <span className="text-sm font-bold text-foreground">{estimatedDistance} km</span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/15">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/10">
                 <Clock className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-bold text-white">~{estimatedDuration} min</span>
+                <span className="text-sm font-bold text-foreground">~{estimatedDuration} min</span>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Sheet — cinematic card */}
-      <div className="relative -mt-8 rounded-t-[2rem] bg-[hsl(222,30%,8%)] border-t border-white/10 shadow-[0_-16px_48px_-12px_rgba(0,0,0,0.6)] min-h-[52vh]">
-        {/* Handle */}
+      {/* Bottom Sheet */}
+      <div className="relative -mt-8 rounded-t-[2rem] bg-card border-t border-border/50 shadow-[0_-8px_30px_-12px_hsl(var(--foreground)/0.1)] min-h-[52vh]">
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1.5 rounded-full bg-white/10" />
+          <div className="w-12 h-1.5 rounded-full bg-muted-foreground/20" />
         </div>
 
         <div className="px-5 pb-10 max-w-lg mx-auto space-y-5">
-          {/* Location Inputs — cinematic style */}
+          {/* Location Inputs */}
           <div className="space-y-0">
             <div className="flex items-stretch gap-3">
-              {/* Animated route line */}
               <div className="flex flex-col items-center py-4 gap-0.5">
                 <div className="relative">
                   <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
@@ -322,7 +319,6 @@ const RideRequestPage: React.FC = () => {
               </div>
 
               <div className="flex-1 space-y-2.5">
-                {/* Pickup */}
                 <div className="flex items-center gap-2">
                   <div className="flex-1 relative">
                     <PlacesAutocomplete
@@ -338,7 +334,7 @@ const RideRequestPage: React.FC = () => {
                   <button
                     onClick={detectAndSetPickup}
                     disabled={isLocating}
-                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-2xl bg-primary/15 hover:bg-primary/25 border border-primary/30 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
                     title="Use current location"
                   >
                     {isLocating ? (
@@ -349,7 +345,6 @@ const RideRequestPage: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Dropoff */}
                 <PlacesAutocomplete
                   value={dropoff}
                   onChange={setDropoff}
@@ -362,11 +357,10 @@ const RideRequestPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Find Rides CTA */}
             {step === "location" && (
               <div className="pt-4">
                 <Button
-                  className="w-full h-14 rounded-2xl text-base font-bold shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl"
+                  className="w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl"
                   onClick={handleSearchRides}
                   disabled={isSearching || !pickup || !dropoff}
                 >
@@ -383,7 +377,7 @@ const RideRequestPage: React.FC = () => {
                   )}
                 </Button>
                 {!pickupCoords && !dropoffCoords && (
-                  <p className="text-center text-xs text-white/40 mt-3">
+                  <p className="text-center text-xs text-muted-foreground mt-3">
                     Enter pickup & destination to get started
                   </p>
                 )}
@@ -391,17 +385,17 @@ const RideRequestPage: React.FC = () => {
             )}
           </div>
 
-          {/* Vehicle Selection — Netflix-style horizontal cards */}
+          {/* Vehicle Selection */}
           {step === "vehicle" && vehicleTypes.length > 0 && (
             <div className="space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-white">Select Ride</h2>
+                  <h2 className="text-lg font-bold tracking-tight text-foreground">Select Ride</h2>
                 </div>
                 <button
                   onClick={() => { setStep("location"); setSelectedType(null); }}
-                  className="text-xs font-medium text-white/50 hover:text-white transition-colors"
+                  className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Edit route
                 </button>
@@ -421,11 +415,10 @@ const RideRequestPage: React.FC = () => {
                       onClick={() => handleSelectVehicle(type.id)}
                       className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 text-left group relative overflow-hidden
                         ${isSelected
-                          ? "border-primary bg-primary/10 shadow-lg shadow-primary/15 scale-[1.01]"
-                          : "border-white/8 hover:border-primary/40 bg-white/[0.03] hover:bg-white/[0.06] hover:shadow-md hover:scale-[1.01]"
+                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 scale-[1.01]"
+                          : "border-border hover:border-primary/40 bg-card hover:bg-accent/40 hover:shadow-md hover:scale-[1.01]"
                         }`}
                     >
-                      {/* Subtle shine effect */}
                       {isSelected && (
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
                       )}
@@ -435,14 +428,14 @@ const RideRequestPage: React.FC = () => {
                           ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
                           : isPremium
                             ? "bg-secondary/15 text-secondary group-hover:bg-secondary/25"
-                            : "bg-white/5 text-white/50 group-hover:bg-primary/15 group-hover:text-primary"
+                            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
                       }`}>
                         <Icon className="h-6 w-6" />
                       </div>
 
                       <div className="flex-1 min-w-0 relative">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-white">{type.display_name}</span>
+                          <span className="font-bold text-sm text-foreground">{type.display_name}</span>
                           {isCheapest && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wider">
                               Popular
@@ -455,24 +448,24 @@ const RideRequestPage: React.FC = () => {
                           )}
                         </div>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-white/40 flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Users className="h-3 w-3" /> {type.max_passengers}
                           </span>
-                          <span className="text-xs text-white/40 flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Clock className="h-3 w-3" /> ~{estimatedDuration} min
                           </span>
                         </div>
                       </div>
 
                       <div className="text-right shrink-0 relative">
-                        <p className="text-xl font-black tracking-tight text-white">
+                        <p className="text-xl font-black tracking-tight text-foreground">
                           R{fare.toFixed(0)}
                         </p>
-                        <p className="text-[10px] text-white/40">est. fare</p>
+                        <p className="text-[10px] text-muted-foreground">est. fare</p>
                       </div>
 
                       <ChevronRight className={`h-5 w-5 shrink-0 transition-all duration-300 ${
-                        isSelected ? "text-primary translate-x-0.5" : "text-white/15 group-hover:text-white/40"
+                        isSelected ? "text-primary translate-x-0.5" : "text-muted-foreground/30 group-hover:text-muted-foreground"
                       }`} />
                     </button>
                   );
@@ -481,15 +474,14 @@ const RideRequestPage: React.FC = () => {
             </div>
           )}
 
-          {/* Confirmation — cinematic summary */}
+          {/* Confirmation */}
           {step === "confirm" && estimatedFare && selectedVehicle && (
             <div className="space-y-4 animate-fade-in">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden shadow-lg">
-                {/* Header with gradient */}
+              <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-md">
                 <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-5 py-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CircleDot className="h-4 w-4 text-primary" />
-                    <h2 className="text-base font-bold tracking-tight text-white">Trip Summary</h2>
+                    <h2 className="text-base font-bold tracking-tight text-foreground">Trip Summary</h2>
                   </div>
                   <button
                     onClick={() => setStep("vehicle")}
@@ -500,71 +492,67 @@ const RideRequestPage: React.FC = () => {
                 </div>
 
                 <div className="p-5 space-y-4">
-                  {/* Route */}
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5 w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                         <MapPin className="h-4 w-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                         <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Pickup</p>
-                         <p className="text-sm font-medium text-white truncate mt-0.5">{pickup}</p>
-                       </div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Pickup</p>
+                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{pickup}</p>
+                      </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5 w-8 h-8 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
                         <Navigation className="h-4 w-4 text-destructive" />
                       </div>
                       <div className="flex-1 min-w-0">
-                         <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Drop-off</p>
-                         <p className="text-sm font-medium text-white truncate mt-0.5">{dropoff}</p>
-                       </div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Drop-off</p>
+                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{dropoff}</p>
+                      </div>
                     </div>
                   </div>
 
-                  <Separator className="bg-white/10" />
+                  <Separator />
 
-                  {/* Stats grid */}
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { label: "Vehicle", value: selectedVehicle.display_name, icon: Car },
                       { label: "Distance", value: `${estimatedDistance} km`, icon: Route },
                       { label: "ETA", value: `~${estimatedDuration} min`, icon: Clock },
                     ].map((stat) => (
-                      <div key={stat.label} className="text-center p-3 rounded-xl bg-white/[0.04] border border-white/8">
-                        <stat.icon className="h-4 w-4 mx-auto text-white/40 mb-1.5" />
-                        <p className="text-[10px] text-white/40 uppercase tracking-wider font-medium">{stat.label}</p>
-                        <p className="text-xs font-bold text-white mt-0.5">{stat.value}</p>
+                      <div key={stat.label} className="text-center p-3 rounded-xl bg-muted/50 border border-border/50">
+                        <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1.5" />
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</p>
+                        <p className="text-xs font-bold text-foreground mt-0.5">{stat.value}</p>
                       </div>
                     ))}
                   </div>
 
-                  <Separator className="bg-white/10" />
+                  <Separator />
 
-                  {/* Payment & Fare */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                        <CreditCard className="h-5 w-5 text-white/40" />
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                        <CreditCard className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white">Wallet</p>
-                        <p className="text-[10px] text-white/40">Payment method</p>
+                        <p className="text-sm font-semibold text-foreground">Wallet</p>
+                        <p className="text-[10px] text-muted-foreground">Payment method</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-black tracking-tighter text-white">
+                      <p className="text-3xl font-black tracking-tighter text-foreground">
                         R{estimatedFare.toFixed(2)}
                       </p>
-                      <p className="text-[10px] text-white/40 font-medium">estimated</p>
+                      <p className="text-[10px] text-muted-foreground font-medium">estimated</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* CTA */}
               <Button
-                className="w-full h-[3.5rem] rounded-2xl text-base font-bold shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl"
+                className="w-full h-[3.5rem] rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl"
                 onClick={handleRequestRide}
                 disabled={isRequesting}
               >
@@ -581,7 +569,7 @@ const RideRequestPage: React.FC = () => {
                 )}
               </Button>
 
-              <p className="text-center text-[11px] text-white/30">
+              <p className="text-center text-[11px] text-muted-foreground">
                 By requesting, you agree to our terms. Fare may vary based on traffic.
               </p>
             </div>
