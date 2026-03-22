@@ -266,7 +266,7 @@ const RideRequestPage: React.FC = () => {
           zoom={pickupCoords ? 14 : 12}
         />
         {/* Cinematic gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(222,30%,6%)]/70 via-transparent to-[hsl(222,30%,6%)] pointer-events-none" />
 
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-4">
