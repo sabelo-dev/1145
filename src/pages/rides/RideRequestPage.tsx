@@ -2,7 +2,8 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet,
-  Locate, Loader2, ChevronRight, Shield, Zap, Route,
+  Locate, Loader2, ChevronRight, Shield, Zap, Route, Star, Sparkles,
+  CircleDot, Play, CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -231,65 +232,73 @@ const RideRequestPage: React.FC = () => {
   const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Full-bleed Map */}
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Cinematic Map Hero */}
       <div className="relative">
         <GoogleMap
-          className="w-full h-[38vh] md:h-[42vh]"
+          className="w-full h-[44vh] md:h-[48vh]"
           markers={mapMarkers}
           route={mapRoute}
           center={pickupCoords || { lat: -26.2041, lng: 28.0473 }}
           zoom={pickupCoords ? 14 : 12}
         />
+        {/* Cinematic gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background pointer-events-none" />
 
-        {/* Floating back button */}
-        <div className="absolute top-4 left-4 z-10">
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-10 w-10 rounded-full shadow-lg bg-background/90 backdrop-blur-sm border border-border"
+        {/* Top bar */}
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-4">
+          <button
             onClick={() => navigate(-1)}
+            className="h-11 w-11 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/50 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
           >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+            <ArrowLeft className="h-5 w-5 text-foreground" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="px-4 py-2 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg">
+              <span className="text-xs font-bold tracking-widest uppercase text-primary">Live</span>
+            </div>
+          </div>
         </div>
 
-        {/* Trip info pill overlay */}
+        {/* Floating trip stats */}
         {estimatedDistance && estimatedDuration && step !== "location" && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
-            <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-background/95 backdrop-blur-md shadow-lg border border-border">
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Route className="h-3.5 w-3.5 text-primary" />
-                <span>{estimatedDistance} km</span>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-card/90 backdrop-blur-xl shadow-2xl border border-border/30">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10">
+                <Route className="h-4 w-4 text-primary" />
+                <span className="text-sm font-bold text-foreground">{estimatedDistance} km</span>
               </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Clock className="h-3.5 w-3.5 text-primary" />
-                <span>~{estimatedDuration} min</span>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/10">
+                <Clock className="h-4 w-4 text-secondary" />
+                <span className="text-sm font-bold text-foreground">~{estimatedDuration} min</span>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Sheet */}
-      <div className="relative -mt-6 rounded-t-3xl bg-background border-t border-border shadow-[0_-8px_30px_-12px_hsl(var(--foreground)/0.1)] min-h-[56vh]">
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
+      {/* Bottom Sheet — cinematic card */}
+      <div className="relative -mt-8 rounded-t-[2rem] bg-card border-t border-border/50 shadow-[0_-16px_48px_-12px_hsl(var(--foreground)/0.15)] min-h-[52vh]">
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1.5 rounded-full bg-muted-foreground/15" />
         </div>
 
-        <div className="px-5 pb-8 max-w-lg mx-auto space-y-5">
-          {/* Location Inputs */}
+        <div className="px-5 pb-10 max-w-lg mx-auto space-y-5">
+          {/* Location Inputs — cinematic style */}
           <div className="space-y-0">
             <div className="flex items-stretch gap-3">
-              {/* Route line indicator */}
+              {/* Animated route line */}
               <div className="flex flex-col items-center py-4 gap-0.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-primary/20" />
-                <div className="flex-1 w-px bg-gradient-to-b from-primary/40 to-destructive/40 my-1" />
-                <div className="w-2.5 h-2.5 rounded-full bg-destructive ring-2 ring-destructive/20" />
+                <div className="relative">
+                  <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
+                  <div className="absolute inset-0 w-3 h-3 rounded-full bg-primary animate-ping opacity-30" />
+                </div>
+                <div className="flex-1 w-0.5 bg-gradient-to-b from-primary via-muted-foreground/20 to-destructive my-1 rounded-full" />
+                <div className="w-3 h-3 rounded-sm bg-destructive shadow-[0_0_12px_hsl(var(--destructive)/0.4)] rotate-45" />
               </div>
 
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-2.5">
                 {/* Pickup */}
                 <div className="flex items-center gap-2">
                   <div className="flex-1 relative">
@@ -306,13 +315,13 @@ const RideRequestPage: React.FC = () => {
                   <button
                     onClick={detectAndSetPickup}
                     disabled={isLocating}
-                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-colors disabled:opacity-50"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
                     title="Use current location"
                   >
                     {isLocating ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <Loader2 className="h-4.5 w-4.5 animate-spin text-primary" />
                     ) : (
-                      <Locate className="h-4 w-4 text-primary" />
+                      <Locate className="h-4.5 w-4.5 text-primary" />
                     )}
                   </button>
                 </div>
@@ -330,72 +339,118 @@ const RideRequestPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Search button — only when in location step and not auto-searching */}
+            {/* Find Rides CTA */}
             {step === "location" && (
-              <div className="pt-3">
+              <div className="pt-4">
                 <Button
-                  className="w-full h-12 rounded-2xl text-base font-semibold shadow-md"
+                  className="w-full h-14 rounded-2xl text-base font-bold shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl"
                   onClick={handleSearchRides}
                   disabled={isSearching || !pickupCoords || !dropoffCoords}
                 >
                   {isSearching ? (
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2.5" />
+                      <span>Scanning nearby drivers...</span>
+                    </>
                   ) : (
-                    <Zap className="h-5 w-5 mr-2" />
+                    <>
+                      <Play className="h-5 w-5 mr-2.5 fill-current" />
+                      <span>Find Rides</span>
+                    </>
                   )}
-                  {isSearching ? "Finding rides..." : "Find Rides"}
                 </Button>
+                {!pickupCoords && !dropoffCoords && (
+                  <p className="text-center text-xs text-muted-foreground mt-3">
+                    Enter pickup & destination to get started
+                  </p>
+                )}
               </div>
             )}
           </div>
 
-          {/* Vehicle Selection */}
+          {/* Vehicle Selection — Netflix-style horizontal cards */}
           {step === "vehicle" && vehicleTypes.length > 0 && (
-            <div className="space-y-3 animate-fade-in">
+            <div className="space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold tracking-tight">Choose your ride</h2>
-                <Badge variant="secondary" className="rounded-full text-xs font-medium">
-                  {vehicleTypes.length} available
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-secondary" />
+                  <h2 className="text-lg font-bold tracking-tight text-foreground">Select Ride</h2>
+                </div>
+                <button
+                  onClick={() => { setStep("location"); setSelectedType(null); }}
+                  className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Edit route
+                </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {vehicleTypes.map((type, index) => {
                   const Icon = vehicleIcons[type.icon] || Car;
                   const fare = Math.round(calculateFare(type) * 100) / 100;
                   const isSelected = selectedType === type.id;
                   const isCheapest = index === 0;
+                  const isPremium = type.icon === "crown";
 
                   return (
                     <button
                       key={type.id}
                       onClick={() => handleSelectVehicle(type.id)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 text-left group
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 text-left group relative overflow-hidden
                         ${isSelected
-                          ? "border-primary bg-primary/5 ring-1 ring-primary/30 shadow-sm"
-                          : "border-border hover:border-primary/30 hover:bg-accent/50 hover:shadow-sm"
+                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 scale-[1.01]"
+                          : "border-border/50 hover:border-primary/40 hover:bg-accent/30 hover:shadow-md hover:scale-[1.01]"
                         }`}
                     >
-                      <div className={`p-3 rounded-xl transition-colors ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-primary/10"}`}>
+                      {/* Subtle shine effect */}
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
+                      )}
+
+                      <div className={`relative p-3.5 rounded-2xl transition-all duration-300 ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                          : isPremium
+                            ? "bg-secondary/15 text-secondary group-hover:bg-secondary/25"
+                            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                      }`}>
                         <Icon className="h-6 w-6" />
                       </div>
-                      <div className="flex-1 min-w-0">
+
+                      <div className="flex-1 min-w-0 relative">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm">{type.display_name}</span>
+                          <span className="font-bold text-sm text-foreground">{type.display_name}</span>
                           {isCheapest && (
-                            <Badge className="text-[10px] h-4 px-1.5 rounded-full bg-primary/10 text-primary border-0 font-semibold">
-                              Best value
-                            </Badge>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wider">
+                              Popular
+                            </span>
+                          )}
+                          {isPremium && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/15 text-secondary uppercase tracking-wider">
+                              Premium
+                            </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {type.max_passengers} seats • ~{estimatedDuration} min
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Users className="h-3 w-3" /> {type.max_passengers}
+                          </span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> ~{estimatedDuration} min
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0 relative">
+                        <p className="text-xl font-black tracking-tight text-foreground">
+                          R{fare.toFixed(0)}
                         </p>
+                        <p className="text-[10px] text-muted-foreground">est. fare</p>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-lg font-bold tracking-tight">R{fare.toFixed(2)}</p>
-                      </div>
-                      <ChevronRight className={`h-4 w-4 shrink-0 transition-colors ${isSelected ? "text-primary" : "text-muted-foreground/40"}`} />
+
+                      <ChevronRight className={`h-5 w-5 shrink-0 transition-all duration-300 ${
+                        isSelected ? "text-primary translate-x-0.5" : "text-muted-foreground/30 group-hover:text-muted-foreground"
+                      }`} />
                     </button>
                   );
                 })}
@@ -403,101 +458,107 @@ const RideRequestPage: React.FC = () => {
             </div>
           )}
 
-          {/* Confirmation */}
+          {/* Confirmation — cinematic summary */}
           {step === "confirm" && estimatedFare && selectedVehicle && (
             <div className="space-y-4 animate-fade-in">
-              {/* Summary card */}
-              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold tracking-tight">Trip Summary</h2>
+              <div className="rounded-2xl border border-border/50 bg-card overflow-hidden shadow-lg">
+                {/* Header with gradient */}
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-5 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CircleDot className="h-4 w-4 text-primary" />
+                    <h2 className="text-base font-bold tracking-tight text-foreground">Trip Summary</h2>
+                  </div>
                   <button
                     onClick={() => setStep("vehicle")}
-                    className="text-xs font-medium text-primary hover:underline"
+                    className="text-xs font-semibold text-primary hover:underline transition-colors"
                   >
-                    Change ride
+                    Change
                   </button>
                 </div>
 
-                {/* Route summary */}
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 p-1.5 rounded-lg bg-primary/10">
-                      <MapPin className="h-3.5 w-3.5 text-primary" />
+                <div className="p-5 space-y-4">
+                  {/* Route */}
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <MapPin className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Pickup</p>
+                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{pickup}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
-                      <p className="text-sm font-medium truncate">{pickup}</p>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 w-8 h-8 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                        <Navigation className="h-4 w-4 text-destructive" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Drop-off</p>
+                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{dropoff}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 p-1.5 rounded-lg bg-destructive/10">
-                      <Navigation className="h-3.5 w-3.5 text-destructive" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Drop-off</p>
-                      <p className="text-sm font-medium truncate">{dropoff}</p>
-                    </div>
-                  </div>
-                </div>
 
-                <Separator />
+                  <Separator className="bg-border/50" />
 
-                {/* Details grid */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="text-center p-2.5 rounded-xl bg-muted/50">
-                    <p className="text-xs text-muted-foreground">Vehicle</p>
-                    <p className="text-sm font-semibold mt-0.5">{selectedVehicle.display_name}</p>
+                  {/* Stats grid */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Vehicle", value: selectedVehicle.display_name, icon: Car },
+                      { label: "Distance", value: `${estimatedDistance} km`, icon: Route },
+                      { label: "ETA", value: `~${estimatedDuration} min`, icon: Clock },
+                    ].map((stat) => (
+                      <div key={stat.label} className="text-center p-3 rounded-xl bg-muted/50 border border-border/30">
+                        <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1.5" />
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</p>
+                        <p className="text-xs font-bold text-foreground mt-0.5">{stat.value}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-center p-2.5 rounded-xl bg-muted/50">
-                    <p className="text-xs text-muted-foreground">Distance</p>
-                    <p className="text-sm font-semibold mt-0.5">{estimatedDistance} km</p>
-                  </div>
-                  <div className="text-center p-2.5 rounded-xl bg-muted/50">
-                    <p className="text-xs text-muted-foreground">ETA</p>
-                    <p className="text-sm font-semibold mt-0.5">~{estimatedDuration} min</p>
-                  </div>
-                </div>
 
-                <Separator />
+                  <Separator className="bg-border/50" />
 
-                {/* Fare + Payment */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-muted">
-                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                  {/* Payment & Fare */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                        <CreditCard className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Wallet</p>
+                        <p className="text-[10px] text-muted-foreground">Payment method</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">Wallet</p>
-                      <p className="text-[10px] text-muted-foreground">Payment method</p>
+                    <div className="text-right">
+                      <p className="text-3xl font-black tracking-tighter text-foreground">
+                        R{estimatedFare.toFixed(2)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-medium">estimated</p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black tracking-tight">R{estimatedFare.toFixed(2)}</p>
-                    <p className="text-[10px] text-muted-foreground">estimated fare</p>
                   </div>
                 </div>
               </div>
 
               {/* CTA */}
               <Button
-                className="w-full h-14 rounded-2xl text-base font-bold shadow-lg"
+                className="w-full h-[3.5rem] rounded-2xl text-base font-bold shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl"
                 onClick={handleRequestRide}
                 disabled={isRequesting}
               >
                 {isRequesting ? (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    <Loader2 className="h-5 w-5 animate-spin mr-2.5" />
                     Finding your driver...
                   </>
                 ) : (
                   <>
-                    <Shield className="h-5 w-5 mr-2" />
+                    <Shield className="h-5 w-5 mr-2.5" />
                     Confirm & Request Ride
                   </>
                 )}
               </Button>
 
-              <p className="text-center text-[11px] text-muted-foreground">
+              <p className="text-center text-[11px] text-muted-foreground/70">
                 By requesting, you agree to our terms. Fare may vary based on traffic.
               </p>
             </div>
