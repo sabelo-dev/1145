@@ -472,7 +472,7 @@ const RideRequestPage: React.FC = () => {
                       </div>
 
                       <ChevronRight className={`h-5 w-5 shrink-0 transition-all duration-300 ${
-                        isSelected ? "text-primary translate-x-0.5" : "text-muted-foreground/30 group-hover:text-muted-foreground"
+                        isSelected ? "text-primary translate-x-0.5" : "text-white/15 group-hover:text-white/40"
                       }`} />
                     </button>
                   );
