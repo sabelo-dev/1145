@@ -359,24 +359,28 @@ const RideRequestPage: React.FC = () => {
 
             {step === "location" && (
               <div className="pt-4">
-                <Button
-                  className="w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl"
+                <button
+                  className={`w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl flex items-center justify-center gap-2.5
+                    ${(!pickup || !dropoff || isSearching)
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : "bg-gradient-to-r from-[hsl(222,80%,55%)] to-[hsl(250,70%,58%)] text-white shadow-[0_4px_20px_hsl(222,80%,55%,0.4)] hover:shadow-[0_6px_28px_hsl(222,80%,55%,0.5)]"
+                    }`}
                   onClick={handleSearchRides}
                   disabled={isSearching || !pickup || !dropoff}
                 >
                   {isSearching ? (
                     <>
-                      <Loader2 className="h-5 w-5 animate-spin mr-2.5" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                       <span>Scanning nearby drivers...</span>
                     </>
                   ) : (
                     <>
-                      <Play className="h-5 w-5 mr-2.5 fill-current" />
+                      <Play className="h-5 w-5 fill-current" />
                       <span>Find Rides</span>
                     </>
                   )}
-                </Button>
-                {!pickupCoords && !dropoffCoords && (
+                </button>
+                {!pickup && !dropoff && (
                   <p className="text-center text-xs text-muted-foreground mt-3">
                     Enter pickup & destination to get started
                   </p>
@@ -551,23 +555,27 @@ const RideRequestPage: React.FC = () => {
                 </div>
               </div>
 
-              <Button
-                className="w-full h-[3.5rem] rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl"
+              <button
+                className={`w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl flex items-center justify-center gap-2.5
+                  ${isRequesting
+                    ? "bg-muted text-muted-foreground cursor-not-allowed"
+                    : "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] hover:shadow-[0_6px_28px_rgba(16,185,129,0.5)]"
+                  }`}
                 onClick={handleRequestRide}
                 disabled={isRequesting}
               >
                 {isRequesting ? (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin mr-2.5" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     Finding your driver...
                   </>
                 ) : (
                   <>
-                    <Shield className="h-5 w-5 mr-2.5" />
+                    <Shield className="h-5 w-5" />
                     Confirm & Request Ride
                   </>
                 )}
-              </Button>
+              </button>
 
               <p className="text-center text-[11px] text-muted-foreground">
                 By requesting, you agree to our terms. Fare may vary based on traffic.
