@@ -36,6 +36,15 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
       });
   }, []);
 
+  // Sync external value into the web component's inner input
+  useEffect(() => {
+    if (!elementRef.current || !value) return;
+    const inner = elementRef.current.querySelector("input") as HTMLInputElement | null;
+    if (inner && inner.value !== value) {
+      inner.value = value;
+    }
+  }, [value]);
+
   useEffect(() => {
     if (!ready || loadError || !containerRef.current || elementRef.current) return;
 
@@ -44,7 +53,6 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
         componentRestrictions: { country: "za" },
       });
 
-      // Style the element to match our design
       autocomplete.style.width = "100%";
       autocomplete.style.height = "40px";
       autocomplete.style.fontSize = "14px";
@@ -68,8 +76,15 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
 
       containerRef.current.appendChild(autocomplete);
       elementRef.current = autocomplete;
+
+      // Set initial value if available
+      if (value) {
+        requestAnimationFrame(() => {
+          const inner = autocomplete.querySelector("input") as HTMLInputElement | null;
+          if (inner) inner.value = value;
+        });
+      }
     } catch {
-      // Fallback: PlaceAutocompleteElement not available, try legacy Autocomplete
       console.warn("PlaceAutocompleteElement not available, falling back to legacy input");
       setLoadError(true);
     }
@@ -95,7 +110,7 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   return (
     <div className={`relative ${className}`}>
       {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">{icon}</div>}
-      <div ref={containerRef} className={`w-full [&_input]:flex [&_input]:h-10 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-input [&_input]:bg-background [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:ring-offset-background [&_input]:placeholder:text-muted-foreground [&_input]:focus-visible:outline-none [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-ring [&_input]:focus-visible:ring-offset-2 ${icon ? "[&_input]:pl-10" : ""}`} />
+      <div ref={containerRef} className={`w-full [&_input]:flex [&_input]:h-10 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-input [&_input]:bg-background [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:text-foreground [&_input]:ring-offset-background [&_input]:placeholder:text-muted-foreground [&_input]:focus-visible:outline-none [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-ring [&_input]:focus-visible:ring-offset-2 ${icon ? "[&_input]:pl-10" : ""}`} />
     </div>
   );
 };
