@@ -455,10 +455,10 @@ const RideRequestPage: React.FC = () => {
                           )}
                         </div>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="text-xs text-white/40 flex items-center gap-1">
                             <Users className="h-3 w-3" /> {type.max_passengers}
                           </span>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="text-xs text-white/40 flex items-center gap-1">
                             <Clock className="h-3 w-3" /> ~{estimatedDuration} min
                           </span>
                         </div>
