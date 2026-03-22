@@ -75,7 +75,7 @@ export function loadGoogleMaps(): Promise<void> {
     await waitForGoogleMaps();
 
     // Import required libraries
-    const libs = ["maps", "places", "geometry"] as const;
+    const libs = ["maps", "places", "geometry", "marker"] as const;
     for (const lib of libs) {
       try {
         await window.google!.maps.importLibrary(lib);
