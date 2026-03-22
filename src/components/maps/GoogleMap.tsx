@@ -271,9 +271,9 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
   useEffect(() => {
     return () => {
-      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current.forEach((marker) => (marker.map = null));
       directionsRendererRef.current?.setMap(null);
-      driverMarkerRef.current?.setMap(null);
+      if (driverMarkerRef.current) driverMarkerRef.current.map = null;
       mapInstanceRef.current = null;
     };
   }, []);
