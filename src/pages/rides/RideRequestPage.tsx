@@ -383,7 +383,7 @@ const RideRequestPage: React.FC = () => {
                   )}
                 </Button>
                 {!pickupCoords && !dropoffCoords && (
-                  <p className="text-center text-xs text-muted-foreground mt-3">
+                  <p className="text-center text-xs text-white/40 mt-3">
                     Enter pickup & destination to get started
                   </p>
                 )}
