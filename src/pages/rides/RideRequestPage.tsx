@@ -326,7 +326,6 @@ const RideRequestPage: React.FC = () => {
                     setDropoffCoords({ lat: p.lat, lng: p.lng });
                   }}
                   placeholder="Where to?"
-                  icon={<Navigation className="h-4 w-4 text-destructive" />}
                 />
               </div>
             </div>
