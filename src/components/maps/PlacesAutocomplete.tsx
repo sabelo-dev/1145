@@ -36,6 +36,15 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
       });
   }, []);
 
+  // Sync external value into the web component's inner input
+  useEffect(() => {
+    if (!elementRef.current || !value) return;
+    const inner = elementRef.current.querySelector("input") as HTMLInputElement | null;
+    if (inner && inner.value !== value) {
+      inner.value = value;
+    }
+  }, [value]);
+
   useEffect(() => {
     if (!ready || loadError || !containerRef.current || elementRef.current) return;
 
@@ -44,7 +53,6 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
         componentRestrictions: { country: "za" },
       });
 
-      // Style the element to match our design
       autocomplete.style.width = "100%";
       autocomplete.style.height = "40px";
       autocomplete.style.fontSize = "14px";
@@ -68,8 +76,15 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
 
       containerRef.current.appendChild(autocomplete);
       elementRef.current = autocomplete;
+
+      // Set initial value if available
+      if (value) {
+        requestAnimationFrame(() => {
+          const inner = autocomplete.querySelector("input") as HTMLInputElement | null;
+          if (inner) inner.value = value;
+        });
+      }
     } catch {
-      // Fallback: PlaceAutocompleteElement not available, try legacy Autocomplete
       console.warn("PlaceAutocompleteElement not available, falling back to legacy input");
       setLoadError(true);
     }
