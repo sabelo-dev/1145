@@ -465,10 +465,10 @@ const RideRequestPage: React.FC = () => {
                       </div>
 
                       <div className="text-right shrink-0 relative">
-                        <p className="text-xl font-black tracking-tight text-foreground">
+                        <p className="text-xl font-black tracking-tight text-white">
                           R{fare.toFixed(0)}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">est. fare</p>
+                        <p className="text-[10px] text-white/40">est. fare</p>
                       </div>
 
                       <ChevronRight className={`h-5 w-5 shrink-0 transition-all duration-300 ${
