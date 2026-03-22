@@ -442,7 +442,7 @@ const RideRequestPage: React.FC = () => {
 
                       <div className="flex-1 min-w-0 relative">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-foreground">{type.display_name}</span>
+                          <span className="font-bold text-sm text-white">{type.display_name}</span>
                           {isCheapest && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wider">
                               Popular
