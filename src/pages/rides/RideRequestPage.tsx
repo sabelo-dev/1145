@@ -397,7 +397,7 @@ const RideRequestPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-foreground">Select Ride</h2>
+                  <h2 className="text-lg font-bold tracking-tight text-white">Select Ride</h2>
                 </div>
                 <button
                   onClick={() => { setStep("location"); setSelectedType(null); }}
