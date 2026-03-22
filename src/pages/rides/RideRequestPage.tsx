@@ -155,8 +155,8 @@ const RideRequestPage: React.FC = () => {
     try {
       const service = new google.maps.DistanceMatrixService();
       const result = await service.getDistanceMatrix({
-        origins: [pickupCoords],
-        destinations: [dropoffCoords],
+        origins: [pCoords],
+        destinations: [dCoords],
         travelMode: google.maps.TravelMode.DRIVING,
       });
 
@@ -165,12 +165,12 @@ const RideRequestPage: React.FC = () => {
         setEstimatedDistance(Math.round((element.distance!.value / 1000) * 10) / 10);
         setEstimatedDuration(Math.round(element.duration!.value / 60));
       } else {
-        const d = haversineKm(pickupCoords, dropoffCoords);
+        const d = haversineKm(pCoords, dCoords);
         setEstimatedDistance(Math.round(d * 10) / 10);
         setEstimatedDuration(Math.round(d * 2.5 + 5));
       }
     } catch {
-      const d = haversineKm(pickupCoords, dropoffCoords);
+      const d = haversineKm(pCoords, dCoords);
       setEstimatedDistance(Math.round(d * 10) / 10);
       setEstimatedDuration(Math.round(d * 2.5 + 5));
     }
