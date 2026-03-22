@@ -248,28 +248,24 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     if (!mapInstanceRef.current) return;
 
     if (!driverLocation) {
-      driverMarkerRef.current?.setMap(null);
+      if (driverMarkerRef.current) driverMarkerRef.current.map = null;
       driverMarkerRef.current = null;
       return;
     }
 
     if (!driverMarkerRef.current) {
-      driverMarkerRef.current = new google.maps.Marker({
+      const el = document.createElement("div");
+      el.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="#4361EE" stroke="#fff" stroke-width="2"><path d="M12 2L4 20h16L12 2z"/></svg>`;
+      el.style.cssText = "filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));";
+
+      driverMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
         map: mapInstanceRef.current,
         title: "Driver",
-        icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: "#4361EE",
-          fillOpacity: 1,
-          strokeWeight: 2,
-          strokeColor: "#fff",
-          rotation: 0,
-        },
+        content: el,
       });
     }
 
-    driverMarkerRef.current.setPosition(driverLocation);
+    driverMarkerRef.current.position = driverLocation;
     mapInstanceRef.current.panTo(driverLocation);
   }, [driverLocation, loaded]);
 
