@@ -253,16 +253,30 @@ const RideRequestPage: React.FC = () => {
               <div className="flex-1 space-y-3">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">PICKUP</label>
-                  <PlacesAutocomplete
-                    value={pickup}
-                    onChange={setPickup}
-                    onPlaceSelect={(p) => {
-                      setPickup(p.address);
-                      setPickupCoords({ lat: p.lat, lng: p.lng });
-                    }}
-                    placeholder="Enter pickup location"
-                    icon={<MapPin className="h-4 w-4 text-emerald-500" />}
-                  />
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <PlacesAutocomplete
+                        value={pickup}
+                        onChange={setPickup}
+                        onPlaceSelect={(p) => {
+                          setPickup(p.address);
+                          setPickupCoords({ lat: p.lat, lng: p.lng });
+                        }}
+                        placeholder={isLocating ? "Detecting your location..." : "Enter pickup location"}
+                        icon={<MapPin className="h-4 w-4 text-emerald-500" />}
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10 shrink-0"
+                      onClick={detectAndSetPickup}
+                      disabled={isLocating}
+                      title="Use current location"
+                    >
+                      {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Locate className="h-4 w-4 text-primary" />}
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">DROP-OFF</label>
