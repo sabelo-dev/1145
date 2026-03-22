@@ -255,7 +255,7 @@ const RideRequestPage: React.FC = () => {
   const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-[hsl(222,30%,6%)] text-white relative overflow-hidden">
       {/* Cinematic Map Hero */}
       <div className="relative">
         <GoogleMap
