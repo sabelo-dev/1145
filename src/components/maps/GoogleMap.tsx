@@ -182,15 +182,21 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current.forEach((marker) => (marker.map = null));
     markersRef.current = [];
 
     markers.forEach((markerData) => {
-      const marker = new google.maps.Marker({
+      const content = document.createElement("div");
+      if (markerData.label) {
+        content.textContent = markerData.label;
+        content.style.cssText = "background:#4361EE;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);";
+      }
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
         position: markerData.position,
         map: mapInstanceRef.current!,
         title: markerData.title,
-        label: markerData.label,
+        ...(markerData.label ? { content } : {}),
       });
       markersRef.current.push(marker);
     });
