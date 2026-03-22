@@ -304,7 +304,7 @@ const RideRequestPage: React.FC = () => {
       <div className="relative -mt-8 rounded-t-[2rem] bg-[hsl(222,30%,8%)] border-t border-white/10 shadow-[0_-16px_48px_-12px_rgba(0,0,0,0.6)] min-h-[52vh]">
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1.5 rounded-full bg-muted-foreground/15" />
+          <div className="w-12 h-1.5 rounded-full bg-white/10" />
         </div>
 
         <div className="px-5 pb-10 max-w-lg mx-auto space-y-5">
