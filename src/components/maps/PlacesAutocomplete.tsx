@@ -39,10 +39,18 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   // Sync external value into the web component's inner input
   useEffect(() => {
     if (!elementRef.current || !value) return;
-    const inner = elementRef.current.querySelector("input") as HTMLInputElement | null;
-    if (inner && inner.value !== value) {
-      inner.value = value;
-    }
+    const trySync = () => {
+      const inner = elementRef.current?.querySelector("input") as HTMLInputElement | null;
+      if (inner && inner.value !== value) {
+        inner.value = value;
+      }
+    };
+    // Try immediately and with delays to handle async rendering of the web component
+    trySync();
+    const t1 = setTimeout(trySync, 100);
+    const t2 = setTimeout(trySync, 500);
+    const t3 = setTimeout(trySync, 1000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [value]);
 
   useEffect(() => {
