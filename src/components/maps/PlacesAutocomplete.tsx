@@ -1,5 +1,5 @@
 /// <reference types="@types/google.maps" />
-import React, { useEffect, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { loadGoogleMaps } from "./GoogleMap";
 
 interface PlacesAutocompleteProps {
@@ -11,18 +11,32 @@ interface PlacesAutocompleteProps {
   icon?: React.ReactNode;
 }
 
-const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
+const INPUT_SYNC_DELAYS = [0, 100, 300, 700, 1200];
+
+const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>(({ 
   value,
   onChange,
   onPlaceSelect,
   placeholder = "Search location...",
   className = "",
   icon,
-}) => {
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const elementRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
+
+  const syncInnerInput = (nextValue: string) => {
+    const inner = elementRef.current?.querySelector("input") as HTMLInputElement | null;
+    if (!inner) return null;
+    if (inner.value !== nextValue) {
+      inner.value = nextValue;
+    }
+    if (inner.placeholder !== placeholder) {
+      inner.placeholder = placeholder;
+    }
+    return inner;
+  };
 
   useEffect(() => {
     loadGoogleMaps()
@@ -36,22 +50,18 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
       });
   }, []);
 
-  // Sync external value into the web component's inner input
   useEffect(() => {
-    if (!elementRef.current || !value) return;
-    const trySync = () => {
-      const inner = elementRef.current?.querySelector("input") as HTMLInputElement | null;
-      if (inner && inner.value !== value) {
-        inner.value = value;
-      }
+    if (!elementRef.current) return;
+    const timers = INPUT_SYNC_DELAYS.map((delay) =>
+      setTimeout(() => {
+        syncInnerInput(value);
+      }, delay)
+    );
+
+    return () => {
+      timers.forEach(clearTimeout);
     };
-    // Try immediately and with delays to handle async rendering of the web component
-    trySync();
-    const t1 = setTimeout(trySync, 100);
-    const t2 = setTimeout(trySync, 500);
-    const t3 = setTimeout(trySync, 1000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [value]);
+  }, [placeholder, ready, value]);
 
   useEffect(() => {
     if (!ready || loadError || !containerRef.current || elementRef.current) return;
@@ -65,8 +75,8 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
       autocomplete.style.height = "40px";
       autocomplete.style.fontSize = "14px";
 
-      autocomplete.addEventListener("gmp-placeselect", async (event: any) => {
-        const place = event.place;
+      const handlePlaceSelect = async (event: Event) => {
+        const place = (event as any).place;
         if (place) {
           await place.fetchFields({ fields: ["displayName", "formattedAddress", "location"] });
           const address = place.formattedAddress || "";
@@ -80,18 +90,47 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
             });
           }
         }
-      });
+      };
+
+      autocomplete.addEventListener("gmp-placeselect", handlePlaceSelect);
+
+      let removeInputListener: (() => void) | null = null;
+      const bindInnerInput = () => {
+        if (removeInputListener) {
+          syncInnerInput(value);
+          return;
+        }
+
+        const inner = syncInnerInput(value);
+        if (!inner) return;
+
+        const handleInput = (event: Event) => {
+          onChange((event.target as HTMLInputElement).value);
+        };
+
+        inner.addEventListener("input", handleInput);
+        removeInputListener = () => inner.removeEventListener("input", handleInput);
+      };
+
+      const timers = INPUT_SYNC_DELAYS.map((delay) =>
+        setTimeout(() => {
+          bindInnerInput();
+        }, delay)
+      );
 
       containerRef.current.appendChild(autocomplete);
       elementRef.current = autocomplete;
+      syncInnerInput(value);
 
-      // Set initial value if available
-      if (value) {
-        requestAnimationFrame(() => {
-          const inner = autocomplete.querySelector("input") as HTMLInputElement | null;
-          if (inner) inner.value = value;
-        });
-      }
+      return () => {
+        timers.forEach(clearTimeout);
+        removeInputListener?.();
+        autocomplete.removeEventListener("gmp-placeselect", handlePlaceSelect);
+        autocomplete.remove();
+        if (elementRef.current === autocomplete) {
+          elementRef.current = null;
+        }
+      };
     } catch {
       console.warn("PlaceAutocompleteElement not available, falling back to legacy input");
       setLoadError(true);
@@ -116,11 +155,13 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={ref} className={`relative ${className}`}>
       {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">{icon}</div>}
       <div ref={containerRef} className={`w-full [&_input]:flex [&_input]:h-10 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-input [&_input]:bg-background [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:text-foreground [&_input]:ring-offset-background [&_input]:placeholder:text-muted-foreground [&_input]:focus-visible:outline-none [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-ring [&_input]:focus-visible:ring-offset-2 ${icon ? "[&_input]:pl-10" : ""}`} />
     </div>
   );
-};
+});
+
+PlacesAutocomplete.displayName = "PlacesAutocomplete";
 
 export default PlacesAutocomplete;

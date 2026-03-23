@@ -52,6 +52,16 @@ const RideRequestPage: React.FC = () => {
   const [isLocating, setIsLocating] = useState(false);
   const [step, setStep] = useState<"location" | "vehicle" | "confirm">("location");
 
+  const handlePickupChange = useCallback((value: string) => {
+    setPickup(value);
+    setPickupCoords(null);
+  }, []);
+
+  const handleDropoffChange = useCallback((value: string) => {
+    setDropoff(value);
+    setDropoffCoords(null);
+  }, []);
+
   const detectAndSetPickup = useCallback(async () => {
     setIsLocating(true);
     try {
@@ -72,7 +82,10 @@ const RideRequestPage: React.FC = () => {
       });
 
       const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+      const fallbackAddress = `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`;
+
       setPickupCoords(coords);
+      setPickup(fallbackAddress);
 
       try {
         await loadGoogleMaps();
@@ -81,10 +94,10 @@ const RideRequestPage: React.FC = () => {
         if (result.results?.[0]) {
           setPickup(result.results[0].formatted_address);
         } else {
-          setPickup(`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
+          setPickup(fallbackAddress);
         }
       } catch {
-        setPickup(`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
+        setPickup(fallbackAddress);
       }
     } catch (err: any) {
       console.warn("Location detection failed:", err.message);
@@ -323,7 +336,7 @@ const RideRequestPage: React.FC = () => {
                   <div className="flex-1 relative">
                     <PlacesAutocomplete
                       value={pickup}
-                      onChange={setPickup}
+                      onChange={handlePickupChange}
                       onPlaceSelect={(p) => {
                         setPickup(p.address);
                         setPickupCoords({ lat: p.lat, lng: p.lng });
@@ -347,7 +360,7 @@ const RideRequestPage: React.FC = () => {
 
                 <PlacesAutocomplete
                   value={dropoff}
-                  onChange={setDropoff}
+                  onChange={handleDropoffChange}
                   onPlaceSelect={(p) => {
                     setDropoff(p.address);
                     setDropoffCoords({ lat: p.lat, lng: p.lng });
