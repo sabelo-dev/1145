@@ -72,12 +72,15 @@ interface Driver {
 }
 
 const DriverDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, isLoading: authLoading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [driver, setDriver] = useState<Driver | null>(null);
   const [isDriverLoading, setIsDriverLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to finish initializing before querying
+    if (authLoading) return;
+
     if (user) {
       fetchDriverInfo();
     } else {
@@ -90,7 +93,7 @@ const DriverDashboard: React.FC = () => {
     }, 8000);
 
     return () => clearTimeout(timeout);
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchDriverInfo = async () => {
     if (!user) return;
@@ -106,12 +109,14 @@ const DriverDashboard: React.FC = () => {
       if (!error && data) {
         setDriver(data);
       }
+    } catch (err) {
+      console.error("Failed to fetch driver info:", err);
     } finally {
       setIsDriverLoading(false);
     }
   };
 
-  if (isDriverLoading) {
+  if (authLoading || isDriverLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
