@@ -114,11 +114,8 @@ const AdminDashboard = () => {
     { id: "audit", title: "Logs / Audit Trail", icon: AuditIcon },
     { id: "rides", title: "Ride Monitoring", icon: Car },
     { id: "ride-analytics", title: "Ride Analytics", icon: TrendingUp },
-<<<<<<< HEAD
-=======
     { id: "ride-pricing", title: "Ride Pricing", icon: DollarSign },
     { id: "leases", title: "Lease Management", icon: FileText },
->>>>>>> 8017da691d81f389e94a67670f1652f845785898
     { id: "asset-lifecycle", title: "Asset Lifecycle", icon: Package },
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
     { id: "risk-monitoring", title: "Risk & Credit", icon: Shield },
