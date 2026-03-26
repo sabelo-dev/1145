@@ -321,7 +321,7 @@ const RideTrackingPage: React.FC = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${status.color} ${status.animate ? "animate-pulse" : ""}`} />
+                <div className={`w-3 h-3 rounded-full ${status.color} ${"animate" in status && status.animate ? "animate-pulse" : ""}`} />
                 <span className="font-semibold text-lg text-foreground">{status.label}</span>
               </div>
             </CardContent>
