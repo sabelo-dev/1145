@@ -191,7 +191,17 @@ const RideRequestPage: React.FC = () => {
         estimated_fare: estimatedFare, status: "requested", payment_method: "wallet",
       }).select().single();
       if (error) throw error;
-      toast({ title: "Ride Requested!", description: "Looking for nearby drivers..." });
+
+      // Trigger driver matching immediately
+      const { rideMatchingService } = await import("@/services/rideMatchingService");
+      const matchResult = await rideMatchingService.matchRideToDrivers(data.id);
+
+      if (matchResult.driversNotified > 0) {
+        toast({ title: "Ride Requested!", description: `${matchResult.driversNotified} nearby driver${matchResult.driversNotified > 1 ? "s" : ""} notified. Waiting for acceptance...` });
+      } else {
+        toast({ title: "Ride Requested!", description: "Searching for nearby drivers..." });
+      }
+
       navigate(`/rides/track/${data.id}`);
     } catch (err: any) {
       toast({ variant: "destructive", title: "Failed to request ride", description: err.message });

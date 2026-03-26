@@ -15,7 +15,7 @@ export function useRideMatching({ rideId, enabled = true }: UseRideMatchingOptio
   const [attempt, setAttempt] = useState(0);
   const [driverAssigned, setDriverAssigned] = useState(false);
   const [noDriversAvailable, setNoDriversAvailable] = useState(false);
-  const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
 
   const clearRetryTimer = useCallback(() => {
