@@ -104,7 +104,7 @@ const DriverDashboard: React.FC = () => {
         .from("drivers")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         setDriver(data);
