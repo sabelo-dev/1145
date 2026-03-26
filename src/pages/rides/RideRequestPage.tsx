@@ -67,23 +67,18 @@ const RideRequestPage: React.FC = () => {
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false,
-          timeout: 15000,
-          maximumAge: 300000,
+          enableHighAccuracy: false, timeout: 15000, maximumAge: 300000,
         });
       }).catch(() => {
         return new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false,
-            timeout: 20000,
-            maximumAge: 600000,
+            enableHighAccuracy: false, timeout: 20000, maximumAge: 600000,
           });
         });
       });
 
       const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
       const fallbackAddress = `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`;
-
       setPickupCoords(coords);
       setPickup(fallbackAddress);
 
@@ -91,46 +86,27 @@ const RideRequestPage: React.FC = () => {
         await loadGoogleMaps();
         const geocoder = new google.maps.Geocoder();
         const result = await geocoder.geocode({ location: coords });
-        if (result.results?.[0]) {
-          setPickup(result.results[0].formatted_address);
-        } else {
-          setPickup(fallbackAddress);
-        }
-      } catch {
-        setPickup(fallbackAddress);
-      }
-    } catch (err: any) {
-      console.warn("Location detection failed:", err.message);
-      toast({
-        title: "Location unavailable",
-        description: "Please enter your pickup location manually.",
-        variant: "destructive",
-      });
+        if (result.results?.[0]) setPickup(result.results[0].formatted_address);
+      } catch {}
+    } catch {
+      toast({ title: "Location unavailable", description: "Please enter your pickup location manually.", variant: "destructive" });
     } finally {
       setIsLocating(false);
     }
   }, [toast]);
 
   useEffect(() => {
-    if ("geolocation" in navigator && !pickupCoords) {
-      detectAndSetPickup();
-    }
+    if ("geolocation" in navigator && !pickupCoords) detectAndSetPickup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (pickupCoords && dropoffCoords && step === "location") {
-      handleSearchRides();
-    }
+    if (pickupCoords && dropoffCoords && step === "location") handleSearchRides();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupCoords, dropoffCoords]);
 
   const fetchVehicleTypes = async () => {
-    const { data } = await supabase
-      .from("vehicle_types")
-      .select("*")
-      .eq("is_active", true)
-      .order("base_fare", { ascending: true });
+    const { data } = await supabase.from("vehicle_types").select("*").eq("is_active", true).order("base_fare", { ascending: true });
     if (data) setVehicleTypes(data);
   };
 
@@ -148,16 +124,8 @@ const RideRequestPage: React.FC = () => {
   const handleSearchRides = async () => {
     let pCoords = pickupCoords;
     let dCoords = dropoffCoords;
-
-    if (!pCoords && pickup) {
-      pCoords = await geocodeAddress(pickup);
-      if (pCoords) setPickupCoords(pCoords);
-    }
-    if (!dCoords && dropoff) {
-      dCoords = await geocodeAddress(dropoff);
-      if (dCoords) setDropoffCoords(dCoords);
-    }
-
+    if (!pCoords && pickup) { pCoords = await geocodeAddress(pickup); if (pCoords) setPickupCoords(pCoords); }
+    if (!dCoords && dropoff) { dCoords = await geocodeAddress(dropoff); if (dCoords) setDropoffCoords(dCoords); }
     if (!pCoords || !dCoords) {
       toast({ variant: "destructive", title: "Please select both locations from the suggestions" });
       return;
@@ -168,11 +136,8 @@ const RideRequestPage: React.FC = () => {
     try {
       const service = new google.maps.DistanceMatrixService();
       const result = await service.getDistanceMatrix({
-        origins: [pCoords],
-        destinations: [dCoords],
-        travelMode: google.maps.TravelMode.DRIVING,
+        origins: [pCoords], destinations: [dCoords], travelMode: google.maps.TravelMode.DRIVING,
       });
-
       const element = result.rows[0]?.elements[0];
       if (element?.status === "OK") {
         setEstimatedDistance(Math.round((element.distance!.value / 1000) * 10) / 10);
@@ -187,7 +152,6 @@ const RideRequestPage: React.FC = () => {
       setEstimatedDistance(Math.round(d * 10) / 10);
       setEstimatedDuration(Math.round(d * 2.5 + 5));
     }
-
     setIsSearching(false);
     setStep("vehicle");
   };
@@ -196,9 +160,7 @@ const RideRequestPage: React.FC = () => {
     const R = 6371;
     const dLat = ((b.lat - a.lat) * Math.PI) / 180;
     const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-    const x =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    const x = Math.sin(dLat / 2) ** 2 + Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
   };
 
@@ -216,35 +178,18 @@ const RideRequestPage: React.FC = () => {
   };
 
   const handleRequestRide = async () => {
-    if (!user) {
-      toast({ variant: "destructive", title: "Please log in to request a ride" });
-      navigate("/login");
-      return;
-    }
+    if (!user) { toast({ variant: "destructive", title: "Please log in to request a ride" }); navigate("/login"); return; }
     if (!selectedType || !estimatedFare || !pickupCoords || !dropoffCoords) return;
-
     setIsRequesting(true);
     try {
-      const { data, error } = await supabase
-        .from("rides")
-        .insert({
-          passenger_id: user.id,
-          vehicle_type_id: selectedType,
-          pickup_address: pickup,
-          dropoff_address: dropoff,
-          pickup_lat: pickupCoords.lat,
-          pickup_lng: pickupCoords.lng,
-          dropoff_lat: dropoffCoords.lat,
-          dropoff_lng: dropoffCoords.lng,
-          estimated_distance_km: estimatedDistance,
-          estimated_duration_minutes: estimatedDuration,
-          estimated_fare: estimatedFare,
-          status: "requested",
-          payment_method: "wallet",
-        })
-        .select()
-        .single();
-
+      const { data, error } = await supabase.from("rides").insert({
+        passenger_id: user.id, vehicle_type_id: selectedType,
+        pickup_address: pickup, dropoff_address: dropoff,
+        pickup_lat: pickupCoords.lat, pickup_lng: pickupCoords.lng,
+        dropoff_lat: dropoffCoords.lat, dropoff_lng: dropoffCoords.lng,
+        estimated_distance_km: estimatedDistance, estimated_duration_minutes: estimatedDuration,
+        estimated_fare: estimatedFare, status: "requested", payment_method: "wallet",
+      }).select().single();
       if (error) throw error;
       toast({ title: "Ride Requested!", description: "Looking for nearby drivers..." });
       navigate(`/rides/track/${data.id}`);
@@ -259,67 +204,39 @@ const RideRequestPage: React.FC = () => {
     ...(pickupCoords ? [{ position: pickupCoords, title: "Pickup", label: "A" }] : []),
     ...(dropoffCoords ? [{ position: dropoffCoords, title: "Drop-off", label: "B" }] : []),
   ];
-
-  const mapRoute =
-    pickupCoords && dropoffCoords && step !== "location"
-      ? { origin: pickupCoords, destination: dropoffCoords }
-      : undefined;
-
+  const mapRoute = pickupCoords && dropoffCoords && step !== "location" ? { origin: pickupCoords, destination: dropoffCoords } : undefined;
   const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Map Hero */}
-      <div className="relative">
-        <GoogleMap
-          className="w-full h-[44vh] md:h-[48vh]"
-          markers={mapMarkers}
-          route={mapRoute}
-          center={pickupCoords || { lat: -26.2041, lng: 28.0473 }}
-          zoom={pickupCoords ? 14 : 12}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background pointer-events-none" />
-
-        {/* Top bar */}
-        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="h-11 w-11 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/50 flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
-          >
-            <ArrowLeft className="h-5 w-5 text-foreground" />
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="px-4 py-2 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/50 shadow-md">
-              <span className="text-xs font-bold tracking-widest uppercase text-emerald-600">● Live</span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
+      {/* Mobile: Top bar */}
+      <div className="lg:hidden flex items-center justify-between px-4 pt-4 pb-2 bg-background z-20">
+        <button onClick={() => navigate(-1)} className="h-10 w-10 rounded-xl bg-card border border-border flex items-center justify-center">
+          <ArrowLeft className="h-5 w-5 text-foreground" />
+        </button>
+        <h1 className="text-base font-bold text-foreground">Request a Ride</h1>
+        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+          <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
         </div>
-
-        {/* Floating trip stats */}
-        {estimatedDistance && estimatedDuration && step !== "location" && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
-            <div className="flex items-center gap-1 p-1 rounded-2xl bg-card/95 backdrop-blur-xl shadow-xl border border-border/40">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10">
-                <Route className="h-4 w-4 text-primary" />
-                <span className="text-sm font-bold text-foreground">{estimatedDistance} km</span>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/10">
-                <Clock className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-bold text-foreground">~{estimatedDuration} min</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Bottom Sheet */}
-      <div className="relative -mt-8 rounded-t-[2rem] bg-card border-t border-border/50 shadow-[0_-8px_30px_-12px_hsl(var(--foreground)/0.1)] min-h-[52vh]">
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1.5 rounded-full bg-muted-foreground/20" />
+      {/* ─── COLUMN 1: Request Form (1/3) ─── */}
+      <div className="lg:w-1/3 lg:min-h-screen lg:border-r border-border bg-card flex flex-col">
+        {/* Desktop header */}
+        <div className="hidden lg:flex items-center justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center hover:bg-accent transition-colors">
+              <ArrowLeft className="h-4 w-4 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">Request a Ride</h1>
+          </div>
+          <div className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
+          </div>
         </div>
 
-        <div className="px-5 pb-10 max-w-lg mx-auto space-y-5">
-          {/* Location Inputs */}
+        <div className="flex-1 p-5 space-y-5 overflow-y-auto">
+          {/* Location inputs */}
           <div className="space-y-0">
             <div className="flex items-stretch gap-3">
               <div className="flex flex-col items-center py-4 gap-0.5">
@@ -333,38 +250,28 @@ const RideRequestPage: React.FC = () => {
 
               <div className="flex-1 space-y-2.5">
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 relative">
+                  <div className="flex-1">
                     <PlacesAutocomplete
                       value={pickup}
                       onChange={handlePickupChange}
-                      onPlaceSelect={(p) => {
-                        setPickup(p.address);
-                        setPickupCoords({ lat: p.lat, lng: p.lng });
-                      }}
+                      onPlaceSelect={(p) => { setPickup(p.address); setPickupCoords({ lat: p.lat, lng: p.lng }); }}
                       placeholder={isLocating ? "Detecting location..." : "Pickup location"}
                     />
                   </div>
                   <button
                     onClick={detectAndSetPickup}
                     disabled={isLocating}
-                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all disabled:opacity-50"
                     title="Use current location"
                   >
-                    {isLocating ? (
-                      <Loader2 className="h-4.5 w-4.5 animate-spin text-primary" />
-                    ) : (
-                      <Locate className="h-4.5 w-4.5 text-primary" />
-                    )}
+                    {isLocating ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Locate className="h-4 w-4 text-primary" />}
                   </button>
                 </div>
 
                 <PlacesAutocomplete
                   value={dropoff}
                   onChange={handleDropoffChange}
-                  onPlaceSelect={(p) => {
-                    setDropoff(p.address);
-                    setDropoffCoords({ lat: p.lat, lng: p.lng });
-                  }}
+                  onPlaceSelect={(p) => { setDropoff(p.address); setDropoffCoords({ lat: p.lat, lng: p.lng }); }}
                   placeholder="Where to?"
                 />
               </div>
@@ -373,175 +280,80 @@ const RideRequestPage: React.FC = () => {
             {step === "location" && (
               <div className="pt-4">
                 <button
-                  className={`w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl flex items-center justify-center gap-2.5
+                  className={`w-full h-13 rounded-2xl text-sm font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-2.5
                     ${(!pickup || !dropoff || isSearching)
                       ? "bg-muted text-muted-foreground cursor-not-allowed"
-                      : "bg-gradient-to-r from-[hsl(222,80%,55%)] to-[hsl(250,70%,58%)] text-white shadow-[0_4px_20px_hsl(222,80%,55%,0.4)] hover:shadow-[0_6px_28px_hsl(222,80%,55%,0.5)]"
+                      : "bg-primary text-primary-foreground shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] active:scale-[0.98]"
                     }`}
                   onClick={handleSearchRides}
                   disabled={isSearching || !pickup || !dropoff}
                 >
-                  {isSearching ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Scanning nearby drivers...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-5 w-5 fill-current" />
-                      <span>Find Rides</span>
-                    </>
-                  )}
+                  {isSearching ? (<><Loader2 className="h-5 w-5 animate-spin" />Scanning nearby drivers...</>) : (<><Play className="h-5 w-5 fill-current" />Find Rides</>)}
                 </button>
-                {!pickup && !dropoff && (
-                  <p className="text-center text-xs text-muted-foreground mt-3">
-                    Enter pickup & destination to get started
-                  </p>
-                )}
               </div>
             )}
           </div>
 
-          {/* Vehicle Selection */}
-          {step === "vehicle" && vehicleTypes.length > 0 && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-foreground">Select Ride</h2>
-                </div>
-                <button
-                  onClick={() => { setStep("location"); setSelectedType(null); }}
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Edit route
-                </button>
+          {/* Trip stats bar */}
+          {estimatedDistance && estimatedDuration && step !== "location" && (
+            <div className="flex items-center gap-2 p-1 rounded-xl bg-muted/50 border border-border">
+              <div className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-primary/10">
+                <Route className="h-4 w-4 text-primary" />
+                <span className="text-sm font-bold text-foreground">{estimatedDistance} km</span>
               </div>
-
-              <div className="space-y-2.5">
-                {vehicleTypes.map((type, index) => {
-                  const Icon = vehicleIcons[type.icon] || Car;
-                  const fare = Math.round(calculateFare(type) * 100) / 100;
-                  const isSelected = selectedType === type.id;
-                  const isCheapest = index === 0;
-                  const isPremium = type.icon === "crown";
-
-                  return (
-                    <button
-                      key={type.id}
-                      onClick={() => handleSelectVehicle(type.id)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 text-left group relative overflow-hidden
-                        ${isSelected
-                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 scale-[1.01]"
-                          : "border-border hover:border-primary/40 bg-card hover:bg-accent/40 hover:shadow-md hover:scale-[1.01]"
-                        }`}
-                    >
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
-                      )}
-
-                      <div className={`relative p-3.5 rounded-2xl transition-all duration-300 ${
-                        isSelected
-                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                          : isPremium
-                            ? "bg-secondary/15 text-secondary group-hover:bg-secondary/25"
-                            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
-                      }`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-
-                      <div className="flex-1 min-w-0 relative">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-foreground">{type.display_name}</span>
-                          {isCheapest && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wider">
-                              Popular
-                            </span>
-                          )}
-                          {isPremium && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/15 text-secondary uppercase tracking-wider">
-                              Premium
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Users className="h-3 w-3" /> {type.max_passengers}
-                          </span>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> ~{estimatedDuration} min
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0 relative">
-                        <p className="text-xl font-black tracking-tight text-foreground">
-                          R{fare.toFixed(0)}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">est. fare</p>
-                      </div>
-
-                      <ChevronRight className={`h-5 w-5 shrink-0 transition-all duration-300 ${
-                        isSelected ? "text-primary translate-x-0.5" : "text-muted-foreground/30 group-hover:text-muted-foreground"
-                      }`} />
-                    </button>
-                  );
-                })}
+              <div className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary/10">
+                <Clock className="h-4 w-4 text-secondary-foreground" />
+                <span className="text-sm font-bold text-foreground">~{estimatedDuration} min</span>
               </div>
             </div>
           )}
 
-          {/* Confirmation */}
+          {/* Confirmation Panel */}
           {step === "confirm" && estimatedFare && selectedVehicle && (
             <div className="space-y-4 animate-fade-in">
-              <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-md">
-                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-5 py-4 flex items-center justify-between">
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="bg-primary/5 px-4 py-3 flex items-center justify-between border-b border-border">
                   <div className="flex items-center gap-2">
                     <CircleDot className="h-4 w-4 text-primary" />
-                    <h2 className="text-base font-bold tracking-tight text-foreground">Trip Summary</h2>
+                    <h2 className="text-sm font-bold text-foreground">Trip Summary</h2>
                   </div>
-                  <button
-                    onClick={() => setStep("vehicle")}
-                    className="text-xs font-semibold text-primary hover:underline transition-colors"
-                  >
-                    Change
-                  </button>
+                  <button onClick={() => setStep("vehicle")} className="text-xs font-semibold text-primary hover:underline">Change</button>
                 </div>
 
-                <div className="p-5 space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <MapPin className="h-4 w-4 text-primary" />
+                <div className="p-4 space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <MapPin className="h-3.5 w-3.5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Pickup</p>
-                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{pickup}</p>
+                        <p className="text-xs font-medium text-foreground truncate">{pickup}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 w-8 h-8 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
-                        <Navigation className="h-4 w-4 text-destructive" />
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 w-7 h-7 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                        <Navigation className="h-3.5 w-3.5 text-destructive" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Drop-off</p>
-                        <p className="text-sm font-medium text-foreground truncate mt-0.5">{dropoff}</p>
+                        <p className="text-xs font-medium text-foreground truncate">{dropoff}</p>
                       </div>
                     </div>
                   </div>
 
                   <Separator />
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {[
                       { label: "Vehicle", value: selectedVehicle.display_name, icon: Car },
                       { label: "Distance", value: `${estimatedDistance} km`, icon: Route },
                       { label: "ETA", value: `~${estimatedDuration} min`, icon: Clock },
                     ].map((stat) => (
-                      <div key={stat.label} className="text-center p-3 rounded-xl bg-muted/50 border border-border/50">
-                        <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1.5" />
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</p>
-                        <p className="text-xs font-bold text-foreground mt-0.5">{stat.value}</p>
+                      <div key={stat.label} className="text-center p-2 rounded-lg bg-muted/50 border border-border/50">
+                        <stat.icon className="h-3.5 w-3.5 mx-auto text-muted-foreground mb-1" />
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-[11px] font-bold text-foreground">{stat.value}</p>
                       </div>
                     ))}
                   </div>
@@ -549,52 +361,153 @@ const RideRequestPage: React.FC = () => {
                   <Separator />
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                        <CreditCard className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground">Wallet</p>
+                        <p className="text-xs font-semibold text-foreground">Wallet</p>
                         <p className="text-[10px] text-muted-foreground">Payment method</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-black tracking-tighter text-foreground">
-                        R{estimatedFare.toFixed(2)}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-medium">estimated</p>
+                      <p className="text-2xl font-black tracking-tighter text-foreground">R{estimatedFare.toFixed(2)}</p>
+                      <p className="text-[10px] text-muted-foreground">estimated</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               <button
-                className={`w-full h-14 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl flex items-center justify-center gap-2.5
-                  ${isRequesting
-                    ? "bg-muted text-muted-foreground cursor-not-allowed"
-                    : "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] hover:shadow-[0_6px_28px_rgba(16,185,129,0.5)]"
-                  }`}
+                className={`w-full h-13 rounded-2xl text-sm font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-2.5
+                  ${isRequesting ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-emerald-600 text-white shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-[1.02] active:scale-[0.98]"}`}
                 onClick={handleRequestRide}
                 disabled={isRequesting}
               >
-                {isRequesting ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Finding your driver...
-                  </>
-                ) : (
-                  <>
-                    <Shield className="h-5 w-5" />
-                    Confirm & Request Ride
-                  </>
-                )}
+                {isRequesting ? (<><Loader2 className="h-5 w-5 animate-spin" />Finding your driver...</>) : (<><Shield className="h-5 w-5" />Confirm & Request Ride</>)}
               </button>
-
-              <p className="text-center text-[11px] text-muted-foreground">
-                By requesting, you agree to our terms. Fare may vary based on traffic.
-              </p>
+              <p className="text-center text-[10px] text-muted-foreground">By requesting, you agree to our terms. Fare may vary.</p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ─── COLUMN 2: Pricing Options (1/3) ─── */}
+      <div className="lg:w-1/3 lg:min-h-screen lg:border-r border-border bg-background flex flex-col">
+        <div className="hidden lg:flex items-center gap-2 px-6 py-4 border-b border-border">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Ride Options</h2>
+        </div>
+
+        <div className="flex-1 p-5 overflow-y-auto">
+          {step === "location" && !isSearching && (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12 lg:py-0">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <Car className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-base font-bold text-foreground mb-1">Choose Your Ride</h3>
+              <p className="text-sm text-muted-foreground max-w-xs">Enter pickup & destination to see available vehicles and pricing</p>
+            </div>
+          )}
+
+          {isSearching && (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12 lg:py-0">
+              <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+              <p className="text-sm font-medium text-foreground">Finding rides near you...</p>
+            </div>
+          )}
+
+          {(step === "vehicle" || step === "confirm") && vehicleTypes.length > 0 && (
+            <div className="space-y-3">
+              {/* Mobile header */}
+              <div className="lg:hidden flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h2 className="text-base font-bold text-foreground">Select Ride</h2>
+                </div>
+                <button onClick={() => { setStep("location"); setSelectedType(null); }} className="text-xs font-medium text-muted-foreground hover:text-foreground">
+                  Edit route
+                </button>
+              </div>
+
+              {vehicleTypes.map((type, index) => {
+                const Icon = vehicleIcons[type.icon] || Car;
+                const fare = Math.round(calculateFare(type) * 100) / 100;
+                const isSelected = selectedType === type.id;
+                const isCheapest = index === 0;
+                const isPremium = type.icon === "crown";
+
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => handleSelectVehicle(type.id)}
+                    className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-200 text-left group relative
+                      ${isSelected
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-border hover:border-primary/40 bg-card hover:bg-accent/30"
+                      }`}
+                  >
+                    <div className={`p-3 rounded-xl transition-colors ${
+                      isSelected ? "bg-primary text-primary-foreground" : isPremium ? "bg-secondary/15 text-secondary-foreground" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                    }`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-sm text-foreground">{type.display_name}</span>
+                        {isCheapest && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase">Popular</span>}
+                        {isPremium && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-secondary/15 text-secondary-foreground uppercase">Premium</span>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" />{type.max_passengers}</span>
+                        {estimatedDuration && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />~{estimatedDuration} min</span>}
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <p className="text-lg font-black text-foreground">R{fare.toFixed(0)}</p>
+                      <p className="text-[10px] text-muted-foreground">est. fare</p>
+                    </div>
+
+                    <ChevronRight className={`h-4 w-4 shrink-0 transition-colors ${isSelected ? "text-primary" : "text-muted-foreground/30"}`} />
+                  </button>
+                );
+              })}
+
+              {/* Fare breakdown */}
+              {selectedVehicle && estimatedDistance && (
+                <div className="mt-4 p-4 rounded-xl bg-muted/30 border border-border space-y-2">
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Fare Breakdown</h4>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between"><span className="text-muted-foreground">Base fare</span><span className="font-medium text-foreground">R{selectedVehicle.base_fare.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Distance ({estimatedDistance} km × R{selectedVehicle.per_km_rate})</span><span className="font-medium text-foreground">R{(estimatedDistance * selectedVehicle.per_km_rate).toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Time ({estimatedDuration} min × R{selectedVehicle.per_minute_rate})</span><span className="font-medium text-foreground">R{((estimatedDuration || 0) * selectedVehicle.per_minute_rate).toFixed(2)}</span></div>
+                    <Separator />
+                    <div className="flex justify-between font-bold"><span className="text-foreground">Estimated Total</span><span className="text-foreground">R{estimatedFare?.toFixed(2) || calculateFare(selectedVehicle).toFixed(2)}</span></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ─── COLUMN 3: Live Map (1/3) ─── */}
+      <div className="lg:w-1/3 lg:min-h-screen bg-muted/30 flex flex-col">
+        <div className="hidden lg:flex items-center gap-2 px-6 py-4 border-b border-border bg-background">
+          <MapPin className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Live Map</h2>
+        </div>
+
+        <div className="flex-1 relative">
+          <GoogleMap
+            className="w-full h-[35vh] lg:h-full"
+            markers={mapMarkers}
+            route={mapRoute}
+            center={pickupCoords || { lat: -26.2041, lng: 28.0473 }}
+            zoom={pickupCoords ? 14 : 12}
+          />
         </div>
       </div>
     </div>
