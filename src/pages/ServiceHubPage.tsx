@@ -97,8 +97,8 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-400/5 blur-3xl" />
         </div>
 
-        <div className="container mx-auto px-4 pt-12 pb-20 md:pt-16 md:pb-28 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="container mx-auto px-4 pt-8 pb-16 md:pt-16 md:pb-28 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
             {/* Left: Text content */}
             <div>
               <motion.div
@@ -191,9 +191,9 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                   <h.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </div>
-                <div className="hidden sm:block">
-                  <p className="text-xs font-semibold text-foreground">{h.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{h.desc}</p>
+                <div>
+                  <p className="text-[10px] sm:text-xs font-semibold text-foreground">{h.label}</p>
+                  <p className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:block">{h.desc}</p>
                 </div>
               </div>
             ))}
