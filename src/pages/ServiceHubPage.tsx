@@ -97,8 +97,8 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-400/5 blur-3xl" />
         </div>
 
-        <div className="container mx-auto px-4 pt-12 pb-20 md:pt-16 md:pb-28 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="container mx-auto px-4 pt-8 pb-16 md:pt-16 md:pb-28 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
             {/* Left: Text content */}
             <div>
               <motion.div
