@@ -69,7 +69,7 @@ const VendorPromotions = () => {
         .from('vendors')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (vendorError) throw vendorError;
 
@@ -118,13 +118,13 @@ const VendorPromotions = () => {
         .from('vendors')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const { data: store } = await supabase
         .from('stores')
         .select('id')
         .eq('vendor_id', vendor.id)
-        .single();
+        .maybeSingle();
 
       const promotionData = {
         store_id: store.id,
