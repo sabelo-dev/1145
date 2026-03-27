@@ -1656,6 +1656,251 @@ export type Database = {
           },
         ]
       }
+      demand_snapshots: {
+        Row: {
+          available_drivers: number
+          avg_wait_time_mins: number | null
+          created_at: string
+          demand_ratio: number | null
+          id: string
+          pending_orders: number
+          snapshot_time: string
+          surge_multiplier: number
+          zone_id: string | null
+        }
+        Insert: {
+          available_drivers?: number
+          avg_wait_time_mins?: number | null
+          created_at?: string
+          demand_ratio?: number | null
+          id?: string
+          pending_orders?: number
+          snapshot_time?: string
+          surge_multiplier?: number
+          zone_id?: string | null
+        }
+        Update: {
+          available_drivers?: number
+          avg_wait_time_mins?: number | null
+          created_at?: string
+          demand_ratio?: number | null
+          id?: string
+          pending_orders?: number
+          snapshot_time?: string
+          surge_multiplier?: number
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_snapshots_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "dispatch_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_assignments: {
+        Row: {
+          attempt_number: number | null
+          completed_at: string | null
+          created_at: string
+          distance_to_pickup_km: number | null
+          driver_id: string
+          entity_id: string
+          entity_type: string
+          estimated_arrival_mins: number | null
+          expires_at: string | null
+          id: string
+          match_score: number | null
+          offered_at: string
+          rejection_reason: string | null
+          responded_at: string | null
+          status: string
+          surge_multiplier: number | null
+        }
+        Insert: {
+          attempt_number?: number | null
+          completed_at?: string | null
+          created_at?: string
+          distance_to_pickup_km?: number | null
+          driver_id: string
+          entity_id: string
+          entity_type: string
+          estimated_arrival_mins?: number | null
+          expires_at?: string | null
+          id?: string
+          match_score?: number | null
+          offered_at?: string
+          rejection_reason?: string | null
+          responded_at?: string | null
+          status?: string
+          surge_multiplier?: number | null
+        }
+        Update: {
+          attempt_number?: number | null
+          completed_at?: string | null
+          created_at?: string
+          distance_to_pickup_km?: number | null
+          driver_id?: string
+          entity_id?: string
+          entity_type?: string
+          estimated_arrival_mins?: number | null
+          expires_at?: string | null
+          id?: string
+          match_score?: number | null
+          offered_at?: string
+          rejection_reason?: string | null
+          responded_at?: string | null
+          status?: string
+          surge_multiplier?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_assignments_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_batches: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          id: string
+          job_ids: string[]
+          optimization_score: number | null
+          route_order: number[] | null
+          status: string
+          total_distance_km: number | null
+          total_earnings: number | null
+          total_estimated_mins: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          job_ids?: string[]
+          optimization_score?: number | null
+          route_order?: number[] | null
+          status?: string
+          total_distance_km?: number | null
+          total_earnings?: number | null
+          total_estimated_mins?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          job_ids?: string[]
+          optimization_score?: number | null
+          route_order?: number[] | null
+          status?: string
+          total_distance_km?: number | null
+          total_earnings?: number | null
+          total_estimated_mins?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_batches_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_events: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_events_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_zones: {
+        Row: {
+          base_surge_multiplier: number
+          center_lat: number
+          center_lng: number
+          created_at: string
+          demand_weight: number
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          radius_km: number
+          updated_at: string
+        }
+        Insert: {
+          base_surge_multiplier?: number
+          center_lat: number
+          center_lng: number
+          created_at?: string
+          demand_weight?: number
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          radius_km?: number
+          updated_at?: string
+        }
+        Update: {
+          base_surge_multiplier?: number
+          center_lat?: number
+          center_lng?: number
+          created_at?: string
+          demand_weight?: number
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          radius_km?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       downloadable_files: {
         Row: {
           created_at: string
@@ -6841,6 +7086,7 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_zone_surge: { Args: { p_zone_id: string }; Returns: number }
       can_vendor_add_product: {
         Args: { p_vendor_id: string }
         Returns: boolean
@@ -6975,6 +7221,15 @@ export type Database = {
         Returns: boolean
       }
       reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
+      score_driver_for_dispatch: {
+        Args: {
+          p_driver_id: string
+          p_entity_type?: string
+          p_pickup_lat: number
+          p_pickup_lng: number
+        }
+        Returns: number
+      }
       transfer_ucoin: {
         Args: {
           p_amount_mg: number
