@@ -74,17 +74,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkMerchantStatus = async (userId: string): Promise<boolean> => {
     try {
-      console.log('Checking merchant status for user:', userId);
       const { data: merchant } = await supabase
         .from('vendors')
-        .select('*')
+        .select('id')
         .eq('user_id', userId)
         .maybeSingle();
-      
-      console.log('Merchant status check result:', merchant);
-      const isMerchant = !!merchant;
-      console.log('Is merchant:', isMerchant);
-      return isMerchant;
+      return !!merchant;
     } catch (error) {
       console.error('Error checking merchant status:', error);
       return false;

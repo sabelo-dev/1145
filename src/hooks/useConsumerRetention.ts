@@ -28,7 +28,7 @@ export function useConsumerRetention() {
       .from('consumer_streaks')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     
     if (data) {
       setStreak(data as ConsumerStreak);
@@ -85,7 +85,7 @@ export function useConsumerRetention() {
       .from('consumer_preferences')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     
     if (data) {
       setPreferences(data as unknown as ConsumerPreferences);
@@ -158,7 +158,7 @@ export function useConsumerRetention() {
       .from('ucoin_wallets')
       .select('balance')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!wallet || wallet.balance < ucoinCost) {
       toast({ title: 'Insufficient UCoin balance', variant: 'destructive' });
