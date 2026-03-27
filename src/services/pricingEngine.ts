@@ -1,4 +1,5 @@
 import { matchingEngine } from "./matchingEngine";
+import { surgeEngine } from "./dispatch/surgeEngine";
 
 // Pricing Configuration
 export interface PricingConfig {
@@ -117,17 +118,23 @@ export const pricingEngine = {
 
   // Get surge status info
   async getSurgeInfo(): Promise<{ multiplier: number; status: string; color: string }> {
-    const multiplier = await matchingEngine.calculateSurgeMultiplier();
-    
-    if (multiplier >= 2.0) {
-      return { multiplier, status: "Very High Demand", color: "red" };
+    // Use new surge engine with fallback to legacy
+    try {
+      const surge = await surgeEngine.getSurgeForLocation({ lat: 0, lng: 0 });
+      return {
+        multiplier: surge.multiplier,
+        status: surge.demandLevel === "extreme" ? "Very High Demand"
+          : surge.demandLevel === "high" ? "High Demand"
+          : surge.demandLevel === "busy" ? "Busy"
+          : "Normal",
+        color: surge.color,
+      };
+    } catch {
+      const multiplier = await matchingEngine.calculateSurgeMultiplier();
+      if (multiplier >= 2.0) return { multiplier, status: "Very High Demand", color: "red" };
+      if (multiplier >= 1.5) return { multiplier, status: "High Demand", color: "orange" };
+      if (multiplier >= 1.25) return { multiplier, status: "Busy", color: "yellow" };
+      return { multiplier, status: "Normal", color: "green" };
     }
-    if (multiplier >= 1.5) {
-      return { multiplier, status: "High Demand", color: "orange" };
-    }
-    if (multiplier >= 1.25) {
-      return { multiplier, status: "Busy", color: "yellow" };
-    }
-    return { multiplier, status: "Normal", color: "green" };
   },
 };
