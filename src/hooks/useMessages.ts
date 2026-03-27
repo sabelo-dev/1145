@@ -64,7 +64,7 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
           .from('vendors')
           .select('id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (!vendor) {
           setConversations([]);

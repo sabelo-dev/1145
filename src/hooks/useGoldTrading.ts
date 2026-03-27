@@ -114,7 +114,7 @@ export function useGoldTrading() {
         .from('platform_wallets')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (walletError || !wallet) throw new Error('Wallet not found');
       if (wallet.balance_zar < fiatAmount) throw new Error('Insufficient ZAR balance');
@@ -182,7 +182,7 @@ export function useGoldTrading() {
         .from('platform_wallets')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (walletError || !wallet) throw new Error('Wallet not found');
       if ((wallet.gold_balance_mg || 0) < goldMg) throw new Error('Insufficient gold balance');
