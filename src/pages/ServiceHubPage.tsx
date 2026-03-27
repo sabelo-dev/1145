@@ -191,9 +191,9 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                   <h.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </div>
-                <div className="hidden sm:block">
-                  <p className="text-xs font-semibold text-foreground">{h.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{h.desc}</p>
+                <div>
+                  <p className="text-[10px] sm:text-xs font-semibold text-foreground">{h.label}</p>
+                  <p className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:block">{h.desc}</p>
                 </div>
               </div>
             ))}
