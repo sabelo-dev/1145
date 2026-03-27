@@ -49,7 +49,7 @@ export function useReferral() {
       .from('user_referral_codes')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (created) {
       setReferralCode(created as UserReferralCode);

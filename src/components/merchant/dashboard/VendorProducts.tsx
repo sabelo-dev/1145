@@ -234,7 +234,7 @@ const VendorProducts = () => {
         .from('vendors')
         .select('id, business_name')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (vendorError || !vendor) {
         throw new Error("Vendor profile not found");
@@ -244,7 +244,7 @@ const VendorProducts = () => {
         .from('stores')
         .select('id')
         .eq('vendor_id', vendor.id)
-        .single();
+        .maybeSingle();
 
       // Auto-create store if it doesn't exist
       if (!store) {

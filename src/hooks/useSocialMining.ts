@@ -129,7 +129,7 @@ export function useSocialMining() {
         .from('affiliate_tiers')
         .select('id')
         .eq('level', 1)
-        .single();
+        .maybeSingle();
 
       if (defaultTier) {
         const { data: newStatus } = await supabase

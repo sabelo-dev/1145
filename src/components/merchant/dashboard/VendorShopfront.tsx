@@ -97,7 +97,7 @@ const VendorShopfront = () => {
         .from('vendors')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       if (vendorError) throw vendorError;
       setVendorData(vendor);
       setTier((vendor.subscription_tier as StorefrontTier) || 'starter');

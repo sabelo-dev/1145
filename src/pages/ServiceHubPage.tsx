@@ -67,12 +67,12 @@ const services = [
   },
 ];
 
-const ServiceHubPage: React.FC = () => {
+const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={ref} className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#3A0CA3] to-[#4361EE] text-white">
         <div className="absolute inset-0 opacity-10">
@@ -129,6 +129,8 @@ const ServiceHubPage: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+ServiceHubPage.displayName = "ServiceHubPage";
 
 export default ServiceHubPage;

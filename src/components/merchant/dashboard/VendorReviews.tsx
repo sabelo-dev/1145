@@ -63,7 +63,7 @@ const VendorReviews = () => {
         .from('vendors')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (vendorError) throw vendorError;
 
@@ -72,7 +72,7 @@ const VendorReviews = () => {
         .from('stores')
         .select('id, name')
         .eq('vendor_id', vendorData.id)
-        .single();
+        .maybeSingle();
 
       if (!storeData) {
         setReviews([]);

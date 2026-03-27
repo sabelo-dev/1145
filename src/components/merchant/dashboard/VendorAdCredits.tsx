@@ -110,7 +110,7 @@ const VendorAdCredits = () => {
         .from("vendors")
         .select("id, ad_credits, subscription_tier")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
 
       if (!vendor) return;
       setVendorId(vendor.id);
