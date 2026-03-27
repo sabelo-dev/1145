@@ -141,14 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsMerchant(merchantStatus || userRoles.includes('vendor'));
         setIsDriver(driverStatus || userRoles.includes('driver'));
         
-        console.log('User profile loaded:', {
-          userId: profile.id,
-          roles: userRoles,
-          isAdmin: userRoles.includes('admin'),
-          isMerchant: merchantStatus || userRoles.includes('vendor'),
-          isDriver: driverStatus || userRoles.includes('driver'),
-          isInfluencer: userRoles.includes('influencer')
-        });
+        console.log('User profile loaded:', { userId: profile.id, role: primaryRole });
       } else {
         const userData: User = {
           id: session.user.id,
