@@ -125,7 +125,7 @@ const ShopPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-background min-h-screen">
       <SEO
         title="Shop All Products"
         description="Browse our complete collection of quality products. Filter by category, price, and brand to find exactly what you need. Fast shipping and secure checkout."
@@ -133,10 +133,10 @@ const ShopPage: React.FC = () => {
       />
       <div className="wwe-container py-8">
         <header className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Shop All Products</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Shop All Products</h1>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="text-gray-600">
-              Showing {sortedProducts.length} of {products.length} products
+            <p className="text-sm text-muted-foreground">
+              {sortedProducts.length} of {products.length} products
             </p>
 
             {/* Sort & Filter buttons for mobile */}
