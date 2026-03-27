@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet,
   Locate, Loader2, ChevronRight, Shield, Zap, Route, Star, Sparkles,
-  CircleDot, Play, CreditCard,
+  CircleDot, Play, CreditCard, TrendingUp, AlertTriangle, Banknote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import GoogleMap from "@/components/maps/GoogleMap";
 import PlacesAutocomplete from "@/components/maps/PlacesAutocomplete";
 import { loadGoogleMaps } from "@/components/maps/GoogleMap";
+import { rideDispatchService } from "@/services/rideDispatchService";
 
 interface VehicleOption {
   id: string;
@@ -33,6 +34,12 @@ const vehicleIcons: Record<string, React.ElementType> = {
   users: Users,
 };
 
+const PAYMENT_METHODS = [
+  { id: "wallet", label: "Wallet", icon: Wallet },
+  { id: "card", label: "Card", icon: CreditCard },
+  { id: "cash", label: "Cash", icon: Banknote },
+] as const;
+
 const RideRequestPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -51,6 +58,9 @@ const RideRequestPage: React.FC = () => {
   const [isRequesting, setIsRequesting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [step, setStep] = useState<"location" | "vehicle" | "confirm">("location");
+  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card" | "cash">("wallet");
+  const [surgeMultiplier, setSurgeMultiplier] = useState(1.0);
+  const [demandLevel, setDemandLevel] = useState<string>("low");
 
   const handlePickupChange = useCallback((value: string) => {
     setPickup(value);
@@ -76,12 +86,9 @@ const RideRequestPage: React.FC = () => {
           });
         });
       });
-
       const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
-      const fallbackAddress = `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`;
       setPickupCoords(coords);
-      setPickup(fallbackAddress);
-
+      setPickup(`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
       try {
         await loadGoogleMaps();
         const geocoder = new google.maps.Geocoder();
@@ -97,13 +104,20 @@ const RideRequestPage: React.FC = () => {
 
   useEffect(() => {
     if ("geolocation" in navigator && !pickupCoords) detectAndSetPickup();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (pickupCoords && dropoffCoords && step === "location") handleSearchRides();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupCoords, dropoffCoords]);
+
+  // Check surge when pickup changes
+  useEffect(() => {
+    if (!pickupCoords) return;
+    rideDispatchService.estimateFare(pickupCoords, "", 100).then((result) => {
+      setSurgeMultiplier(result.surge);
+      setDemandLevel(result.demandLevel);
+    }).catch(() => {});
+  }, [pickupCoords]);
 
   const fetchVehicleTypes = async () => {
     const { data } = await supabase.from("vehicle_types").select("*").eq("is_active", true).order("base_fare", { ascending: true });
@@ -132,7 +146,6 @@ const RideRequestPage: React.FC = () => {
     }
     setIsSearching(true);
     await fetchVehicleTypes();
-
     try {
       const service = new google.maps.DistanceMatrixService();
       const result = await service.getDistanceMatrix({
@@ -143,17 +156,19 @@ const RideRequestPage: React.FC = () => {
         setEstimatedDistance(Math.round((element.distance!.value / 1000) * 10) / 10);
         setEstimatedDuration(Math.round(element.duration!.value / 60));
       } else {
-        const d = haversineKm(pCoords, dCoords);
-        setEstimatedDistance(Math.round(d * 10) / 10);
-        setEstimatedDuration(Math.round(d * 2.5 + 5));
+        fallbackDistance(pCoords, dCoords);
       }
     } catch {
-      const d = haversineKm(pCoords, dCoords);
-      setEstimatedDistance(Math.round(d * 10) / 10);
-      setEstimatedDuration(Math.round(d * 2.5 + 5));
+      fallbackDistance(pCoords, dCoords);
     }
     setIsSearching(false);
     setStep("vehicle");
+  };
+
+  const fallbackDistance = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const d = haversineKm(a, b);
+    setEstimatedDistance(Math.round(d * 10) / 10);
+    setEstimatedDuration(Math.round(d * 2.5 + 5));
   };
 
   const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
@@ -166,8 +181,9 @@ const RideRequestPage: React.FC = () => {
 
   const calculateFare = (type: VehicleOption) => {
     if (!estimatedDistance || !estimatedDuration) return type.minimum_fare;
-    const fare = type.base_fare + estimatedDistance * type.per_km_rate + estimatedDuration * type.per_minute_rate;
-    return Math.max(fare, type.minimum_fare);
+    const baseFare = type.base_fare + estimatedDistance * type.per_km_rate + estimatedDuration * type.per_minute_rate;
+    const surgedFare = baseFare * surgeMultiplier;
+    return Math.max(surgedFare, type.minimum_fare);
   };
 
   const handleSelectVehicle = (typeId: string) => {
@@ -179,30 +195,30 @@ const RideRequestPage: React.FC = () => {
 
   const handleRequestRide = async () => {
     if (!user) { toast({ variant: "destructive", title: "Please log in to request a ride" }); navigate("/login"); return; }
-    if (!selectedType || !estimatedFare || !pickupCoords || !dropoffCoords) return;
+    if (!selectedType || !estimatedFare || !pickupCoords || !dropoffCoords || !estimatedDistance || !estimatedDuration) return;
     setIsRequesting(true);
     try {
-      const { data, error } = await supabase.from("rides").insert({
-        passenger_id: user.id, vehicle_type_id: selectedType,
-        pickup_address: pickup, dropoff_address: dropoff,
-        pickup_lat: pickupCoords.lat, pickup_lng: pickupCoords.lng,
-        dropoff_lat: dropoffCoords.lat, dropoff_lng: dropoffCoords.lng,
-        estimated_distance_km: estimatedDistance, estimated_duration_minutes: estimatedDuration,
-        estimated_fare: estimatedFare, status: "requested", payment_method: "wallet",
-      }).select().single();
-      if (error) throw error;
+      const result = await rideDispatchService.requestRide({
+        passengerId: user.id,
+        vehicleTypeId: selectedType,
+        pickup: { address: pickup, lat: pickupCoords.lat, lng: pickupCoords.lng },
+        dropoff: { address: dropoff, lat: dropoffCoords.lat, lng: dropoffCoords.lng },
+        estimatedDistance,
+        estimatedDuration,
+        estimatedFare,
+        paymentMethod,
+      });
 
-      // Trigger driver matching immediately
-      const { rideMatchingService } = await import("@/services/rideMatchingService");
-      const matchResult = await rideMatchingService.matchRideToDrivers(data.id);
-
-      if (matchResult.driversNotified > 0) {
-        toast({ title: "Ride Requested!", description: `${matchResult.driversNotified} nearby driver${matchResult.driversNotified > 1 ? "s" : ""} notified. Waiting for acceptance...` });
+      if (result.success && result.rideId) {
+        toast({
+          title: result.surgeApplied ? "⚡ Ride Requested (Surge Active)" : "🚗 Ride Requested!",
+          description: `${result.driversNotified} driver${result.driversNotified > 1 ? "s" : ""} notified. ETA: ~${result.estimatedWaitMins || "3-5"} min`,
+        });
+        navigate(`/rides/track/${result.rideId}`);
       } else {
         toast({ title: "Ride Requested!", description: "Searching for nearby drivers..." });
+        if (result.rideId) navigate(`/rides/track/${result.rideId}`);
       }
-
-      navigate(`/rides/track/${data.id}`);
     } catch (err: any) {
       toast({ variant: "destructive", title: "Failed to request ride", description: err.message });
     } finally {
@@ -217,6 +233,8 @@ const RideRequestPage: React.FC = () => {
   const mapRoute = pickupCoords && dropoffCoords && step !== "location" ? { origin: pickupCoords, destination: dropoffCoords } : undefined;
   const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
+  const surgeColor = surgeMultiplier >= 2.0 ? "text-destructive" : surgeMultiplier >= 1.5 ? "text-orange-500" : surgeMultiplier > 1.0 ? "text-yellow-600" : "text-emerald-600";
+
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row">
       {/* Mobile: Top bar */}
@@ -225,14 +243,20 @@ const RideRequestPage: React.FC = () => {
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
         <h1 className="text-base font-bold text-foreground">Request a Ride</h1>
-        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-          <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
+        <div className="flex items-center gap-1.5">
+          {surgeMultiplier > 1.0 && (
+            <div className="px-2 py-1 rounded-full bg-orange-500/10 border border-orange-500/20">
+              <span className="text-[10px] font-bold text-orange-600">⚡ {surgeMultiplier}x</span>
+            </div>
+          )}
+          <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
+          </div>
         </div>
       </div>
 
       {/* ─── COLUMN 1: Request Form (1/3) ─── */}
       <div className="lg:w-1/3 lg:min-h-screen lg:border-r border-border bg-card flex flex-col">
-        {/* Desktop header */}
         <div className="hidden lg:flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center hover:bg-accent transition-colors">
@@ -240,12 +264,35 @@ const RideRequestPage: React.FC = () => {
             </button>
             <h1 className="text-lg font-bold text-foreground">Request a Ride</h1>
           </div>
-          <div className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
+          <div className="flex items-center gap-2">
+            {surgeMultiplier > 1.0 && (
+              <div className="px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center gap-1">
+                <TrendingUp className="h-3 w-3 text-orange-500" />
+                <span className="text-[10px] font-bold text-orange-600">{surgeMultiplier}x Surge</span>
+              </div>
+            )}
+            <div className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
+            </div>
           </div>
         </div>
 
         <div className="flex-1 p-5 space-y-5 overflow-y-auto">
+          {/* Surge Banner */}
+          {surgeMultiplier > 1.0 && step === "location" && (
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-orange-500/5 border border-orange-500/20">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <Zap className="h-4 w-4 text-orange-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-foreground">High demand in your area</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Prices are {surgeMultiplier}x higher than normal. {demandLevel === "extreme" ? "Very busy!" : "Moderate demand."}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Location inputs */}
           <div className="space-y-0">
             <div className="flex items-stretch gap-3">
@@ -315,6 +362,35 @@ const RideRequestPage: React.FC = () => {
                 <Clock className="h-4 w-4 text-secondary-foreground" />
                 <span className="text-sm font-bold text-foreground">~{estimatedDuration} min</span>
               </div>
+              {surgeMultiplier > 1.0 && (
+                <div className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-orange-500/10">
+                  <Zap className="h-4 w-4 text-orange-500" />
+                  <span className={`text-sm font-bold ${surgeColor}`}>{surgeMultiplier}x</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Payment Method Selector */}
+          {step === "confirm" && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Payment</p>
+              <div className="flex gap-2">
+                {PAYMENT_METHODS.map((pm) => (
+                  <button
+                    key={pm.id}
+                    onClick={() => setPaymentMethod(pm.id as typeof paymentMethod)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all
+                      ${paymentMethod === pm.id
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                      }`}
+                  >
+                    <pm.icon className="h-4 w-4" />
+                    {pm.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -373,16 +449,24 @@ const RideRequestPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        {PAYMENT_METHODS.find(p => p.id === paymentMethod)
+                          ? React.createElement(PAYMENT_METHODS.find(p => p.id === paymentMethod)!.icon, { className: "h-4 w-4 text-muted-foreground" })
+                          : <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        }
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-foreground">Wallet</p>
+                        <p className="text-xs font-semibold text-foreground capitalize">{paymentMethod}</p>
                         <p className="text-[10px] text-muted-foreground">Payment method</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black tracking-tighter text-foreground">R{estimatedFare.toFixed(2)}</p>
-                      <p className="text-[10px] text-muted-foreground">estimated</p>
+                      {surgeMultiplier > 1.0 && (
+                        <p className="text-[10px] text-orange-500 font-semibold">⚡ {surgeMultiplier}x surge applied</p>
+                      )}
+                      {surgeMultiplier <= 1.0 && (
+                        <p className="text-[10px] text-muted-foreground">estimated</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -394,9 +478,9 @@ const RideRequestPage: React.FC = () => {
                 onClick={handleRequestRide}
                 disabled={isRequesting}
               >
-                {isRequesting ? (<><Loader2 className="h-5 w-5 animate-spin" />Finding your driver...</>) : (<><Shield className="h-5 w-5" />Confirm & Request Ride</>)}
+                {isRequesting ? (<><Loader2 className="h-5 w-5 animate-spin" />Dispatching...</>) : (<><Shield className="h-5 w-5" />Confirm & Request Ride</>)}
               </button>
-              <p className="text-center text-[10px] text-muted-foreground">By requesting, you agree to our terms. Fare may vary.</p>
+              <p className="text-center text-[10px] text-muted-foreground">By requesting, you agree to our terms. Fare may vary with traffic.</p>
             </div>
           )}
         </div>
@@ -407,6 +491,11 @@ const RideRequestPage: React.FC = () => {
         <div className="hidden lg:flex items-center gap-2 px-6 py-4 border-b border-border">
           <Sparkles className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-bold text-foreground">Ride Options</h2>
+          {surgeMultiplier > 1.0 && (
+            <Badge variant="outline" className="ml-auto text-orange-500 border-orange-500/30 bg-orange-500/5">
+              <Zap className="h-3 w-3 mr-1" />{surgeMultiplier}x Surge
+            </Badge>
+          )}
         </div>
 
         <div className="flex-1 p-5 overflow-y-auto">
@@ -429,7 +518,6 @@ const RideRequestPage: React.FC = () => {
 
           {(step === "vehicle" || step === "confirm") && vehicleTypes.length > 0 && (
             <div className="space-y-3">
-              {/* Mobile header */}
               <div className="lg:hidden flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
@@ -477,7 +565,12 @@ const RideRequestPage: React.FC = () => {
 
                     <div className="text-right shrink-0">
                       <p className="text-lg font-black text-foreground">R{fare.toFixed(0)}</p>
-                      <p className="text-[10px] text-muted-foreground">est. fare</p>
+                      {surgeMultiplier > 1.0 && (
+                        <p className="text-[9px] text-orange-500 font-semibold">⚡ surge</p>
+                      )}
+                      {surgeMultiplier <= 1.0 && (
+                        <p className="text-[10px] text-muted-foreground">est. fare</p>
+                      )}
                     </div>
 
                     <ChevronRight className={`h-4 w-4 shrink-0 transition-colors ${isSelected ? "text-primary" : "text-muted-foreground/30"}`} />
@@ -493,6 +586,12 @@ const RideRequestPage: React.FC = () => {
                     <div className="flex justify-between"><span className="text-muted-foreground">Base fare</span><span className="font-medium text-foreground">R{selectedVehicle.base_fare.toFixed(2)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Distance ({estimatedDistance} km × R{selectedVehicle.per_km_rate})</span><span className="font-medium text-foreground">R{(estimatedDistance * selectedVehicle.per_km_rate).toFixed(2)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Time ({estimatedDuration} min × R{selectedVehicle.per_minute_rate})</span><span className="font-medium text-foreground">R{((estimatedDuration || 0) * selectedVehicle.per_minute_rate).toFixed(2)}</span></div>
+                    {surgeMultiplier > 1.0 && (
+                      <div className="flex justify-between text-orange-500">
+                        <span>⚡ Surge ({surgeMultiplier}x)</span>
+                        <span className="font-medium">+R{((estimatedFare || 0) - (estimatedFare || 0) / surgeMultiplier).toFixed(2)}</span>
+                      </div>
+                    )}
                     <Separator />
                     <div className="flex justify-between font-bold"><span className="text-foreground">Estimated Total</span><span className="text-foreground">R{estimatedFare?.toFixed(2) || calculateFare(selectedVehicle).toFixed(2)}</span></div>
                   </div>
