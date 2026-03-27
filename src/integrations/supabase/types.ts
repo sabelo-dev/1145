@@ -209,6 +209,69 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_tracking: {
+        Row: {
+          asset_id: string
+          battery_level: number | null
+          contract_id: string | null
+          created_at: string
+          id: string
+          is_disabled: boolean | null
+          last_ping_at: string | null
+          latitude: number | null
+          longitude: number | null
+          metadata: Json | null
+          mileage_km: number | null
+          updated_at: string
+          usage_hours: number | null
+        }
+        Insert: {
+          asset_id: string
+          battery_level?: number | null
+          contract_id?: string | null
+          created_at?: string
+          id?: string
+          is_disabled?: boolean | null
+          last_ping_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          mileage_km?: number | null
+          updated_at?: string
+          usage_hours?: number | null
+        }
+        Update: {
+          asset_id?: string
+          battery_level?: number | null
+          contract_id?: string | null
+          created_at?: string
+          id?: string
+          is_disabled?: boolean | null
+          last_ping_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          mileage_km?: number | null
+          updated_at?: string
+          usage_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_tracking_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "leaseable_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_tracking_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "lease_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attribute_types: {
         Row: {
           category: string | null
@@ -3002,6 +3065,53 @@ export type Database = {
           },
         ]
       }
+      lease_asset_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_asset_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "lease_asset_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lease_contracts: {
         Row: {
           application_id: string | null
@@ -3125,6 +3235,75 @@ export type Database = {
           },
         ]
       }
+      lease_credit_scores: {
+        Row: {
+          created_at: string
+          delivery_reliability_score: number | null
+          factors: Json | null
+          id: string
+          last_calculated_at: string | null
+          max_lease_value: number | null
+          on_time_rate: number | null
+          order_history_score: number | null
+          overall_score: number
+          payment_history_score: number | null
+          platform_tenure_score: number | null
+          ride_performance_score: number | null
+          risk_level: string
+          total_deliveries: number | null
+          total_orders: number | null
+          total_rides: number | null
+          updated_at: string
+          user_id: string
+          wallet_activity_score: number | null
+          wallet_balance: number | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_reliability_score?: number | null
+          factors?: Json | null
+          id?: string
+          last_calculated_at?: string | null
+          max_lease_value?: number | null
+          on_time_rate?: number | null
+          order_history_score?: number | null
+          overall_score?: number
+          payment_history_score?: number | null
+          platform_tenure_score?: number | null
+          ride_performance_score?: number | null
+          risk_level?: string
+          total_deliveries?: number | null
+          total_orders?: number | null
+          total_rides?: number | null
+          updated_at?: string
+          user_id: string
+          wallet_activity_score?: number | null
+          wallet_balance?: number | null
+        }
+        Update: {
+          created_at?: string
+          delivery_reliability_score?: number | null
+          factors?: Json | null
+          id?: string
+          last_calculated_at?: string | null
+          max_lease_value?: number | null
+          on_time_rate?: number | null
+          order_history_score?: number | null
+          overall_score?: number
+          payment_history_score?: number | null
+          platform_tenure_score?: number | null
+          ride_performance_score?: number | null
+          risk_level?: string
+          total_deliveries?: number | null
+          total_orders?: number | null
+          total_rides?: number | null
+          updated_at?: string
+          user_id?: string
+          wallet_activity_score?: number | null
+          wallet_balance?: number | null
+        }
+        Relationships: []
+      }
       lease_insurance: {
         Row: {
           claim_count: number | null
@@ -3240,13 +3419,73 @@ export type Database = {
           },
         ]
       }
+      lease_revenue_splits: {
+        Row: {
+          contract_id: string
+          created_at: string
+          financier_amount: number | null
+          id: string
+          insurance_amount: number | null
+          owner_amount: number
+          payment_id: string | null
+          platform_amount: number
+          processed_at: string | null
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          financier_amount?: number | null
+          id?: string
+          insurance_amount?: number | null
+          owner_amount?: number
+          payment_id?: string | null
+          platform_amount?: number
+          processed_at?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          financier_amount?: number | null
+          id?: string
+          insurance_amount?: number | null
+          owner_amount?: number
+          payment_id?: string | null
+          platform_amount?: number
+          processed_at?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_revenue_splits_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "lease_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lease_revenue_splits_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "lease_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaseable_assets: {
         Row: {
           accumulated_payments: number | null
+          asset_year: number | null
+          brand: string | null
           category: string
           condition: string | null
           created_at: string
           description: string | null
+          featured: boolean | null
           id: string
           images: string[] | null
           insurance_monthly_cost: number | null
@@ -3254,31 +3493,45 @@ export type Database = {
           insurance_required: boolean | null
           is_available: boolean | null
           is_purchasable: boolean | null
+          lease_category_id: string | null
+          lease_price_daily: number | null
           lease_price_monthly: number
           lease_price_weekly: number | null
           lease_to_own: boolean | null
           lease_to_own_months: number | null
           lease_to_own_price: number | null
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
           maintenance_requirements: string | null
           maintenance_responsibility: string | null
           max_lease_duration_months: number | null
           min_lease_duration_months: number | null
+          model: string | null
           product_id: string | null
           provider_id: string | null
           purchase_price: number | null
+          rating: number | null
+          review_count: number | null
           security_deposit: number | null
+          serial_number: string | null
           status: string
+          subcategory: string | null
           terms_and_conditions: string | null
           title: string
           total_leases: number | null
           updated_at: string
+          views_count: number | null
         }
         Insert: {
           accumulated_payments?: number | null
+          asset_year?: number | null
+          brand?: string | null
           category?: string
           condition?: string | null
           created_at?: string
           description?: string | null
+          featured?: boolean | null
           id?: string
           images?: string[] | null
           insurance_monthly_cost?: number | null
@@ -3286,31 +3539,45 @@ export type Database = {
           insurance_required?: boolean | null
           is_available?: boolean | null
           is_purchasable?: boolean | null
+          lease_category_id?: string | null
+          lease_price_daily?: number | null
           lease_price_monthly?: number
           lease_price_weekly?: number | null
           lease_to_own?: boolean | null
           lease_to_own_months?: number | null
           lease_to_own_price?: number | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           maintenance_requirements?: string | null
           maintenance_responsibility?: string | null
           max_lease_duration_months?: number | null
           min_lease_duration_months?: number | null
+          model?: string | null
           product_id?: string | null
           provider_id?: string | null
           purchase_price?: number | null
+          rating?: number | null
+          review_count?: number | null
           security_deposit?: number | null
+          serial_number?: string | null
           status?: string
+          subcategory?: string | null
           terms_and_conditions?: string | null
           title: string
           total_leases?: number | null
           updated_at?: string
+          views_count?: number | null
         }
         Update: {
           accumulated_payments?: number | null
+          asset_year?: number | null
+          brand?: string | null
           category?: string
           condition?: string | null
           created_at?: string
           description?: string | null
+          featured?: boolean | null
           id?: string
           images?: string[] | null
           insurance_monthly_cost?: number | null
@@ -3318,26 +3585,44 @@ export type Database = {
           insurance_required?: boolean | null
           is_available?: boolean | null
           is_purchasable?: boolean | null
+          lease_category_id?: string | null
+          lease_price_daily?: number | null
           lease_price_monthly?: number
           lease_price_weekly?: number | null
           lease_to_own?: boolean | null
           lease_to_own_months?: number | null
           lease_to_own_price?: number | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           maintenance_requirements?: string | null
           maintenance_responsibility?: string | null
           max_lease_duration_months?: number | null
           min_lease_duration_months?: number | null
+          model?: string | null
           product_id?: string | null
           provider_id?: string | null
           purchase_price?: number | null
+          rating?: number | null
+          review_count?: number | null
           security_deposit?: number | null
+          serial_number?: string | null
           status?: string
+          subcategory?: string | null
           terms_and_conditions?: string | null
           title?: string
           total_leases?: number | null
           updated_at?: string
+          views_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leaseable_assets_lease_category_id_fkey"
+            columns: ["lease_category_id"]
+            isOneToOne: false
+            referencedRelation: "lease_asset_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leaseable_assets_product_id_fkey"
             columns: ["product_id"]
@@ -7076,6 +7361,10 @@ export type Database = {
           p_surge_multiplier?: number
         }
         Returns: number
+      }
+      calculate_lease_credit_score: {
+        Args: { p_user_id: string }
+        Returns: Json
       }
       calculate_ride_fare: {
         Args: {
