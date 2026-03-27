@@ -101,32 +101,57 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left: Text content */}
             <div>
-              <div className="flex items-center gap-2 mb-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="flex items-center gap-2 mb-6"
+              >
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
                   <Sparkles className="h-3.5 w-3.5 text-amber-300" />
                   <span className="text-xs font-medium text-white/90">Your Super App</span>
                 </div>
-              </div>
+              </motion.div>
 
               {user && (
-                <p className="text-white/60 text-sm mb-2 font-medium">
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-white/60 text-sm mb-2 font-medium"
+                >
                   Welcome back, {user.name || user.email?.split("@")[0]}
-                </p>
+                </motion.p>
               )}
 
-              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight leading-[1.1]">
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight leading-[1.1]"
+              >
                 Everything you need,
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-300">
                   one platform.
                 </span>
-              </h1>
+              </motion.h1>
 
-              <p className="text-base md:text-lg text-white/70 max-w-lg mb-8 leading-relaxed">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="text-base md:text-lg text-white/70 max-w-lg mb-8 leading-relaxed"
+              >
                 Shop, Travel, Transact, and grow your business — all powered by gold-backed value.
-              </p>
+              </motion.p>
 
-              <div className="flex flex-wrap gap-3">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="flex flex-wrap gap-3"
+              >
                 <Button
                   size="lg"
                   onClick={() => navigate("/shop")}
@@ -142,11 +167,17 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                 >
                   Become a Merchant
                 </Button>
-              </div>
+              </motion.div>
             </div>
 
             {/* Right: Hero Slideshow */}
-            <HeroSlideshow />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, x: 30 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+            >
+              <HeroSlideshow />
+            </motion.div>
           </div>
         </div>
       </div>
