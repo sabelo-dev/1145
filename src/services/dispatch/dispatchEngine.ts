@@ -435,12 +435,12 @@ export const dispatchEngine = {
     driverId: string | null,
     payload: Record<string, unknown>
   ): Promise<void> {
-    await supabase.from("dispatch_events").insert({
+    await supabase.from("dispatch_events").insert([{
       event_type: eventType,
       entity_type: entityType,
       entity_id: entityId,
       driver_id: driverId,
-      payload,
-    });
+      payload: payload as any,
+    }]);
   },
 };
