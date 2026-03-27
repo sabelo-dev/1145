@@ -4,6 +4,7 @@ import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Spa
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import HeroSlideshow from "@/components/home/HeroSlideshow";
 
 const services = [
   {
