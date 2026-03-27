@@ -55,8 +55,8 @@ const HeroSlideshow: React.FC = () => {
   const Icon = slide.icon;
 
   return (
-    <div className="relative hidden md:block">
-      <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+    <div className="relative">
+      <div className="relative w-full aspect-[16/9] md:aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
         {/* Background image */}
         {slides.map((s, i) => (
           <img
