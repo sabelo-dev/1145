@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
+import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Sparkles, TrendingUp, Shield, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,48 +96,55 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
 
         <div className="container mx-auto px-4 pt-12 pb-20 md:pt-16 md:pb-28 relative z-10">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span className="text-xs font-medium text-white/90">Your Super App</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Left: Text content */}
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                  <span className="text-xs font-medium text-white/90">Your Super App</span>
+                </div>
+              </div>
+
+              {user && (
+                <p className="text-white/60 text-sm mb-2 font-medium">
+                  Welcome back, {user.name || user.email?.split("@")[0]}
+                </p>
+              )}
+
+              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight leading-[1.1]">
+                Everything you need,
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-300">
+                  one platform.
+                </span>
+              </h1>
+
+              <p className="text-base md:text-lg text-white/70 max-w-lg mb-8 leading-relaxed">
+                Shop, Travel, Transact, and grow your business — all powered by gold-backed value.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  size="lg"
+                  onClick={() => navigate("/shop")}
+                  className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg px-6 rounded-xl"
+                >
+                  Start Shopping
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  size="lg"
+                  onClick={() => navigate("/merchant/onboarding")}
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold rounded-xl px-6"
+                >
+                  Become a Merchant
+                </Button>
+              </div>
             </div>
-          </div>
 
-          {user && (
-            <p className="text-white/60 text-sm mb-2 font-medium">
-              Welcome back, {user.name || user.email?.split("@")[0]}
-            </p>
-          )}
-
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight leading-[1.1]">
-            Everything you need,
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-300">
-              one platform.
-            </span>
-          </h1>
-
-          <p className="text-base md:text-lg text-white/70 max-w-lg mb-8 leading-relaxed">
-            Shop, Travel, Transact, and grow your business — all powered by gold-backed value.
-          </p>
-
-          <div className="flex flex-wrap gap-3">
-            <Button
-              size="lg"
-              onClick={() => navigate("/shop")}
-              className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg px-6 rounded-xl"
-            >
-              Start Shopping
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate("/merchant/onboarding")}
-              className="border-white/20 text-white hover:bg-white/10 font-semibold rounded-xl"
-            >
-              Become a Merchant
-            </Button>
+            {/* Right: Hero Slideshow */}
+            <HeroSlideshow />
           </div>
         </div>
       </div>
