@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Sparkles, TrendingUp, Shield, Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
