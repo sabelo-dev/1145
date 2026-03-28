@@ -28,6 +28,8 @@ const WalletPage: React.FC = () => {
   const [walletTxs, setWalletTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'overview' | 'send' | 'trade'>('overview');
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   // UCoin data
   const { wallet: ucoinWallet, transactions: ucoinTxs, isLoading: ucoinLoading } = useUCoin();
