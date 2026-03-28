@@ -18,15 +18,14 @@ const StorefrontCollections: React.FC<StorefrontCollectionsProps> = ({
 }) => {
   if (categories.length < 2) return null;
 
-  // Get a representative product image per category
   const collectionData = categories.slice(0, 6).map((cat) => {
     const catProducts = products.filter((p) => p.category === cat);
-    const image = catProducts[0]?.image_url || catProducts[0]?.images?.[0];
+    const image = catProducts[0]?.images?.[0];
     return { name: cat, count: catProducts.length, image };
   });
 
   return (
-    <section className="py-12 md:py-20 px-4">
+    <section id="collections" className="py-12 md:py-20 px-4">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

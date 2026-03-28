@@ -18,14 +18,24 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
   accentColor,
   storeName,
 }) => {
-  const { addItem } = useCart();
+  const { addToCart } = useCart();
   if (products.length === 0) return null;
 
   const hero = products[0];
   const supporting = products.slice(1, 4);
 
+  const handleAdd = (p: Product) => {
+    addToCart({
+      productId: p.id,
+      name: p.name,
+      price: p.price,
+      image: p.images?.[0] || "",
+      productType: p.productType,
+    });
+  };
+
   return (
-    <section className="py-12 md:py-20 px-4" style={{ backgroundColor: `${accentColor}06` }}>
+    <section id="spotlight" className="py-12 md:py-20 px-4" style={{ backgroundColor: `${accentColor}06` }}>
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -52,15 +62,15 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
           >
             <div className="aspect-[4/3] overflow-hidden">
               <img
-                src={hero.image_url || hero.images?.[0]}
+                src={hero.images?.[0]}
                 alt={hero.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
             <div className="p-5 md:p-6">
-              {hero.compare_at_price && hero.compare_at_price > hero.price && (
+              {hero.compareAtPrice && hero.compareAtPrice > hero.price && (
                 <Badge variant="destructive" className="mb-2 rounded-full text-xs">
-                  {Math.round(((hero.compare_at_price - hero.price) / hero.compare_at_price) * 100)}% OFF
+                  {Math.round(((hero.compareAtPrice - hero.price) / hero.compareAtPrice) * 100)}% OFF
                 </Badge>
               )}
               <h3 className="text-lg md:text-xl font-bold text-foreground mb-1">
@@ -78,9 +88,9 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                 <span className="text-lg font-bold" style={{ color: accentColor }}>
                   R{hero.price.toFixed(2)}
                 </span>
-                {hero.compare_at_price && hero.compare_at_price > hero.price && (
+                {hero.compareAtPrice && hero.compareAtPrice > hero.price && (
                   <span className="text-sm text-muted-foreground line-through">
-                    R{hero.compare_at_price.toFixed(2)}
+                    R{hero.compareAtPrice.toFixed(2)}
                   </span>
                 )}
               </div>
@@ -88,7 +98,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                 <Button
                   className="rounded-full flex-1 text-white"
                   style={{ backgroundColor: accentColor }}
-                  onClick={() => addItem(hero)}
+                  onClick={() => handleAdd(hero)}
                 >
                   <ShoppingBag className="h-4 w-4 mr-2" />
                   Add to Cart
@@ -115,7 +125,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
               >
                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0">
                   <img
-                    src={product.image_url || product.images?.[0]}
+                    src={product.images?.[0]}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
@@ -134,9 +144,9 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                     <span className="font-bold text-sm" style={{ color: accentColor }}>
                       R{product.price.toFixed(2)}
                     </span>
-                    {product.compare_at_price && product.compare_at_price > product.price && (
+                    {product.compareAtPrice && product.compareAtPrice > product.price && (
                       <span className="text-xs text-muted-foreground line-through">
-                        R{product.compare_at_price.toFixed(2)}
+                        R{product.compareAtPrice.toFixed(2)}
                       </span>
                     )}
                   </div>
@@ -145,7 +155,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                       size="sm"
                       className="rounded-full text-xs h-8 text-white"
                       style={{ backgroundColor: accentColor }}
-                      onClick={() => addItem(product)}
+                      onClick={() => handleAdd(product)}
                     >
                       Add to Cart
                     </Button>
