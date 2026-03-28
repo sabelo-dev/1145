@@ -60,7 +60,7 @@ const services = [
     gradient: "from-teal-500 to-cyan-500",
     iconBg: "bg-teal-500/10",
     iconColor: "text-teal-500",
-    route: "/shop?listing_type=lease",
+    route: "/merchant/dashboard?tab=leasing",
     tag: "New",
   },
   {

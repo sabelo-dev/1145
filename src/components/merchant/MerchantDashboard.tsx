@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import {
@@ -43,6 +44,7 @@ import VendorSubscriptionPayments from "./dashboard/VendorSubscriptionPayments";
 import VendorApiAccess from "./dashboard/VendorApiAccess";
 import VendorCustomDomain from "./dashboard/VendorCustomDomain";
 import MerchantLeases from "./dashboard/MerchantLeases";
+import MerchantLodging from "./dashboard/MerchantLodging";
 import MerchantRideAnalytics from "./dashboard/MerchantRideAnalytics";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -68,13 +70,16 @@ import {
   Key,
   Globe,
   CreditCard,
+  Building2,
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [vendorData, setVendorData] = useState<any>(null);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -140,6 +145,7 @@ const VendorDashboard = () => {
     { id: "custom-domain", title: "Custom Domain", icon: Globe },
     { id: "messages", title: "Messages", icon: MessageSquare },
     { id: "leasing", title: "Leasing", icon: Package },
+    { id: "lodging", title: "Lodging / Stays", icon: Building2 },
     { id: "delivery-analytics", title: "Delivery Analytics", icon: Truck },
     { id: "settings", title: "Settings", icon: Settings },
     { id: "support", title: "Help / Support", icon: Headphones },
@@ -403,6 +409,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="leasing" className="mt-0">
               <MerchantLeases />
+            </TabsContent>
+            <TabsContent value="lodging" className="mt-0">
+              <MerchantLodging />
             </TabsContent>
             <TabsContent value="delivery-analytics" className="mt-0">
               <MerchantRideAnalytics />
