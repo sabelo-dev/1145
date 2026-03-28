@@ -87,6 +87,8 @@ const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
 const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
 const AssetOwnerDashboard = lazy(() => import("@/pages/AssetOwnerDashboard"));
+const StaysPage = lazy(() => import("@/pages/StaysPage"));
+const StayDetailPage = lazy(() => import("@/pages/StayDetailPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -176,6 +178,10 @@ function AppRouter() {
         </Route>
         
         <Route path="services" element={<ServiceHubPage />} />
+        <Route path="stays" element={<Layout />}>
+          <Route index element={<StaysPage />} />
+          <Route path=":propertyId" element={<StayDetailPage />} />
+        </Route>
         <Route path="rides" element={
           <ProtectedRoute requireAuth>
             <RideHistoryPage />
