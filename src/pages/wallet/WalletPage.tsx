@@ -144,9 +144,9 @@ const WalletPage: React.FC = () => {
 
         {/* Quick Actions */}
         <QuickActions
-          onDeposit={() => toast({ title: "Deposit", description: "Deposit via PayFast coming soon" })}
+          onDeposit={() => setDepositOpen(true)}
           onTransfer={() => setActiveView('send')}
-          onWithdraw={() => toast({ title: "Withdraw", description: "Withdrawal feature coming soon" })}
+          onWithdraw={() => setWithdrawOpen(true)}
           onTradeGold={() => setActiveView('trade')}
           onViewHistory={() => setActiveView('overview')}
         />
