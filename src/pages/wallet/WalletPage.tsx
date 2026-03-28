@@ -15,6 +15,7 @@ import { UnifiedTransactionList } from "@/components/wallet/UnifiedTransactionLi
 import { SendMoneyPanel } from "@/components/wallet/SendMoneyPanel";
 import { GoldTradingPanel } from "@/components/wallet/GoldTradingPanel";
 import { GoldPriceTicker } from "@/components/wallet/GoldPriceTicker";
+import { BankTransferDialog } from "@/components/wallet/BankTransferDialog";
 import { motion } from "framer-motion";
 
 const WalletPage: React.FC = () => {
