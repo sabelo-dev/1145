@@ -188,6 +188,21 @@ const WalletPage: React.FC = () => {
             />
           </TabsContent>
         </Tabs>
+        {/* Bank Transfer Dialogs */}
+        <BankTransferDialog
+          open={depositOpen}
+          onOpenChange={setDepositOpen}
+          type="deposit"
+          zarBalance={zarBalance}
+          onComplete={fetchWalletData}
+        />
+        <BankTransferDialog
+          open={withdrawOpen}
+          onOpenChange={setWithdrawOpen}
+          type="withdrawal"
+          zarBalance={zarBalance}
+          onComplete={fetchWalletData}
+        />
       </div>
     </div>
   );
