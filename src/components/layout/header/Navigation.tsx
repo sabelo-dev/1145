@@ -84,6 +84,15 @@ const Navigation: React.FC = () => {
         
         <NavigationMenuItem>
           <Link
+            to="/stays"
+            className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2"
+          >
+            Stays
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link
             to="/services"
             className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2 font-medium"
           >

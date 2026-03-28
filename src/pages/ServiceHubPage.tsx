@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Sparkles, TrendingUp, Shield, Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Sparkles, TrendingUp, Shield, Zap, ChevronLeft, ChevronRight, Megaphone, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,28 @@ const services = [
     iconColor: "text-emerald-500",
     route: "/merchant/dashboard",
     tag: null,
+  },
+  {
+    id: "influence",
+    name: "Influence",
+    description: "Grow your brand and monetize your audience",
+    icon: Megaphone,
+    gradient: "from-pink-500 to-fuchsia-600",
+    iconBg: "bg-pink-500/10",
+    iconColor: "text-pink-500",
+    route: "/influencer/login",
+    tag: "Create",
+  },
+  {
+    id: "stays",
+    name: "Stay",
+    description: "Book hotels, lodges, and vacation rentals",
+    icon: Building2,
+    gradient: "from-sky-500 to-cyan-500",
+    iconBg: "bg-sky-500/10",
+    iconColor: "text-sky-500",
+    route: "/stays",
+    tag: "New",
   },
 ];
 
