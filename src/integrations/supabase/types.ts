@@ -4096,6 +4096,216 @@ export type Database = {
           },
         ]
       }
+      lodging_bookings: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string | null
+          guests: number | null
+          id: string
+          payment_status: string | null
+          property_id: string
+          special_requests: string | null
+          status: string | null
+          total_price: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string | null
+          guests?: number | null
+          id?: string
+          payment_status?: string | null
+          property_id: string
+          special_requests?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string | null
+          guests?: number | null
+          id?: string
+          payment_status?: string | null
+          property_id?: string
+          special_requests?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lodging_bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "lodging_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lodging_bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lodging_properties: {
+        Row: {
+          address: string | null
+          amenities: Json | null
+          bathrooms: number | null
+          bedrooms: number | null
+          cancellation_policy: string | null
+          check_in_time: string | null
+          check_out_time: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          id: string
+          images: Json | null
+          is_active: boolean | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          max_guests: number | null
+          name: string
+          owner_id: string
+          price_per_night: number
+          province: string | null
+          rating: number | null
+          review_count: number | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: Json | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          is_active?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_guests?: number | null
+          name: string
+          owner_id: string
+          price_per_night?: number
+          province?: string | null
+          rating?: number | null
+          review_count?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: Json | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          is_active?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_guests?: number | null
+          name?: string
+          owner_id?: string
+          price_per_night?: number
+          province?: string | null
+          rating?: number | null
+          review_count?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lodging_properties_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lodging_reviews: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          created_at: string | null
+          id: string
+          property_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          property_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          property_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lodging_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "lodging_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lodging_reviews_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "lodging_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lodging_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchant_api_keys: {
         Row: {
           api_key: string
