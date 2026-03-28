@@ -76,6 +76,7 @@ import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
 
 const VendorDashboard = () => {
+  const { user, logout } = useAuth();
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
