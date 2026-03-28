@@ -15,6 +15,7 @@ import { UnifiedTransactionList } from "@/components/wallet/UnifiedTransactionLi
 import { SendMoneyPanel } from "@/components/wallet/SendMoneyPanel";
 import { GoldTradingPanel } from "@/components/wallet/GoldTradingPanel";
 import { GoldPriceTicker } from "@/components/wallet/GoldPriceTicker";
+import { BankTransferDialog } from "@/components/wallet/BankTransferDialog";
 import { motion } from "framer-motion";
 
 const WalletPage: React.FC = () => {
@@ -27,6 +28,8 @@ const WalletPage: React.FC = () => {
   const [walletTxs, setWalletTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'overview' | 'send' | 'trade'>('overview');
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   // UCoin data
   const { wallet: ucoinWallet, transactions: ucoinTxs, isLoading: ucoinLoading } = useUCoin();
@@ -141,9 +144,9 @@ const WalletPage: React.FC = () => {
 
         {/* Quick Actions */}
         <QuickActions
-          onDeposit={() => toast({ title: "Deposit", description: "Deposit via PayFast coming soon" })}
+          onDeposit={() => setDepositOpen(true)}
           onTransfer={() => setActiveView('send')}
-          onWithdraw={() => toast({ title: "Withdraw", description: "Withdrawal feature coming soon" })}
+          onWithdraw={() => setWithdrawOpen(true)}
           onTradeGold={() => setActiveView('trade')}
           onViewHistory={() => setActiveView('overview')}
         />
@@ -185,6 +188,21 @@ const WalletPage: React.FC = () => {
             />
           </TabsContent>
         </Tabs>
+        {/* Bank Transfer Dialogs */}
+        <BankTransferDialog
+          open={depositOpen}
+          onOpenChange={setDepositOpen}
+          type="deposit"
+          zarBalance={zarBalance}
+          onComplete={fetchWalletData}
+        />
+        <BankTransferDialog
+          open={withdrawOpen}
+          onOpenChange={setWithdrawOpen}
+          type="withdrawal"
+          zarBalance={zarBalance}
+          onComplete={fetchWalletData}
+        />
       </div>
     </div>
   );

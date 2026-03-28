@@ -650,6 +650,68 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_transfer_requests: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          completed_at: string | null
+          created_at: string | null
+          currency: string
+          id: string
+          notes: string | null
+          otp_code: string | null
+          otp_expires_at: string | null
+          otp_verified: boolean | null
+          reference: string | null
+          status: string
+          transfer_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          notes?: string | null
+          otp_code?: string | null
+          otp_expires_at?: string | null
+          otp_verified?: boolean | null
+          reference?: string | null
+          status?: string
+          transfer_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          notes?: string | null
+          otp_code?: string | null
+          otp_expires_at?: string | null
+          otp_verified?: boolean | null
+          reference?: string | null
+          status?: string
+          transfer_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transfer_requests_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "user_linked_bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_bundle_products: {
         Row: {
           bundle_id: string
@@ -7199,6 +7261,54 @@ export type Database = {
           preferred_currency?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_linked_bank_accounts: {
+        Row: {
+          account_holder_name: string
+          account_number_hash: string
+          account_number_masked: string
+          account_type: string
+          bank_name: string
+          branch_code: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          is_verified: boolean | null
+          updated_at: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          account_holder_name: string
+          account_number_hash: string
+          account_number_masked: string
+          account_type?: string
+          bank_name: string
+          branch_code?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          account_holder_name?: string
+          account_number_hash?: string
+          account_number_masked?: string
+          account_type?: string
+          bank_name?: string
+          branch_code?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
