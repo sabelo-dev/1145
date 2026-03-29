@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface StateData {
@@ -14,7 +14,7 @@ interface StateData {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
   const errorDescription = url.searchParams.get('error_description');
 
   // Default redirect URL
-  let redirectUrl = 'https://id-preview--d0859489-9381-447f-a186-2612cdbf9227.lovable.app/influencer/dashboard?tab=accounts';
+  let redirectUrl = 'https://1145lifestyle.com/influencer/dashboard?tab=accounts';
 
   try {
     if (error) {
@@ -55,7 +55,6 @@ Deno.serve(async (req) => {
     const { userId, platform, codeVerifier } = stateData;
     const functionsUrl = `${supabaseUrl}/functions/v1`;
 
-    // Exchange code for token based on platform
     let tokenData: any = null;
     let accountInfo: any = null;
 
@@ -63,6 +62,11 @@ Deno.serve(async (req) => {
       const fbAppId = Deno.env.get('FACEBOOK_APP_ID');
       const fbAppSecret = Deno.env.get('FACEBOOK_APP_SECRET');
       
+      if (!fbAppId || !fbAppSecret) {
+        console.error('Facebook credentials not configured');
+        return Response.redirect(`${redirectUrl}&error=facebook_not_configured`);
+      }
+
       // Exchange code for short-lived token
       const tokenResponse = await fetch(
         `https://graph.facebook.com/v18.0/oauth/access_token?` +
@@ -73,10 +77,11 @@ Deno.serve(async (req) => {
       );
       
       const shortLivedToken = await tokenResponse.json();
-      console.log('Facebook token response:', JSON.stringify(shortLivedToken));
+      console.log('Facebook token exchange status:', tokenResponse.status);
       
       if (shortLivedToken.error) {
-        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(shortLivedToken.error.message)}`);
+        console.error('Facebook token error:', JSON.stringify(shortLivedToken.error));
+        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(shortLivedToken.error.message || 'Facebook auth failed')}`);
       }
 
       // Exchange for long-lived token
@@ -89,22 +94,23 @@ Deno.serve(async (req) => {
       );
       
       const longLivedToken = await longLivedResponse.json();
+      const accessToken = longLivedToken.access_token || shortLivedToken.access_token;
       
       // Get user info
       const userResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me?fields=id,name&access_token=${longLivedToken.access_token || shortLivedToken.access_token}`
+        `https://graph.facebook.com/v18.0/me?fields=id,name&access_token=${accessToken}`
       );
       const userInfo = await userResponse.json();
       
       // Get pages the user manages
       const pagesResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${longLivedToken.access_token || shortLivedToken.access_token}`
+        `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${accessToken}`
       );
       const pagesData = await pagesResponse.json();
       
       tokenData = {
-        access_token: longLivedToken.access_token || shortLivedToken.access_token,
-        expires_in: longLivedToken.expires_in || 5184000, // ~60 days
+        access_token: accessToken,
+        expires_in: longLivedToken.expires_in || 5184000,
       };
       
       accountInfo = {
@@ -117,7 +123,6 @@ Deno.serve(async (req) => {
       for (const page of pagesData.data || []) {
         const instagramAccount = page.instagram_business_account;
         
-        // Store Facebook page token
         await supabase
           .from('social_oauth_tokens')
           .upsert({
@@ -136,9 +141,7 @@ Deno.serve(async (req) => {
             onConflict: 'user_id,platform,account_id',
           });
 
-        // If Instagram business account is connected, store that too
         if (instagramAccount) {
-          // Get Instagram account info
           const igResponse = await fetch(
             `https://graph.facebook.com/v18.0/${instagramAccount.id}?fields=id,username&access_token=${page.access_token}`
           );
@@ -164,7 +167,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Also store user-level token for basic access
+      // Store user-level token if no pages found
       if (!pagesData.data?.length) {
         await supabase
           .from('social_oauth_tokens')
@@ -186,6 +189,11 @@ Deno.serve(async (req) => {
       const twitterClientId = Deno.env.get('TWITTER_CLIENT_ID');
       const twitterClientSecret = Deno.env.get('TWITTER_CLIENT_SECRET');
       
+      if (!twitterClientId || !twitterClientSecret) {
+        console.error('Twitter credentials not configured');
+        return Response.redirect(`${redirectUrl}&error=twitter_not_configured`);
+      }
+
       const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
         method: 'POST',
         headers: {
@@ -193,7 +201,7 @@ Deno.serve(async (req) => {
           'Authorization': `Basic ${btoa(`${twitterClientId}:${twitterClientSecret}`)}`,
         },
         body: new URLSearchParams({
-          code,
+          code: code,
           grant_type: 'authorization_code',
           redirect_uri: `${functionsUrl}/social-oauth-callback`,
           code_verifier: codeVerifier || '',
@@ -201,9 +209,10 @@ Deno.serve(async (req) => {
       });
       
       tokenData = await tokenResponse.json();
-      console.log('Twitter token response:', JSON.stringify(tokenData));
+      console.log('Twitter token exchange status:', tokenResponse.status);
       
       if (tokenData.error) {
+        console.error('Twitter token error:', JSON.stringify(tokenData));
         return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(tokenData.error_description || tokenData.error)}`);
       }
 
@@ -213,15 +222,14 @@ Deno.serve(async (req) => {
           'Authorization': `Bearer ${tokenData.access_token}`,
         },
       });
-      const userData = await userResponse.json();
+      const twitterUserData = await userResponse.json();
       
       accountInfo = {
-        id: userData.data?.id,
-        username: userData.data?.username,
-        name: userData.data?.name,
+        id: twitterUserData.data?.id,
+        username: twitterUserData.data?.username,
+        name: twitterUserData.data?.name,
       };
 
-      // Store token
       await supabase
         .from('social_oauth_tokens')
         .upsert({
@@ -243,22 +251,28 @@ Deno.serve(async (req) => {
       const linkedinClientId = Deno.env.get('LINKEDIN_CLIENT_ID');
       const linkedinClientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
       
+      if (!linkedinClientId || !linkedinClientSecret) {
+        console.error('LinkedIn credentials not configured');
+        return Response.redirect(`${redirectUrl}&error=linkedin_not_configured`);
+      }
+
       const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           grant_type: 'authorization_code',
-          code,
+          code: code,
           redirect_uri: `${functionsUrl}/social-oauth-callback`,
-          client_id: linkedinClientId!,
-          client_secret: linkedinClientSecret!,
+          client_id: linkedinClientId,
+          client_secret: linkedinClientSecret,
         }),
       });
       
       tokenData = await tokenResponse.json();
-      console.log('LinkedIn token response:', JSON.stringify(tokenData));
+      console.log('LinkedIn token exchange status:', tokenResponse.status);
       
       if (tokenData.error) {
+        console.error('LinkedIn token error:', JSON.stringify(tokenData));
         return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(tokenData.error_description || tokenData.error)}`);
       }
 
@@ -276,7 +290,6 @@ Deno.serve(async (req) => {
         email: profileData.email,
       };
 
-      // Store token
       await supabase
         .from('social_oauth_tokens')
         .upsert({
@@ -294,21 +307,24 @@ Deno.serve(async (req) => {
         });
     }
 
-    // Also sync to approved_social_accounts for the influencer system
+    // Sync to approved_social_accounts for the influencer system
     if (accountInfo) {
+      const handle = accountInfo.username || accountInfo.name || accountInfo.id;
+      const accountUrl = platform === 'twitter' 
+        ? `https://twitter.com/${accountInfo.username}`
+        : platform === 'instagram'
+        ? `https://instagram.com/${accountInfo.username || accountInfo.name}`
+        : platform === 'linkedin'
+        ? `https://linkedin.com/in/${accountInfo.id}`
+        : `https://facebook.com/${accountInfo.id}`;
+
       await supabase
         .from('approved_social_accounts')
         .upsert({
           user_id: userId,
           platform,
-          account_handle: accountInfo.username || accountInfo.name || accountInfo.id,
-          account_url: platform === 'twitter' 
-            ? `https://twitter.com/${accountInfo.username}`
-            : platform === 'instagram'
-            ? `https://instagram.com/${accountInfo.username || accountInfo.name}`
-            : platform === 'linkedin'
-            ? `https://linkedin.com/in/${accountInfo.id}`
-            : `https://facebook.com/${accountInfo.id}`,
+          account_handle: handle,
+          account_url: accountUrl,
           is_verified: true,
           verified_at: new Date().toISOString(),
           is_active: true,
@@ -321,8 +337,8 @@ Deno.serve(async (req) => {
 
     return Response.redirect(`${redirectUrl}&success=true&platform=${platform}`);
     
-  } catch (error: any) {
-    console.error('OAuth callback error:', error);
-    return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(error.message || 'Unknown error')}`);
+  } catch (err: any) {
+    console.error('OAuth callback error:', err);
+    return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(err.message || 'Unknown error')}`);
   }
 });
