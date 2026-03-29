@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface OAuthConfig {
@@ -49,7 +49,7 @@ const getOAuthConfig = (baseUrl: string): OAuthConfig => ({
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     const platform = url.searchParams.get('platform');
-    const appBaseUrl = url.searchParams.get('app_url') || 'https://id-preview--d0859489-9381-447f-a186-2612cdbf9227.lovable.app';
+    const appBaseUrl = url.searchParams.get('app_url') || 'https://1145lifestyle.com';
     
     // Get auth token from header
     const authHeader = req.headers.get('Authorization');
@@ -98,7 +98,6 @@ Deno.serve(async (req) => {
         const state = btoa(JSON.stringify({ userId, platform, appUrl: appBaseUrl }));
 
         if (platform === 'facebook' || platform === 'instagram') {
-          // Facebook handles both Facebook and Instagram
           const fbConfig = config.facebook;
           if (!fbConfig.clientId) {
             return new Response(
@@ -107,7 +106,7 @@ Deno.serve(async (req) => {
                 setup_required: true,
                 instructions: 'Add FACEBOOK_APP_ID and FACEBOOK_APP_SECRET to edge function secrets'
               }),
-              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
           authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
@@ -125,7 +124,7 @@ Deno.serve(async (req) => {
                 setup_required: true,
                 instructions: 'Add TWITTER_CLIENT_ID and TWITTER_CLIENT_SECRET to edge function secrets'
               }),
-              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
           // Twitter OAuth 2.0 with PKCE
@@ -136,7 +135,6 @@ Deno.serve(async (req) => {
           const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
             .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
           
-          // Store code verifier in state for later use
           const twitterState = btoa(JSON.stringify({ 
             userId, 
             platform, 
@@ -161,7 +159,7 @@ Deno.serve(async (req) => {
                 setup_required: true,
                 instructions: 'Add LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET to edge function secrets'
               }),
-              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
           authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
@@ -194,7 +192,7 @@ Deno.serve(async (req) => {
         }
 
         return new Response(
-          JSON.stringify({ tokens }),
+          JSON.stringify({ tokens: tokens || [] }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -237,7 +235,6 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Get the existing token
         const { data: tokenData, error: fetchError } = await supabase
           .from('social_oauth_tokens')
           .select('*')
@@ -252,12 +249,10 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Refresh logic depends on platform
         let newAccessToken = '';
         let newExpiresAt: Date | null = null;
 
         if (tokenData.platform === 'facebook' || tokenData.platform === 'instagram') {
-          // Facebook long-lived tokens last 60 days, can be refreshed
           const fbConfig = config.facebook;
           const refreshResponse = await fetch(
             `https://graph.facebook.com/v18.0/oauth/access_token?` +
@@ -291,7 +286,6 @@ Deno.serve(async (req) => {
             newAccessToken = refreshData.access_token;
             newExpiresAt = new Date(Date.now() + (refreshData.expires_in || 7200) * 1000);
             
-            // Update refresh token if provided
             if (refreshData.refresh_token) {
               await supabase
                 .from('social_oauth_tokens')
@@ -350,7 +344,7 @@ Deno.serve(async (req) => {
 
       default:
         return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
+          JSON.stringify({ error: 'Invalid action. Use: get_auth_url, list_tokens, disconnect, refresh_token' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
