@@ -51,19 +51,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requireAdmin && (!user || !isAdmin)) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to={user ? "/dashboard" : "/admin/login"} replace />;
   }
 
   if (requireMerchant && (!user || !isMerchant)) {
-    return <Navigate to="/merchant/login" replace />;
+    return <Navigate to={user ? "/dashboard" : "/merchant/login"} replace />;
   }
 
   if (requireDriver && (!user || !isDriver)) {
-    return <Navigate to="/driver/login" replace />;
+    return <Navigate to={user ? "/dashboard" : "/driver/login"} replace />;
   }
 
   if (requireInfluencer && (!user || !isInfluencer)) {
-    return <Navigate to="/influencer/login" replace />;
+    return <Navigate to={user ? "/dashboard" : "/influencer/login"} replace />;
   }
 
   return <>{children}</>;

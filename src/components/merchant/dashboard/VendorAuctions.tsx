@@ -88,7 +88,7 @@ const VendorAuctions = () => {
         .from("vendors")
         .select("id")
         .eq("user_id", user?.id)
-        .single();
+        .maybeSingle();
 
       if (vendorError || !vendorData) {
         console.error("Error fetching vendor:", vendorError);
@@ -100,7 +100,7 @@ const VendorAuctions = () => {
         .from("stores")
         .select("id")
         .eq("vendor_id", vendorData.id)
-        .single();
+        .maybeSingle();
 
       if (storeError || !storeData) {
         console.error("Error fetching store:", storeError);

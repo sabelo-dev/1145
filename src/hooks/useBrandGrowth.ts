@@ -48,14 +48,14 @@ export function useBrandGrowth(vendorId?: string) {
       .from('vendors')
       .select('tier_id')
       .eq('id', vendorId)
-      .single();
+      .maybeSingle();
 
     if (vendorData?.tier_id) {
       const { data: tierData } = await supabase
         .from('brand_tiers')
         .select('*')
         .eq('id', vendorData.tier_id)
-        .single();
+        .maybeSingle();
       
       if (tierData) setTier(tierData as unknown as BrandTier);
     }
@@ -67,7 +67,7 @@ export function useBrandGrowth(vendorId?: string) {
       .eq('vendor_id', vendorId)
       .order('period_end', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
     
     if (perfData) setPerformance(perfData as unknown as BrandPerformance);
 
@@ -76,7 +76,7 @@ export function useBrandGrowth(vendorId?: string) {
       .from('promo_credits')
       .select('*')
       .eq('vendor_id', vendorId)
-      .single();
+      .maybeSingle();
     
     if (creditsData) setPromoCredits(creditsData as unknown as PromoCredits);
 

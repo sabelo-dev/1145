@@ -99,7 +99,7 @@ const VendorApiAccess = () => {
         .from("vendors")
         .select("id, subscription_tier")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
 
       if (!vendor) return;
       setVendorId(vendor.id);

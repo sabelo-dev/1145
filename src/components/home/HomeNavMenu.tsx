@@ -17,6 +17,7 @@ const menuItems = [
   { label: "Home", path: "/", icon: Home },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
   { label: "Categories", path: "/categories", icon: Grid3X3 },
+  { label: "Services", path: "/services", icon: Truck },
   { label: "Best Sellers", path: "/best-sellers", icon: TrendingUp },
   { label: "Deals", path: "/deals", icon: Percent },
   { label: "Auctions", path: "/auctions", icon: Gavel },
@@ -58,20 +59,17 @@ const HomeNavMenu: React.FC = () => {
   };
 
   return (
-    <nav 
-      className={`bg-background sticky top-0 z-40 transition-all duration-300 ease-in-out ${
-        isScrolled 
-          ? "border-b border-border shadow-sm" 
-          : "border-b border-transparent"
-      }`}
+    <nav
+      className={`bg-background sticky top-0 z-40 transition-all duration-300 ease-in-out ${isScrolled
+        ? "border-b border-border shadow-sm"
+        : "border-b border-transparent"
+        }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between gap-3 py-2">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <div className="px-2.5 py-1 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">1145</span>
-            </div>
+            <img src="/logo.svg" alt="1145" className="h-8 w-8 rounded-md" />
           </Link>
 
           {/* Desktop Search Bar - hidden on mobile */}
@@ -140,9 +138,9 @@ const HomeNavMenu: React.FC = () => {
                         Settings
                       </Link>
                     </DropdownMenuItem>
-                    
+
                     {(!isMerchant || !isDriver) && <DropdownMenuSeparator />}
-                    
+
                     {!isMerchant && (
                       <DropdownMenuItem asChild>
                         <Link to="/merchant/register" className="flex items-center gap-2 cursor-pointer">
@@ -151,7 +149,7 @@ const HomeNavMenu: React.FC = () => {
                         </Link>
                       </DropdownMenuItem>
                     )}
-                    
+
                     {!isDriver && (
                       <DropdownMenuItem asChild>
                         <Link to="/driver/register" className="flex items-center gap-2 cursor-pointer">
@@ -160,10 +158,10 @@ const HomeNavMenu: React.FC = () => {
                         </Link>
                       </DropdownMenuItem>
                     )}
-                    
+
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => logout()} 
+                    <DropdownMenuItem
+                      onClick={() => logout()}
                       className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
                     >
                       <LogOut className="h-4 w-4" />
@@ -182,6 +180,8 @@ const HomeNavMenu: React.FC = () => {
               )}
             </li>
           </ul>
+
+          
 
           {/* Mobile Menu Button - visible only on mobile */}
           <Button

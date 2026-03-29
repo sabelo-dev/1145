@@ -85,6 +85,10 @@ const RideHistoryPage = lazy(() => import("@/pages/rides/RideHistoryPage"));
 const WalletPage = lazy(() => import("@/pages/wallet/WalletPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
+const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
+const AssetOwnerDashboard = lazy(() => import("@/pages/AssetOwnerDashboard"));
+const StaysPage = lazy(() => import("@/pages/StaysPage"));
+const StayDetailPage = lazy(() => import("@/pages/StayDetailPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -165,13 +169,39 @@ function AppRouter() {
               <LeaseApplyPage />
             </ProtectedRoute>
           } />
+          <Route path="lease/marketplace" element={<LeaseMarketplacePage />} />
+          <Route path="lease/my-assets" element={
+            <ProtectedRoute requireAuth>
+              <AssetOwnerDashboard />
+            </ProtectedRoute>
+          } />
         </Route>
         
         <Route path="services" element={<ServiceHubPage />} />
-        <Route path="rides" element={<RideHistoryPage />} />
-        <Route path="rides/request" element={<RideRequestPage />} />
-        <Route path="rides/track/:rideId" element={<RideTrackingPage />} />
-        <Route path="wallet" element={<WalletPage />} />
+        <Route path="stays" element={<Layout />}>
+          <Route index element={<StaysPage />} />
+          <Route path=":propertyId" element={<StayDetailPage />} />
+        </Route>
+        <Route path="rides" element={
+          <ProtectedRoute requireAuth>
+            <RideHistoryPage />
+          </ProtectedRoute>
+        } />
+        <Route path="rides/request" element={
+          <ProtectedRoute requireAuth>
+            <RideRequestPage />
+          </ProtectedRoute>
+        } />
+        <Route path="rides/track/:rideId" element={
+          <ProtectedRoute requireAuth>
+            <RideTrackingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="wallet" element={
+          <ProtectedRoute requireAuth>
+            <WalletPage />
+          </ProtectedRoute>
+        } />
         <Route path="track-order" element={<TrackOrderPage />} />
         
         <Route path="auth/confirm" element={<AuthConfirmPage />} />

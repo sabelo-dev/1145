@@ -82,7 +82,7 @@ const VendorSubscriptionPayments = () => {
         .from("vendors")
         .select("id, subscription_tier, subscription_payment_method, subscription_next_billing_date, subscription_auto_renew, platform_balance")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
 
       if (!vendor) return;
       setVendorId(vendor.id);

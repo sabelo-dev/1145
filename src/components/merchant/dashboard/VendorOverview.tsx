@@ -77,7 +77,7 @@ const VendorOverview: React.FC<VendorOverviewProps> = ({ onNavigate }) => {
           .from('vendors')
           .select('*, stores(*)')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (!vendor || !vendor.stores || vendor.stores.length === 0) {
           setLoading(false);

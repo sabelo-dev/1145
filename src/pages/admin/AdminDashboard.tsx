@@ -46,6 +46,7 @@ import AdminInbox from "@/components/admin/AdminInbox";
 import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
 import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
 import AdminRideAnalytics from "@/components/admin/AdminRideAnalytics";
+import AdminRidePricing from "@/components/admin/AdminRidePricing";
 import AdminLeases from "@/components/admin/AdminLeases";
 import AdminAssetLifecycle from "@/components/admin/AdminAssetLifecycle";
 import AdminLeaseAnalytics from "@/components/admin/AdminLeaseAnalytics";
@@ -93,14 +94,17 @@ const AdminDashboard = () => {
     { id: "inbox", title: "Email Inbox", icon: Inbox },
     { id: "users", title: "User Management", icon: Users },
     { id: "vendors", title: "Merchant Management", icon: Store },
+    { id: "drivers", title: "Driver Management", icon: Truck },
+    { id: "leases", title: "Lease Management", icon: FileText },
+    { id: "influencers", title: "Influencer Management", icon: Crown },
+    { id: "ucoin", title: "UCoin Management", icon: Coins },
+    { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
     { id: "products", title: "Products (All)", icon: Package },
     { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "auction-analytics", title: "Auction Analytics", icon: TrendingUp },
-    { id: "ucoin", title: "UCoin Management", icon: Coins },
     { id: "gold-pricing", title: "Gold Pricing", icon: Coins },
     { id: "social-mining", title: "Social Mining", icon: Pickaxe },
-    { id: "influencers", title: "Influencer Management", icon: Crown },
     { id: "categories", title: "Categories", icon: FileText },
     { id: "analytics", title: "Reports & Analytics", icon: BarChart3 },
     { id: "settings", title: "System Settings", icon: Settings },
@@ -108,10 +112,9 @@ const AdminDashboard = () => {
     { id: "cms", title: "CMS / Pages", icon: FileText },
     { id: "notifications", title: "Notifications", icon: Megaphone },
     { id: "audit", title: "Logs / Audit Trail", icon: AuditIcon },
-    { id: "shipping", title: "Shipping Management", icon: Truck },
-    { id: "drivers", title: "Driver Management", icon: Truck },
     { id: "rides", title: "Ride Monitoring", icon: Car },
     { id: "ride-analytics", title: "Ride Analytics", icon: TrendingUp },
+    { id: "ride-pricing", title: "Ride Pricing", icon: DollarSign },
     { id: "leases", title: "Lease Management", icon: FileText },
     { id: "asset-lifecycle", title: "Asset Lifecycle", icon: Package },
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
@@ -307,6 +310,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="ride-analytics" className="mt-0">
               <AdminRideAnalytics />
+            </TabsContent>
+            <TabsContent value="ride-pricing" className="mt-0">
+              <AdminRidePricing />
             </TabsContent>
             <TabsContent value="leases" className="mt-0">
               <AdminLeases />

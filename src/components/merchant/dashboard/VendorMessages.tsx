@@ -183,7 +183,7 @@ const VendorMessages = () => {
         .from('vendors')
         .select('id')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (vendorError || !vendor) {
         setConversations([]);

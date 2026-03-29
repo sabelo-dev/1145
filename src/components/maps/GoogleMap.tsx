@@ -6,118 +6,97 @@ const GOOGLE_MAPS_API_KEY =
   (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() ||
   "AIzaSyDdvMPREt7NEPYNtDhU0qowu4hidtrDJwo";
 const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
-const GOOGLE_MAPS_LIBRARIES = "places,geometry";
 
 let googleMapsPromise: Promise<void> | null = null;
+let librariesImported = false;
 
 declare global {
   interface Window {
     google?: typeof google;
+    __gmapsResolve?: () => void;
   }
 }
+
+const waitForGoogleMaps = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (window.google?.maps?.importLibrary) {
+      resolve();
+      return;
+    }
+    let attempts = 0;
+    const maxAttempts = 100; // 10 seconds
+    const check = () => {
+      if (window.google?.maps?.importLibrary) {
+        resolve();
+      } else if (++attempts > maxAttempts) {
+        reject(new Error("Google Maps failed to load"));
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+};
 
 export function loadGoogleMaps(): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Google Maps can only be loaded in the browser"));
   }
 
-  if (window.google?.maps) return Promise.resolve();
+  if (window.google?.maps?.importLibrary && librariesImported) return Promise.resolve();
   if (!GOOGLE_MAPS_API_KEY) {
     return Promise.reject(new Error("Missing Google Maps API key"));
   }
   if (googleMapsPromise) return googleMapsPromise;
 
-  googleMapsPromise = new Promise((resolve, reject) => {
-    let settled = false;
+  googleMapsPromise = (async () => {
+    // Inject the script if not already present
+    if (!document.getElementById(GOOGLE_MAPS_SCRIPT_ID)) {
+      // Remove any existing Google Maps scripts to prevent conflicts
+      document
+        .querySelectorAll(`script[src*="maps.googleapis.com"]`)
+        .forEach((s) => s.remove());
 
-    const succeed = () => {
-      if (settled) return;
-      settled = true;
-      resolve();
-    };
+      const script = document.createElement("script");
+      script.id = GOOGLE_MAPS_SCRIPT_ID;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry,marker&loading=async&callback=__gmapsInit`;
+      script.async = true;
+      script.defer = true;
 
-    const fail = (message: string) => {
-      if (settled) return;
-      settled = true;
-      googleMapsPromise = null;
-      reject(new Error(message));
-    };
+      // Create a global callback
+      (window as any).__gmapsInit = () => {
+        // Script loaded
+      };
 
-    const importLibraries = async () => {
-      try {
-        if (!window.google?.maps) {
-          fail("Google Maps loaded without the maps object");
-          return;
-        }
-        // Import required libraries so constructors become available
-        await Promise.all([
-          google.maps.importLibrary("maps"),
-          google.maps.importLibrary("places"),
-          google.maps.importLibrary("geometry"),
-          google.maps.importLibrary("routes"),
-        ]);
-        succeed();
-      } catch (e) {
-        fail("Failed to import Google Maps libraries");
-      }
-    };
-
-    const validateGoogleMapsLoaded = () => {
-      if (window.google?.maps) {
-        importLibraries();
-      } else {
-        fail("Google Maps loaded without the maps object");
-      }
-    };
-
-    const existingScript = document.getElementById(
-      GOOGLE_MAPS_SCRIPT_ID
-    ) as HTMLScriptElement | null;
-
-    if (existingScript) {
-      if (existingScript.dataset.loaded === "true") {
-        validateGoogleMapsLoaded();
-        return;
-      }
-
-      existingScript.addEventListener("load", validateGoogleMapsLoaded, { once: true });
-      existingScript.addEventListener("error", () => fail("Failed to load Google Maps script"), {
-        once: true,
-      });
-
-      window.setTimeout(() => {
-        if (!window.google?.maps) {
-          fail("Google Maps loading timed out");
-        }
-      }, 12000);
-
-      return;
+      document.head.appendChild(script);
     }
 
-    const script = document.createElement("script");
-    script.id = GOOGLE_MAPS_SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      GOOGLE_MAPS_API_KEY
-    )}&libraries=${GOOGLE_MAPS_LIBRARIES}&loading=async`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      script.dataset.loaded = "true";
-      validateGoogleMapsLoaded();
-    };
-    script.onerror = () => {
-      script.dataset.failed = "true";
-      script.remove();
-      fail("Failed to load Google Maps script");
-    };
+    // Wait for importLibrary to become available
+    await waitForGoogleMaps();
 
-    document.head.appendChild(script);
-
-    window.setTimeout(() => {
-      if (!window.google?.maps) {
-        fail("Google Maps loading timed out");
+    // Import required libraries
+    const libs = ["maps", "places", "geometry", "marker"] as const;
+    for (const lib of libs) {
+      try {
+        await window.google!.maps.importLibrary(lib);
+      } catch (e) {
+        console.warn(`Failed to import ${lib} library:`, e);
+        if (lib !== "geometry") throw e; // geometry is optional
       }
-    }, 12000);
+    }
+
+    // Try routes but don't fail if unavailable
+    try {
+      await window.google!.maps.importLibrary("routes");
+    } catch {
+      // routes library is optional
+    }
+
+    librariesImported = true;
+  })().catch((err) => {
+    googleMapsPromise = null;
+    librariesImported = false;
+    throw err;
   });
 
   return googleMapsPromise;
@@ -152,11 +131,11 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
-  const driverMarkerRef = useRef<google.maps.Marker | null>(null);
+  const driverMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
-  const [loaded, setLoaded] = useState(() => typeof window !== "undefined" && Boolean(window.google?.maps));
+  const [loaded, setLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -186,12 +165,9 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
+        mapId: "ride_map_id",
         disableDefaultUI: true,
         zoomControl: true,
-        styles: [
-          { featureType: "poi", stylers: [{ visibility: "off" }] },
-          { featureType: "transit", stylers: [{ visibility: "simplified" }] },
-        ],
       });
 
       mapInstanceRef.current = map;
@@ -206,15 +182,21 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current.forEach((marker) => (marker.map = null));
     markersRef.current = [];
 
     markers.forEach((markerData) => {
-      const marker = new google.maps.Marker({
+      const content = document.createElement("div");
+      if (markerData.label) {
+        content.textContent = markerData.label;
+        content.style.cssText = "background:#4361EE;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);";
+      }
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
         position: markerData.position,
         map: mapInstanceRef.current!,
         title: markerData.title,
-        label: markerData.label,
+        ...(markerData.label ? { content } : {}),
       });
       markersRef.current.push(marker);
     });
@@ -266,36 +248,32 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     if (!mapInstanceRef.current) return;
 
     if (!driverLocation) {
-      driverMarkerRef.current?.setMap(null);
+      if (driverMarkerRef.current) driverMarkerRef.current.map = null;
       driverMarkerRef.current = null;
       return;
     }
 
     if (!driverMarkerRef.current) {
-      driverMarkerRef.current = new google.maps.Marker({
+      const el = document.createElement("div");
+      el.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="#4361EE" stroke="#fff" stroke-width="2"><path d="M12 2L4 20h16L12 2z"/></svg>`;
+      el.style.cssText = "filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));";
+
+      driverMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
         map: mapInstanceRef.current,
         title: "Driver",
-        icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: "#4361EE",
-          fillOpacity: 1,
-          strokeWeight: 2,
-          strokeColor: "#fff",
-          rotation: 0,
-        },
+        content: el,
       });
     }
 
-    driverMarkerRef.current.setPosition(driverLocation);
+    driverMarkerRef.current.position = driverLocation;
     mapInstanceRef.current.panTo(driverLocation);
   }, [driverLocation, loaded]);
 
   useEffect(() => {
     return () => {
-      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current.forEach((marker) => (marker.map = null));
       directionsRendererRef.current?.setMap(null);
-      driverMarkerRef.current?.setMap(null);
+      if (driverMarkerRef.current) driverMarkerRef.current.map = null;
       mapInstanceRef.current = null;
     };
   }, []);

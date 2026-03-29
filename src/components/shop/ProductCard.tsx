@@ -2,10 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart, Eye } from "lucide-react";
 import { Product } from "@/types";
 import { applyPlatformMarkup } from "@/utils/pricingMarkup";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import StarRating from "@/components/ui/star-rating";
@@ -20,15 +19,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const [selectedVariation, setSelectedVariation] = React.useState<string | null>(null);
+  const [isAdding, setIsAdding] = React.useState(false);
 
-  // Get unique attribute types (e.g., color, size) - filter out empty/invalid and internal attributes
   const attributeTypes = React.useMemo(() => {
     if (!product.variations || product.variations.length === 0) return [];
     const types = new Set<string>();
     product.variations.forEach(v => {
       if (v.attributes && typeof v.attributes === 'object') {
         Object.entries(v.attributes).forEach(([key, value]) => {
-          // Only include attributes with valid keys, non-empty values, and exclude internal attributes (prefixed with _)
           if (key && !key.startsWith('_') && value !== null && value !== undefined && String(value).trim() !== '') {
             types.add(key);
           }
@@ -38,16 +36,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     return Array.from(types);
   }, [product.variations]);
 
-  // Get unique values for each attribute type - filter out empty values and internal attributes
   const getAttributeValues = (type: string) => {
     if (!product.variations || type.startsWith('_')) return [];
     const values = new Set<string>();
     product.variations.forEach(v => {
       if (v.attributes && v.attributes[type]) {
         const value = String(v.attributes[type]).trim();
-        if (value !== '') {
-          values.add(value);
-        }
+        if (value !== '') values.add(value);
       }
     });
     return Array.from(values);
@@ -57,6 +52,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     e.preventDefault();
     e.stopPropagation();
     
+    setIsAdding(true);
     const variation = product.variations?.find(v => v.id === selectedVariation);
     
     addToCart({
@@ -67,6 +63,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
       variationId: selectedVariation || undefined,
       variationAttributes: variation?.attributes,
     });
+
+    setTimeout(() => setIsAdding(false), 600);
   };
 
   const markedUpPrice = applyPlatformMarkup(product.price);
@@ -78,57 +76,99 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
     : 0;
 
   return (
-    <div className={cn("product-card group", className)}>
+    <div className={cn("product-card group relative", className)}>
       <Link to={`/product/${product.slug}`} className="block h-full">
         {/* Product Image */}
-        <div className="relative overflow-hidden aspect-square bg-gray-100">
+        <div className="relative overflow-hidden aspect-square bg-muted/30">
           <img
             src={product.images[0]}
             alt={product.name}
-            className="w-full h-full object-cover object-center transition-transform group-hover:scale-105"
+            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
             onError={(e) => {
               e.currentTarget.src = '/placeholder.svg';
             }}
           />
+
+          {/* Overlay actions */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Quick actions bar */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-center gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-300 shadow-lg",
+                isAdding
+                  ? "bg-green-500 text-white scale-95"
+                  : "bg-white text-foreground hover:bg-primary hover:text-primary-foreground"
+              )}
+            >
+              <ShoppingCart className="h-3.5 w-3.5" />
+              {isAdding ? "Added!" : product.inStock ? "Add to Cart" : "Sold Out"}
+            </button>
+            <Link
+              to={`/product/${product.slug}`}
+              className="p-2 rounded-lg bg-white/90 text-foreground hover:bg-white transition-colors shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          {/* Wishlist button */}
           <button
-            className={`absolute top-2 right-2 p-1.5 bg-white rounded-full transition-opacity ${
-              isInWishlist(product.id) 
-                ? "opacity-100 text-red-500" 
-                : "opacity-70 hover:opacity-100 text-gray-600"
-            }`}
+            className={cn(
+              "absolute top-2.5 right-2.5 p-2 rounded-full transition-all duration-300 shadow-sm",
+              isInWishlist(product.id)
+                ? "bg-red-500 text-white scale-100"
+                : "bg-white/80 backdrop-blur-sm text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100"
+            )}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               toggleWishlist(product.id);
             }}
           >
-            <Heart 
-              size={18} 
-              className={isInWishlist(product.id) ? "fill-current" : ""} 
+            <Heart
+              size={14}
+              className={isInWishlist(product.id) ? "fill-current" : ""}
             />
           </button>
 
           {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {isNew && <Badge className="bg-wwe-info text-white">New</Badge>}
-            {isOnSale && (
-              <Badge className="bg-wwe-gold text-wwe-navy">-{discountPercent}%</Badge>
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+            {isNew && (
+              <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                NEW
+              </Badge>
             )}
-            {!product.inStock && <Badge variant="destructive">Out of Stock</Badge>}
+            {isOnSale && (
+              <Badge className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                -{discountPercent}%
+              </Badge>
+            )}
+            {!product.inStock && (
+              <Badge variant="destructive" className="text-[10px] font-bold px-2 py-0.5 rounded-md">
+                Sold Out
+              </Badge>
+            )}
           </div>
         </div>
 
         {/* Product Info */}
-        <div className="p-4">
-          <div className="text-xs text-gray-500 mb-1">{product.category}</div>
-          <h3 className="font-medium text-gray-900 text-sm md:text-base mb-1 line-clamp-2">
+        <div className="p-3 md:p-4">
+          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+            {product.category}
+          </div>
+          <h3 className="font-semibold text-foreground text-sm leading-tight mb-1.5 line-clamp-2 group-hover:text-primary transition-colors">
             {product.name}
           </h3>
-          
-          {/* Vendor Info */}
+
+          {/* Vendor */}
           {product.vendorName && product.vendorSlug && (
-            <div className="text-xs text-gray-500 mb-2">
-              <span 
+            <div className="text-[11px] text-muted-foreground mb-2">
+              <span
                 className="hover:text-primary transition-colors cursor-pointer"
                 onClick={(e) => {
                   e.preventDefault();
@@ -140,70 +180,62 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
               </span>
             </div>
           )}
-          
-          <div className="flex items-baseline gap-2 mb-2">
-            <GoldPriceDisplay 
-              price={applyPlatformMarkup(selectedVariation ? (product.variations?.find(v => v.id === selectedVariation)?.price || product.price) : product.price)} 
+
+          {/* Rating */}
+          <div className="flex items-center gap-1 mb-2">
+            <StarRating rating={product.rating} />
+            <span className="text-[10px] text-muted-foreground">({product.reviewCount})</span>
+          </div>
+
+          {/* Price */}
+          <div className="flex items-baseline gap-2">
+            <GoldPriceDisplay
+              price={applyPlatformMarkup(selectedVariation ? (product.variations?.find(v => v.id === selectedVariation)?.price || product.price) : product.price)}
               compareAtPrice={markedUpCompareAt}
               size="md"
             />
           </div>
-          <div className="flex items-center mb-3">
-            <StarRating rating={product.rating} />
-            <span className="text-xs text-gray-500 ml-1">({product.reviewCount})</span>
-          </div>
 
-          {/* Variation Selection - only show if there are valid attributes */}
+          {/* Compact variation selector */}
           {product.variations && product.variations.length > 0 && attributeTypes.length > 0 && (
-            <div className="mb-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+            <div className="mt-2.5" onClick={(e) => e.stopPropagation()}>
               {attributeTypes.slice(0, 1).map(attrType => {
                 const values = getAttributeValues(attrType);
-                // Don't render if no valid values
                 if (values.length === 0) return null;
-                
                 return (
-                  <div key={attrType}>
-                    <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
-                      {values.map(value => {
-                        const matchingVariation = product.variations?.find(
-                          v => v.attributes && v.attributes[attrType] === value
-                        );
-                        const isSelected = selectedVariation === matchingVariation?.id;
-                        
-                        return (
-                          <button
-                            key={value}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSelectedVariation(matchingVariation?.id || null);
-                            }}
-                            className={cn(
-                              "px-2 py-1 text-xs border rounded transition-colors",
-                              isSelected
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border hover:border-primary"
-                            )}
-                          >
-                            {value}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <div key={attrType} className="flex flex-wrap gap-1">
+                    {values.slice(0, 4).map(value => {
+                      const matchingVariation = product.variations?.find(
+                        v => v.attributes && v.attributes[attrType] === value
+                      );
+                      const isSelected = selectedVariation === matchingVariation?.id;
+                      return (
+                        <button
+                          key={value}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedVariation(matchingVariation?.id || null);
+                          }}
+                          className={cn(
+                            "px-2 py-0.5 text-[10px] font-medium border rounded-md transition-all",
+                            isSelected
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border text-muted-foreground hover:border-primary/50"
+                          )}
+                        >
+                          {value}
+                        </button>
+                      );
+                    })}
+                    {values.length > 4 && (
+                      <span className="text-[10px] text-muted-foreground self-center">+{values.length - 4}</span>
+                    )}
                   </div>
                 );
               })}
             </div>
           )}
-
-          <Button
-            onClick={handleAddToCart}
-            disabled={!product.inStock}
-            className="w-full bg-wwe-navy hover:bg-wwe-navy/90 mt-2"
-            size="sm"
-          >
-            {product.inStock ? "Add to Cart" : "Out of Stock"}
-          </Button>
         </div>
       </Link>
     </div>

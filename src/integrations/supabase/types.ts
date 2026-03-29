@@ -209,6 +209,69 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_tracking: {
+        Row: {
+          asset_id: string
+          battery_level: number | null
+          contract_id: string | null
+          created_at: string
+          id: string
+          is_disabled: boolean | null
+          last_ping_at: string | null
+          latitude: number | null
+          longitude: number | null
+          metadata: Json | null
+          mileage_km: number | null
+          updated_at: string
+          usage_hours: number | null
+        }
+        Insert: {
+          asset_id: string
+          battery_level?: number | null
+          contract_id?: string | null
+          created_at?: string
+          id?: string
+          is_disabled?: boolean | null
+          last_ping_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          mileage_km?: number | null
+          updated_at?: string
+          usage_hours?: number | null
+        }
+        Update: {
+          asset_id?: string
+          battery_level?: number | null
+          contract_id?: string | null
+          created_at?: string
+          id?: string
+          is_disabled?: boolean | null
+          last_ping_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          mileage_km?: number | null
+          updated_at?: string
+          usage_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_tracking_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "leaseable_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_tracking_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "lease_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attribute_types: {
         Row: {
           category: string | null
@@ -586,6 +649,68 @@ export type Database = {
           ucoin_reward?: number
         }
         Relationships: []
+      }
+      bank_transfer_requests: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          completed_at: string | null
+          created_at: string | null
+          currency: string
+          id: string
+          notes: string | null
+          otp_code: string | null
+          otp_expires_at: string | null
+          otp_verified: boolean | null
+          reference: string | null
+          status: string
+          transfer_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          notes?: string | null
+          otp_code?: string | null
+          otp_expires_at?: string | null
+          otp_verified?: boolean | null
+          reference?: string | null
+          status?: string
+          transfer_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          notes?: string | null
+          otp_code?: string | null
+          otp_expires_at?: string | null
+          otp_verified?: boolean | null
+          reference?: string | null
+          status?: string
+          transfer_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transfer_requests_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "user_linked_bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brand_bundle_products: {
         Row: {
@@ -1656,6 +1781,251 @@ export type Database = {
           },
         ]
       }
+      demand_snapshots: {
+        Row: {
+          available_drivers: number
+          avg_wait_time_mins: number | null
+          created_at: string
+          demand_ratio: number | null
+          id: string
+          pending_orders: number
+          snapshot_time: string
+          surge_multiplier: number
+          zone_id: string | null
+        }
+        Insert: {
+          available_drivers?: number
+          avg_wait_time_mins?: number | null
+          created_at?: string
+          demand_ratio?: number | null
+          id?: string
+          pending_orders?: number
+          snapshot_time?: string
+          surge_multiplier?: number
+          zone_id?: string | null
+        }
+        Update: {
+          available_drivers?: number
+          avg_wait_time_mins?: number | null
+          created_at?: string
+          demand_ratio?: number | null
+          id?: string
+          pending_orders?: number
+          snapshot_time?: string
+          surge_multiplier?: number
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_snapshots_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "dispatch_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_assignments: {
+        Row: {
+          attempt_number: number | null
+          completed_at: string | null
+          created_at: string
+          distance_to_pickup_km: number | null
+          driver_id: string
+          entity_id: string
+          entity_type: string
+          estimated_arrival_mins: number | null
+          expires_at: string | null
+          id: string
+          match_score: number | null
+          offered_at: string
+          rejection_reason: string | null
+          responded_at: string | null
+          status: string
+          surge_multiplier: number | null
+        }
+        Insert: {
+          attempt_number?: number | null
+          completed_at?: string | null
+          created_at?: string
+          distance_to_pickup_km?: number | null
+          driver_id: string
+          entity_id: string
+          entity_type: string
+          estimated_arrival_mins?: number | null
+          expires_at?: string | null
+          id?: string
+          match_score?: number | null
+          offered_at?: string
+          rejection_reason?: string | null
+          responded_at?: string | null
+          status?: string
+          surge_multiplier?: number | null
+        }
+        Update: {
+          attempt_number?: number | null
+          completed_at?: string | null
+          created_at?: string
+          distance_to_pickup_km?: number | null
+          driver_id?: string
+          entity_id?: string
+          entity_type?: string
+          estimated_arrival_mins?: number | null
+          expires_at?: string | null
+          id?: string
+          match_score?: number | null
+          offered_at?: string
+          rejection_reason?: string | null
+          responded_at?: string | null
+          status?: string
+          surge_multiplier?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_assignments_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_batches: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          id: string
+          job_ids: string[]
+          optimization_score: number | null
+          route_order: number[] | null
+          status: string
+          total_distance_km: number | null
+          total_earnings: number | null
+          total_estimated_mins: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          job_ids?: string[]
+          optimization_score?: number | null
+          route_order?: number[] | null
+          status?: string
+          total_distance_km?: number | null
+          total_earnings?: number | null
+          total_estimated_mins?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          job_ids?: string[]
+          optimization_score?: number | null
+          route_order?: number[] | null
+          status?: string
+          total_distance_km?: number | null
+          total_earnings?: number | null
+          total_estimated_mins?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_batches_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_events: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_events_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_zones: {
+        Row: {
+          base_surge_multiplier: number
+          center_lat: number
+          center_lng: number
+          created_at: string
+          demand_weight: number
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          radius_km: number
+          updated_at: string
+        }
+        Insert: {
+          base_surge_multiplier?: number
+          center_lat: number
+          center_lng: number
+          created_at?: string
+          demand_weight?: number
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          radius_km?: number
+          updated_at?: string
+        }
+        Update: {
+          base_surge_multiplier?: number
+          center_lat?: number
+          center_lng?: number
+          created_at?: string
+          demand_weight?: number
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          radius_km?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       downloadable_files: {
         Row: {
           created_at: string
@@ -2394,6 +2764,65 @@ export type Database = {
         }
         Relationships: []
       }
+      gold_trades: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          fiat_amount: number
+          fiat_currency: string
+          gold_mg: number
+          gold_price_per_mg_usd: number
+          gold_price_snapshot_id: string | null
+          id: string
+          platform_fee: number
+          spread_percent: number
+          status: string
+          trade_type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          fiat_amount: number
+          fiat_currency?: string
+          gold_mg: number
+          gold_price_per_mg_usd: number
+          gold_price_snapshot_id?: string | null
+          id?: string
+          platform_fee?: number
+          spread_percent?: number
+          status?: string
+          trade_type: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          fiat_amount?: number
+          fiat_currency?: string
+          gold_mg?: number
+          gold_price_per_mg_usd?: number
+          gold_price_snapshot_id?: string | null
+          id?: string
+          platform_fee?: number
+          spread_percent?: number
+          status?: string
+          trade_type?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gold_trades_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "platform_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_jobs: {
         Row: {
           completed_at: string | null
@@ -2493,6 +2922,278 @@ export type Database = {
         }
         Relationships: []
       }
+      influencer_ai_suggestions: {
+        Row: {
+          comment_id: string | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          influencer_id: string
+          is_used: boolean | null
+          suggested_text: string
+          suggestion_type: string
+          used_at: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          influencer_id: string
+          is_used?: boolean | null
+          suggested_text: string
+          suggestion_type?: string
+          used_at?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          influencer_id?: string
+          is_used?: boolean | null
+          suggested_text?: string
+          suggestion_type?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_ai_suggestions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_ai_suggestions_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencer_comments: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_handled: boolean | null
+          is_high_value: boolean | null
+          is_replied: boolean | null
+          is_spam: boolean | null
+          metrics: Json | null
+          parent_comment_id: string | null
+          platform: string
+          platform_comment_id: string
+          post_id: string
+          posted_at: string
+          replied_at: string | null
+          reply_text: string | null
+          sentiment: string | null
+          text: string
+          user_avatar_url: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_handled?: boolean | null
+          is_high_value?: boolean | null
+          is_replied?: boolean | null
+          is_spam?: boolean | null
+          metrics?: Json | null
+          parent_comment_id?: string | null
+          platform: string
+          platform_comment_id: string
+          post_id: string
+          posted_at: string
+          replied_at?: string | null
+          reply_text?: string | null
+          sentiment?: string | null
+          text: string
+          user_avatar_url?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_handled?: boolean | null
+          is_high_value?: boolean | null
+          is_replied?: boolean | null
+          is_spam?: boolean | null
+          metrics?: Json | null
+          parent_comment_id?: string | null
+          platform?: string
+          platform_comment_id?: string
+          post_id?: string
+          posted_at?: string
+          replied_at?: string | null
+          reply_text?: string | null
+          sentiment?: string | null
+          text?: string
+          user_avatar_url?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencer_conversions: {
+        Row: {
+          attribution_window_hours: number | null
+          commission: number | null
+          created_at: string | null
+          event_type: string
+          id: string
+          influencer_id: string
+          metadata: Json | null
+          order_id: string | null
+          platform: string
+          post_id: string | null
+          product_id: string | null
+          revenue: number | null
+        }
+        Insert: {
+          attribution_window_hours?: number | null
+          commission?: number | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          influencer_id: string
+          metadata?: Json | null
+          order_id?: string | null
+          platform: string
+          post_id?: string | null
+          product_id?: string | null
+          revenue?: number | null
+        }
+        Update: {
+          attribution_window_hours?: number | null
+          commission?: number | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          influencer_id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          platform?: string
+          post_id?: string | null
+          product_id?: string | null
+          revenue?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_conversions_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_conversions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_conversions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_social_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_conversions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencer_engagement_metrics: {
+        Row: {
+          clicks: number | null
+          comments: number | null
+          created_at: string | null
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          influencer_id: string
+          likes: number | null
+          metric_date: string
+          platform: string
+          post_id: string | null
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          video_views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          influencer_id: string
+          likes?: number | null
+          metric_date?: string
+          platform: string
+          post_id?: string | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          video_views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          influencer_id?: string
+          likes?: number | null
+          metric_date?: string
+          platform?: string
+          post_id?: string | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          video_views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_engagement_metrics_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_engagement_metrics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       influencer_profiles: {
         Row: {
           assigned_by: string | null
@@ -2573,6 +3274,191 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      influencer_revenue_analytics: {
+        Row: {
+          avg_engagement_rate: number | null
+          created_at: string | null
+          id: string
+          influencer_id: string
+          period_end: string
+          period_start: string
+          platform: string | null
+          top_performing_post_id: string | null
+          total_clicks: number | null
+          total_commission: number | null
+          total_conversions: number | null
+          total_engagement: number | null
+          total_posts: number | null
+          total_revenue: number | null
+        }
+        Insert: {
+          avg_engagement_rate?: number | null
+          created_at?: string | null
+          id?: string
+          influencer_id: string
+          period_end: string
+          period_start: string
+          platform?: string | null
+          top_performing_post_id?: string | null
+          total_clicks?: number | null
+          total_commission?: number | null
+          total_conversions?: number | null
+          total_engagement?: number | null
+          total_posts?: number | null
+          total_revenue?: number | null
+        }
+        Update: {
+          avg_engagement_rate?: number | null
+          created_at?: string | null
+          id?: string
+          influencer_id?: string
+          period_end?: string
+          period_start?: string
+          platform?: string | null
+          top_performing_post_id?: string | null
+          total_clicks?: number | null
+          total_commission?: number | null
+          total_conversions?: number | null
+          total_engagement?: number | null
+          total_posts?: number | null
+          total_revenue?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_revenue_analytics_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_revenue_analytics_top_performing_post_id_fkey"
+            columns: ["top_performing_post_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencer_social_posts: {
+        Row: {
+          caption: string | null
+          content_type: string
+          created_at: string | null
+          id: string
+          influencer_id: string
+          is_synced: boolean | null
+          linked_product_id: string | null
+          media_url: string | null
+          media_urls: string[] | null
+          metrics: Json | null
+          permalink: string | null
+          platform: string
+          platform_post_id: string
+          posted_at: string | null
+          raw_data: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          caption?: string | null
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          influencer_id: string
+          is_synced?: boolean | null
+          linked_product_id?: string | null
+          media_url?: string | null
+          media_urls?: string[] | null
+          metrics?: Json | null
+          permalink?: string | null
+          platform: string
+          platform_post_id: string
+          posted_at?: string | null
+          raw_data?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          caption?: string | null
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          influencer_id?: string
+          is_synced?: boolean | null
+          linked_product_id?: string | null
+          media_url?: string | null
+          media_urls?: string[] | null
+          metrics?: Json | null
+          permalink?: string | null
+          platform?: string
+          platform_post_id?: string
+          posted_at?: string | null
+          raw_data?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_social_posts_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_social_posts_linked_product_id_fkey"
+            columns: ["linked_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencer_sync_status: {
+        Row: {
+          comments_synced: number | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          influencer_id: string
+          last_sync_at: string | null
+          platform: string
+          posts_synced: number | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          comments_synced?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          influencer_id: string
+          last_sync_at?: string | null
+          platform: string
+          posts_synced?: number | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          comments_synced?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          influencer_id?: string
+          last_sync_at?: string | null
+          platform?: string
+          posts_synced?: number | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_sync_status_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory_settings: {
         Row: {
@@ -2694,6 +3580,53 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "leaseable_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lease_asset_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_asset_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "lease_asset_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -2821,6 +3754,75 @@ export type Database = {
           },
         ]
       }
+      lease_credit_scores: {
+        Row: {
+          created_at: string
+          delivery_reliability_score: number | null
+          factors: Json | null
+          id: string
+          last_calculated_at: string | null
+          max_lease_value: number | null
+          on_time_rate: number | null
+          order_history_score: number | null
+          overall_score: number
+          payment_history_score: number | null
+          platform_tenure_score: number | null
+          ride_performance_score: number | null
+          risk_level: string
+          total_deliveries: number | null
+          total_orders: number | null
+          total_rides: number | null
+          updated_at: string
+          user_id: string
+          wallet_activity_score: number | null
+          wallet_balance: number | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_reliability_score?: number | null
+          factors?: Json | null
+          id?: string
+          last_calculated_at?: string | null
+          max_lease_value?: number | null
+          on_time_rate?: number | null
+          order_history_score?: number | null
+          overall_score?: number
+          payment_history_score?: number | null
+          platform_tenure_score?: number | null
+          ride_performance_score?: number | null
+          risk_level?: string
+          total_deliveries?: number | null
+          total_orders?: number | null
+          total_rides?: number | null
+          updated_at?: string
+          user_id: string
+          wallet_activity_score?: number | null
+          wallet_balance?: number | null
+        }
+        Update: {
+          created_at?: string
+          delivery_reliability_score?: number | null
+          factors?: Json | null
+          id?: string
+          last_calculated_at?: string | null
+          max_lease_value?: number | null
+          on_time_rate?: number | null
+          order_history_score?: number | null
+          overall_score?: number
+          payment_history_score?: number | null
+          platform_tenure_score?: number | null
+          ride_performance_score?: number | null
+          risk_level?: string
+          total_deliveries?: number | null
+          total_orders?: number | null
+          total_rides?: number | null
+          updated_at?: string
+          user_id?: string
+          wallet_activity_score?: number | null
+          wallet_balance?: number | null
+        }
+        Relationships: []
+      }
       lease_insurance: {
         Row: {
           claim_count: number | null
@@ -2936,13 +3938,73 @@ export type Database = {
           },
         ]
       }
+      lease_revenue_splits: {
+        Row: {
+          contract_id: string
+          created_at: string
+          financier_amount: number | null
+          id: string
+          insurance_amount: number | null
+          owner_amount: number
+          payment_id: string | null
+          platform_amount: number
+          processed_at: string | null
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          financier_amount?: number | null
+          id?: string
+          insurance_amount?: number | null
+          owner_amount?: number
+          payment_id?: string | null
+          platform_amount?: number
+          processed_at?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          financier_amount?: number | null
+          id?: string
+          insurance_amount?: number | null
+          owner_amount?: number
+          payment_id?: string | null
+          platform_amount?: number
+          processed_at?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_revenue_splits_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "lease_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lease_revenue_splits_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "lease_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaseable_assets: {
         Row: {
           accumulated_payments: number | null
+          asset_year: number | null
+          brand: string | null
           category: string
           condition: string | null
           created_at: string
           description: string | null
+          featured: boolean | null
           id: string
           images: string[] | null
           insurance_monthly_cost: number | null
@@ -2950,31 +4012,45 @@ export type Database = {
           insurance_required: boolean | null
           is_available: boolean | null
           is_purchasable: boolean | null
+          lease_category_id: string | null
+          lease_price_daily: number | null
           lease_price_monthly: number
           lease_price_weekly: number | null
           lease_to_own: boolean | null
           lease_to_own_months: number | null
           lease_to_own_price: number | null
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
           maintenance_requirements: string | null
           maintenance_responsibility: string | null
           max_lease_duration_months: number | null
           min_lease_duration_months: number | null
+          model: string | null
           product_id: string | null
           provider_id: string | null
           purchase_price: number | null
+          rating: number | null
+          review_count: number | null
           security_deposit: number | null
+          serial_number: string | null
           status: string
+          subcategory: string | null
           terms_and_conditions: string | null
           title: string
           total_leases: number | null
           updated_at: string
+          views_count: number | null
         }
         Insert: {
           accumulated_payments?: number | null
+          asset_year?: number | null
+          brand?: string | null
           category?: string
           condition?: string | null
           created_at?: string
           description?: string | null
+          featured?: boolean | null
           id?: string
           images?: string[] | null
           insurance_monthly_cost?: number | null
@@ -2982,31 +4058,45 @@ export type Database = {
           insurance_required?: boolean | null
           is_available?: boolean | null
           is_purchasable?: boolean | null
+          lease_category_id?: string | null
+          lease_price_daily?: number | null
           lease_price_monthly?: number
           lease_price_weekly?: number | null
           lease_to_own?: boolean | null
           lease_to_own_months?: number | null
           lease_to_own_price?: number | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           maintenance_requirements?: string | null
           maintenance_responsibility?: string | null
           max_lease_duration_months?: number | null
           min_lease_duration_months?: number | null
+          model?: string | null
           product_id?: string | null
           provider_id?: string | null
           purchase_price?: number | null
+          rating?: number | null
+          review_count?: number | null
           security_deposit?: number | null
+          serial_number?: string | null
           status?: string
+          subcategory?: string | null
           terms_and_conditions?: string | null
           title: string
           total_leases?: number | null
           updated_at?: string
+          views_count?: number | null
         }
         Update: {
           accumulated_payments?: number | null
+          asset_year?: number | null
+          brand?: string | null
           category?: string
           condition?: string | null
           created_at?: string
           description?: string | null
+          featured?: boolean | null
           id?: string
           images?: string[] | null
           insurance_monthly_cost?: number | null
@@ -3014,26 +4104,44 @@ export type Database = {
           insurance_required?: boolean | null
           is_available?: boolean | null
           is_purchasable?: boolean | null
+          lease_category_id?: string | null
+          lease_price_daily?: number | null
           lease_price_monthly?: number
           lease_price_weekly?: number | null
           lease_to_own?: boolean | null
           lease_to_own_months?: number | null
           lease_to_own_price?: number | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           maintenance_requirements?: string | null
           maintenance_responsibility?: string | null
           max_lease_duration_months?: number | null
           min_lease_duration_months?: number | null
+          model?: string | null
           product_id?: string | null
           provider_id?: string | null
           purchase_price?: number | null
+          rating?: number | null
+          review_count?: number | null
           security_deposit?: number | null
+          serial_number?: string | null
           status?: string
+          subcategory?: string | null
           terms_and_conditions?: string | null
           title?: string
           total_leases?: number | null
           updated_at?: string
+          views_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leaseable_assets_lease_category_id_fkey"
+            columns: ["lease_category_id"]
+            isOneToOne: false
+            referencedRelation: "lease_asset_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leaseable_assets_product_id_fkey"
             columns: ["product_id"]
@@ -3046,6 +4154,216 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "asset_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lodging_bookings: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string | null
+          guests: number | null
+          id: string
+          payment_status: string | null
+          property_id: string
+          special_requests: string | null
+          status: string | null
+          total_price: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string | null
+          guests?: number | null
+          id?: string
+          payment_status?: string | null
+          property_id: string
+          special_requests?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string | null
+          guests?: number | null
+          id?: string
+          payment_status?: string | null
+          property_id?: string
+          special_requests?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lodging_bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "lodging_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lodging_bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lodging_properties: {
+        Row: {
+          address: string | null
+          amenities: Json | null
+          bathrooms: number | null
+          bedrooms: number | null
+          cancellation_policy: string | null
+          check_in_time: string | null
+          check_out_time: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          id: string
+          images: Json | null
+          is_active: boolean | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          max_guests: number | null
+          name: string
+          owner_id: string
+          price_per_night: number
+          province: string | null
+          rating: number | null
+          review_count: number | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: Json | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          is_active?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_guests?: number | null
+          name: string
+          owner_id: string
+          price_per_night?: number
+          province?: string | null
+          rating?: number | null
+          review_count?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: Json | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          is_active?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_guests?: number | null
+          name?: string
+          owner_id?: string
+          price_per_night?: number
+          province?: string | null
+          rating?: number | null
+          review_count?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lodging_properties_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lodging_reviews: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          created_at: string | null
+          id: string
+          property_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          property_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          property_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lodging_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "lodging_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lodging_reviews_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "lodging_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lodging_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3793,10 +5111,13 @@ export type Database = {
         Row: {
           balance_zar: number
           created_at: string
+          gold_balance_mg: number
           id: string
           is_verified: boolean
           lifetime_deposited: number
           lifetime_earned: number
+          lifetime_gold_bought_mg: number
+          lifetime_gold_sold_mg: number
           lifetime_spent: number
           lifetime_withdrawn: number
           pending_balance_zar: number
@@ -3806,10 +5127,13 @@ export type Database = {
         Insert: {
           balance_zar?: number
           created_at?: string
+          gold_balance_mg?: number
           id?: string
           is_verified?: boolean
           lifetime_deposited?: number
           lifetime_earned?: number
+          lifetime_gold_bought_mg?: number
+          lifetime_gold_sold_mg?: number
           lifetime_spent?: number
           lifetime_withdrawn?: number
           pending_balance_zar?: number
@@ -3819,10 +5143,13 @@ export type Database = {
         Update: {
           balance_zar?: number
           created_at?: string
+          gold_balance_mg?: number
           id?: string
           is_verified?: boolean
           lifetime_deposited?: number
           lifetime_earned?: number
+          lifetime_gold_bought_mg?: number
+          lifetime_gold_sold_mg?: number
           lifetime_spent?: number
           lifetime_withdrawn?: number
           pending_balance_zar?: number
@@ -5937,6 +7264,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_linked_bank_accounts: {
+        Row: {
+          account_holder_name: string
+          account_number_hash: string
+          account_number_masked: string
+          account_type: string
+          bank_name: string
+          branch_code: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          is_verified: boolean | null
+          updated_at: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          account_holder_name: string
+          account_number_hash: string
+          account_number_masked: string
+          account_type?: string
+          bank_name: string
+          branch_code?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          account_holder_name?: string
+          account_number_hash?: string
+          account_number_masked?: string
+          account_type?: string
+          bank_name?: string
+          branch_code?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       user_notifications: {
         Row: {
           created_at: string
@@ -6646,6 +8021,7 @@ export type Database = {
       wallet_transactions: {
         Row: {
           amount: number
+          asset_type: string
           completed_at: string | null
           counterparty_id: string | null
           created_at: string
@@ -6664,6 +8040,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          asset_type?: string
           completed_at?: string | null
           counterparty_id?: string | null
           created_at?: string
@@ -6682,6 +8059,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          asset_type?: string
           completed_at?: string | null
           counterparty_id?: string | null
           created_at?: string
@@ -6761,6 +8139,10 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_lease_credit_score: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       calculate_ride_fare: {
         Args: {
           p_distance_km: number
@@ -6770,6 +8152,7 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_zone_surge: { Args: { p_zone_id: string }; Returns: number }
       can_vendor_add_product: {
         Args: { p_vendor_id: string }
         Returns: boolean
@@ -6904,6 +8287,15 @@ export type Database = {
         Returns: boolean
       }
       reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
+      score_driver_for_dispatch: {
+        Args: {
+          p_driver_id: string
+          p_entity_type?: string
+          p_pickup_lat: number
+          p_pickup_lng: number
+        }
+        Returns: number
+      }
       transfer_ucoin: {
         Args: {
           p_amount_mg: number

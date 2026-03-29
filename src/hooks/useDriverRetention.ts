@@ -41,7 +41,7 @@ export function useDriverRetention() {
         .from('drivers')
         .select('id, available_balance, total_earnings, tier_id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (driver) {
         setDriverId(driver.id);
