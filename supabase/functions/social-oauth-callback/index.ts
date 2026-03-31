@@ -378,6 +378,8 @@ Deno.serve(async (req) => {
         ? `https://instagram.com/${accountInfo.username || accountInfo.name}`
         : platform === 'linkedin'
         ? `https://linkedin.com/in/${accountInfo.id}`
+        : platform === 'tiktok'
+        ? `https://tiktok.com/@${accountInfo.username || accountInfo.id}`
         : `https://facebook.com/${accountInfo.id}`;
 
       await supabase
