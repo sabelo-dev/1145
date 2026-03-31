@@ -305,6 +305,68 @@ Deno.serve(async (req) => {
         }, {
           onConflict: 'user_id,platform,account_id',
         });
+    } else if (platform === 'tiktok') {
+      const tiktokClientKey = Deno.env.get('TIKTOK_CLIENT_KEY');
+      const tiktokClientSecret = Deno.env.get('TIKTOK_CLIENT_SECRET');
+      
+      if (!tiktokClientKey || !tiktokClientSecret) {
+        console.error('TikTok credentials not configured');
+        return Response.redirect(`${redirectUrl}&error=tiktok_not_configured`);
+      }
+
+      const tokenResponse = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_key: tiktokClientKey,
+          client_secret: tiktokClientSecret,
+          code: code,
+          grant_type: 'authorization_code',
+          redirect_uri: `${functionsUrl}/social-oauth-callback`,
+          code_verifier: codeVerifier || '',
+        }),
+      });
+      
+      tokenData = await tokenResponse.json();
+      console.log('TikTok token exchange status:', tokenResponse.status);
+      
+      if (tokenData.error || !tokenData.access_token) {
+        console.error('TikTok token error:', JSON.stringify(tokenData));
+        const errMsg = tokenData.error_description || tokenData.error || 'TikTok auth failed';
+        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(errMsg)}`);
+      }
+
+      // Get user info
+      const userResponse = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username', {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+        },
+      });
+      const tiktokUserData = await userResponse.json();
+      const tiktokUser = tiktokUserData?.data?.user || {};
+      
+      accountInfo = {
+        id: tokenData.open_id || tiktokUser.open_id,
+        username: tiktokUser.username || tiktokUser.display_name,
+        name: tiktokUser.display_name,
+      };
+
+      await supabase
+        .from('social_oauth_tokens')
+        .upsert({
+          user_id: userId,
+          platform: 'tiktok',
+          account_id: accountInfo.id,
+          account_handle: accountInfo.username || accountInfo.id,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          token_expires_at: new Date(Date.now() + (tokenData.expires_in || 86400) * 1000).toISOString(),
+          scope: tokenData.scope ? (typeof tokenData.scope === 'string' ? tokenData.scope.split(',') : tokenData.scope) : [],
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,platform,account_id',
+        });
     }
 
     // Sync to approved_social_accounts for the influencer system

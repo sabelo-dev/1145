@@ -345,6 +345,31 @@ Deno.serve(async (req) => {
             newAccessToken = refreshData.access_token;
             newExpiresAt = new Date(Date.now() + (refreshData.expires_in || 5184000) * 1000);
           }
+        } else if (tokenData.platform === 'tiktok') {
+          const tiktokConfig = config.tiktok;
+          const refreshResponse = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_key: tiktokConfig.clientId,
+              client_secret: tiktokConfig.clientSecret,
+              grant_type: 'refresh_token',
+              refresh_token: tokenData.refresh_token || '',
+            }),
+          });
+          const refreshData = await refreshResponse.json();
+          
+          if (refreshData.access_token) {
+            newAccessToken = refreshData.access_token;
+            newExpiresAt = new Date(Date.now() + (refreshData.expires_in || 86400) * 1000);
+            
+            if (refreshData.refresh_token) {
+              await supabase
+                .from('social_oauth_tokens')
+                .update({ refresh_token: refreshData.refresh_token })
+                .eq('id', tokenId);
+            }
+          }
         }
 
         if (newAccessToken) {
