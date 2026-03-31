@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'get_auth_url': {
-        if (!platform || !['facebook', 'twitter', 'linkedin', 'instagram'].includes(platform)) {
+        if (!platform || !['facebook', 'twitter', 'linkedin', 'instagram', 'tiktok'].includes(platform)) {
           return new Response(
             JSON.stringify({ error: 'Invalid platform' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
