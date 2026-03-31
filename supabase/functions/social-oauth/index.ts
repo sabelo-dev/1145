@@ -167,6 +167,41 @@ Deno.serve(async (req) => {
             `&redirect_uri=${encodeURIComponent(linkedinConfig.redirectUri)}` +
             `&scope=${encodeURIComponent(linkedinConfig.scope.join(' '))}` +
             `&state=${encodeURIComponent(state)}`;
+        } else if (platform === 'tiktok') {
+          const tiktokConfig = config.tiktok;
+          if (!tiktokConfig.clientId) {
+            return new Response(
+              JSON.stringify({ 
+                error: 'TikTok App not configured', 
+                setup_required: true,
+                instructions: 'Add TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET to edge function secrets'
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          // TikTok uses PKCE with code_verifier
+          const codeVerifier = crypto.randomUUID() + crypto.randomUUID();
+          const encoder = new TextEncoder();
+          const data = encoder.encode(codeVerifier);
+          const digest = await crypto.subtle.digest('SHA-256', data);
+          const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+          
+          const tiktokState = btoa(JSON.stringify({ 
+            userId, 
+            platform, 
+            appUrl: appBaseUrl,
+            codeVerifier 
+          }));
+
+          authUrl = `https://www.tiktok.com/v2/auth/authorize/?` +
+            `client_key=${tiktokConfig.clientId}` +
+            `&response_type=code` +
+            `&scope=${encodeURIComponent(tiktokConfig.scope.join(','))}` +
+            `&redirect_uri=${encodeURIComponent(tiktokConfig.redirectUri)}` +
+            `&state=${encodeURIComponent(tiktokState)}` +
+            `&code_challenge=${codeChallenge}` +
+            `&code_challenge_method=S256`;
         }
 
         return new Response(
