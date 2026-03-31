@@ -5,25 +5,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+interface PlatformOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  scope: string[];
+}
+
 interface OAuthConfig {
-  facebook: {
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-    scope: string[];
-  };
-  twitter: {
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-    scope: string[];
-  };
-  linkedin: {
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-    scope: string[];
-  };
+  facebook: PlatformOAuthConfig;
+  twitter: PlatformOAuthConfig;
+  linkedin: PlatformOAuthConfig;
+  tiktok: PlatformOAuthConfig;
 }
 
 const getOAuthConfig = (baseUrl: string): OAuthConfig => ({
@@ -44,6 +37,12 @@ const getOAuthConfig = (baseUrl: string): OAuthConfig => ({
     clientSecret: Deno.env.get('LINKEDIN_CLIENT_SECRET') || '',
     redirectUri: `${baseUrl}/social-oauth-callback`,
     scope: ['openid', 'profile', 'email', 'w_member_social'],
+  },
+  tiktok: {
+    clientId: Deno.env.get('TIKTOK_CLIENT_KEY') || '',
+    clientSecret: Deno.env.get('TIKTOK_CLIENT_SECRET') || '',
+    redirectUri: `${baseUrl}/social-oauth-callback`,
+    scope: ['user.info.basic', 'video.publish', 'video.list'],
   },
 });
 
