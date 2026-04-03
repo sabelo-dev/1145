@@ -51,6 +51,7 @@ import AdminLeases from "@/components/admin/AdminLeases";
 import AdminAssetLifecycle from "@/components/admin/AdminAssetLifecycle";
 import AdminLeaseAnalytics from "@/components/admin/AdminLeaseAnalytics";
 import AdminRiskMonitoring from "@/components/admin/AdminRiskMonitoring";
+import SafetyComplianceDashboard from "@/components/admin/SafetyComplianceDashboard";
 import {
   LayoutDashboard,
   Users,
@@ -75,6 +76,7 @@ import {
   Inbox,
   Crown,
   Car,
+  AlertTriangle,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -119,6 +121,7 @@ const AdminDashboard = () => {
     { id: "asset-lifecycle", title: "Asset Lifecycle", icon: Package },
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
     { id: "risk-monitoring", title: "Risk & Credit", icon: Shield },
+    { id: "safety-compliance", title: "Safety & Compliance", icon: AlertTriangle },
   ];
 
   return (
@@ -325,6 +328,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="risk-monitoring" className="mt-0">
               <AdminRiskMonitoring />
+            </TabsContent>
+            <TabsContent value="safety-compliance" className="mt-0">
+              <SafetyComplianceDashboard />
             </TabsContent>
           </Tabs>
         </main>
