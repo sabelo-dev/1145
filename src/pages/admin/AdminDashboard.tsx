@@ -329,6 +329,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             <TabsContent value="risk-monitoring" className="mt-0">
               <AdminRiskMonitoring />
             </TabsContent>
+            <TabsContent value="safety-compliance" className="mt-0">
+              <SafetyComplianceDashboard />
+            </TabsContent>
           </Tabs>
         </main>
       </SidebarInset>
