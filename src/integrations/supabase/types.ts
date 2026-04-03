@@ -1235,6 +1235,45 @@ export type Database = {
           },
         ]
       }
+      compliance_audit_log: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          payload: Json
+          ride_id: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          payload?: Json
+          ride_id?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          payload?: Json
+          ride_id?: string | null
+          zone_id?: string | null
+        }
+        Relationships: []
+      }
       consumer_activity_log: {
         Row: {
           activity_type: string
@@ -2384,6 +2423,68 @@ export type Database = {
           },
         ]
       }
+      driver_risk_scores: {
+        Row: {
+          blocked_reason: string | null
+          braking_factor: number
+          cancellation_factor: number
+          complaint_factor: number
+          created_at: string
+          driver_id: string
+          id: string
+          is_blocked: boolean
+          last_evaluated_at: string
+          overall_score: number
+          rating_factor: number
+          risk_level: string
+          speed_factor: number
+          updated_at: string
+          violation_factor: number
+        }
+        Insert: {
+          blocked_reason?: string | null
+          braking_factor?: number
+          cancellation_factor?: number
+          complaint_factor?: number
+          created_at?: string
+          driver_id: string
+          id?: string
+          is_blocked?: boolean
+          last_evaluated_at?: string
+          overall_score?: number
+          rating_factor?: number
+          risk_level?: string
+          speed_factor?: number
+          updated_at?: string
+          violation_factor?: number
+        }
+        Update: {
+          blocked_reason?: string | null
+          braking_factor?: number
+          cancellation_factor?: number
+          complaint_factor?: number
+          created_at?: string
+          driver_id?: string
+          id?: string
+          is_blocked?: boolean
+          last_evaluated_at?: string
+          overall_score?: number
+          rating_factor?: number
+          risk_level?: string
+          speed_factor?: number
+          updated_at?: string
+          violation_factor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_risk_scores_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_tier_history: {
         Row: {
           created_at: string
@@ -2534,6 +2635,60 @@ export type Database = {
           },
         ]
       }
+      driver_zone_licenses: {
+        Row: {
+          created_at: string
+          driver_id: string
+          expiry_date: string | null
+          id: string
+          issued_at: string
+          permit_number: string | null
+          status: string
+          updated_at: string
+          verified_by: string | null
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          expiry_date?: string | null
+          id?: string
+          issued_at?: string
+          permit_number?: string | null
+          status?: string
+          updated_at?: string
+          verified_by?: string | null
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          expiry_date?: string | null
+          id?: string
+          issued_at?: string
+          permit_number?: string | null
+          status?: string
+          updated_at?: string
+          verified_by?: string | null
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_zone_licenses_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_zone_licenses_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "ride_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           acceptance_rate: number | null
@@ -2619,6 +2774,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      emergency_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean
+          name: string
+          phone: string
+          relationship: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name: string
+          phone: string
+          relationship?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name?: string
+          phone?: string
+          relationship?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       flash_deals: {
         Row: {
@@ -5740,6 +5928,57 @@ export type Database = {
           },
         ]
       }
+      ride_zones: {
+        Row: {
+          center_lat: number
+          center_lng: number
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          municipality: string | null
+          name: string
+          polygon: Json
+          province: string | null
+          radius_km: number
+          severity: number
+          updated_at: string
+        }
+        Insert: {
+          center_lat: number
+          center_lng: number
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          municipality?: string | null
+          name: string
+          polygon?: Json
+          province?: string | null
+          radius_km?: number
+          severity?: number
+          updated_at?: string
+        }
+        Update: {
+          center_lat?: number
+          center_lng?: number
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          municipality?: string | null
+          name?: string
+          polygon?: Json
+          province?: string | null
+          radius_km?: number
+          severity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rides: {
         Row: {
           accepted_at: string | null
@@ -5884,6 +6123,84 @@ export type Database = {
             columns: ["vehicle_type_id"]
             isOneToOne: false
             referencedRelation: "vehicle_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      safety_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string
+          driver_id: string | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          passenger_id: string | null
+          payload: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          ride_id: string | null
+          severity: string
+          status: string
+          trigger_source: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          passenger_id?: string | null
+          payload?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          ride_id?: string | null
+          severity?: string
+          status?: string
+          trigger_source?: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          passenger_id?: string | null
+          payload?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          ride_id?: string | null
+          severity?: string
+          status?: string
+          trigger_source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_alerts_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_alerts_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
             referencedColumns: ["id"]
           },
         ]
@@ -6832,6 +7149,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      trip_pins: {
+        Row: {
+          attempts: number
+          created_at: string
+          expires_at: string
+          id: string
+          max_attempts: number
+          pin_code: string
+          ride_id: string
+          verified: boolean
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          max_attempts?: number
+          pin_code: string
+          ride_id: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          max_attempts?: number
+          pin_code?: string
+          ride_id?: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_pins_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: true
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ucoin_earning_rules: {
         Row: {
@@ -8115,11 +8476,190 @@ export type Database = {
           },
         ]
       }
+      zone_access_passes: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          is_active: boolean
+          pass_type: string
+          payment_status: string
+          price_zar: number
+          valid_from: string
+          valid_to: string
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          is_active?: boolean
+          pass_type?: string
+          payment_status?: string
+          price_zar?: number
+          valid_from?: string
+          valid_to: string
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          is_active?: boolean
+          pass_type?: string
+          payment_status?: string
+          price_zar?: number
+          valid_from?: string
+          valid_to?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_access_passes_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_access_passes_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "ride_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zone_fines: {
+        Row: {
+          amount_zar: number
+          base_fine: number
+          created_at: string
+          deducted_at: string | null
+          demand_multiplier: number
+          driver_id: string
+          id: string
+          repeat_multiplier: number
+          severity_multiplier: number
+          status: string
+          violation_id: string
+        }
+        Insert: {
+          amount_zar: number
+          base_fine?: number
+          created_at?: string
+          deducted_at?: string | null
+          demand_multiplier?: number
+          driver_id: string
+          id?: string
+          repeat_multiplier?: number
+          severity_multiplier?: number
+          status?: string
+          violation_id: string
+        }
+        Update: {
+          amount_zar?: number
+          base_fine?: number
+          created_at?: string
+          deducted_at?: string | null
+          demand_multiplier?: number
+          driver_id?: string
+          id?: string
+          repeat_multiplier?: number
+          severity_multiplier?: number
+          status?: string
+          violation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_fines_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_fines_violation_id_fkey"
+            columns: ["violation_id"]
+            isOneToOne: false
+            referencedRelation: "zone_violations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zone_violations: {
+        Row: {
+          created_at: string
+          detected_zone: string | null
+          driver_id: string
+          id: string
+          licensed_zones: string[] | null
+          location_lat: number | null
+          location_lng: number | null
+          ride_id: string | null
+          severity: number
+          status: string
+          violation_type: string
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detected_zone?: string | null
+          driver_id: string
+          id?: string
+          licensed_zones?: string[] | null
+          location_lat?: number | null
+          location_lng?: number | null
+          ride_id?: string | null
+          severity?: number
+          status?: string
+          violation_type?: string
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detected_zone?: string | null
+          driver_id?: string
+          id?: string
+          licensed_zones?: string[] | null
+          location_lat?: number | null
+          location_lng?: number | null
+          ride_id?: string | null
+          severity?: number
+          status?: string
+          violation_type?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_violations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_violations_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_violations_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "ride_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      apply_zone_fine: { Args: { p_violation_id: string }; Returns: number }
       award_ucoin: {
         Args: {
           p_category: string
@@ -8162,6 +8702,10 @@ export type Database = {
         Returns: boolean
       }
       check_and_award_badges: { Args: { p_user_id: string }; Returns: number }
+      check_driver_zone_compliance: {
+        Args: { p_driver_id: string; p_lat: number; p_lng: number }
+        Returns: Json
+      }
       check_vendor_upgrade_triggers: {
         Args: { p_vendor_id: string }
         Returns: Json
@@ -8185,9 +8729,11 @@ export type Database = {
         Args: { vendor_uuid: string }
         Returns: undefined
       }
+      evaluate_driver_risk: { Args: { p_driver_id: string }; Returns: Json }
       evaluate_driver_tier: { Args: { p_driver_id: string }; Returns: string }
       generate_api_key: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      generate_trip_pin: { Args: { p_ride_id: string }; Returns: string }
       get_current_gold_price: {
         Args: never
         Returns: {
@@ -8324,6 +8870,10 @@ export type Database = {
           p_verified_by?: string
         }
         Returns: Json
+      }
+      verify_trip_pin: {
+        Args: { p_pin: string; p_ride_id: string }
+        Returns: boolean
       }
     }
     Enums: {
