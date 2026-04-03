@@ -76,6 +76,7 @@ import {
   Inbox,
   Crown,
   Car,
+  AlertTriangle,
 } from "lucide-react";
 
 const AdminDashboard = () => {
