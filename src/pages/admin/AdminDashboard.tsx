@@ -121,6 +121,7 @@ const AdminDashboard = () => {
     { id: "asset-lifecycle", title: "Asset Lifecycle", icon: Package },
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
     { id: "risk-monitoring", title: "Risk & Credit", icon: Shield },
+    { id: "safety-compliance", title: "Safety & Compliance", icon: AlertTriangle },
   ];
 
   return (
