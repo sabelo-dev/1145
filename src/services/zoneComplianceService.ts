@@ -143,7 +143,7 @@ export const zoneComplianceService = {
       };
     }
 
-    return data as ComplianceCheck;
+    return data as unknown as ComplianceCheck;
   },
 
   // Check ride acceptance rules

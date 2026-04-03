@@ -371,9 +371,9 @@ export const passengerSecurityService = {
       event_type: eventType,
       entity_type: entityType,
       entity_id: entityId,
-      driver_id: payload.driver_id as string || null,
+      driver_id: (payload.driver_id as string) || null,
       ride_id: entityType === 'ride' ? entityId : null,
-      payload,
+      payload: payload as any,
     }]);
   },
 
