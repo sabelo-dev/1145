@@ -300,7 +300,7 @@ const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh })
     case "live-tracking":
       return <DriverLiveTracking driver={driver} />;
     case "zone-compliance":
-      return <ZoneComplianceIndicator driverId={driver?.id || null} />;
+      return <ZoneComplianceIndicator driverId={driver?.id || ""} currentLat={null} currentLng={null} />;
     case "ucoin":
       return <UCoinDashboard />;
     case "analytics":
