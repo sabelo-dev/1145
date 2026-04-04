@@ -230,6 +230,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }, 0);
           } else if (event === 'INITIAL_SESSION') {
+            if (initialSessionHandled) return;
+            initialSessionHandled = true;
             if (session) {
               setTimeout(async () => {
                 if (mounted) {
