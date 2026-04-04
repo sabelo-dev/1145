@@ -89,8 +89,11 @@ const DriverDashboard: React.FC = () => {
 
     // Safety timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      setIsDriverLoading(false);
-    }, 8000);
+      if (isDriverLoading) {
+        console.warn('Driver dashboard loading safety timeout reached');
+        setIsDriverLoading(false);
+      }
+    }, 5000);
 
     return () => clearTimeout(timeout);
   }, [user, authLoading]);
