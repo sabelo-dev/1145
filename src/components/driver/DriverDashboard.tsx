@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { Navigate } from "react-router-dom";
 import {
   SidebarProvider,
   Sidebar,
@@ -12,7 +15,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -23,6 +25,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import DriverOverview from "./DriverOverview";
 import DriverAvailableJobs from "./DriverAvailableJobs";
@@ -35,15 +38,16 @@ import DriverJobMatching from "./DriverJobMatching";
 import DriverRideRequests from "./DriverRideRequests";
 import DriverRideHistory from "./DriverRideHistory";
 import DriverRideAnalytics from "./DriverRideAnalytics";
+import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
+import ZoneComplianceIndicator from "./ZoneComplianceIndicator";
 import {
   LayoutDashboard,
   Truck,
-  Package,
+  MapPin,
   BarChart3,
   Settings,
   LogOut,
   User,
-  MapPin,
   Shield,
   Navigation,
   Target,
@@ -51,8 +55,8 @@ import {
   Car,
   History,
   PieChart,
+  MapPinned,
 } from "lucide-react";
-import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 
 interface Driver {
   id: string;
@@ -71,154 +75,116 @@ interface Driver {
   vehicle_photo_url: string | null;
 }
 
+const SIDEBAR_ITEMS = [
+  { id: "overview", title: "Overview", icon: LayoutDashboard },
+  { id: "ride-requests", title: "Ride Requests", icon: Car },
+  { id: "ride-history", title: "Ride History", icon: History },
+  { id: "ride-analytics", title: "Ride Analytics", icon: PieChart },
+  { id: "smart-matching", title: "Smart Matching", icon: Target },
+  { id: "available-jobs", title: "Available Jobs", icon: MapPin },
+  { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
+  { id: "live-tracking", title: "Live Tracking", icon: Navigation },
+  { id: "zone-compliance", title: "Zone Compliance", icon: MapPinned },
+  { id: "ucoin", title: "UCoin Rewards", icon: Coins },
+  { id: "analytics", title: "My Analytics", icon: BarChart3 },
+  { id: "verification", title: "Verification", icon: Shield },
+  { id: "settings", title: "Settings", icon: Settings },
+];
+
 const DriverDashboard: React.FC = () => {
-  const { user, isLoading: authLoading, logout } = useAuth();
+  const { user, isReady } = useAuthReady();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
-  const [driver, setDriver] = useState<Driver | null>(null);
-  const [isDriverLoading, setIsDriverLoading] = useState(true);
 
-  useEffect(() => {
-    // Wait for auth to finish initializing before querying
-    if (authLoading) return;
-
-    if (user) {
-      fetchDriverInfo();
-    } else {
-      setIsDriverLoading(false);
-    }
-
-    // Safety timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (isDriverLoading) {
-        console.warn('Driver dashboard loading safety timeout reached');
-        setIsDriverLoading(false);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timeout);
-  }, [user, authLoading]);
-
-  const fetchDriverInfo = async () => {
-    if (!user) return;
-    setIsDriverLoading(true);
-    
-    try {
+  const { data: driver, isLoading: driverLoading, refetch } = useQuery({
+    queryKey: ["driver-profile", user?.id],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("drivers")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user!.id)
         .maybeSingle();
+      if (error) throw error;
+      return data as Driver | null;
+    },
+    enabled: isReady && !!user,
+    staleTime: 30_000,
+  });
 
-      if (!error && data) {
-        setDriver(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch driver info:", err);
-    } finally {
-      setIsDriverLoading(false);
-    }
-  };
+  if (!isReady) {
+    return <DashboardSkeleton />;
+  }
 
-  if (authLoading || isDriverLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading driver dashboard...</p>
-        </div>
-      </div>
-    );
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (driverLoading) {
+    return <DashboardSkeleton />;
   }
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    try { await logout(); } catch (e) { console.error(e); }
   };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "available":
-        return "bg-green-500";
-      case "busy":
-        return "bg-amber-500";
-      case "offline":
-        return "bg-gray-500";
-      case "pending":
-        return "bg-blue-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
-  const sidebarItems = [
-    { id: "overview", title: "Overview", icon: LayoutDashboard },
-    { id: "ride-requests", title: "Ride Requests", icon: Car },
-    { id: "ride-history", title: "Ride History", icon: History },
-    { id: "ride-analytics", title: "Ride Analytics", icon: PieChart },
-    { id: "smart-matching", title: "Smart Matching", icon: Target },
-    { id: "available-jobs", title: "Available Jobs", icon: MapPin },
-    { id: "active-deliveries", title: "Active Deliveries", icon: Truck },
-    { id: "live-tracking", title: "Live Tracking", icon: Navigation },
-    { id: "ucoin", title: "UCoin Rewards", icon: Coins },
-    { id: "analytics", title: "My Analytics", icon: BarChart3 },
-    { id: "verification", title: "Verification", icon: Shield },
-    { id: "settings", title: "Settings", icon: Settings },
-  ];
 
   return (
     <SidebarProvider>
-      <DriverDashboardContent
-        sidebarItems={sidebarItems}
+      <DashboardShell
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         user={user}
         driver={driver}
-        handleLogout={handleLogout}
-        getStatusColor={getStatusColor}
-        fetchDriverInfo={fetchDriverInfo}
+        onLogout={handleLogout}
+        onRefresh={() => refetch()}
       />
     </SidebarProvider>
   );
 };
 
-interface SidebarItem {
-  id: string;
-  title: string;
-  icon: React.ForwardRefExoticComponent<any>;
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-full max-w-md space-y-4 p-6">
+        <Skeleton className="h-8 w-48 mx-auto" />
+        <Skeleton className="h-4 w-32 mx-auto" />
+        <div className="grid grid-cols-2 gap-3 mt-6">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-lg" />)}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-interface DriverDashboardContentProps {
-  sidebarItems: SidebarItem[];
+interface DashboardShellProps {
   activeTab: string;
   setActiveTab: (id: string) => void;
   user: any;
   driver: Driver | null;
-  handleLogout: () => void;
-  getStatusColor: (status: string) => string;
-  fetchDriverInfo: () => void;
+  onLogout: () => void;
+  onRefresh: () => void;
 }
 
-const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
-  sidebarItems,
+const DashboardShell: React.FC<DashboardShellProps> = ({
   activeTab,
   setActiveTab,
   user,
   driver,
-  handleLogout,
-  getStatusColor,
-  fetchDriverInfo,
+  onLogout,
+  onRefresh,
 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
 
   const handleItemClick = (id: string) => {
     setActiveTab(id);
-    if (isMobile) {
-      setOpenMobile(false);
-    }
+    if (isMobile) setOpenMobile(false);
   };
+
+  const statusColor = driver ? ({
+    available: "bg-green-500",
+    busy: "bg-amber-500",
+    offline: "bg-gray-500",
+    pending: "bg-blue-500",
+  }[driver.status] || "bg-gray-500") : "bg-gray-500";
 
   return (
     <div className="min-h-screen flex w-full bg-background">
@@ -226,11 +192,11 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
         <SidebarHeader className="p-4 border-b">
           <div className="flex items-center gap-2">
             <Truck className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-foreground">Driver Dashboard</span>
+            <span className="font-semibold text-foreground">Driver Hub</span>
           </div>
           {driver && (
             <div className="mt-3 flex items-center gap-2">
-              <Badge className={`${getStatusColor(driver.status)} text-white`}>
+              <Badge className={`${statusColor} text-white border-0`}>
                 {driver.status.charAt(0).toUpperCase() + driver.status.slice(1)}
               </Badge>
               <span className="text-sm text-muted-foreground">
@@ -241,7 +207,7 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {sidebarItems.map((item) => (
+            {SIDEBAR_ITEMS.map((item) => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton
                   onClick={() => handleItemClick(item.id)}
@@ -258,11 +224,11 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
       </Sidebar>
 
       <SidebarInset className="flex-1">
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <h1 className="text-lg font-semibold text-foreground">
-              {sidebarItems.find((item) => item.id === activeTab)?.title}
+              {SIDEBAR_ITEMS.find((i) => i.id === activeTab)?.title}
             </h1>
           </div>
 
@@ -270,8 +236,8 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar_url || ""} alt={driver?.name || "Driver"} />
-                  <AvatarFallback>
+                  <AvatarImage src="" alt={driver?.name || "Driver"} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
                     {driver?.name?.charAt(0)?.toUpperCase() || "D"}
                   </AvatarFallback>
                 </Avatar>
@@ -282,8 +248,8 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
                 <p className="text-sm font-medium leading-none">{driver?.name || "Driver"}</p>
                 <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                 {driver && (
-                  <p className="text-xs text-muted-foreground">
-                    {driver.total_deliveries} deliveries completed
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {driver.total_deliveries} deliveries
                   </p>
                 )}
               </div>
@@ -293,7 +259,7 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
                 <span>Profile Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={onLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
@@ -301,57 +267,51 @@ const DriverDashboardContent: React.FC<DriverDashboardContentProps> = ({
           </DropdownMenu>
         </header>
 
-        <main className="flex-1 p-6 bg-background">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
-            <TabsList className="hidden">
-              {sidebarItems.map((item) => (
-                <TabsTrigger key={item.id} value={item.id}>
-                  {item.title}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value="overview" className="mt-0">
-              <DriverOverview driver={driver} onRefresh={fetchDriverInfo} />
-            </TabsContent>
-            <TabsContent value="ride-requests" className="mt-0">
-              <DriverRideRequests driver={driver} onRideAccepted={fetchDriverInfo} />
-            </TabsContent>
-            <TabsContent value="ride-history" className="mt-0">
-              <DriverRideHistory driver={driver} />
-            </TabsContent>
-            <TabsContent value="ride-analytics" className="mt-0">
-              <DriverRideAnalytics driver={driver} />
-            </TabsContent>
-            <TabsContent value="smart-matching" className="mt-0">
-              <DriverJobMatching driver={driver} onJobClaimed={fetchDriverInfo} />
-            </TabsContent>
-            <TabsContent value="available-jobs" className="mt-0">
-              <DriverAvailableJobs driver={driver} onJobClaimed={fetchDriverInfo} />
-            </TabsContent>
-            <TabsContent value="active-deliveries" className="mt-0">
-              <DriverActiveDeliveries driver={driver} onStatusUpdate={fetchDriverInfo} />
-            </TabsContent>
-            <TabsContent value="live-tracking" className="mt-0">
-              <DriverLiveTracking driver={driver} />
-            </TabsContent>
-            <TabsContent value="ucoin" className="mt-0">
-              <UCoinDashboard />
-            </TabsContent>
-            <TabsContent value="analytics" className="mt-0">
-              <DriverAnalytics driver={driver} />
-            </TabsContent>
-            <TabsContent value="verification" className="mt-0">
-              <DriverVerification driver={driver} />
-            </TabsContent>
-            <TabsContent value="settings" className="mt-0">
-              <DriverSettings driver={driver} onUpdate={fetchDriverInfo} />
-            </TabsContent>
-          </Tabs>
+        <main className="flex-1 p-4 md:p-6 bg-background overflow-auto">
+          <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} />
         </main>
       </SidebarInset>
     </div>
   );
+};
+
+interface TabContentProps {
+  activeTab: string;
+  driver: Driver | null;
+  onRefresh: () => void;
+}
+
+const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh }) => {
+  switch (activeTab) {
+    case "overview":
+      return <DriverOverview driver={driver} onRefresh={onRefresh} />;
+    case "ride-requests":
+      return <DriverRideRequests driver={driver} onRideAccepted={onRefresh} />;
+    case "ride-history":
+      return <DriverRideHistory driver={driver} />;
+    case "ride-analytics":
+      return <DriverRideAnalytics driver={driver} />;
+    case "smart-matching":
+      return <DriverJobMatching driver={driver} onJobClaimed={onRefresh} />;
+    case "available-jobs":
+      return <DriverAvailableJobs driver={driver} onJobClaimed={onRefresh} />;
+    case "active-deliveries":
+      return <DriverActiveDeliveries driver={driver} onStatusUpdate={onRefresh} />;
+    case "live-tracking":
+      return <DriverLiveTracking driver={driver} />;
+    case "zone-compliance":
+      return <ZoneComplianceIndicator driverId={driver?.id || ""} currentLat={null} currentLng={null} />;
+    case "ucoin":
+      return <UCoinDashboard />;
+    case "analytics":
+      return <DriverAnalytics driver={driver} />;
+    case "verification":
+      return <DriverVerification driver={driver} />;
+    case "settings":
+      return <DriverSettings driver={driver} onUpdate={onRefresh} />;
+    default:
+      return <DriverOverview driver={driver} onRefresh={onRefresh} />;
+  }
 };
 
 export default DriverDashboard;
