@@ -174,15 +174,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let initialSessionHandled = false;
     loadingManager.startLoading('auth');
 
     // Safety timeout to prevent infinite loading
     const safetyTimeout = setTimeout(() => {
-      if (mounted) {
+      if (mounted && loadingManager.isLoading) {
         console.warn('Auth loading safety timeout reached, forcing loading complete');
         loadingManager.stopLoading();
       }
-    }, 10000);
+    }, 6000);
 
     const getInitialSession = async () => {
       try {
@@ -195,7 +196,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        if (mounted) {
+        if (mounted && !initialSessionHandled) {
+          initialSessionHandled = true;
           setSession(session);
           if (session) {
             await loadUserProfile(session);
