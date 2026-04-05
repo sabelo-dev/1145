@@ -192,7 +192,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error getting session:', error);
-          if (mounted) loadingManager.stopLoading('auth');
+          // Clear stale tokens on refresh token errors
+          if (error.message?.includes('Refresh Token') || error.message?.includes('refresh_token')) {
+            console.warn('Stale refresh token detected, signing out...');
+            await supabase.auth.signOut();
+          }
+          if (mounted) {
+            clearAuthState();
+            loadingManager.stopLoading('auth');
+          }
           return;
         }
 
@@ -205,9 +213,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             loadingManager.stopLoading('auth');
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error in getInitialSession:', error);
-        if (mounted) loadingManager.stopLoading('auth');
+        // Handle refresh token errors thrown as exceptions
+        if (error?.message?.includes('Refresh Token') || error?.message?.includes('refresh_token')) {
+          console.warn('Stale refresh token detected, signing out...');
+          try { await supabase.auth.signOut(); } catch (_) {}
+        }
+        if (mounted) {
+          clearAuthState();
+          loadingManager.stopLoading('auth');
+        }
       }
     };
 
