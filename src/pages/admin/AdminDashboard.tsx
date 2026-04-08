@@ -52,6 +52,7 @@ import AdminAssetLifecycle from "@/components/admin/AdminAssetLifecycle";
 import AdminLeaseAnalytics from "@/components/admin/AdminLeaseAnalytics";
 import AdminRiskMonitoring from "@/components/admin/AdminRiskMonitoring";
 import SafetyComplianceDashboard from "@/components/admin/SafetyComplianceDashboard";
+import EmergencyMonitor from "@/components/admin/EmergencyMonitor";
 import {
   LayoutDashboard,
   Users,
