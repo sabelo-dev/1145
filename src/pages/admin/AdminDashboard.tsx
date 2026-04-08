@@ -123,6 +123,7 @@ const AdminDashboard = () => {
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
     { id: "risk-monitoring", title: "Risk & Credit", icon: Shield },
     { id: "safety-compliance", title: "Safety & Compliance", icon: AlertTriangle },
+    { id: "emergencies", title: "Emergency Monitor", icon: Shield },
   ];
 
   return (
