@@ -5,25 +5,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+interface PlatformOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  scope: string[];
+}
+
 interface OAuthConfig {
-  facebook: {
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-    scope: string[];
-  };
-  twitter: {
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-    scope: string[];
-  };
-  linkedin: {
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-    scope: string[];
-  };
+  facebook: PlatformOAuthConfig;
+  twitter: PlatformOAuthConfig;
+  linkedin: PlatformOAuthConfig;
+  tiktok: PlatformOAuthConfig;
 }
 
 const getOAuthConfig = (baseUrl: string): OAuthConfig => ({
@@ -44,6 +37,12 @@ const getOAuthConfig = (baseUrl: string): OAuthConfig => ({
     clientSecret: Deno.env.get('LINKEDIN_CLIENT_SECRET') || '',
     redirectUri: `${baseUrl}/social-oauth-callback`,
     scope: ['openid', 'profile', 'email', 'w_member_social'],
+  },
+  tiktok: {
+    clientId: Deno.env.get('TIKTOK_CLIENT_KEY') || '',
+    clientSecret: Deno.env.get('TIKTOK_CLIENT_SECRET') || '',
+    redirectUri: `${baseUrl}/social-oauth-callback`,
+    scope: ['user.info.basic', 'video.publish', 'video.list'],
   },
 });
 
@@ -87,7 +86,7 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'get_auth_url': {
-        if (!platform || !['facebook', 'twitter', 'linkedin', 'instagram'].includes(platform)) {
+        if (!platform || !['facebook', 'twitter', 'linkedin', 'instagram', 'tiktok'].includes(platform)) {
           return new Response(
             JSON.stringify({ error: 'Invalid platform' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -168,6 +167,41 @@ Deno.serve(async (req) => {
             `&redirect_uri=${encodeURIComponent(linkedinConfig.redirectUri)}` +
             `&scope=${encodeURIComponent(linkedinConfig.scope.join(' '))}` +
             `&state=${encodeURIComponent(state)}`;
+        } else if (platform === 'tiktok') {
+          const tiktokConfig = config.tiktok;
+          if (!tiktokConfig.clientId) {
+            return new Response(
+              JSON.stringify({ 
+                error: 'TikTok App not configured', 
+                setup_required: true,
+                instructions: 'Add TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET to edge function secrets'
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          // TikTok uses PKCE with code_verifier
+          const codeVerifier = crypto.randomUUID() + crypto.randomUUID();
+          const encoder = new TextEncoder();
+          const data = encoder.encode(codeVerifier);
+          const digest = await crypto.subtle.digest('SHA-256', data);
+          const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+          
+          const tiktokState = btoa(JSON.stringify({ 
+            userId, 
+            platform, 
+            appUrl: appBaseUrl,
+            codeVerifier 
+          }));
+
+          authUrl = `https://www.tiktok.com/v2/auth/authorize/?` +
+            `client_key=${tiktokConfig.clientId}` +
+            `&response_type=code` +
+            `&scope=${encodeURIComponent(tiktokConfig.scope.join(','))}` +
+            `&redirect_uri=${encodeURIComponent(tiktokConfig.redirectUri)}` +
+            `&state=${encodeURIComponent(tiktokState)}` +
+            `&code_challenge=${codeChallenge}` +
+            `&code_challenge_method=S256`;
         }
 
         return new Response(
@@ -310,6 +344,31 @@ Deno.serve(async (req) => {
           if (refreshData.access_token) {
             newAccessToken = refreshData.access_token;
             newExpiresAt = new Date(Date.now() + (refreshData.expires_in || 5184000) * 1000);
+          }
+        } else if (tokenData.platform === 'tiktok') {
+          const tiktokConfig = config.tiktok;
+          const refreshResponse = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_key: tiktokConfig.clientId,
+              client_secret: tiktokConfig.clientSecret,
+              grant_type: 'refresh_token',
+              refresh_token: tokenData.refresh_token || '',
+            }),
+          });
+          const refreshData = await refreshResponse.json();
+          
+          if (refreshData.access_token) {
+            newAccessToken = refreshData.access_token;
+            newExpiresAt = new Date(Date.now() + (refreshData.expires_in || 86400) * 1000);
+            
+            if (refreshData.refresh_token) {
+              await supabase
+                .from('social_oauth_tokens')
+                .update({ refresh_token: refreshData.refresh_token })
+                .eq('id', tokenId);
+            }
           }
         }
 
