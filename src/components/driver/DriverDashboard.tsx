@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuthReady } from "@/hooks/useAuthReady";
+import PanicButton from "@/components/emergency/PanicButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
