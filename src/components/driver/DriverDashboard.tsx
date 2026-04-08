@@ -233,6 +233,15 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
             </h1>
           </div>
 
+          <div className="flex items-center gap-3">
+            {driver && (
+              <PanicButton
+                userId={user.id}
+                role="driver"
+                className="scale-75"
+              />
+            )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
