@@ -52,6 +52,7 @@ import AdminAssetLifecycle from "@/components/admin/AdminAssetLifecycle";
 import AdminLeaseAnalytics from "@/components/admin/AdminLeaseAnalytics";
 import AdminRiskMonitoring from "@/components/admin/AdminRiskMonitoring";
 import SafetyComplianceDashboard from "@/components/admin/SafetyComplianceDashboard";
+import EmergencyMonitor from "@/components/admin/EmergencyMonitor";
 import {
   LayoutDashboard,
   Users,
@@ -122,6 +123,7 @@ const AdminDashboard = () => {
     { id: "lease-analytics", title: "Lease Analytics", icon: TrendingUp },
     { id: "risk-monitoring", title: "Risk & Credit", icon: Shield },
     { id: "safety-compliance", title: "Safety & Compliance", icon: AlertTriangle },
+    { id: "emergencies", title: "Emergency Monitor", icon: Shield },
   ];
 
   return (
@@ -331,6 +333,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="safety-compliance" className="mt-0">
               <SafetyComplianceDashboard />
+            </TabsContent>
+            <TabsContent value="emergencies" className="mt-0">
+              <EmergencyMonitor />
             </TabsContent>
           </Tabs>
         </main>

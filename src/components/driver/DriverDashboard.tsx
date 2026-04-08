@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuthReady } from "@/hooks/useAuthReady";
+import PanicButton from "@/components/emergency/PanicButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
@@ -232,6 +233,15 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
             </h1>
           </div>
 
+          <div className="flex items-center gap-3">
+            {driver && (
+              <PanicButton
+                userId={user.id}
+                role="driver"
+                className="scale-75"
+              />
+            )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -265,6 +275,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </header>
 
         <main className="flex-1 p-4 md:p-6 bg-background overflow-auto">
