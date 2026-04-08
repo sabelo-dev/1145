@@ -275,6 +275,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </header>
 
         <main className="flex-1 p-4 md:p-6 bg-background overflow-auto">
