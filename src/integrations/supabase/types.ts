@@ -2808,6 +2808,60 @@ export type Database = {
         }
         Relationships: []
       }
+      emergency_events: {
+        Row: {
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responder_notes: string | null
+          role: string
+          silent_mode: boolean
+          status: string
+          trip_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responder_notes?: string | null
+          role: string
+          silent_mode?: boolean
+          status?: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responder_notes?: string | null
+          role?: string
+          silent_mode?: boolean
+          status?: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flash_deals: {
         Row: {
           claimed_count: number
