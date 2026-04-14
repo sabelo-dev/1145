@@ -50,7 +50,7 @@ const getEmailTemplate = (
         <body>
           <div class="container">
             <div class="header">
-              <h1>Welcome to 1145!</h1>
+              <h1>Welcome to 1145 Lifestyle!</h1>
             </div>
             <div class="content">
               <p>Hi ${userName},</p>
@@ -62,7 +62,7 @@ const getEmailTemplate = (
               <p>Best regards,<br>The 1145 Team</p>
             </div>
             <div class="footer">
-              <p>© 2025 1145. All rights reserved.</p>
+              <p>© 2025 1145 LifestyleE&trade; LIC&reg;. All rights reserved.</p>
             </div>
           </div>
         </body>
