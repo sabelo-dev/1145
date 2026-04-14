@@ -79,7 +79,7 @@ const Header: React.FC = () => {
           <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
-              <img src="/logo.svg" alt="1145" className="h-8 w-8 rounded-md" />
+              <img src="/logo.png" alt="1145" className="h-8 w-8 rounded-md" />
             </Link>
 
             {/* Desktop Search Bar */}
