@@ -1,4 +1,4 @@
-/// <reference types="@types/google.maps" />
+/// <reference types="google.maps" />
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { loadGoogleMaps } from "./GoogleMap";
 

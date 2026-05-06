@@ -1,4 +1,4 @@
-/// <reference types="@types/google.maps" />
+/// <reference types="google.maps" />
 import React, { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
