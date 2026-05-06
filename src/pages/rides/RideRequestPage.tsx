@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
