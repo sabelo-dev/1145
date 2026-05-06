@@ -13,8 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Truck, Car, Bike, Clock, DollarSign, MapPin, Loader2, CheckCircle } from "lucide-react";
+import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 
 const DriverRegisterPage: React.FC = () => {
+  useFrameBreakout();
   const { user, isDriver, refreshUserProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();

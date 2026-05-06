@@ -8,8 +8,10 @@ import { Crown, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 
 const InfluencerLoginPage: React.FC = () => {
+  useFrameBreakout();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isLoading, isInfluencer, refreshUserProfile } = useAuth();

@@ -17,7 +17,7 @@ const LandingPage: React.FC = () => {
     <div>
       <SEO
         title="1145 Lifestyle - Coming Soon"
-        description="The future of shopping, reimagined. Discover a world where fashion, beauty, gadgets, and home essentials meet effortless style — all in one place."
+        description="The future of ecommerce, reimagined. Discover a world where fashion, beauty, gadgets, and home essentials meet effortless style — all in one place."
         keywords="1145 lifestyle, online shopping, fashion, beauty, gadgets, home essentials, pre-launch"
         structuredData={structuredData}
       />

@@ -29,13 +29,13 @@ export interface PriceBreakdown {
 
 // Default pricing configuration (ZAR)
 const defaultConfig: PricingConfig = {
-  baseFee: 25,
-  perKmRate: 8,
+  baseFee: 15,
+  perKmRate: 4,
   minFee: 35,
   maxFee: 250,
-  urgentMultiplier: 1.5,
-  nightMultiplier: 1.25,
-  weekendMultiplier: 1.15,
+  urgentMultiplier: 0.5,
+  nightMultiplier: 0.25,
+  weekendMultiplier: 0.15,
 };
 
 // Pricing Engine

@@ -2,8 +2,10 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import DriverLoginForm from "@/components/auth/DriverLoginForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 
 const DriverLoginPage: React.FC = () => {
+  useFrameBreakout();
   const { user, isLoading, isDriver, isAdmin } = useAuth();
 
   if (isLoading) {

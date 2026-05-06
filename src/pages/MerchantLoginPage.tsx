@@ -2,8 +2,10 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import MerchantLoginForm from "@/components/auth/MerchantLoginForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 
 const MerchantLoginPage: React.FC = () => {
+  useFrameBreakout();
   const { user, isLoading, isMerchant, isAdmin } = useAuth();
 
   if (isLoading) {
