@@ -2,8 +2,10 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 
 const LoginPage: React.FC = () => {
+useFrameBreakout();
 const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer } = useAuth();
 
   // Show loading while auth is initializing
