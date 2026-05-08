@@ -8014,6 +8014,56 @@ export type Database = {
           },
         ]
       }
+      vendor_financial_details: {
+        Row: {
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_routing_code: string | null
+          business_email: string | null
+          business_phone: string | null
+          created_at: string
+          tax_id: string | null
+          updated_at: string
+          vat_number: string | null
+          vat_registered: boolean | null
+          vendor_id: string
+        }
+        Insert: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_routing_code?: string | null
+          business_email?: string | null
+          business_phone?: string | null
+          created_at?: string
+          tax_id?: string | null
+          updated_at?: string
+          vat_number?: string | null
+          vat_registered?: boolean | null
+          vendor_id: string
+        }
+        Update: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_routing_code?: string | null
+          business_email?: string | null
+          business_phone?: string | null
+          created_at?: string
+          tax_id?: string | null
+          updated_at?: string
+          vat_number?: string | null
+          vat_registered?: boolean | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_financial_details_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: true
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_notifications: {
         Row: {
           created_at: string
@@ -8276,13 +8326,8 @@ export type Database = {
         Row: {
           ad_credits: number | null
           approval_date: string | null
-          bank_account_holder: string | null
-          bank_account_number: string | null
-          bank_routing_code: string | null
           business_address: string | null
-          business_email: string | null
           business_name: string
-          business_phone: string | null
           business_type: string | null
           commission_rate: number | null
           created_at: string
@@ -8312,27 +8357,19 @@ export type Database = {
           subscription_payment_method: string | null
           subscription_status: string | null
           subscription_tier: string | null
-          tax_id: string | null
           tier_id: string | null
           tier_updated_at: string | null
           trial_end_date: string | null
           trial_start_date: string | null
           updated_at: string
           user_id: string
-          vat_number: string | null
-          vat_registered: boolean | null
           website: string | null
         }
         Insert: {
           ad_credits?: number | null
           approval_date?: string | null
-          bank_account_holder?: string | null
-          bank_account_number?: string | null
-          bank_routing_code?: string | null
           business_address?: string | null
-          business_email?: string | null
           business_name: string
-          business_phone?: string | null
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -8362,27 +8399,19 @@ export type Database = {
           subscription_payment_method?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
-          tax_id?: string | null
           tier_id?: string | null
           tier_updated_at?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string
           user_id: string
-          vat_number?: string | null
-          vat_registered?: boolean | null
           website?: string | null
         }
         Update: {
           ad_credits?: number | null
           approval_date?: string | null
-          bank_account_holder?: string | null
-          bank_account_number?: string | null
-          bank_routing_code?: string | null
           business_address?: string | null
-          business_email?: string | null
           business_name?: string
-          business_phone?: string | null
           business_type?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -8412,15 +8441,12 @@ export type Database = {
           subscription_payment_method?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
-          tax_id?: string | null
           tier_id?: string | null
           tier_updated_at?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string
           user_id?: string
-          vat_number?: string | null
-          vat_registered?: boolean | null
           website?: string | null
         }
         Relationships: [
