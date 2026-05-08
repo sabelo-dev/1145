@@ -78,18 +78,26 @@ const MerchantOnboarding: React.FC = () => {
         .maybeSingle();
 
       if (vendor) {
-        setVendorData(vendor);
+        // Load financial details from separate secure table
+        const { data: fin } = await supabase
+          .from("vendor_financial_details")
+          .select("*")
+          .eq("vendor_id", vendor.id)
+          .maybeSingle();
+
+        const merged: any = { ...vendor, ...(fin || {}) };
+        setVendorData(merged);
         // Resume from saved status
         const savedStep = STATUS_TO_STEP[vendor.onboarding_status] || 1;
         setStep(savedStep);
         if (vendor.onboarding_status === "ACTIVE") setIsActivated(true);
 
         // Load bank details if saved
-        if (vendor.bank_account_holder) {
+        if (fin?.bank_account_holder) {
           setBankDetails({
-            accountHolder: vendor.bank_account_holder || "",
-            accountNumber: vendor.bank_account_number || "",
-            routingCode: vendor.bank_routing_code || "",
+            accountHolder: fin.bank_account_holder || "",
+            accountNumber: fin.bank_account_number || "",
+            routingCode: fin.bank_routing_code || "",
           });
         }
         if (vendor.shipping_regions) setShippingRegions(vendor.shipping_regions);
@@ -148,14 +156,18 @@ const MerchantOnboarding: React.FC = () => {
           legal_business_name: data.legalBusinessName,
           business_name: data.legalBusinessName,
           business_type: data.businessType,
-          tax_id: data.taxId || null,
           business_address: data.businessAddress,
-          business_phone: data.businessPhone,
           onboarding_status: "PENDING_KYC",
         })
         .eq("id", vendorData.id);
       if (error) throw error;
-      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PENDING_KYC" }));
+      // Save tax_id and business_phone in financial_details
+      await supabase.from("vendor_financial_details").upsert({
+        vendor_id: vendorData.id,
+        tax_id: data.taxId || null,
+        business_phone: data.businessPhone,
+      }, { onConflict: "vendor_id" });
+      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PENDING_KYC", tax_id: data.taxId || null, business_phone: data.businessPhone }));
       setStep(3);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
@@ -198,17 +210,27 @@ const MerchantOnboarding: React.FC = () => {
   const handleKYCSubmit = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from("vendors")
-        .update({
+      const { error: finError } = await supabase
+        .from("vendor_financial_details")
+        .upsert({
+          vendor_id: vendorData.id,
           bank_account_holder: bankDetails.accountHolder,
           bank_account_number: bankDetails.accountNumber,
           bank_routing_code: bankDetails.routingCode,
-          onboarding_status: "KYC_PENDING_REVIEW",
-        })
+        }, { onConflict: "vendor_id" });
+      if (finError) throw finError;
+      const { error } = await supabase
+        .from("vendors")
+        .update({ onboarding_status: "KYC_PENDING_REVIEW" })
         .eq("id", vendorData.id);
       if (error) throw error;
-      setVendorData((prev: any) => ({ ...prev, onboarding_status: "KYC_PENDING_REVIEW" }));
+      setVendorData((prev: any) => ({
+        ...prev,
+        onboarding_status: "KYC_PENDING_REVIEW",
+        bank_account_holder: bankDetails.accountHolder,
+        bank_account_number: bankDetails.accountNumber,
+        bank_routing_code: bankDetails.routingCode,
+      }));
       toast({ title: "KYC Submitted", description: "Your documents are under review. You can continue setting up your store." });
       setStep(4);
     } catch (error: any) {
@@ -279,11 +301,14 @@ const MerchantOnboarding: React.FC = () => {
     setIsLoading(true);
     try {
       await supabase.from("vendors").update({
-        vat_registered: data.vatRegistered,
-        vat_number: data.vatNumber || null,
         fee_agreement_accepted: data.feeAgreement,
         payout_schedule: data.payoutSchedule,
       }).eq("id", vendorData.id);
+      await supabase.from("vendor_financial_details").upsert({
+        vendor_id: vendorData.id,
+        vat_registered: data.vatRegistered,
+        vat_number: data.vatNumber || null,
+      }, { onConflict: "vendor_id" });
       setStep(6);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
