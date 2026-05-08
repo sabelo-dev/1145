@@ -60,17 +60,27 @@ const AddVendorDialog: React.FC<Props> = ({ onCreated }) => {
         );
       }
 
-      const { error: insertError } = await supabase.from("vendors").insert([
-        {
-          user_id: profile.id,
-          business_name: businessName.trim(),
-          status: "approved" as VendorStatus,
-          business_email: businessEmail.trim() || null,
-          business_phone: businessPhone.trim() || null,
-        },
-      ]);
+      const { data: insertedVendor, error: insertError } = await supabase
+        .from("vendors")
+        .insert([
+          {
+            user_id: profile.id,
+            business_name: businessName.trim(),
+            status: "approved" as VendorStatus,
+          },
+        ])
+        .select("id")
+        .single();
 
       if (insertError) throw insertError;
+
+      if (insertedVendor && (businessEmail.trim() || businessPhone.trim())) {
+        await supabase.from("vendor_financial_details").insert({
+          vendor_id: insertedVendor.id,
+          business_email: businessEmail.trim() || null,
+          business_phone: businessPhone.trim() || null,
+        });
+      }
 
       toast({
         title: "Vendor created",
