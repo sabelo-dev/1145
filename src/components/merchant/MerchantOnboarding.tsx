@@ -78,18 +78,26 @@ const MerchantOnboarding: React.FC = () => {
         .maybeSingle();
 
       if (vendor) {
-        setVendorData(vendor);
+        // Load financial details from separate secure table
+        const { data: fin } = await supabase
+          .from("vendor_financial_details")
+          .select("*")
+          .eq("vendor_id", vendor.id)
+          .maybeSingle();
+
+        const merged: any = { ...vendor, ...(fin || {}) };
+        setVendorData(merged);
         // Resume from saved status
         const savedStep = STATUS_TO_STEP[vendor.onboarding_status] || 1;
         setStep(savedStep);
         if (vendor.onboarding_status === "ACTIVE") setIsActivated(true);
 
         // Load bank details if saved
-        if (vendor.bank_account_holder) {
+        if (fin?.bank_account_holder) {
           setBankDetails({
-            accountHolder: vendor.bank_account_holder || "",
-            accountNumber: vendor.bank_account_number || "",
-            routingCode: vendor.bank_routing_code || "",
+            accountHolder: fin.bank_account_holder || "",
+            accountNumber: fin.bank_account_number || "",
+            routingCode: fin.bank_routing_code || "",
           });
         }
         if (vendor.shipping_regions) setShippingRegions(vendor.shipping_regions);
