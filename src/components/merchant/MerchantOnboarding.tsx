@@ -156,14 +156,18 @@ const MerchantOnboarding: React.FC = () => {
           legal_business_name: data.legalBusinessName,
           business_name: data.legalBusinessName,
           business_type: data.businessType,
-          tax_id: data.taxId || null,
           business_address: data.businessAddress,
-          business_phone: data.businessPhone,
           onboarding_status: "PENDING_KYC",
         })
         .eq("id", vendorData.id);
       if (error) throw error;
-      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PENDING_KYC" }));
+      // Save tax_id and business_phone in financial_details
+      await supabase.from("vendor_financial_details").upsert({
+        vendor_id: vendorData.id,
+        tax_id: data.taxId || null,
+        business_phone: data.businessPhone,
+      }, { onConflict: "vendor_id" });
+      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PENDING_KYC", tax_id: data.taxId || null, business_phone: data.businessPhone }));
       setStep(3);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
