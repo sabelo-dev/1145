@@ -301,11 +301,14 @@ const MerchantOnboarding: React.FC = () => {
     setIsLoading(true);
     try {
       await supabase.from("vendors").update({
-        vat_registered: data.vatRegistered,
-        vat_number: data.vatNumber || null,
         fee_agreement_accepted: data.feeAgreement,
         payout_schedule: data.payoutSchedule,
       }).eq("id", vendorData.id);
+      await supabase.from("vendor_financial_details").upsert({
+        vendor_id: vendorData.id,
+        vat_registered: data.vatRegistered,
+        vat_number: data.vatNumber || null,
+      }, { onConflict: "vendor_id" });
       setStep(6);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
