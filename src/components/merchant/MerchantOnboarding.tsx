@@ -210,17 +210,27 @@ const MerchantOnboarding: React.FC = () => {
   const handleKYCSubmit = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from("vendors")
-        .update({
+      const { error: finError } = await supabase
+        .from("vendor_financial_details")
+        .upsert({
+          vendor_id: vendorData.id,
           bank_account_holder: bankDetails.accountHolder,
           bank_account_number: bankDetails.accountNumber,
           bank_routing_code: bankDetails.routingCode,
-          onboarding_status: "KYC_PENDING_REVIEW",
-        })
+        }, { onConflict: "vendor_id" });
+      if (finError) throw finError;
+      const { error } = await supabase
+        .from("vendors")
+        .update({ onboarding_status: "KYC_PENDING_REVIEW" })
         .eq("id", vendorData.id);
       if (error) throw error;
-      setVendorData((prev: any) => ({ ...prev, onboarding_status: "KYC_PENDING_REVIEW" }));
+      setVendorData((prev: any) => ({
+        ...prev,
+        onboarding_status: "KYC_PENDING_REVIEW",
+        bank_account_holder: bankDetails.accountHolder,
+        bank_account_number: bankDetails.accountNumber,
+        bank_routing_code: bankDetails.routingCode,
+      }));
       toast({ title: "KYC Submitted", description: "Your documents are under review. You can continue setting up your store." });
       setStep(4);
     } catch (error: any) {
