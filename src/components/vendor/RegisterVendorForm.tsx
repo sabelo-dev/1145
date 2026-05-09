@@ -148,10 +148,7 @@ const RegisterVendorForm: React.FC = () => {
         trial_start_date: new Date().toISOString(),
         trial_end_date: trialEndDate.toISOString(),
         subscription_status: "trial",
-        business_email: values.businessEmail,
-        business_phone: values.businessPhone,
         business_address: values.businessAddress,
-        tax_id: values.taxId || null,
         website: values.website || null
       };
 
@@ -166,6 +163,16 @@ const RegisterVendorForm: React.FC = () => {
       if (vendorError) {
         console.error('Vendor insert error:', vendorError);
         throw vendorError;
+      }
+
+      // Store sensitive contact / tax info in protected table
+      if (vendorResult?.id) {
+        await supabase.from("vendor_financial_details").insert({
+          vendor_id: vendorResult.id,
+          business_email: values.businessEmail || null,
+          business_phone: values.businessPhone || null,
+          tax_id: values.taxId || null,
+        });
       }
 
       console.log('Vendor created successfully:', vendorResult);
