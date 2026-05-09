@@ -66,11 +66,8 @@ const AdminVendors: React.FC = () => {
             subscription_tier,
             subscription_status,
             trial_end_date,
-            business_email,
-            business_phone,
             business_address,
             website,
-            tax_id,
             custom_markup_percentage
           `)
         .order('created_at', { ascending: false });
@@ -82,6 +79,7 @@ const AdminVendors: React.FC = () => {
 
       // Get all unique user IDs
       const userIds = [...new Set(vendorsData?.map((v) => v.user_id) || [])];
+      const vendorIds = (vendorsData || []).map((v) => v.id);
 
       // Fetch all profiles in one query
       const { data: profilesData } = await supabase
@@ -89,13 +87,23 @@ const AdminVendors: React.FC = () => {
         .select('id, email, name')
         .in('id', userIds);
 
+      // Fetch financial details (admin RLS allows all)
+      const { data: finData } = await supabase
+        .from('vendor_financial_details')
+        .select('vendor_id, business_email, business_phone, tax_id')
+        .in('vendor_id', vendorIds);
+
       // Create a map for quick lookup
       const profilesMap = new Map((profilesData || []).map((p) => [p.id, p]));
+      const finMap = new Map((finData || []).map((f) => [f.vendor_id, f]));
 
       const formattedVendors = (vendorsData || []).map((vendor) => ({
         ...vendor,
         status: vendor.status as "pending" | "approved" | "rejected" | "suspended",
         profiles: profilesMap.get(vendor.user_id),
+        business_email: finMap.get(vendor.id)?.business_email,
+        business_phone: finMap.get(vendor.id)?.business_phone,
+        tax_id: finMap.get(vendor.id)?.tax_id,
       }));
 
       setVendors(formattedVendors);
