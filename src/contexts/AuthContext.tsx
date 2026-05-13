@@ -365,23 +365,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (data.user) {
+        // Sign out any auto-created session so the user must log in fresh
+        try { await supabase.auth.signOut(); } catch (_) {}
+        clearAuthState();
+
         if (!data.user.email_confirmed_at && data.session === null) {
           loadingManager.stopLoading('register');
           toast({
             title: "Registration Successful",
-            description: "Please check your email to verify your account.",
+            description: "Please check your email to verify your account, then log in.",
           });
-          return {};
+          return { redirectPath: '/login' };
         } else {
-          const redirectPath = '/';
-          
           toast({
             title: "Registration Successful",
-            description: "Welcome to LSI Platform!",
+            description: "Account created. Please log in to continue.",
           });
-          
           loadingManager.stopLoading('register');
-          return { redirectPath };
+          return { redirectPath: '/login' };
         }
       } else {
         loadingManager.stopLoading('register');
