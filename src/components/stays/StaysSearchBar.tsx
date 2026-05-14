@@ -27,7 +27,7 @@ const StaysSearchBar: React.FC<StaysSearchBarProps> = ({ onSearch }) => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 md:p-4 shadow-sm">
+    <div className="bg-card border border-border rounded-2xl p-3 md:p-4 shadow-sm text-black-900">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto_auto] gap-3 items-end">
         {/* Location */}
         <div>
@@ -38,7 +38,7 @@ const StaysSearchBar: React.FC<StaysSearchBarProps> = ({ onSearch }) => {
               placeholder="Search destinations"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="pl-9"
+              className="pl-9 text-muted-foreground"
             />
           </div>
         </div>
@@ -48,8 +48,8 @@ const StaysSearchBar: React.FC<StaysSearchBarProps> = ({ onSearch }) => {
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Check-in</label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full md:w-[140px] justify-start text-left font-normal", !checkIn && "text-muted-foreground")}>
-                <CalendarDays className="mr-2 h-4 w-4" />
+              <Button variant="outline" className={cn("w-full md:w-[140px] justify-start text-left font-normal text-gray-500", !checkIn && "text-muted-foreground")}>
+                <CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" />
                 {checkIn ? format(checkIn, "MMM dd") : "Add date"}
               </Button>
             </PopoverTrigger>
@@ -64,7 +64,7 @@ const StaysSearchBar: React.FC<StaysSearchBarProps> = ({ onSearch }) => {
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Check-out</label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full md:w-[140px] justify-start text-left font-normal", !checkOut && "text-muted-foreground")}>
+              <Button variant="outline" className={cn("w-full md:w-[140px] justify-start text-left font-normal text-gray-500", !checkOut && "text-muted-foreground")}>
                 <CalendarDays className="mr-2 h-4 w-4" />
                 {checkOut ? format(checkOut, "MMM dd") : "Add date"}
               </Button>
@@ -83,7 +83,7 @@ const StaysSearchBar: React.FC<StaysSearchBarProps> = ({ onSearch }) => {
             <select
               value={guests}
               onChange={(e) => setGuests(Number(e.target.value))}
-              className="bg-transparent text-sm outline-none flex-1"
+              className="bg-transparent text-sm outline-none flex-1 text-muted-foreground"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <option key={n} value={n}>{n} {n === 1 ? "guest" : "guests"}</option>

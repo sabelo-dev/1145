@@ -29,7 +29,6 @@ const typeLabels: Record<string, string> = {
   airbnb: "Airbnb",
   guesthouse: "Guesthouse",
   lodge: "Lodge",
-  hostel: "Hostel",
 };
 
 const PropertyCard: React.FC<{ property: LodgingProperty }> = ({ property }) => {

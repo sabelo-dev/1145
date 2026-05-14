@@ -131,7 +131,7 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
               >
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
                   <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                  <span className="text-xs font-medium text-white/90">Your Super App</span>
+                  <span className="text-xs font-medium text-white/90">Your Day To Day App</span>
                 </div>
               </motion.div>
 
@@ -187,7 +187,7 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                   onClick={() => navigate("/merchant/onboarding")}
                   className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold rounded-xl px-6"
                 >
-                  Become a Merchant
+                  Sign In
                 </Button>
               </motion.div>
             </div>

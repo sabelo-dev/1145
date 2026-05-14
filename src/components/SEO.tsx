@@ -12,9 +12,9 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "1145 – Social Commerce Marketplace | Shop, Sell & Influence in South Africa",
-  description = "1145 is a South African social commerce platform where you can shop, sell, and earn. Discover trending products, connect your social media, and monetize your influence with seamless checkout and fast delivery.",
-  keywords = "1145, 1145 Lifestyle, 1145 South Africa, social commerce South Africa,shop online South Africa, sell online South Africa, influencer marketplace,creator economy platform, TikTok shop integration, Instagram shopping,online marketplace Africa, ecommerce South Africa, dropshipping South Africa,multi-vendor marketplace, digital marketplace SA, earn online South Africa",
+  title = "1145 – Social Commerce Marketplace | Transact, Move, Stay & Influence in Africa",
+  description = "1145 A social commerce platform that enables users to transact, move, stay and influence.",
+  keywords = "1145, 1145 Lifestyle, 1145 Africa, social commerce Africa,shop online Africa, sell online Africa, influencer marketplace,creator economy platform, TikTok shop integration, Instagram shopping,online marketplace Africa, ecommerce Africa, dropshipping Africa,multi-vendor marketplace, digital marketplace, earn online Africa",
   image = "https://1145lifestyle.com/og-image.png",
   url,
   type = "website",
@@ -52,10 +52,10 @@ const SEO = ({
       },
       {
         "@type": "SoftwareApplication",
-        "name": "1145 Super App",
-        "applicationCategory": "ShoppingApplication",
+        "name": "1145 Lifestyle",
+        "applicationCategory": "DayToDayApplication",
         "operatingSystem": "Web",
-        "description": "A social commerce platform that enables users to shop, sell, and monetize content."
+        "description": "A social commerce platform that enables users to transact, move, stay and monetize content."
       }
     ]
   };
