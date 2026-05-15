@@ -79,9 +79,43 @@
     @apply border-border;
   }
 
+  html, body {
+    /* Native app feel: disable iOS rubber-band, no tap highlight, no callout */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior-y: none;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    /* Safe-area insets so content clears notches & home indicator */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Allow text selection only inside true content surfaces */
+  button, a, nav, header, footer, [role="button"], [role="tab"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input, textarea, [contenteditable], p, span, h1, h2, h3, h4, h5, h6, li {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+
+  /* Prevent iOS auto-zoom on input focus (font-size must be >=16px) */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Reserve room when soft keyboard is up (set by native bridge) */
+  body.keyboard-open {
+    padding-bottom: 0;
   }
 
   h1, h2, h3, h4 {
