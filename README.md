@@ -1,13 +1,13 @@
-1145  is a next-generation multivendor online marketplace launched in 2025, designed to empower businesses of all sizes to sell online with ease. Built for scalability, security, and performance, wweapp enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.
+1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.
 
 Overview
 Platform Name: 1145
 
 Launched: 2025
 
-Type: Multivendor Online Store
+Type: E-commerce ecosystem 
 
-Parent Company: Lifestyle Investment Group [LSI] (established in 2016)
+Parent Company: Lifestyle Investment Corp [LSI] (established in 2016) incorporated in 2026.
 
 Mission: To bridge businesses and customers through a robust digital commerce ecosystem.
 
@@ -41,5 +41,5 @@ Future Roadmap
 📱 Mobile App for iOS & Android
 
 License
-© 2025 LSI. All rights reserved.
+© 2016 LSI. All rights reserved.
 This project is proprietary and protected under applicable copyright and trademark laws.
