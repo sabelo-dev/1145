@@ -297,9 +297,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         const userRoles = rolesResult.data?.map(r => r.role) || [];
         const isInfluencerUser = userRoles.includes('influencer');
-        const userRole = userRoles.includes('admin') ? 'admin' : 
-                        userRoles.includes('vendor') ? 'vendor' : 'consumer';
-        const redirectPath = await getRedirectPathForRole(userRole, merchantResult, driverResult, isInfluencerUser, data.user.id, true);
+        const isDriverUser = driverResult || userRoles.includes('driver');
+        const isMerchantUser = merchantResult || userRoles.includes('vendor');
+        const userRole = userRoles.includes('admin') ? 'admin' :
+                        isMerchantUser ? 'vendor' : 'consumer';
+        const redirectPath = await getRedirectPathForRole(userRole, isMerchantUser, isDriverUser, isInfluencerUser, data.user.id, true);
         
         toast({
           title: "Login Successful",
