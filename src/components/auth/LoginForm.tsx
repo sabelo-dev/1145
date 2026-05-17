@@ -31,9 +31,7 @@ const LoginForm: React.FC = () => {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       const result = await login(values.email, values.password);
-      if (result.redirectPath) {
-        navigate(result.redirectPath);
-      }
+      navigate(result?.redirectPath || "/dashboard", { replace: true });
     } catch (error) {
       console.error(error);
       // Error is handled in the AuthContext
