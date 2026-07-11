@@ -57,11 +57,22 @@ const TrackOrderPage: React.FC = () => {
     setSearched(true);
 
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, status, total, created_at, tracking_number, courier_company, courier_name, estimated_delivery, shipping_address")
-        .eq("tracking_number", trackingNumber.trim())
-        .maybeSingle();
+      const { data: rows, error } = await supabase
+        .rpc("get_order_by_tracking", { p_tracking: trackingNumber.trim() });
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      const data = row
+        ? {
+            id: row.id,
+            status: row.status,
+            total: row.total,
+            created_at: row.created_at,
+            tracking_number: row.tracking_number,
+            courier_company: row.courier_company,
+            courier_name: row.courier_name,
+            estimated_delivery: row.estimated_delivery,
+            shipping_address: { city: row.shipping_city, country: row.shipping_country },
+          }
+        : null;
 
       if (error) throw error;
 
