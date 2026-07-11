@@ -109,8 +109,30 @@ const ShopPage: React.FC = () => {
       return false;
     }
 
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const haystack = `${product.name} ${product.vendorName ?? ""} ${product.category ?? ""} ${product.description ?? ""}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+
     return true;
   });
+
+  // Autocomplete suggestions (top 8 by name match)
+  const suggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [] as Product[];
+    const starts: Product[] = [];
+    const contains: Product[] = [];
+    for (const p of products) {
+      const name = p.name.toLowerCase();
+      if (name.startsWith(q)) starts.push(p);
+      else if (name.includes(q) || (p.vendorName ?? "").toLowerCase().includes(q)) contains.push(p);
+      if (starts.length + contains.length >= 20) break;
+    }
+    return [...starts, ...contains].slice(0, 8);
+  }, [searchQuery, products]);
 
   // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
