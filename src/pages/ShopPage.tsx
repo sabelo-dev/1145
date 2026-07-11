@@ -171,7 +171,109 @@ const ShopPage: React.FC = () => {
       />
       <div className="wwe-container py-8">
         <header className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Shop All Products</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Shop All Products</h1>
+
+          {/* Search with autocomplete */}
+          <div ref={searchRef} className="relative mb-4 max-w-2xl">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                  setActiveIndex(-1);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActiveIndex((i) => Math.min(i + 1, suggestions.length - 1));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActiveIndex((i) => Math.max(i - 1, -1));
+                  } else if (e.key === "Enter") {
+                    if (activeIndex >= 0 && suggestions[activeIndex]) {
+                      navigate(`/product/${suggestions[activeIndex].slug}`);
+                      setShowSuggestions(false);
+                    } else {
+                      setShowSuggestions(false);
+                    }
+                  } else if (e.key === "Escape") {
+                    setShowSuggestions(false);
+                  }
+                }}
+                placeholder="Search products, brands, categories..."
+                className="pl-9 pr-9 h-11"
+                aria-label="Search products"
+                aria-autocomplete="list"
+                aria-expanded={showSuggestions && suggestions.length > 0}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveIndex(-1);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+
+            {showSuggestions && searchQuery.trim() && (
+              <div
+                role="listbox"
+                className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg overflow-hidden"
+              >
+                {suggestions.length > 0 ? (
+                  <>
+                    {suggestions.map((p, idx) => (
+                      <Link
+                        key={p.id}
+                        to={`/product/${p.slug}`}
+                        role="option"
+                        aria-selected={idx === activeIndex}
+                        onClick={() => setShowSuggestions(false)}
+                        onMouseEnter={() => setActiveIndex(idx)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 text-sm border-b last:border-b-0",
+                          idx === activeIndex ? "bg-accent" : "hover:bg-accent/50"
+                        )}
+                      >
+                        {p.images?.[0] && (
+                          <img
+                            src={p.images[0]}
+                            alt=""
+                            loading="lazy"
+                            className="h-10 w-10 rounded object-cover shrink-0"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium text-foreground">{p.name}</div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {p.vendorName}{p.category ? ` • ${p.category}` : ""}
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold text-foreground shrink-0">
+                          R{p.price?.toFixed(2)}
+                        </div>
+                      </Link>
+                    ))}
+                  </>
+                ) : (
+                  <div className="px-3 py-4 text-sm text-muted-foreground">
+                    No matches for "{searchQuery}"
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               {sortedProducts.length} of {products.length} products
