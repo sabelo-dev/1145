@@ -8781,6 +8781,10 @@ export type Database = {
         Args: { p_vendor_id: string }
         Returns: boolean
       }
+      can_write_product_image: {
+        Args: { p_first_segment: string }
+        Returns: boolean
+      }
       check_and_award_badges: { Args: { p_user_id: string }; Returns: number }
       check_driver_zone_compliance: {
         Args: { p_driver_id: string; p_lat: number; p_lng: number }
@@ -8828,6 +8832,21 @@ export type Database = {
         Returns: string
       }
       get_or_create_wallet: { Args: { p_user_id: string }; Returns: string }
+      get_order_by_tracking: {
+        Args: { p_tracking: string }
+        Returns: {
+          courier_company: string
+          courier_name: string
+          created_at: string
+          estimated_delivery: string
+          id: string
+          shipping_city: string
+          shipping_country: string
+          status: string
+          total: number
+          tracking_number: string
+        }[]
+      }
       get_ucoin_transfers: {
         Args: { p_limit?: number; p_user_id: string }
         Returns: {
@@ -8892,6 +8911,10 @@ export type Database = {
       }
       is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor: { Args: { _user_id: string }; Returns: boolean }
+      is_vendor_owned_path: {
+        Args: { p_first_segment: string; p_second_segment: string }
+        Returns: boolean
+      }
       mg_gold_to_currency: {
         Args: { p_currency_code: string; p_mg_gold: number }
         Returns: number
