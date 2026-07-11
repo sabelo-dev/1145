@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import ProductGrid from "@/components/shop/ProductGrid";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Filter, SortAsc } from "lucide-react";
+import { ChevronDown, Filter, Search, SortAsc, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Product, Category } from "@/types";
 import { fetchAllProducts, fetchCategories } from "@/services/products";
