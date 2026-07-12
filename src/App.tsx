@@ -128,7 +128,7 @@ function AppRouter() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route index element={<Index />} />
+        <Route index element={<ShopPage />} />
         <Route path="home" element={<HomePage />} />
         <Route path="install" element={<InstallPage />} />
         <Route path="store/:storeSlug" element={<StorefrontPage />} />
