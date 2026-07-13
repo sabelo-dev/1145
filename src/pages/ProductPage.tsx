@@ -190,7 +190,7 @@ const ProductPage: React.FC = () => {
   const isInStock = selectedVariation ? selectedVariation.quantity > 0 : product.inStock;
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
+    { name: 'Home', url: '/shop' },
     { name: 'Shop', url: '/shop' },
     { name: product.category, url: `/category/${product.category.toLowerCase()}` },
     { name: product.name, url: `/product/${product.slug}` },
@@ -212,7 +212,7 @@ const ProductPage: React.FC = () => {
       <div className="wwe-container py-8">
         {/* Breadcrumbs */}
         <nav className="mb-6 text-sm" aria-label="Breadcrumb">
-          <Link to="/" className="text-gray-500 hover:text-wwe-navy">Home</Link>
+          <Link to="/shop" className="text-gray-500 hover:text-wwe-navy">Home</Link>
           {" "} / {" "}
           <Link to="/shop" className="text-gray-500 hover:text-wwe-navy">Shop</Link>
           {" "} / {" "}

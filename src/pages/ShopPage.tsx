@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import ProductGrid from "@/components/shop/ProductGrid";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Filter, SortAsc } from "lucide-react";
+import { ChevronDown, Filter, Search, SortAsc, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Product, Category } from "@/types";
 import { fetchAllProducts, fetchCategories } from "@/services/products";
@@ -40,6 +41,32 @@ const ShopPage: React.FC = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  const handleClearAll = () => {
+    setSearchQuery("");
+    setSelectedCategory("");
+    setPriceRange([0, 2000]);
+    setInStockOnly(false);
+    setSelectedBrands([]);
+    setSortBy("featured");
+    setActiveIndex(-1);
+    setShowSuggestions(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -93,8 +120,30 @@ const ShopPage: React.FC = () => {
       return false;
     }
 
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const haystack = `${product.name} ${product.vendorName ?? ""} ${product.category ?? ""} ${product.description ?? ""}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+
     return true;
   });
+
+  // Autocomplete suggestions (top 8 by name match)
+  const suggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [] as Product[];
+    const starts: Product[] = [];
+    const contains: Product[] = [];
+    for (const p of products) {
+      const name = p.name.toLowerCase();
+      if (name.startsWith(q)) starts.push(p);
+      else if (name.includes(q) || (p.vendorName ?? "").toLowerCase().includes(q)) contains.push(p);
+      if (starts.length + contains.length >= 20) break;
+    }
+    return [...starts, ...contains].slice(0, 8);
+  }, [searchQuery, products]);
 
   // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -112,6 +161,15 @@ const ShopPage: React.FC = () => {
         return 0; // No specific sorting
     }
   });
+
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    selectedCategory !== "" ||
+    inStockOnly ||
+    selectedBrands.length > 0 ||
+    sortBy !== "featured" ||
+    priceRange[0] > 0 ||
+    priceRange[1] < 2000;
 
   if (loading) {
     return (
@@ -133,63 +191,182 @@ const ShopPage: React.FC = () => {
       />
       <div className="wwe-container py-8">
         <header className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Shop All Products</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Shop All Products</h1>
+
+          {/* Search with autocomplete */}
+          <div ref={searchRef} className="relative mb-4 max-w-2xl">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                  setActiveIndex(-1);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActiveIndex((i) => Math.min(i + 1, suggestions.length - 1));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActiveIndex((i) => Math.max(i - 1, -1));
+                  } else if (e.key === "Enter") {
+                    if (activeIndex >= 0 && suggestions[activeIndex]) {
+                      navigate(`/product/${suggestions[activeIndex].slug}`);
+                      setShowSuggestions(false);
+                    } else {
+                      setShowSuggestions(false);
+                    }
+                  } else if (e.key === "Escape") {
+                    setShowSuggestions(false);
+                  }
+                }}
+                placeholder="Search products, brands, categories..."
+                className="pl-9 pr-9 h-11"
+                aria-label="Search products"
+                aria-autocomplete="list"
+                aria-expanded={showSuggestions && suggestions.length > 0}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveIndex(-1);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+
+            {showSuggestions && searchQuery.trim() && (
+              <div
+                role="listbox"
+                className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg overflow-hidden"
+              >
+                {suggestions.length > 0 ? (
+                  <>
+                    {suggestions.map((p, idx) => (
+                      <Link
+                        key={p.id}
+                        to={`/product/${p.slug}`}
+                        role="option"
+                        aria-selected={idx === activeIndex}
+                        onClick={() => setShowSuggestions(false)}
+                        onMouseEnter={() => setActiveIndex(idx)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 text-sm border-b last:border-b-0",
+                          idx === activeIndex ? "bg-accent" : "hover:bg-accent/50"
+                        )}
+                      >
+                        {p.images?.[0] && (
+                          <img
+                            src={p.images[0]}
+                            alt=""
+                            loading="lazy"
+                            className="h-10 w-10 rounded object-cover shrink-0"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium text-foreground">{p.name}</div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {p.vendorName}{p.category ? ` • ${p.category}` : ""}
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold text-foreground shrink-0">
+                          R{p.price?.toFixed(2)}
+                        </div>
+                      </Link>
+                    ))}
+                  </>
+                ) : (
+                  <div className="px-3 py-4 text-sm text-muted-foreground">
+                    No matches for "{searchQuery}"
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               {sortedProducts.length} of {products.length} products
+              {hasActiveFilters && (
+                <span className="ml-2 text-xs text-primary">(filtered)</span>
+              )}
             </p>
 
-            {/* Sort & Filter buttons for mobile */}
-            <div className="flex items-center gap-2 md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9">
-                    <SortAsc className="mr-2 h-4 w-4" /> Sort
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setSortBy("featured")}>
-                    Featured
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("price-low")}>
-                    Price: Low to High
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("price-high")}>
-                    Price: High to Low
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("newest")}>
-                    Newest
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("rating")}>
-                    Highest Rated
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAll}
+                  className="h-9 px-2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear all filters, search, and sorting"
+                >
+                  <X className="mr-1 h-4 w-4" /> Clear all
+                </Button>
+              )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="mr-2 h-4 w-4" /> Filters
-              </Button>
-            </div>
+              {/* Sort & Filter buttons for mobile */}
+              <div className="flex items-center gap-2 md:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9">
+                      <SortAsc className="mr-2 h-4 w-4" /> Sort
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSortBy("featured")}>
+                      Featured
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("price-low")}>
+                      Price: Low to High
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("price-high")}>
+                      Price: High to Low
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("newest")}>
+                      Newest
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("rating")}>
+                      Highest Rated
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-            {/* Sort dropdown for desktop */}
-            <div className="hidden md:block">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Sort By" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="mr-2 h-4 w-4" /> Filters
+                </Button>
+              </div>
+
+              {/* Sort dropdown for desktop */}
+              <div className="hidden md:block">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Sort By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="featured">Featured</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </header>
@@ -208,12 +385,7 @@ const ShopPage: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setPriceRange([0, 2000]);
-                    setInStockOnly(false);
-                    setSelectedBrands([]);
-                  }}
+                  onClick={handleClearAll}
                 >
                   Clear All
                 </Button>
@@ -371,12 +543,7 @@ const ShopPage: React.FC = () => {
                 </p>
                 <Button
                   className="mt-4 bg-wwe-navy hover:bg-wwe-navy/90"
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setPriceRange([0, 2000]);
-                    setInStockOnly(false);
-                    setSelectedBrands([]);
-                  }}
+                  onClick={handleClearAll}
                 >
                   Clear All Filters
                 </Button>

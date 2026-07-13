@@ -1,10 +1,10 @@
 import React from "react";
-import ServiceHubPage from "./ServiceHubPage";
+import ShopPage from "./ShopPage";
 
 const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div ref={ref}>
-      <ServiceHubPage />
+      <ShopPage />
     </div>
   );
 });

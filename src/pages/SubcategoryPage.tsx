@@ -55,7 +55,7 @@ const SubcategoryPage: React.FC = () => {
   }
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
+    { name: "Home", url: "/shop" },
     { name: "Categories", url: "/categories" },
     { name: category.name, url: `/category/${category.slug}` },
     { name: subcategory.name, url: `/category/${category.slug}/${subcategory.slug}` },
@@ -72,7 +72,7 @@ const SubcategoryPage: React.FC = () => {
       <div className="wwe-container py-8">
         {/* Breadcrumbs */}
         <nav className="mb-6 text-sm" aria-label="Breadcrumb">
-          <Link to="/" className="text-muted-foreground hover:text-foreground">
+          <Link to="/shop" className="text-muted-foreground hover:text-foreground">
             Home
           </Link>{" "}
           /{" "}
