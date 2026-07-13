@@ -15,7 +15,7 @@ const Navigation: React.FC = () => {
       <NavigationMenuList className="space-x-6">
         <NavigationMenuItem>
           <Link
-            to="/"
+            to="/shop"
             className="text-gray-600 hover:text-wwe-navy transition-colors px-3 py-2"
           >
             Home

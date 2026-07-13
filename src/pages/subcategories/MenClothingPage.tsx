@@ -32,7 +32,7 @@ const MenClothingPage: React.FC = () => {
       <div className="wwe-container py-8">
         {/* Breadcrumbs */}
         <div className="mb-6 text-sm">
-          <Link to="/" className="text-gray-500 hover:text-wwe-navy">Home</Link>
+          <Link to="/shop" className="text-gray-500 hover:text-wwe-navy">Home</Link>
           {" / "}
           <Link to="/categories" className="text-gray-500 hover:text-wwe-navy">Categories</Link>
           {" / "}

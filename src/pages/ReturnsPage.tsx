@@ -11,7 +11,7 @@ const ReturnsPage: React.FC = () => {
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
+          <Link to="/shop" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Link>

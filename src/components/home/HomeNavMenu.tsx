@@ -14,7 +14,7 @@ import {
 import MobileMenu from "@/components/layout/header/MobileMenu";
 
 const menuItems = [
-  { label: "Home", path: "/", icon: Home },
+  { label: "Home", path: "/shop", icon: Home },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
   { label: "Categories", path: "/categories", icon: Grid3X3 },
   { label: "Services", path: "/services", icon: Truck },
@@ -68,7 +68,7 @@ const HomeNavMenu: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between gap-3 py-2">
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/shop" className="flex-shrink-0">
             <img src="/logo.png" alt="1145" className="h-8 w-8 rounded-md" />
           </Link>
 
