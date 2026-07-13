@@ -359,12 +359,7 @@ const ShopPage: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setPriceRange([0, 2000]);
-                    setInStockOnly(false);
-                    setSelectedBrands([]);
-                  }}
+                  onClick={handleClearAll}
                 >
                   Clear All
                 </Button>
