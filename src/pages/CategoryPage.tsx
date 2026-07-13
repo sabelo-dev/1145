@@ -51,7 +51,7 @@ const CategoryPage: React.FC = () => {
   }
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
+    { name: 'Home', url: '/shop' },
     { name: 'Categories', url: '/categories' },
     { name: category.name, url: `/category/${category.slug}` },
   ];
@@ -68,7 +68,7 @@ const CategoryPage: React.FC = () => {
       <div className="wwe-container py-8">
         {/* Breadcrumbs */}
         <nav className="mb-6 text-sm" aria-label="Breadcrumb">
-          <Link to="/" className="text-gray-500 hover:text-wwe-navy">
+          <Link to="/shop" className="text-gray-500 hover:text-wwe-navy">
             Home
           </Link>{" "}
           /{" "}

@@ -47,6 +47,17 @@ const ShopPage: React.FC = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const handleClearAll = () => {
+    setSearchQuery("");
+    setSelectedCategory("");
+    setPriceRange([0, 2000]);
+    setInStockOnly(false);
+    setSelectedBrands([]);
+    setSortBy("featured");
+    setActiveIndex(-1);
+    setShowSuggestions(false);
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -150,6 +161,15 @@ const ShopPage: React.FC = () => {
         return 0; // No specific sorting
     }
   });
+
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    selectedCategory !== "" ||
+    inStockOnly ||
+    selectedBrands.length > 0 ||
+    sortBy !== "featured" ||
+    priceRange[0] > 0 ||
+    priceRange[1] < 2000;
 
   if (loading) {
     return (
@@ -277,59 +297,76 @@ const ShopPage: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               {sortedProducts.length} of {products.length} products
+              {hasActiveFilters && (
+                <span className="ml-2 text-xs text-primary">(filtered)</span>
+              )}
             </p>
 
-            {/* Sort & Filter buttons for mobile */}
-            <div className="flex items-center gap-2 md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9">
-                    <SortAsc className="mr-2 h-4 w-4" /> Sort
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setSortBy("featured")}>
-                    Featured
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("price-low")}>
-                    Price: Low to High
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("price-high")}>
-                    Price: High to Low
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("newest")}>
-                    Newest
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("rating")}>
-                    Highest Rated
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAll}
+                  className="h-9 px-2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear all filters, search, and sorting"
+                >
+                  <X className="mr-1 h-4 w-4" /> Clear all
+                </Button>
+              )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="mr-2 h-4 w-4" /> Filters
-              </Button>
-            </div>
+              {/* Sort & Filter buttons for mobile */}
+              <div className="flex items-center gap-2 md:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9">
+                      <SortAsc className="mr-2 h-4 w-4" /> Sort
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSortBy("featured")}>
+                      Featured
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("price-low")}>
+                      Price: Low to High
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("price-high")}>
+                      Price: High to Low
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("newest")}>
+                      Newest
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("rating")}>
+                      Highest Rated
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-            {/* Sort dropdown for desktop */}
-            <div className="hidden md:block">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Sort By" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="mr-2 h-4 w-4" /> Filters
+                </Button>
+              </div>
+
+              {/* Sort dropdown for desktop */}
+              <div className="hidden md:block">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Sort By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="featured">Featured</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </header>
@@ -348,12 +385,7 @@ const ShopPage: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setPriceRange([0, 2000]);
-                    setInStockOnly(false);
-                    setSelectedBrands([]);
-                  }}
+                  onClick={handleClearAll}
                 >
                   Clear All
                 </Button>
@@ -511,12 +543,7 @@ const ShopPage: React.FC = () => {
                 </p>
                 <Button
                   className="mt-4 bg-wwe-navy hover:bg-wwe-navy/90"
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setPriceRange([0, 2000]);
-                    setInStockOnly(false);
-                    setSelectedBrands([]);
-                  }}
+                  onClick={handleClearAll}
                 >
                   Clear All Filters
                 </Button>

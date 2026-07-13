@@ -143,7 +143,7 @@ const InfluencerLoginPage: React.FC = () => {
               {isSubmitting ? 'Signing in...' : 'Sign In'}
             </Button>
             <Link
-              to="/"
+              to="/shop"
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />

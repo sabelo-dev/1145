@@ -422,7 +422,7 @@ const VendorOnboarding: React.FC = () => {
               Thank you for completing the vendor onboarding process. Your application is now under review.
               You will receive a notification once your account has been approved.
             </p>
-            <Button onClick={() => window.location.href = "/"}>
+            <Button onClick={() => window.location.href = "/shop"}>
               Return to Homepage
             </Button>
           </CardContent>

@@ -95,7 +95,7 @@ const AuctionRegistrationSuccessPage: React.FC = () => {
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate("/shop")}
                     className="w-full"
                   >
                     Go to Homepage

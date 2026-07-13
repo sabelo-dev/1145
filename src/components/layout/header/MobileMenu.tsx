@@ -32,7 +32,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 }) => {
 
   const mainMenuItems = [
-    { label: "Home", path: "/", icon: Home },
+    { label: "Home", path: "/shop", icon: Home },
     { label: "Shop", path: "/shop", icon: ShoppingBag },
     { label: "Services", path: "/services", icon: Truck },
     { label: "Best Sellers", path: "/best-sellers", icon: TrendingUp },
