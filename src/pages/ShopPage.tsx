@@ -543,12 +543,7 @@ const ShopPage: React.FC = () => {
                 </p>
                 <Button
                   className="mt-4 bg-wwe-navy hover:bg-wwe-navy/90"
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setPriceRange([0, 2000]);
-                    setInStockOnly(false);
-                    setSelectedBrands([]);
-                  }}
+                  onClick={handleClearAll}
                 >
                   Clear All Filters
                 </Button>
