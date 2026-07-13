@@ -47,6 +47,17 @@ const ShopPage: React.FC = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const handleClearAll = () => {
+    setSearchQuery("");
+    setSelectedCategory("");
+    setPriceRange([0, 2000]);
+    setInStockOnly(false);
+    setSelectedBrands([]);
+    setSortBy("featured");
+    setActiveIndex(-1);
+    setShowSuggestions(false);
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
