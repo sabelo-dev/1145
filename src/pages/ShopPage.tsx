@@ -162,6 +162,15 @@ const ShopPage: React.FC = () => {
     }
   });
 
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    selectedCategory !== "" ||
+    inStockOnly ||
+    selectedBrands.length > 0 ||
+    sortBy !== "featured" ||
+    priceRange[0] > 0 ||
+    priceRange[1] < 2000;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
