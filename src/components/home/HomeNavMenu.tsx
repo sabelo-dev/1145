@@ -14,7 +14,7 @@ import {
 import MobileMenu from "@/components/layout/header/MobileMenu";
 
 const menuItems = [
-  { label: "Home", path: "/shop", icon: Home },
+  { label: "Home", path: "/", icon: Home },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
   { label: "Categories", path: "/categories", icon: Grid3X3 },
   { label: "Services", path: "/services", icon: Truck },

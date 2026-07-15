@@ -17,10 +17,11 @@ interface UserMenuProps {
   isAdmin: boolean;
   isMerchant: boolean;
   isDriver: boolean;
+  isInfluencer: boolean;
   logout: () => Promise<void>;
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isMerchant, isDriver, logout }) => {
+const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isMerchant, isDriver, isInfluencer, logout }) => {
   if (!user) {
     return (
       <Link to="/login">
@@ -88,6 +89,15 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isMerchant, isDriver
             </Link>
           </DropdownMenuItem>
         )}
+
+        {!isInfluencer && user?.role === 'consumer' && (
+          <DropdownMenuItem asChild>
+            <Link to="/influencer/register" className="flex items-center">
+              <Truck className="h-4 w-4 mr-2" />
+              Become an Influencer
+            </Link>
+          </DropdownMenuItem>
+        )}
         
         {isMerchant && (
           <DropdownMenuItem asChild>
@@ -103,6 +113,15 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isMerchant, isDriver
             <Link to="/driver/dashboard" className="flex items-center">
               <Truck className="h-4 w-4 mr-2" />
               Driver Dashboard
+            </Link>
+          </DropdownMenuItem>
+        )}
+
+        {isInfluencer && (
+          <DropdownMenuItem asChild>
+            <Link to="/influencer/dashboard" className="flex items-center">
+              <Truck className="h-4 w-4 mr-2" />
+              Influencer Dashboard
             </Link>
           </DropdownMenuItem>
         )}
