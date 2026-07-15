@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     const platform = url.searchParams.get('platform');
-    const appBaseUrl = url.searchParams.get('app_url') || 'https://1145lifestyle.com';
+    const appBaseUrl = url.searchParams.get('app_url') || 'https://1145.io';
     
     // Get auth token from header
     const authHeader = req.headers.get('Authorization');

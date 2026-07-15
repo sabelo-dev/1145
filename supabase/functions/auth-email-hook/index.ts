@@ -239,7 +239,7 @@ const handler = async (req: Request): Promise<Response> => {
       user.user_metadata?.full_name ||
       user.email.split("@")[0];
     // Build the action URL - use confirmation_url if available, otherwise construct from token
-    const siteUrl = Deno.env.get("SITE_URL") || "https://1145lifestyle.com";
+    const siteUrl = Deno.env.get("SITE_URL") || "https://1145.io";
     let actionUrl = email_data.confirmation_url || "";
     
     // If no confirmation_url but we have a token_hash, construct the URL
@@ -265,7 +265,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "1145 Lifestyle <onboarding@resend.dev>",
       to: [user.email],
       subject: subject,
-      reply_to: "support@1145lifestyle.com",
+      reply_to: "support@1145.io",
       html: html,
     });
 

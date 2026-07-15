@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
   const errorDescription = url.searchParams.get('error_description');
 
   // Default redirect URL
-  let redirectUrl = 'https://1145lifestyle.com/influencer/dashboard?tab=accounts';
+  let redirectUrl = 'https://1145.io/influencer/dashboard?tab=accounts';
 
   try {
     if (error) {

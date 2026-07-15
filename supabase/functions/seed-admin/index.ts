@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const email = "admin@1145lifestyle.com";
+  const email = "admin@1145.io";
   const password = "Lifestyle@1145";
   const name = "TS Mkhatshwa";
 

@@ -351,13 +351,13 @@ const PrivacyPage: React.FC = () => {
                 </p>
                 <div className="text-gray-700">
                   <p>
-                    <strong>Privacy Officer:</strong> privacy@1145lifestyle.com
+                    <strong>Privacy Officer:</strong> privacy@1145.io
                   </p>
                   <p>
-                    <strong>General Inquiries:</strong> support@1145lifestyle.com
+                    <strong>General Inquiries:</strong> support@1145.io
                   </p>
                   <p>
-                    <strong>Phone:</strong> +27-76-159-7719
+                    <strong>Phone:</strong> +27-60-253-5492
                   </p>
                   <p>
                     <strong>Address:</strong>eCommerce Street, International
