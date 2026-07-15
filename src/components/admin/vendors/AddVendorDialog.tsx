@@ -127,7 +127,7 @@ const AddVendorDialog: React.FC<Props> = ({ onCreated }) => {
               id="ownerEmail"
               value={ownerEmail}
               onChange={(e) => setOwnerEmail(e.target.value)}
-              placeholder="vendor@1145lifestyle.com"
+              placeholder="vendor@1145.io"
               type="email"
               autoComplete="email"
             />
@@ -149,7 +149,7 @@ const AddVendorDialog: React.FC<Props> = ({ onCreated }) => {
               id="businessEmail"
               value={businessEmail}
               onChange={(e) => setBusinessEmail(e.target.value)}
-              placeholder="sales@1145lifestyle.com"
+              placeholder="sales@1145.io"
               type="email"
             />
           </div>

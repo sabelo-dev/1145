@@ -4,7 +4,7 @@ import { useEffect } from "react";
  * Breaks out of an iframe by promoting the current URL to the top-level window.
  *
  * Auth flows (login, register, password reset, OAuth callbacks, email confirmation)
- * frequently redirect to the configured SITE_URL (e.g. https://1145lifestyle.com).
+ * frequently redirect to the configured SITE_URL (e.g. https://1145.io).
  * When the app is rendered inside the Lovable preview iframe (a different origin),
  * the browser blocks that navigation with a `chrome-error://chromewebdata/` failure.
  *

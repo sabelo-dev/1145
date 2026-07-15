@@ -26,8 +26,8 @@ export const useCustomDomainResolver = () => {
         "lovable.app",
         "lovableproject.com",
         "lovable.dev",
-        "1145lifestyle.com",
-        "www.1145lifestyle.com",
+        "1145.io",
+        "www.1145.io",
       ];
 
       const isPlatform = platformHosts.some(

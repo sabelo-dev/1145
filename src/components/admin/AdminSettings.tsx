@@ -40,10 +40,10 @@ const AdminSettings: React.FC = () => {
   const form = useForm<SettingsForm>({
     defaultValues: {
       platformName: "1145 Lifestyle",
-      platformEmail: "support@1145lifestyle.com",
+      platformEmail: "support@1145.io",
       platformFee: "5",
       vendorFee: "10",
-      supportEmail: "help@1145lifestyle.com",
+      supportEmail: "help@1145.io",
       termsOfService: "Standard terms of service for 1145 marketplace...",
       privacyPolicy: "Privacy policy for 1145 marketplace..."
     },

@@ -73,27 +73,27 @@ const ContactPage: React.FC = () => {
                 <CardDescription>Choose your preferred way to contact us</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <a href="https://wa.me/27761597719" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg hover:ring-1 hover:ring-green-300 transition-all">
+                <a href="https://wa.me/27602535492" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg hover:ring-1 hover:ring-green-300 transition-all">
                   <Phone className="h-5 w-5 text-green-600" />
                   <div>
                     <p className="font-medium text-green-900 dark:text-green-300">WhatsApp</p>
-                    <p className="text-green-700 dark:text-green-400">0761597719</p>
+                    <p className="text-green-700 dark:text-green-400">0602535492</p>
                   </div>
                 </a>
 
-                <a href="mailto:support@1145lifestyle.com" className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg hover:ring-1 hover:ring-blue-300 transition-all">
+                <a href="mailto:support@1145.io" className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg hover:ring-1 hover:ring-blue-300 transition-all">
                   <Mail className="h-5 w-5 text-blue-600" />
                   <div>
                     <p className="font-medium text-blue-900 dark:text-blue-300">General Support</p>
-                    <p className="text-blue-700 dark:text-blue-400">support@1145lifestyle.com</p>
+                    <p className="text-blue-700 dark:text-blue-400">support@1145.io</p>
                   </div>
                 </a>
 
-                <a href="mailto:sales@1145lifestyle.com" className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg hover:ring-1 hover:ring-purple-300 transition-all">
+                <a href="mailto:sales@1145.io" className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg hover:ring-1 hover:ring-purple-300 transition-all">
                   <Mail className="h-5 w-5 text-purple-600" />
                   <div>
                     <p className="font-medium text-purple-900 dark:text-purple-300">Sales Inquiries</p>
-                    <p className="text-purple-700 dark:text-purple-400">sales@1145lifestyle.com</p>
+                    <p className="text-purple-700 dark:text-purple-400">sales@1145.io</p>
                   </div>
                 </a>
 

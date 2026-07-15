@@ -131,7 +131,7 @@ const ConsumerSupport: React.FC = () => {
   };
 
   const handleSendEmail = () => {
-    window.location.href = `mailto:support@1145lifestyle.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    window.location.href = `mailto:support@1145.io?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
     setEmailDialogOpen(false);
     setEmailSubject("");
     setEmailBody("");
@@ -282,7 +282,7 @@ const ConsumerSupport: React.FC = () => {
             <Mail className="h-8 w-8 text-primary" />
             <div>
               <h3 className="font-medium">Email Support</h3>
-              <p className="text-sm text-muted-foreground">support@1145lifestyle.com</p>
+              <p className="text-sm text-muted-foreground">support@1145.io</p>
             </div>
             <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
               <DialogTrigger asChild>
