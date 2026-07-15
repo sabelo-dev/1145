@@ -97,7 +97,7 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <Car className="h-4 w-4 mr-2" /> Ride
                 </TabsTrigger>
                 <TabsTrigger value="package" className="data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 pb-3 text-sm font-medium">
-                  <Package className="h-4 w-4 mr-2" /> Package
+                  <Package className="h-4 w-4 mr-2" /> Package & Send
                 </TabsTrigger>
                 <TabsTrigger value="shop" className="data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 pb-3 text-sm font-medium">
                   <ShoppingBag className="h-4 w-4 mr-2" /> Shop

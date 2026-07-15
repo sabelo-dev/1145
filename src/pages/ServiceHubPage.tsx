@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSlideshow from "@/components/home/HeroSlideshow";
+import Header from "@/components/layout/Header";
 
 const services = [
   {
@@ -96,6 +97,17 @@ const services = [
     route: "/stays",
     tag: "New",
   },
+  {
+    id: "courier",
+    name: "Courier",
+    description: "Send Packages",
+    icon: Package,
+    gradient: "from-sky-500 to-cyan-500",
+    iconBg: "bg-sky-500/10",
+    iconColor: "text-sky-500",
+    route: "/courier",
+    tag: "New",
+  },
 ];
 
 const highlights = [
@@ -110,6 +122,9 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <div ref={ref} className="min-h-screen bg-background">
+      
+      <Header />
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Animated background */}
@@ -243,7 +258,7 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
               >
                 {/* Hover gradient overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300`} />
-                
+
                 <CardContent className="p-4 md:p-6 relative">
                   <div className="flex items-start justify-between mb-3 md:mb-4">
                     <div className={`p-2.5 md:p-3 rounded-xl ${service.iconBg} transition-transform group-hover:scale-110 duration-300`}>
