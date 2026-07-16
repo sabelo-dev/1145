@@ -179,6 +179,7 @@ function AppRouter() {
         </Route>
         
         <Route path="services" element={<ServiceHubPage />} />
+        <Route path="package/send" element={<PackageSendPage />} />
         <Route path="stays" element={<Layout />}>
           <Route index element={<StaysPage />} />
           <Route path=":propertyId" element={<StayDetailPage />} />
