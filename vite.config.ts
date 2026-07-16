@@ -65,14 +65,15 @@ export default defineConfig({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'query-vendor': ['@tanstack/react-query'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'motion-vendor': ['framer-motion'],
-          'charts-vendor': ['recharts'],
-          'pdf-vendor': ['jspdf', 'jspdf-autotable'],
-        } as any,
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (/[\\/]node_modules[\\/](react|react-dom|react-router-dom|react-router)[\\/]/.test(id)) return 'react-vendor';
+          if (id.includes('@tanstack/react-query')) return 'query-vendor';
+          if (id.includes('@supabase/supabase-js')) return 'supabase-vendor';
+          if (id.includes('framer-motion')) return 'motion-vendor';
+          if (id.includes('recharts')) return 'charts-vendor';
+          if (id.includes('jspdf')) return 'pdf-vendor';
+        },
       },
     },
   },
