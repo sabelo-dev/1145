@@ -166,7 +166,7 @@ export const rideDispatchService = {
       update.cancelled_at = new Date().toISOString();
     }
 
-    const { error } = await supabase.from("rides").update(update).eq("id", rideId);
+    const { error } = await supabase.from("rides").update(update as any).eq("id", rideId);
     return !error;
   },
 
