@@ -18,9 +18,9 @@ import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals } from "@
 const services = [
   { name: "Shop", desc: "Marketplace", icon: ShoppingBag, href: "/shop", tag: "Popular" },
   { name: "Travel", desc: "Request a ride", icon: Car, href: "/rides/request" },
-  { name: "Package", desc: "Send parcels", icon: Package, href: "/rides/request" },
+  { name: "Package", desc: "Send parcels", icon: Package, href: "/package/send" },
   { name: "Wallet", desc: "Money & Gold", icon: Wallet, href: "/wallet" },
-  { name: "Lease", desc: "Rent-to-own", icon: KeyRound, href: "/lease", tag: "New" },
+  { name: "Lease", desc: "Rent-to-own", icon: KeyRound, href: "/lease/marketplace", tag: "New" },
   { name: "Business", desc: "Merchant tools", icon: Briefcase, href: "/merchant/dashboard" },
   { name: "Influence", desc: "Creator hub", icon: Megaphone, href: "/influencer/login" },
   { name: "Stay", desc: "Book a stay", icon: Building2, href: "/stays", tag: "New" },
