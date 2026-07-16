@@ -72,7 +72,7 @@ export default defineConfig({
           'motion-vendor': ['framer-motion'],
           'charts-vendor': ['recharts'],
           'pdf-vendor': ['jspdf', 'jspdf-autotable'],
-        },
+        } as any,
       },
     },
   },
