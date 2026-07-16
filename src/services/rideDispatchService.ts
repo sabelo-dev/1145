@@ -44,7 +44,7 @@ export const rideDispatchService = {
     const surgePromise = surgeEngine.getSurgeForLocation(request.pickup);
 
     // 2. Create the ride record
-    const { data: ride, error } = await supabase.from("rides").insert({
+    const { data: ride, error } = await (supabase.from("rides") as any).insert({
       passenger_id: request.passengerId,
       vehicle_type_id: request.vehicleTypeId,
       pickup_address: request.pickup.address,
