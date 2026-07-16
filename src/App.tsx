@@ -89,6 +89,7 @@ const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
 const AssetOwnerDashboard = lazy(() => import("@/pages/AssetOwnerDashboard"));
 const StaysPage = lazy(() => import("@/pages/StaysPage"));
 const StayDetailPage = lazy(() => import("@/pages/StayDetailPage"));
+const PackageSendPage = lazy(() => import("@/pages/PackageSendPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
