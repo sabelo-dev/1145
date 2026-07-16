@@ -97,7 +97,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
     if (newStatus === "completed") updateData.completed_at = new Date().toISOString();
     if (newStatus === "cancelled") { updateData.cancelled_at = new Date().toISOString(); updateData.cancelled_by = "driver"; }
 
-    const { error } = await supabase.from("rides").update(updateData).eq("id", rideId);
+    const { error } = await supabase.from("rides").update(updateData as any).eq("id", rideId);
     if (error) {
       toast({ variant: "destructive", title: "Error", description: "Could not update ride." });
     } else {
