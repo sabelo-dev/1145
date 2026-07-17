@@ -139,6 +139,25 @@
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground font-semibold hover:opacity-90 transition-all;
   }
+
+  /* Guarantee readable text on any hover/selected/active surface.
+     Fixes cases where a component sets hover:bg-accent (or data-state=active/selected)
+     without also switching the foreground color, leaving text invisible. */
+  a:hover, button:hover,
+  [role="menuitem"]:hover, [role="option"]:hover, [role="tab"]:hover,
+  [role="button"]:hover, [role="link"]:hover {
+    color: hsl(var(--accent-foreground));
+  }
+  [data-state="active"], [data-state="on"], [data-state="checked"],
+  [data-state="open"] > [role="button"],
+  [aria-selected="true"], [aria-current="page"] {
+    color: hsl(var(--accent-foreground));
+  }
+  /* Ensure nested icons/spans inherit the readable color */
+  a:hover *, button:hover *,
+  [data-state="active"] *, [aria-selected="true"] *, [aria-current="page"] * {
+    color: inherit;
+  }
 }
 
 @layer utilities {
