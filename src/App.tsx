@@ -15,6 +15,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy loaded pages
 const Index = lazy(() => import("@/pages/Index"));
@@ -273,6 +274,7 @@ function App() {
                 <WishlistProvider>
                   <CartProvider>
                     <Router>
+                      <ScrollToTop />
                       <AppRouter />
                       <Toaster />
                     </Router>
