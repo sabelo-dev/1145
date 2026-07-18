@@ -179,7 +179,7 @@ export function useReferral() {
       const updateField = rewardType === 'signup' ? 'signup_reward_paid' : 'purchase_reward_paid';
       await supabase
         .from('referrals')
-        .update({ [updateField]: true })
+        .update({ [updateField]: true } as any)
         .eq('id', referralId);
 
       // Update total earned on referral code

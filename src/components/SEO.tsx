@@ -15,7 +15,7 @@ const SEO = ({
   title = "1145 – Social Commerce Marketplace | Transact, Move, Stay & Influence in Africa",
   description = "1145 A social commerce platform that enables users to transact, move, stay and influence.",
   keywords = "1145, 1145 Lifestyle, 1145 Africa, social commerce Africa,shop online Africa, sell online Africa, influencer marketplace,creator economy platform, TikTok shop integration, Instagram shopping,online marketplace Africa, ecommerce Africa, dropshipping Africa,multi-vendor marketplace, digital marketplace, earn online Africa",
-  image = "https://1145lifestyle.com/og-image.png",
+  image = "https://1145.io/og-image.png",
   url,
   type = "website",
   structuredData,
@@ -30,19 +30,19 @@ const SEO = ({
       {
         "@type": "WebSite",
         "name": "1145",
-        "url": "https://1145lifestyle.com",
+        "url": "https://1145.io",
         "description": description,
         "inLanguage": "en-ZA",
         "potentialAction": {
           "@type": "SearchAction",
-          "target": "https://1145lifestyle.com/shop?q={search_term_string}",
+          "target": "https://1145.io/shop?q={search_term_string}",
           "query-input": "required name=search_term_string"
         }
       },
       {
         "@type": "Organization",
         "name": "1145",
-        "url": "https://1145lifestyle.com",
+        "url": "https://1145.io",
         "logo": image,
         "sameAs": [
           "https://www.tiktok.com/",

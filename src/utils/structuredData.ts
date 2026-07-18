@@ -5,13 +5,13 @@ export const getOrganizationSchema = () => ({
   "@type": "Organization",
   name: "1145 Lifestyle",
   alternateName: ["1145", "1145lifestyle", "1145 SA", "1145 Shop"],
-  url: "https://1145lifestyle.com",
-  logo: "https://1145lifestyle.com/uploads/logo.png",
+  url: "https://1145.io",
+  logo: "https://1145.io/uploads/logo.png",
   description: "1145 Lifestyle is South Africa's premier online marketplace for quality products from trusted merchants. Shop 1145 for fashion, electronics, home goods and more.",
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "Customer Service",
-    email: "support@1145lifestyle.com",
+    email: "support@1145.io",
     availableLanguage: "English",
   },
   sameAs: [
@@ -26,13 +26,13 @@ export const getWebsiteSchema = () => ({
   "@type": "WebSite",
   name: "1145 Lifestyle",
   alternateName: ["1145", "1145lifestyle"],
-  url: "https://1145lifestyle.com",
+  url: "https://1145.io",
   inLanguage: "en-ZA",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://1145lifestyle.com/shop?search={search_term_string}",
+      urlTemplate: "https://1145.io/shop?search={search_term_string}",
     },
     "query-input": "required name=search_term_string",
   },

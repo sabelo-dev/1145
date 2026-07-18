@@ -7,72 +7,72 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --background: 30 30% 92%;
+    --foreground: 30 25% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card: 30 30% 96%;
+    --card-foreground: 30 25% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover: 30 30% 96%;
+    --popover-foreground: 30 25% 12%;
 
     --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 30 30% 86%;
+    --secondary-foreground: 30 25% 18%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 30 25% 82%;
+    --muted-foreground: 30 20% 40%;
 
-    --accent: 0 0% 92%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 30 35% 80%;
+    --accent-foreground: 30 25% 15%;
 
     --destructive: 0 0% 20%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 0%;
+    --border: 30 20% 78%;
+    --input: 30 20% 78%;
+    --ring: 25 40% 55%;
 
     --radius: 0.75rem;
 
     --gradient-primary: linear-gradient(135deg, hsl(0 0% 0%), hsl(0 0% 25%));
-    --gradient-accent: linear-gradient(135deg, hsl(0 0% 20%), hsl(0 0% 50%));
-    --gradient-success: linear-gradient(135deg, hsl(0 0% 30%), hsl(0 0% 10%));
-    --shadow-soft: 0 4px 24px -4px hsl(0 0% 0% / 0.12);
-    --shadow-elevated: 0 12px 40px -8px hsl(0 0% 0% / 0.18);
-    --shadow-glow: 0 0 30px -5px hsl(0 0% 0% / 0.25);
+    --gradient-accent: linear-gradient(135deg, hsl(30 35% 55%), hsl(30 35% 75%));
+    --gradient-success: linear-gradient(135deg, hsl(30 30% 45%), hsl(30 30% 65%));
+    --shadow-soft: 0 4px 24px -4px hsl(30 25% 30% / 0.12);
+    --shadow-elevated: 0 12px 40px -8px hsl(30 25% 30% / 0.18);
+    --shadow-glow: 0 0 30px -5px hsl(25 40% 55% / 0.25);
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
+    --background: 30 18% 12%;
+    --foreground: 30 30% 92%;
 
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
+    --card: 30 18% 16%;
+    --card-foreground: 30 30% 92%;
 
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 30 18% 16%;
+    --popover-foreground: 30 30% 92%;
 
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 30 18% 22%;
+    --secondary-foreground: 30 30% 90%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 30 18% 20%;
+    --muted-foreground: 30 20% 60%;
 
-    --accent: 0 0% 16%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 30 20% 28%;
+    --accent-foreground: 30 30% 92%;
 
     --destructive: 0 0% 80%;
     --destructive-foreground: 0 0% 0%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 0% 100%;
+    --border: 30 15% 25%;
+    --input: 30 15% 25%;
+    --ring: 25 40% 60%;
   }
 
 
@@ -138,6 +138,36 @@
 
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground font-semibold hover:opacity-90 transition-all;
+  }
+
+  /* Guarantee readable text on any hover/selected/active surface.
+     Scoped to elements that actually swap to the nude accent background —
+     avoids overriding text on solid primary/destructive/secondary buttons. */
+  [class*="hover:bg-accent"]:hover,
+  [class*="hover:bg-muted"]:hover,
+  [class*="hover:bg-secondary"]:hover {
+    color: hsl(var(--accent-foreground));
+  }
+  [data-state="active"][class*="data-[state=active]:bg-"],
+  [data-state="on"][class*="data-[state=on]:bg-"],
+  [data-state="checked"][class*="data-[state=checked]:bg-"],
+  [aria-current="page"] {
+    color: hsl(var(--accent-foreground));
+  }
+  /* Nested icons/spans inherit readable color on those surfaces */
+  [class*="hover:bg-accent"]:hover *,
+  [class*="hover:bg-muted"]:hover *,
+  [class*="hover:bg-secondary"]:hover *,
+  [aria-current="page"] * {
+    color: inherit;
+  }
+
+  /* Disabled state: dim uniformly, preserve token colors, block interaction */
+  :disabled,
+  [aria-disabled="true"],
+  [data-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 

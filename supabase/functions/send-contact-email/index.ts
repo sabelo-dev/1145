@@ -38,8 +38,8 @@ serve(async (req) => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "1145 Lifestyle <noreply@1145lifestyle.com>",
-          to: ["support@1145lifestyle.com"],
+          from: "1145 Lifestyle <noreply@1145.io>",
+          to: ["support@1145.io"],
           reply_to: email,
           subject: `[Contact Form] ${subject}`,
           html: `

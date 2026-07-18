@@ -67,8 +67,8 @@ const HomePage: React.FC = () => {
   return (
     <div>
       <SEO
-        title="1145 Lifestyle - Your Premier Online Marketplace"
-        description="Discover quality products from trusted vendors. Shop electronics, fashion, home goods, and more with fast shipping and secure checkout."
+        title="1145 Lifestyle - Your Premier Ecommerce ecosystem"
+        description="1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience."
         keywords="online marketplace, ecommerce, shop online, vendors, products, best deals"
         structuredData={structuredData}
       />

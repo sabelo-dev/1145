@@ -15,13 +15,13 @@ interface ThemeCustomizationContextType {
 }
 
 const defaultColors: ThemeColors = {
-  primary: "215 35% 20%",
-  secondary: "43 93% 64%",
-  accent: "210 40% 96.1%",
+  primary: "0 0% 0%",
+  secondary: "30 30% 86%",
+  accent: "30 35% 80%",
 };
 
 const colorPresets = [
-  { name: "Default", colors: { primary: "215 35% 20%", secondary: "43 93% 64%", accent: "210 40% 96.1%" } },
+  { name: "Default", colors: { primary: "0 0% 0%", secondary: "30 30% 86%", accent: "30 35% 80%" } },
   { name: "Ocean", colors: { primary: "199 89% 48%", secondary: "187 100% 42%", accent: "185 96% 90%" } },
   { name: "Forest", colors: { primary: "142 76% 36%", secondary: "84 81% 44%", accent: "138 76% 90%" } },
   { name: "Sunset", colors: { primary: "25 95% 53%", secondary: "38 92% 50%", accent: "30 100% 90%" } },

@@ -187,17 +187,17 @@ const FAQPage: React.FC = () => {
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">WhatsApp Support</h3>
                 <p className="text-sm text-gray-600 mb-2">Quick responses via WhatsApp</p>
-                <p className="font-medium">0639776666</p>
+                <p className="font-medium">0602535492</p>
               </div>
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Email Support</h3>
                 <p className="text-sm text-gray-600 mb-2">For detailed inquiries</p>
-                <p className="font-medium">support@1145lifestyle.com</p>
+                <p className="font-medium">support@1145.io</p>
               </div>
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Sales Team</h3>
                 <p className="text-sm text-gray-600 mb-2">For business inquiries</p>
-                <p className="font-medium">sales@1145lifestyle.com</p>
+                <p className="font-medium">sales@1145.io</p>
               </div>
             </div>
           </CardContent>

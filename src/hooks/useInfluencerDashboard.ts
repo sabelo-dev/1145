@@ -205,7 +205,7 @@ export const useInfluencerDashboard = () => {
 
     const { error } = await supabase
       .from('influencer_comments')
-      .update(updates)
+      .update(updates as any)
       .eq('id', commentId);
 
     if (error) {

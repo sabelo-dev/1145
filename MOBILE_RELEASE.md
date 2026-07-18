@@ -115,8 +115,8 @@ Apple **rejects** apps that request these permissions without a usage string. Ad
 | Android icon | 512×512 (PNG) |
 | Android feature graphic | 1024×500 |
 | Android screenshots | min 2 per form factor |
-| Privacy policy URL | `https://1145lifestyle.com/privacy` |
-| Terms URL | `https://1145lifestyle.com/terms` |
+| Privacy policy URL | `https://1145.io/privacy` |
+| Terms URL | `https://1145.io/terms` |
 
 ### Compliance
 

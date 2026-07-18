@@ -112,7 +112,7 @@ const AdminInbox = () => {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Email Inbox</h2>
           <p className="text-muted-foreground">
-            Emails received at @1145lifestyle.com
+            Emails received at @1145.io
           </p>
         </div>
         <div className="flex items-center gap-2">

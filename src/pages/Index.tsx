@@ -18,9 +18,9 @@ import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals } from "@
 const services = [
   { name: "Shop", desc: "Marketplace", icon: ShoppingBag, href: "/shop", tag: "Popular" },
   { name: "Travel", desc: "Request a ride", icon: Car, href: "/rides/request" },
-  { name: "Package", desc: "Send parcels", icon: Package, href: "/rides/request" },
+  { name: "Package", desc: "Send parcels", icon: Package, href: "/package/send" },
   { name: "Wallet", desc: "Money & Gold", icon: Wallet, href: "/wallet" },
-  { name: "Lease", desc: "Rent-to-own", icon: KeyRound, href: "/lease", tag: "New" },
+  { name: "Lease", desc: "Rent-to-own", icon: KeyRound, href: "/lease/marketplace", tag: "New" },
   { name: "Business", desc: "Merchant tools", icon: Briefcase, href: "/merchant/dashboard" },
   { name: "Influence", desc: "Creator hub", icon: Megaphone, href: "/influencer/login" },
   { name: "Stay", desc: "Book a stay", icon: Building2, href: "/stays", tag: "New" },
@@ -306,11 +306,11 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
             <Users className="h-16 w-16 text-primary/60" />
           </div>
           <div className="order-1 lg:order-2 space-y-4">
-            <h2 className="text-2xl sm:text-3xl font-bold">Drive when you want, earn what you need</h2>
-            <p className="text-muted-foreground">Make money on your schedule with deliveries or trips. Earn with a car, scooter, or bike.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold">Grow your business...</h2>
+            <p className="text-muted-foreground">Make money on your sleep. You focus on your Brand or Product we focus on marketing and fulfilment</p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/driver/register"><Button className="h-11 px-6">Get started</Button></Link>
-              <Link to="/driver/login" className="inline-flex items-center h-11 px-2 underline underline-offset-4 text-sm font-medium">
+              <Link to="/merchant/register"><Button className="h-11 px-6">Get started</Button></Link>
+              <Link to="/merchant/login" className="inline-flex items-center h-11 px-2 underline underline-offset-4 text-sm font-medium">
                 Already have an account? Sign in
               </Link>
             </div>
@@ -341,15 +341,16 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* CTA */}
       <section>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center space-y-5">
-          <h2 className="text-2xl sm:text-3xl font-bold">Ready to move?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">Ready to move & earn?</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">Sign up in minutes and get where you need to go — or start earning today.</p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/register"><Button className="h-11 px-7">Sign up to ride</Button></Link>
             <Link to="/driver/register"><Button variant="outline" className="h-11 px-7">Sign up to drive</Button></Link>
+            <Link to="/influencer/register"><Button variant="outline" className="h-11 px-7">Sign up to influence</Button></Link>
           </div>
         </div>
       </section>
-
+      
       <Footer />
     </div>
   );

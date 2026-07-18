@@ -15,6 +15,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy loaded pages
 const Index = lazy(() => import("@/pages/Index"));
@@ -89,6 +90,7 @@ const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
 const AssetOwnerDashboard = lazy(() => import("@/pages/AssetOwnerDashboard"));
 const StaysPage = lazy(() => import("@/pages/StaysPage"));
 const StayDetailPage = lazy(() => import("@/pages/StayDetailPage"));
+const PackageSendPage = lazy(() => import("@/pages/PackageSendPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -178,6 +180,7 @@ function AppRouter() {
         </Route>
         
         <Route path="services" element={<ServiceHubPage />} />
+        <Route path="package/send" element={<PackageSendPage />} />
         <Route path="stays" element={<Layout />}>
           <Route index element={<StaysPage />} />
           <Route path=":propertyId" element={<StayDetailPage />} />
@@ -271,6 +274,7 @@ function App() {
                 <WishlistProvider>
                   <CartProvider>
                     <Router>
+                      <ScrollToTop />
                       <AppRouter />
                       <Toaster />
                     </Router>

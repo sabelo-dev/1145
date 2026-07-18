@@ -15,8 +15,7 @@ const Footer: React.FC = () => {
             <img src="/logo.svg" alt="1145 Lifestyle" className="h-10 w-10 rounded-md mb-3" />
             <h3 className="text-lg font-semibold mb-4">About 1145 Lifestyle</h3>
             <p className="text-sm text-gray-300 mb-4">
-              1145 Lifestyle connecting buyers and sellers since 2025. Our mission is to provide the best shopping
-              experience with quality products and exceptional service.
+              1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.
             </p>
             <div className="flex space-x-4 mt-4">
               <a href="https://facebook.com/lsionlinemall/" className="text-gray-300 hover:text-white">
@@ -113,11 +112,11 @@ const Footer: React.FC = () => {
               </li>
               <li className="flex items-center">
                 <Phone size={18} className="mr-2 flex-shrink-0" />
-                <span>+27 (63) 977-6666</span>
+                <span>+27 (60) 253-5492</span>
               </li>
               <li className="flex items-center">
                 <Mail size={18} className="mr-2 flex-shrink-0" />
-                <span>support@1145lifestyle.com</span>
+                <span>support@1145.io</span>
               </li>
             </ul>
           </div>
