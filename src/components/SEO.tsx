@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { getAppUrl, getPlatformBaseUrl } from "@/lib/appUrl";
 
 interface SEOProps {
   title?: string;
@@ -15,34 +16,33 @@ const SEO = ({
   title = "1145 – Social Commerce Marketplace | Transact, Move, Stay & Influence in Africa",
   description = "1145 A social commerce platform that enables users to transact, move, stay and influence.",
   keywords = "1145, 1145 Lifestyle, 1145 Africa, social commerce Africa,shop online Africa, sell online Africa, influencer marketplace,creator economy platform, TikTok shop integration, Instagram shopping,online marketplace Africa, ecommerce Africa, dropshipping Africa,multi-vendor marketplace, digital marketplace, earn online Africa",
-  image = "https://1145.io/og-image.png",
+  image = `${getPlatformBaseUrl()}/og-image.png`,
   url,
   type = "website",
   structuredData,
   noindex = false,
 }: SEOProps) => {
   const fullTitle = title.includes("1145") ? title : `${title} | 1145`;
-  const canonicalUrl =
-    url || (typeof window !== "undefined" ? window.location.href : "");
+  const canonicalUrl = url || (typeof window !== "undefined" ? window.location.href : getAppUrl());
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebSite",
         "name": "1145",
-        "url": "https://1145.io",
+        "url": getPlatformBaseUrl(),
         "description": description,
         "inLanguage": "en-ZA",
         "potentialAction": {
           "@type": "SearchAction",
-          "target": "https://1145.io/shop?q={search_term_string}",
+          "target": `${getPlatformBaseUrl()}/shop?q={search_term_string}`,
           "query-input": "required name=search_term_string"
         }
       },
       {
         "@type": "Organization",
         "name": "1145",
-        "url": "https://1145.io",
+        "url": getPlatformBaseUrl(),
         "logo": image,
         "sameAs": [
           "https://www.tiktok.com/",

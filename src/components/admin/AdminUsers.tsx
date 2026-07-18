@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { getAppUrl } from "@/lib/appUrl";
 import {
   Table,
   TableBody,
@@ -452,7 +453,7 @@ const AdminUsers = () => {
         email: newAdminEmail,
         password: newAdminPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: getAppUrl("/"),
           data: {
             name: newAdminName || newAdminEmail.split('@')[0],
           }

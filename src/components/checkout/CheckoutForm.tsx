@@ -188,9 +188,9 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           body: {
             amount: total,
             itemName: `Order for ${cart.items.length} items`,
-            returnUrl: `${window.location.origin}/checkout/success`,
-            cancelUrl: `${window.location.origin}/checkout/cancel`,
-            notifyUrl: `${window.location.origin}/api/payfast/notify`,
+            returnUrl: getAppUrl("/checkout/success"),
+            cancelUrl: getAppUrl("/checkout/cancel"),
+            notifyUrl: getAppUrl("/api/payfast/notify"),
             customerEmail: values.email,
             customerFirstName: values.firstName,
             customerLastName: values.lastName,
