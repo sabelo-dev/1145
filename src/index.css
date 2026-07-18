@@ -141,22 +141,33 @@
   }
 
   /* Guarantee readable text on any hover/selected/active surface.
-     Fixes cases where a component sets hover:bg-accent (or data-state=active/selected)
-     without also switching the foreground color, leaving text invisible. */
-  a:hover, button:hover,
-  [role="menuitem"]:hover, [role="option"]:hover, [role="tab"]:hover,
-  [role="button"]:hover, [role="link"]:hover {
+     Scoped to elements that actually swap to the nude accent background —
+     avoids overriding text on solid primary/destructive/secondary buttons. */
+  [class*="hover:bg-accent"]:hover,
+  [class*="hover:bg-muted"]:hover,
+  [class*="hover:bg-secondary"]:hover {
     color: hsl(var(--accent-foreground));
   }
-  [data-state="active"], [data-state="on"], [data-state="checked"],
-  [data-state="open"] > [role="button"],
-  [aria-selected="true"], [aria-current="page"] {
+  [data-state="active"][class*="data-[state=active]:bg-"],
+  [data-state="on"][class*="data-[state=on]:bg-"],
+  [data-state="checked"][class*="data-[state=checked]:bg-"],
+  [aria-current="page"] {
     color: hsl(var(--accent-foreground));
   }
-  /* Ensure nested icons/spans inherit the readable color */
-  a:hover *, button:hover *,
-  [data-state="active"] *, [aria-selected="true"] *, [aria-current="page"] * {
+  /* Nested icons/spans inherit readable color on those surfaces */
+  [class*="hover:bg-accent"]:hover *,
+  [class*="hover:bg-muted"]:hover *,
+  [class*="hover:bg-secondary"]:hover *,
+  [aria-current="page"] * {
     color: inherit;
+  }
+
+  /* Disabled state: dim uniformly, preserve token colors, block interaction */
+  :disabled,
+  [aria-disabled="true"],
+  [data-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 
