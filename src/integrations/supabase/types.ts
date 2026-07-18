@@ -8956,6 +8956,7 @@ export type Database = {
         }
         Returns: Json
       }
+      validate_referral_code: { Args: { p_code: string }; Returns: boolean }
       verify_mining_completion: {
         Args: {
           p_completion_id: string
