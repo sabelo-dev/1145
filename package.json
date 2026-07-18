@@ -10,6 +10,9 @@
     "lint": "eslint .",
     "build:dev": "vite build --mode development"
   },
+  "overrides": {
+    "@opentelemetry/core": "2.0.0"
+  },
   "dependencies": {
     "@aws-cdk/cli-plugin-contract": "^2.182.2",
     "@capacitor/android": "^8.3.4",
@@ -32,7 +35,6 @@
     "@dnd-kit/sortable": "8.0.0",
     "@dnd-kit/utilities": "3.2.2",
     "@hookform/resolvers": "3.9.0",
-    "@opentelemetry/core": "2.0.0",
     "@radix-ui/react-accordion": "1.2.0",
     "@radix-ui/react-alert-dialog": "1.1.1",
     "@radix-ui/react-aspect-ratio": "1.1.0",
