@@ -1,7 +1,14 @@
 const DEFAULT_PLATFORM_BASE_URL = "https://1145.io";
 const PLATFORM_HOSTS = ["1145.io", "www.1145.io"];
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "::1"];
-const PREVIEW_HOST_SUFFIXES = [".lovable.app", ".lovableproject.com", ".lovable.dev"];
+const PREVIEW_HOST_SUFFIXES = [
+  ".lovable.app",
+  ".lovableproject.com",
+  ".lovable.dev",
+  ".app.github.dev",
+  ".github.dev",
+  ".githubpreview.dev",
+];
 
 type AppUrlEnv = Record<string, string | undefined>;
 
@@ -48,6 +55,7 @@ export const getPlatformBaseUrl = (options: AppUrlOptions = {}) => {
   const env = options.env ?? (typeof import.meta !== "undefined" ? import.meta.env : undefined);
   const explicitValue = [
     env?.VITE_PUBLIC_SITE_URL,
+    env?.VITE_SITE_URL,
     env?.VITE_APP_URL,
     env?.SITE_URL,
   ].find(Boolean);

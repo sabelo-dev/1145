@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { getAppUrl } from "@/lib/appUrl";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
