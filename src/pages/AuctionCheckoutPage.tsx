@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Trophy, CreditCard, Building2, Loader2, CheckCircle, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getAppUrl } from "@/lib/appUrl";
 import SEO from "@/components/SEO";
 
 interface AuctionWinDetails {
@@ -135,8 +136,8 @@ const AuctionCheckoutPage: React.FC = () => {
         body: {
           amount: remainingAmount,
           itemName: `Auction Win: ${auction.product?.name || 'Auction Item'}`,
-          returnUrl: `${window.location.origin}/auction-checkout/success?auctionId=${auction.id}`,
-          cancelUrl: `${window.location.origin}/auction-checkout?auctionId=${auction.id}`,
+          returnUrl: getAppUrl(`/auction-checkout/success?auctionId=${auction.id}`),
+          cancelUrl: getAppUrl(`/auction-checkout?auctionId=${auction.id}`),
           notifyUrl: `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/payfast-itn`,
           customerEmail: user.email,
           customStr1: auction.id,

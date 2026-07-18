@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
+import { getAppUrl } from "@/lib/appUrl";
 
 const forgotPasswordSchema = z.object({
   email: z
@@ -45,7 +46,7 @@ const ForgotPasswordPage: React.FC = () => {
     
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: getAppUrl("/reset-password"),
       });
 
       if (error) {

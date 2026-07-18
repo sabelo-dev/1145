@@ -197,7 +197,7 @@ export function useReferral() {
 
   const getReferralLink = () => {
     if (!referralCode) return '';
-    return `${window.location.origin}/register?ref=${referralCode.code}`;
+    return getAppUrl(`/register?ref=${referralCode.code}`);
   };
 
   const copyReferralLink = async () => {

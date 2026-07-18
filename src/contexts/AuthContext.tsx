@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { useLoadingManager } from "@/hooks/useLoadingManager";
+import { getAppUrl } from "@/lib/appUrl";
 
 interface AuthContextType {
   user: User | null;
@@ -337,7 +338,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: getAppUrl("/"),
           data: {
             name: name,
             role: role

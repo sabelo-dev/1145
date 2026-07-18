@@ -1,12 +1,13 @@
 import { Product } from "@/types";
+import { getPlatformBaseUrl } from "@/lib/appUrl";
 
 export const getOrganizationSchema = () => ({
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "1145 Lifestyle",
   alternateName: ["1145", "1145lifestyle", "1145 SA", "1145 Shop"],
-  url: "https://1145.io",
-  logo: "https://1145.io/uploads/logo.png",
+  url: getPlatformBaseUrl(),
+  logo: `${getPlatformBaseUrl()}/uploads/logo.png`,
   description: "1145 Lifestyle is South Africa's premier online marketplace for quality products from trusted merchants. Shop 1145 for fashion, electronics, home goods and more.",
   contactPoint: {
     "@type": "ContactPoint",
@@ -26,13 +27,13 @@ export const getWebsiteSchema = () => ({
   "@type": "WebSite",
   name: "1145 Lifestyle",
   alternateName: ["1145", "1145lifestyle"],
-  url: "https://1145.io",
+  url: getPlatformBaseUrl(),
   inLanguage: "en-ZA",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://1145.io/shop?search={search_term_string}",
+      urlTemplate: `${getPlatformBaseUrl()}/shop?search={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
   },

@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { getAppUrl } from "@/lib/appUrl";
 import { dispatchEngine, type DispatchRequest, type DispatchResult } from "./dispatch";
 import { surgeEngine } from "./dispatch/surgeEngine";
 import { failureRecovery } from "./dispatch/failureRecovery";
@@ -198,7 +199,7 @@ export const rideDispatchService = {
     const { data: ride } = await supabase.from("rides").select("*").eq("id", rideId).single();
     if (!ride) return "";
 
-    const shareText = `I'm on a ride from ${ride.pickup_address} to ${ride.dropoff_address}. Track my trip: ${window.location.origin}/rides/track/${rideId}`;
+    const shareText = `I'm on a ride from ${ride.pickup_address} to ${ride.dropoff_address}. Track my trip: ${getAppUrl(`/rides/track/${rideId}`)}`;
     return shareText;
   },
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppUrl } from "@/lib/appUrl";
 import {
   Table,
   TableBody,
@@ -175,7 +176,7 @@ const AdminOrders: React.FC = () => {
           trackingNumber: tracking || order.trackingNumber,
           courierCompany: courierCompany || order.courierCompany,
           estimatedDelivery: order.estimatedDelivery,
-          siteUrl: window.location.origin
+          siteUrl: getAppUrl("/")
         }
       });
 

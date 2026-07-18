@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { getAppUrl } from "@/lib/appUrl";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
@@ -188,9 +189,9 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           body: {
             amount: total,
             itemName: `Order for ${cart.items.length} items`,
-            returnUrl: `${window.location.origin}/checkout/success`,
-            cancelUrl: `${window.location.origin}/checkout/cancel`,
-            notifyUrl: `${window.location.origin}/api/payfast/notify`,
+            returnUrl: getAppUrl("/checkout/success"),
+            cancelUrl: getAppUrl("/checkout/cancel"),
+            notifyUrl: getAppUrl("/api/payfast/notify"),
             customerEmail: values.email,
             customerFirstName: values.firstName,
             customerLastName: values.lastName,

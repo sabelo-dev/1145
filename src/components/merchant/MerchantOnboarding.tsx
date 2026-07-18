@@ -242,10 +242,10 @@ const MerchantOnboarding: React.FC = () => {
 
   // File upload helper — uploads to Supabase Storage
   const handleFileUpload = async (file: File, setter: (url: string) => void, bucket: string = 'vendor-logos') => {
-    if (!vendorData) return;
+    if (!user || !vendorData) return;
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${vendorData.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${vendorData.id}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
