@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Gavel, CreditCard, Building2, Loader2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getAppUrl } from "@/lib/appUrl";
 import SEO from "@/components/SEO";
 
 interface AuctionDetails {
@@ -117,8 +118,8 @@ const AuctionRegistrationPage: React.FC = () => {
         body: {
           amount: auction.registration_fee,
           itemName: `Auction Registration: ${auction.product?.name || 'Auction Item'}`,
-          returnUrl: `${window.location.origin}/auction-registration/success?auctionId=${auction.id}&registrationId=${registration.id}`,
-          cancelUrl: `${window.location.origin}/auction-registration?auctionId=${auction.id}`,
+          returnUrl: getAppUrl(`/auction-registration/success?auctionId=${auction.id}&registrationId=${registration.id}`),
+          cancelUrl: getAppUrl(`/auction-registration?auctionId=${auction.id}`),
           notifyUrl: `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/payfast-itn`,
           customerEmail: user.email,
           customStr1: registration.id, // Pass registration ID for webhook

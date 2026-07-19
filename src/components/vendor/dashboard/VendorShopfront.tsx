@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadFileToStorage } from "@/integrations/supabase/storage";
 import {
   Camera, Edit3, Save, X, Store, Upload, Crown, Medal, Award, Star,
   Eye, ArrowUpRight, Lock
@@ -262,16 +263,6 @@ const VendorShopfront = () => {
     }
   };
 
-  const uploadFile = async (file: File, bucket: string, folder: string) => {
-    if (!user?.id) throw new Error('Not authenticated');
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${user.id}/${Date.now()}.${fileExt}`;
-    const { error } = await supabase.storage.from(bucket).upload(fileName, file);
-    if (error) throw error;
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
-    return publicUrl;
-  };
-
   const handleFileUpload = async (file: File, type: 'banner' | 'logo') => {
     if (!user?.id || !file.type.startsWith('image/')) return;
     const maxSize = type === 'banner' ? 10 : 5;
@@ -279,14 +270,23 @@ const VendorShopfront = () => {
       toast({ variant: "destructive", title: "File Too Large", description: `Max ${maxSize}MB` });
       return;
     }
+
     try {
       setUploading(true);
       const bucket = type === 'banner' ? 'vendor-banners' : 'vendor-logos';
-      const url = await uploadFile(file, bucket, type === 'banner' ? 'banners' : 'logos');
-      setFormData(prev => ({ ...prev, [type === 'banner' ? 'banner_url' : 'logo_url']: url }));
+      const filePath = `${type === 'banner' ? 'banners' : 'logos'}/${user.id}/${Date.now()}`;
+      const { publicUrl } = await uploadFileToStorage({
+        bucket,
+        path: filePath,
+        file,
+        upsert: true,
+      });
+
+      setFormData(prev => ({ ...prev, [type === 'banner' ? 'banner_url' : 'logo_url']: publicUrl }));
       toast({ title: "Success", description: `${type === 'banner' ? 'Banner' : 'Logo'} uploaded` });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Upload failed" });
+    } catch (error: any) {
+      console.error('Upload failed:', error);
+      toast({ variant: "destructive", title: "Error", description: error.message || "Upload failed" });
     } finally {
       setUploading(false);
     }

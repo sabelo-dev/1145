@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadFileToStorage } from "@/integrations/supabase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { Steps } from "@/components/vendor/Steps";
 import { CheckCircle, Upload } from "lucide-react";
@@ -92,40 +93,59 @@ const VendorOnboarding: React.FC = () => {
 
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (!e.target.files || e.target.files.length === 0 || !vendorData) return;
-    
+
     const file = e.target.files[0];
     setIsUploading(true);
-    
+
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${vendorData.id}/${type}.${fileExt}`;
-      
-      // For now, we'll simulate upload by creating a blob URL
-      const documentUrl = URL.createObjectURL(file);
-      
-      // Save document in vendor_documents table
-      const { error: docError } = await supabase
+      const filePath = `${user?.id || 'anonymous'}/${vendorData.id}/${type}/${Date.now()}`;
+      const { publicUrl } = await uploadFileToStorage({
+        bucket: 'vendor-documents',
+        path: filePath,
+        file,
+        upsert: true,
+      });
+
+      const { data: existingDocument, error: fetchError } = await supabase
         .from('vendor_documents')
-        .upsert({
-          vendor_id: vendorData.id,
-          document_type: type,
-          document_url: documentUrl,
-        });
-        
+        .select('id')
+        .eq('vendor_id', vendorData.id)
+        .eq('document_type', type)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const { error: docError } = existingDocument
+        ? await supabase
+            .from('vendor_documents')
+            .update({
+              document_url: publicUrl,
+              status: 'uploaded',
+            })
+            .eq('id', existingDocument.id)
+        : await supabase
+            .from('vendor_documents')
+            .insert({
+              vendor_id: vendorData.id,
+              document_type: type,
+              document_url: publicUrl,
+              status: 'uploaded',
+            });
+
       if (docError) throw docError;
-      
-      setDocuments(prev => ({ ...prev, [type]: documentUrl }));
-      
+
+      setDocuments(prev => ({ ...prev, [type]: publicUrl }));
+
       toast({
-        title: "Document Uploaded",
+        title: 'Document Uploaded',
         description: `${type} was successfully uploaded.`,
       });
     } catch (error) {
-      console.error("Error uploading document:", error);
+      console.error('Error uploading document:', error);
       toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: "Failed to upload the document. Please try again.",
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: 'Failed to upload the document. Please try again.',
       });
     } finally {
       setIsUploading(false);

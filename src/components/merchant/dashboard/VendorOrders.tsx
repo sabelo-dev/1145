@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppUrl } from "@/lib/appUrl";
 import { 
   Search, 
   MoreHorizontal, 
@@ -175,7 +176,7 @@ const VendorOrders = () => {
           trackingNumber: trackingNumber || order.trackingNumber,
           courierCompany: order.courierCompany,
           estimatedDelivery: order.estimatedDelivery,
-          siteUrl: window.location.origin
+          siteUrl: getAppUrl("/")
         }
       });
 

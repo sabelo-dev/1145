@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadFileToStorage } from "@/integrations/supabase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import OnboardingProgress from "./onboarding/OnboardingProgress";
@@ -179,31 +180,57 @@ const MerchantOnboarding: React.FC = () => {
   // Step 3: Upload KYC document
   const handleKYCUpload = async (file: File, type: string) => {
     if (!vendorData) return;
-    // For now simulate upload with blob URL. In production use Supabase storage.
-    const documentUrl = URL.createObjectURL(file);
-    const { error } = await supabase
-      .from("merchant_kyc_documents")
-      .upsert({
-        vendor_id: vendorData.id,
-        document_type: type,
-        document_url: documentUrl,
-        file_name: file.name,
-        status: "pending",
-      }, { onConflict: "vendor_id,document_type" });
+    setIsLoading(true);
 
-    if (error) {
-      // If upsert fails due to no unique constraint, try insert
-      await supabase.from("merchant_kyc_documents").insert({
-        vendor_id: vendorData.id,
-        document_type: type,
-        document_url: documentUrl,
-        file_name: file.name,
-        status: "pending",
+    try {
+      const filePath = `${user.id}/${vendorData.id}/${type}/${Date.now()}`;
+      const { publicUrl } = await uploadFileToStorage({
+        bucket: "vendor-documents",
+        path: filePath,
+        file,
+        upsert: true,
       });
-    }
 
-    setKycDocuments((prev) => ({ ...prev, [type]: documentUrl }));
-    toast({ title: "Uploaded", description: `${type} uploaded successfully.` });
+      const payload = {
+        vendor_id: vendorData.id,
+        document_type: type,
+        document_url: publicUrl,
+        file_name: file.name,
+        status: "pending",
+      };
+
+      const { data: existingDocument, error: fetchError } = await supabase
+        .from("merchant_kyc_documents")
+        .select("id")
+        .eq("vendor_id", vendorData.id)
+        .eq("document_type", type)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const { error: saveError } = existingDocument
+        ? await supabase
+            .from("merchant_kyc_documents")
+            .update(payload)
+            .eq("id", existingDocument.id)
+        : await supabase
+            .from("merchant_kyc_documents")
+            .insert(payload);
+
+      if (saveError) throw saveError;
+
+      setKycDocuments((prev) => ({ ...prev, [type]: publicUrl }));
+      toast({ title: "Uploaded", description: `${type} uploaded successfully.` });
+    } catch (error: any) {
+      console.error("Error uploading KYC document:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: error.message || "Unable to upload document.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Step 3: Submit KYC
@@ -242,17 +269,25 @@ const MerchantOnboarding: React.FC = () => {
 
   // File upload helper — uploads to Supabase Storage
   const handleFileUpload = async (file: File, setter: (url: string) => void, bucket: string = 'vendor-logos') => {
-    if (!vendorData) return;
+    if (!user || !vendorData) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ variant: "destructive", title: "Invalid file type", description: "Please upload an image file." });
+      return;
+    }
+
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${vendorData.id}/${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
-      setter(urlData.publicUrl);
+      const filePath = `${user.id}/${vendorData.id}/${Date.now()}`;
+      const { publicUrl } = await uploadFileToStorage({
+        bucket,
+        path: filePath,
+        file,
+        upsert: true,
+      });
+
+      setter(publicUrl);
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast({ variant: "destructive", title: "Upload Failed", description: error.message });
+      toast({ variant: "destructive", title: "Upload Failed", description: error.message || "Unable to upload file." });
     }
   };
 

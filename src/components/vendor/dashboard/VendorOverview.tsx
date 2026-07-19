@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getAppUrl } from "@/lib/appUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -252,7 +253,7 @@ const VendorOverview: React.FC<VendorOverviewProps> = ({ onNavigate }) => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  const storefrontUrl = `${window.location.origin}/store/${storeInfo.slug}`;
+                  const storefrontUrl = getAppUrl(`/store/${storeInfo.slug}`);
                   window.open(storefrontUrl, '_blank');
                 }}
                 className="flex items-center gap-2"
@@ -264,7 +265,7 @@ const VendorOverview: React.FC<VendorOverviewProps> = ({ onNavigate }) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  const storefrontUrl = `${window.location.origin}/store/${storeInfo.slug}`;
+                  const storefrontUrl = getAppUrl(`/store/${storeInfo.slug}`);
                   navigator.clipboard.writeText(storefrontUrl);
                   toast({
                     title: "Copied!",

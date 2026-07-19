@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { getAppUrl } from "@/lib/appUrl";
 
 export interface SafetyAlert {
   id: string;
@@ -356,7 +357,7 @@ export const passengerSecurityService = {
   // ========== TRIP SHARING ==========
 
   async generateShareLink(rideId: string): Promise<string> {
-    return `${window.location.origin}/rides/track/${rideId}`;
+    return getAppUrl(`/rides/track/${rideId}`);
   },
 
   // ========== AUDIT LOGGING ==========

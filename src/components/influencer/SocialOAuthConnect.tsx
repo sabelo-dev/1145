@@ -197,7 +197,7 @@ export const SocialOAuthConnect: React.FC = () => {
     setConnectingPlatform(platformId);
 
     try {
-      const appUrl = window.location.origin;
+      const appUrl = getAppUrl("/");
       const response = await fetch(
         `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/social-oauth?action=get_auth_url&platform=${platformId}&app_url=${encodeURIComponent(appUrl)}`,
         {
