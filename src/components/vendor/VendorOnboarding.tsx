@@ -98,7 +98,7 @@ const VendorOnboarding: React.FC = () => {
     setIsUploading(true);
 
     try {
-      const filePath = `${vendorData.id}/${type}/${Date.now()}`;
+      const filePath = `${user?.id || 'anonymous'}/${vendorData.id}/${type}/${Date.now()}`;
       const { publicUrl } = await uploadFileToStorage({
         bucket: 'vendor-documents',
         path: filePath,
