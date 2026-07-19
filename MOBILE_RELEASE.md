@@ -15,7 +15,7 @@ This project ships **three** distribution channels:
   `*.lovableproject.com` / `*.lovable.app` hosts to prevent stale caches.
   It only activates on your published custom domain.
 - Manifest: `1145 Lifestyle`, theme `#1e3a5f`, standalone, portrait.
-- Icons: `public/pwa-icon-192.png`, `public/pwa-icon-512.png`.
+- Icons: `public/pwa-icon-512.png`, `public/pwa-icon-512.png`.
 - Visit `/install` in production for a guided install screen.
 
 ## Native iOS & Android (Capacitor 8)

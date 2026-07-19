@@ -97,24 +97,25 @@ const VendorOnboarding: React.FC = () => {
     setIsUploading(true);
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${vendorData.id}/${type}.${fileExt}`;
+      const filePath = `${vendorData.id}/${type}`;
+      const { publicUrl } = await uploadFileToStorage({
+        bucket: 'vendor-documents',
+        path: filePath,
+        file,
+        upsert: true,
+      });
       
-      // For now, we'll simulate upload by creating a blob URL
-      const documentUrl = URL.createObjectURL(file);
-      
-      // Save document in vendor_documents table
       const { error: docError } = await supabase
         .from('vendor_documents')
         .upsert({
           vendor_id: vendorData.id,
           document_type: type,
-          document_url: documentUrl,
+          document_url: publicUrl,
         });
         
       if (docError) throw docError;
       
-      setDocuments(prev => ({ ...prev, [type]: documentUrl }));
+      setDocuments(prev => ({ ...prev, [type]: publicUrl }));
       
       toast({
         title: "Document Uploaded",

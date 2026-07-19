@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false, // we register manually with iframe/preview guards
       devOptions: { enabled: false },
-      includeAssets: ['favicon.ico', 'logo.png', 'pwa-icon-192.png', 'pwa-icon-512.png'],
+      includeAssets: ['favicon.ico', 'logo.png', 'pwa-icon-512.png', 'pwa-icon-512.png'],
       manifest: {
         name: '1145 Lifestyle',
         short_name: '1145',
@@ -24,7 +24,7 @@ export default defineConfig({
         lang: 'en-ZA',
         categories: ['shopping', 'lifestyle', 'finance'],
         icons: [
-          { src: '/pwa-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/pwa-icon-512.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: '/pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],

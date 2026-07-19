@@ -47,7 +47,7 @@ const InstallPage: React.FC = () => {
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 w-20 h-20 rounded-2xl overflow-hidden shadow-lg">
-              <img src="/pwa-icon-192.png" alt="1145 Lifestyle" className="w-full h-full object-cover" />
+              <img src="/pwa-icon-512.png" alt="1145 Lifestyle" className="w-full h-full object-cover" />
             </div>
             <CardTitle className="text-2xl">Install 1145 Lifestyle</CardTitle>
             <p className="text-muted-foreground text-sm mt-1">
