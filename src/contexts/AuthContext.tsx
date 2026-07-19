@@ -357,6 +357,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           errorMessage = "This email is already registered. Please try logging in instead.";
         } else if (error.message.includes('User already registered')) {
           errorMessage = "An account with this email already exists. Please sign in instead.";
+        } else if (error.message.includes('Unexpected status code returned from hook') || error.status === 500) {
+          errorMessage = "Registration is temporarily unavailable because the email confirmation step failed. Please try again in a moment.";
         }
         
         toast({
