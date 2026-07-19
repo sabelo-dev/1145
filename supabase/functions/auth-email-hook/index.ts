@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const resendApiKey = Deno.env.get("RESEND_API_KEY");
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -260,6 +261,14 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     console.log(`Sending ${email_data.email_action_type} email to ${user.email}`);
+
+    if (!resend) {
+      console.warn("RESEND_API_KEY is not configured; skipping email delivery.");
+      return new Response(JSON.stringify({ success: true, skipped: true, reason: "RESEND_API_KEY missing" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     const emailResponse = await resend.emails.send({
       from: "1145 Lifestyle <onboarding@resend.dev>",

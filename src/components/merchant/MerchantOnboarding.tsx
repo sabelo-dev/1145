@@ -183,7 +183,7 @@ const MerchantOnboarding: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const filePath = `merchant-kyc/${vendorData.id}/${type}/${Date.now()}`;
+      const filePath = `${user.id}/${vendorData.id}/${type}/${Date.now()}`;
       const { publicUrl } = await uploadFileToStorage({
         bucket: "vendor-documents",
         path: filePath,
