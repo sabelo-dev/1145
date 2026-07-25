@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About Column */}
           <div>
-            <img src="/logo.svg" alt="1145 Lifestyle" className="h-10 w-10 rounded-md mb-3" />
+            <img src="/logo.png" alt="1145 Lifestyle" className="h-10 w-10 rounded-md mb-3" />
             <h3 className="text-lg font-semibold mb-4">About 1145 Lifestyle</h3>
             <p className="text-sm text-gray-300 mb-4">
               1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.
