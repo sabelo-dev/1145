@@ -8936,6 +8936,14 @@ export type Database = {
         Returns: boolean
       }
       reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
+      resolve_custom_domain: {
+        Args: { p_domain: string }
+        Returns: {
+          domain: string
+          store_id: string
+          vendor_id: string
+        }[]
+      }
       score_driver_for_dispatch: {
         Args: {
           p_driver_id: string
