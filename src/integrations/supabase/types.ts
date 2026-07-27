@@ -8773,6 +8773,10 @@ export type Database = {
         Returns: number
       }
       calculate_zone_surge: { Args: { p_zone_id: string }; Returns: number }
+      can_access_lease_agreement: {
+        Args: { p_contract_id: string }
+        Returns: boolean
+      }
       can_vendor_add_product: {
         Args: { p_vendor_id: string }
         Returns: boolean
