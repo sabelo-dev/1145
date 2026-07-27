@@ -75,11 +75,13 @@ const LeaseAgreementManager: React.FC<Props> = ({ contract, role, onChanged }) =
   const signedPath = fileFromPath(contract.e_signature_url);
 
   const persistUrl = async (field: "contract_document_url" | "e_signature_url", url: string) => {
-    const patch: Record<string, string> = { [field]: url };
+    const patch: { contract_document_url?: string; e_signature_url?: string; signed_at?: string } = {};
+    patch[field] = url;
     if (field === "e_signature_url") patch.signed_at = new Date().toISOString();
     const { error } = await supabase.from("lease_contracts").update(patch).eq("id", contract.id);
     if (error) throw error;
   };
+
 
   const uploadFile = async (file: File, kind: "agreement" | "signed") => {
     if (file.type !== "application/pdf") {
