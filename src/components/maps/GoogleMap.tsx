@@ -3,8 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
 const GOOGLE_MAPS_API_KEY =
-  (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() ||
-  "AIzaSyDdvMPREt7NEPYNtDhU0qowu4hidtrDJwo";
+  (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() || "";
+
 const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
 
 let googleMapsPromise: Promise<void> | null = null;
