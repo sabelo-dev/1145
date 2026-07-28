@@ -233,30 +233,38 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
       )}
 
       {/* FEATURED BRANDS */}
-      <section className="border-b border-border bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-1">
-                <Star className="h-3 w-3" /> Featured brands
+      {featuredBrands.length > 0 && (
+        <section className="border-b border-border bg-muted/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                  <Star className="h-3 w-3" /> Featured brands
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold">Shop by brand</h2>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold">Shop by brand</h2>
+              <Link to="/shop"><Button variant="outline" size="sm">Discover all</Button></Link>
             </div>
-            <Link to="/shop"><Button variant="outline" size="sm">Discover all</Button></Link>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {featuredBrands.map((b, i) => (
+                <motion.div key={b.id} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}>
+                  <Link to={`/shop?brand=${encodeURIComponent(b.name)}`} className="group relative aspect-square rounded-xl bg-background border border-border flex flex-col items-center justify-center p-4 hover:border-foreground transition overflow-hidden">
+                    {b.logoUrl ? (
+                      <img src={b.logoUrl} alt={b.name} className="max-h-16 max-w-[80%] object-contain mb-2" loading="lazy" />
+                    ) : null}
+                    <span className="text-lg font-bold tracking-tight text-center">{b.name}</span>
+                    {b.businessType && (
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">{b.businessType}</span>
+                    )}
+                    <ArrowRight className="absolute bottom-3 right-3 h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {featuredBrands.map((b, i) => (
-              <motion.div key={b.name} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}>
-                <Link to={`/shop?brand=${encodeURIComponent(b.name)}`} className="group relative aspect-square rounded-xl bg-background border border-border flex flex-col items-center justify-center p-4 hover:border-foreground transition">
-                  <span className="text-lg font-bold tracking-tight">{b.name}</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">{b.tag}</span>
-                  <ArrowRight className="absolute bottom-3 right-3 h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
+
 
       {/* TRENDING */}
       {trending.length > 0 && (
