@@ -247,7 +247,17 @@ const handler = async (req: Request): Promise<Response> => {
     const payload: AuthEmailRequest = await req.json();
     console.log("Auth email hook received:", JSON.stringify(payload, null, 2));
 
-    const { user, email_data } = payload;
+    const { user, email_data } = payload || {} as AuthEmailRequest;
+
+    // Health-check / probe payloads from Supabase don't include a user — ack them.
+    if (!user || !user.email || !email_data) {
+      console.log("Hook probe payload received; acknowledging without sending email.");
+      return new Response(JSON.stringify({ success: true, skipped: true, reason: "probe" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const userName =
       user.user_metadata?.name ||
       user.user_metadata?.full_name ||
