@@ -15,6 +15,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
 import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy loaded pages
@@ -50,11 +51,13 @@ const MerchantDashboardPage = lazy(() => import("@/pages/MerchantDashboardPage")
 const DriverLoginPage = lazy(() => import("@/pages/driver/DriverLoginPage"));
 const DriverDashboardPage = lazy(() => import("@/pages/driver/DriverDashboardPage"));
 const DriverRegisterPage = lazy(() => import("@/pages/driver/DriverRegisterPage"));
+const DriverOnboardingPage = lazy(() => import("@/pages/driver/DriverOnboardingPage"));
 const FleetDashboardPage = lazy(() => import("@/pages/fleet/FleetDashboardPage"));
 
 // Influencer
 const InfluencerLoginPage = lazy(() => import("@/pages/influencer/InfluencerLoginPage"));
 const InfluencerDashboardPage = lazy(() => import("@/pages/influencer/InfluencerDashboardPage"));
+const InfluencerOnboardingPage = lazy(() => import("@/pages/influencer/InfluencerOnboardingPage"));
 
 // Subcategory & special pages
 const SubcategoryPage = lazy(() => import("@/pages/SubcategoryPage"));
@@ -231,7 +234,9 @@ function AppRouter() {
         } />
         <Route path="merchant/dashboard" element={
           <ProtectedRoute requireAuth requireMerchant>
-            <MerchantDashboardPage />
+            <RoleOnboardingGate role="vendor">
+              <MerchantDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         
@@ -242,9 +247,16 @@ function AppRouter() {
         
         <Route path="driver/login" element={<DriverLoginPage />} />
         <Route path="driver/register" element={<DriverRegisterPage />} />
+        <Route path="driver/onboarding" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <DriverOnboardingPage />
+          </ProtectedRoute>
+        } />
         <Route path="driver/dashboard" element={
           <ProtectedRoute requireAuth requireDriver>
-            <DriverDashboardPage />
+            <RoleOnboardingGate role="driver">
+              <DriverDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         <Route path="fleet/dashboard" element={
@@ -254,9 +266,16 @@ function AppRouter() {
         } />
         
         <Route path="influencer/login" element={<InfluencerLoginPage />} />
+        <Route path="influencer/onboarding" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <InfluencerOnboardingPage />
+          </ProtectedRoute>
+        } />
         <Route path="influencer/dashboard" element={
           <ProtectedRoute requireAuth requireInfluencer>
-            <InfluencerDashboardPage />
+            <RoleOnboardingGate role="influencer">
+              <InfluencerDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         
