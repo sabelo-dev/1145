@@ -354,14 +354,25 @@ const MerchantOnboarding: React.FC = () => {
   const handleActivate = async () => {
     setIsLoading(true);
     try {
-      await supabase.from("vendors").update({
+      const { error: updateError } = await supabase.from("vendors").update({
         status: "approved",
         onboarding_status: "ACTIVE",
         onboarding_completed_at: new Date().toISOString(),
       }).eq("id", vendorData.id);
+      if (updateError) throw updateError;
+
       setIsActivated(true);
       await refreshUserProfile();
-      toast({ title: "Store Activated!", description: "You can now start selling." });
+
+      // Trigger activation confirmation (email + optional SMS) only after ACTIVE
+      try {
+        const { error: fnError } = await supabase.functions.invoke("send-merchant-activation-email");
+        if (fnError) console.error("Activation email invoke error:", fnError);
+      } catch (e) {
+        console.error("Activation email failed:", e);
+      }
+
+      toast({ title: "Store Activated!", description: "A confirmation has been sent to your email." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     } finally {
