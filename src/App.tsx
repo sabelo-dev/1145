@@ -41,6 +41,7 @@ const TrackOrderPage = lazy(() => import("@/pages/TrackOrderPage"));
 const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminMiningPage = lazy(() => import("@/pages/admin/AdminMiningPage"));
+const AdminSocialConnectionsPage = lazy(() => import("@/pages/admin/AdminSocialConnectionsPage"));
 const MiningDashboardPage = lazy(() => import("@/pages/MiningDashboardPage"));
 
 // Merchant
@@ -60,6 +61,7 @@ const FleetDashboardPage = lazy(() => import("@/pages/fleet/FleetDashboardPage")
 const InfluencerLoginPage = lazy(() => import("@/pages/influencer/InfluencerLoginPage"));
 const InfluencerDashboardPage = lazy(() => import("@/pages/influencer/InfluencerDashboardPage"));
 const InfluencerOnboardingPage = lazy(() => import("@/pages/influencer/InfluencerOnboardingPage"));
+const InfluencerSocialConnectionsPage = lazy(() => import("@/pages/influencer/InfluencerSocialConnectionsPage"));
 
 // Subcategory & special pages
 const SubcategoryPage = lazy(() => import("@/pages/SubcategoryPage"));
@@ -236,6 +238,12 @@ function AppRouter() {
             <AdminMiningPage />
           </ProtectedRoute>
         } />
+        <Route path="admin/social" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminSocialConnectionsPage />
+          </ProtectedRoute>
+        } />
+        
         
         <Route path="merchant/login" element={<MerchantLoginPage />} />
         <Route path="merchant/register" element={<MerchantRegisterPage />} />
@@ -290,6 +298,12 @@ function AppRouter() {
             </RoleOnboardingGate>
           </ProtectedRoute>
         } />
+        <Route path="influencer/social" element={
+          <ProtectedRoute requireAuth requireInfluencer>
+            <InfluencerSocialConnectionsPage />
+          </ProtectedRoute>
+        } />
+        
         
         <Route path="*" element={<NotFound />} />
       </Routes>
