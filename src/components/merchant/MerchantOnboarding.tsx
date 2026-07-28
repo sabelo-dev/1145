@@ -42,6 +42,10 @@ const MerchantOnboarding: React.FC = () => {
   const [pageLoading, setPageLoading] = useState(true);
   const [vendorData, setVendorData] = useState<any>(null);
   const [isActivated, setIsActivated] = useState(false);
+  const [notificationResult, setNotificationResult] = useState<{
+    email: { status: "sent" | "skipped" | "failed"; to?: string | null; error?: string | null };
+    sms: { status: "sent" | "skipped" | "failed"; to?: string | null; error?: string | null };
+  } | null>(null);
 
   // KYC state
   const [kycDocuments, setKycDocuments] = useState<Record<string, string>>({});
