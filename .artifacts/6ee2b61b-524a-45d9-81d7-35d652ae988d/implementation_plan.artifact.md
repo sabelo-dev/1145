@@ -1,11 +1,11 @@
 # Fix "Pixel Launcher isn't responding"
 
-The user is experiencing a "Pixel Launcher isn't responding" error on the emulator. My investigation shows the emulator (`emulator-5554`) is currently **offline**, which typically indicates the system is hung or failing to communicate with ADB.
+The user confirms the emulator (Medium Phone) is running (PID 12404). However, ADB reports it as `offline`. This indicates a kernel hang or a crash of the internal ADB daemon, which correlates with the "Pixel Launcher isn't responding" error.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> The emulator is currently in an `offline` state. I cannot run commands on it until it is back online. You will likely need to restart the emulator manually using the "Cold Boot" option in Android Studio.
+> Although the emulator process is running, it is not responding to commands. A **Cold Boot** is required to restore functionality.
 
 ## Proposed Steps
 
