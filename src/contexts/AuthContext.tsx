@@ -412,6 +412,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const verifyEmailOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) {
+      toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
+      throw error;
+    }
+    toast({ title: 'Email verified', description: 'Your account is now active.' });
+  };
+
+  const resendVerification = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: getAppUrl('/') },
+    });
+    if (error) {
+      toast({ variant: 'destructive', title: 'Could not resend', description: error.message });
+      throw error;
+    }
+    toast({ title: 'Code sent', description: 'Check your inbox for a new confirmation code.' });
+  };
+
   const logout = async () => {
     try {
       loadingManager.startLoading('logout');
