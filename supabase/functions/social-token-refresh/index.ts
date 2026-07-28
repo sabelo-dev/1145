@@ -19,7 +19,7 @@ import {
   serviceClient,
 } from "../_shared/socialLifecycle.ts";
 import { getProvider } from "../_shared/socialProviders/index.ts";
-import { decryptToken, encryptToken } from "../_shared/socialCrypto.ts";
+import { decryptToken, encryptToken, normaliseByteaToBase64 } from "../_shared/socialCrypto.ts";
 
 const REFRESH_WINDOW_SECONDS = 24 * 60 * 60; // 24h
 const REVALIDATION_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12h
@@ -95,12 +95,18 @@ async function revalidateOne(client: ReturnType<typeof createClient>, connection
     return { ok: false, reason: "missing_tokens" };
   }
 
-  let accessToken = await decryptToken({ ciphertext: tokens.access_token_ct as unknown as Uint8Array, iv: tokens.access_token_iv as unknown as Uint8Array, keyVersion: tokens.key_version });
+  let accessToken = await decryptToken({
+    ciphertext: normaliseByteaToBase64(tokens.access_token_ct),
+    iv: normaliseByteaToBase64(tokens.access_token_iv),
+  });
 
   const expiring = tokens.expires_at && new Date(tokens.expires_at).getTime() - Date.now() < REFRESH_WINDOW_SECONDS * 1000;
   if (expiring && tokens.refresh_token_ct && provider.refresh) {
     try {
-      const refreshToken = await decryptToken({ ciphertext: tokens.refresh_token_ct as unknown as Uint8Array, iv: tokens.refresh_token_iv as unknown as Uint8Array, keyVersion: tokens.key_version });
+      const refreshToken = await decryptToken({
+        ciphertext: normaliseByteaToBase64(tokens.refresh_token_ct),
+        iv: normaliseByteaToBase64(tokens.refresh_token_iv),
+      });
       const bundle = await provider.refresh(refreshToken);
       await saveTokens(client, connectionId, bundle);
       accessToken = bundle.accessToken;
