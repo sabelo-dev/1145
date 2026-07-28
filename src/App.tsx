@@ -148,7 +148,7 @@ function AppRouter() {
           <Route path="account" element={<Navigate to="/dashboard" replace />} />
           <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <ConsumerDashboard />
             </ProtectedRoute>
           } />
@@ -168,13 +168,13 @@ function AppRouter() {
           <Route path="terms" element={<TermsPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
           <Route path="lease/apply/:assetId" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <LeaseApplyPage />
             </ProtectedRoute>
           } />
           <Route path="lease/marketplace" element={<LeaseMarketplacePage />} />
           <Route path="lease/my-assets" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <AssetOwnerDashboard />
             </ProtectedRoute>
           } />
@@ -187,22 +187,22 @@ function AppRouter() {
           <Route path=":propertyId" element={<StayDetailPage />} />
         </Route>
         <Route path="rides" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideHistoryPage />
           </ProtectedRoute>
         } />
         <Route path="rides/request" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideRequestPage />
           </ProtectedRoute>
         } />
         <Route path="rides/track/:rideId" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideTrackingPage />
           </ProtectedRoute>
         } />
         <Route path="wallet" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <WalletPage />
           </ProtectedRoute>
         } />
