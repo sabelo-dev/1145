@@ -13,7 +13,7 @@ import Footer from "@/components/layout/Footer";
 import SEO from "@/components/SEO";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { Product } from "@/types";
-import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals } from "@/services/products";
+import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals, fetchFeaturedBrands, FeaturedBrand } from "@/services/products";
 
 const services = [
   { name: "Shop", desc: "Marketplace", icon: ShoppingBag, href: "/shop", tag: "Popular" },
