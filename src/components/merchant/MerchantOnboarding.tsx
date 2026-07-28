@@ -11,7 +11,6 @@ import StepBusinessInfo, { BusinessInfoValues } from "./onboarding/StepBusinessI
 import StepKYC from "./onboarding/StepKYC";
 import StepStoreSetup, { StoreSetupValues } from "./onboarding/StepStoreSetup";
 import StepPaymentTax, { PaymentTaxValues } from "./onboarding/StepPaymentTax";
-import StepFirstProduct, { FirstProductValues } from "./onboarding/StepFirstProduct";
 import StepReviewActivation from "./onboarding/StepReviewActivation";
 
 const STEPS = [
@@ -20,8 +19,7 @@ const STEPS = [
   { id: 3, name: "Identity & Compliance", shortName: "KYC" },
   { id: 4, name: "Store Setup", shortName: "Store" },
   { id: 5, name: "Payment & Tax", shortName: "Payment" },
-  { id: 6, name: "First Product", shortName: "Product" },
-  { id: 7, name: "Review & Activation", shortName: "Activate" },
+  { id: 6, name: "Review & Activation", shortName: "Activate" },
 ];
 
 const STATUS_TO_STEP: Record<string, number> = {
@@ -31,8 +29,8 @@ const STATUS_TO_STEP: Record<string, number> = {
   KYC_APPROVED: 4,
   KYC_REJECTED: 3, // Go back to KYC
   PROFILE_COMPLETED: 5,
-  FIRST_PRODUCT_CREATED: 7,
-  ACTIVE: 7,
+  FIRST_PRODUCT_CREATED: 6,
+  ACTIVE: 6,
 };
 
 const MerchantOnboarding: React.FC = () => {
@@ -330,7 +328,7 @@ const MerchantOnboarding: React.FC = () => {
     }
   };
 
-  // Step 5: Payment & tax
+  // Step 5: Payment & tax (advances to Review & Activation, now step 6)
   const handlePaymentTax = async (data: PaymentTaxValues) => {
     if (!vendorData) return;
     setIsLoading(true);
@@ -345,54 +343,6 @@ const MerchantOnboarding: React.FC = () => {
         vat_number: data.vatNumber || null,
       }, { onConflict: "vendor_id" });
       setStep(6);
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Step 6: Create first product
-  const handleFirstProduct = async (data: FirstProductValues) => {
-    if (!vendorData) return;
-    setIsLoading(true);
-    try {
-      // Get store
-      const { data: store } = await supabase
-        .from("stores")
-        .select("id")
-        .eq("vendor_id", vendorData.id)
-        .maybeSingle();
-
-      if (!store) throw new Error("Store not found. Please go back and create your store.");
-
-      const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-      const { data: newProduct, error } = await supabase.from("products").insert({
-        store_id: store.id,
-        name: data.title,
-        slug: `${slug}-${Date.now()}`,
-        description: data.description,
-        price: applyPlatformMarkup(parseFloat(data.price), vendorData?.custom_markup_percentage),
-        quantity: parseInt(data.quantity),
-        category: data.category,
-        sku: data.sku || null,
-        status: "pending",
-      }).select("id").single();
-      if (error) throw error;
-
-      // Link the uploaded product image to the newly created product
-      if (productImage && newProduct?.id) {
-        await supabase.from("product_images").insert({
-          product_id: newProduct.id,
-          image_url: productImage,
-          position: 0,
-        });
-      }
-
-
-      await updateOnboardingStatus("FIRST_PRODUCT_CREATED");
-      setStep(7);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     } finally {
@@ -426,7 +376,6 @@ const MerchantOnboarding: React.FC = () => {
     { label: "KYC documents submitted", completed: ["KYC_PENDING_REVIEW", "KYC_APPROVED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
     { label: "Bank account on file", completed: !!vendorData?.bank_account_holder },
     { label: "Store configured", completed: ["PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
-    { label: "At least 1 product created", completed: ["FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
   ];
   const allComplete = checklist.every(c => c.completed);
 
