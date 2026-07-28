@@ -514,6 +514,7 @@ const MerchantOnboarding: React.FC = () => {
             onActivate={handleActivate}
             isLoading={isLoading}
             isActivated={isActivated}
+            notificationResult={notificationResult}
           />
         )}
       </div>
