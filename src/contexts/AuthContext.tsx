@@ -17,6 +17,8 @@ interface AuthContextType {
   isDriver: boolean;
   isInfluencer: boolean;
   refreshUserProfile: () => Promise<void>;
+  verifyEmailOtp: (email: string, token: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -133,7 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: profile.name,
           avatar_url: profile.avatar_url,
           phone: profile.phone,
-          role: primaryRole
+          role: primaryRole,
+          emailVerified: !!session.user.email_confirmed_at,
         };
         setUser(userData);
         
@@ -149,7 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: session.user.email || '',
           name: session.user.user_metadata?.name || '',
           avatar_url: session.user.user_metadata?.avatar_url || null,
-          role: 'consumer'
+          role: 'consumer',
+          emailVerified: !!session.user.email_confirmed_at,
         };
         setUser(userData);
         setIsAdmin(false);
@@ -374,13 +378,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try { await supabase.auth.signOut(); } catch (_) {}
         clearAuthState();
 
-        if (!data.user.email_confirmed_at && data.session === null) {
+        const verifyPath = `/verify-email?email=${encodeURIComponent(email)}`;
+        if (!data.user.email_confirmed_at) {
           loadingManager.stopLoading('register');
           toast({
-            title: "Registration Successful",
-            description: "Please check your email to verify your account, then log in.",
+            title: "Check your email",
+            description: "We sent a 6-digit confirmation code to your inbox.",
           });
-          return { redirectPath: '/login' };
+          return { redirectPath: verifyPath };
         } else {
           toast({
             title: "Registration Successful",
@@ -405,6 +410,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       throw error;
     }
+  };
+
+  const verifyEmailOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) {
+      toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
+      throw error;
+    }
+    toast({ title: 'Email verified', description: 'Your account is now active.' });
+  };
+
+  const resendVerification = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: getAppUrl('/') },
+    });
+    if (error) {
+      toast({ variant: 'destructive', title: 'Could not resend', description: error.message });
+      throw error;
+    }
+    toast({ title: 'Code sent', description: 'Check your inbox for a new confirmation code.' });
   };
 
   const logout = async () => {
@@ -440,7 +467,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isMerchant, isAdmin, isDriver, isInfluencer, refreshUserProfile }}>
+    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isMerchant, isAdmin, isDriver, isInfluencer, refreshUserProfile, verifyEmailOtp, resendVerification }}>
       {children}
     </AuthContext.Provider>
   );

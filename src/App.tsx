@@ -77,6 +77,7 @@ const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 
 // Auth
 const AuthConfirmPage = lazy(() => import("@/pages/AuthConfirmPage"));
+const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 
 // Super App
 const ServiceHubPage = lazy(() => import("@/pages/ServiceHubPage"));
@@ -147,7 +148,7 @@ function AppRouter() {
           <Route path="account" element={<Navigate to="/dashboard" replace />} />
           <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <ConsumerDashboard />
             </ProtectedRoute>
           } />
@@ -167,13 +168,13 @@ function AppRouter() {
           <Route path="terms" element={<TermsPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
           <Route path="lease/apply/:assetId" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <LeaseApplyPage />
             </ProtectedRoute>
           } />
           <Route path="lease/marketplace" element={<LeaseMarketplacePage />} />
           <Route path="lease/my-assets" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <AssetOwnerDashboard />
             </ProtectedRoute>
           } />
@@ -186,22 +187,22 @@ function AppRouter() {
           <Route path=":propertyId" element={<StayDetailPage />} />
         </Route>
         <Route path="rides" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideHistoryPage />
           </ProtectedRoute>
         } />
         <Route path="rides/request" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideRequestPage />
           </ProtectedRoute>
         } />
         <Route path="rides/track/:rideId" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideTrackingPage />
           </ProtectedRoute>
         } />
         <Route path="wallet" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <WalletPage />
           </ProtectedRoute>
         } />
@@ -210,7 +211,9 @@ function AppRouter() {
         <Route path="auth/confirm" element={<AuthConfirmPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
+
         
         <Route path="admin/login" element={<AdminLoginPage />} />
         <Route path="admin/dashboard" element={

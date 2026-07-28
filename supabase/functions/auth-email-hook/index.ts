@@ -30,11 +30,22 @@ interface AuthEmailRequest {
 const getEmailTemplate = (
   actionType: string,
   userName: string,
-  actionUrl: string
+  actionUrl: string,
+  token?: string
 ): { subject: string; html: string } => {
+  const otpBlock = token
+    ? `
+      <p style="margin: 24px 0 8px; text-align: center; color: #333;">Your 6-digit confirmation code:</p>
+      <p style="text-align: center; margin: 0 0 24px;">
+        <span style="display: inline-block; font-family: 'Courier New', monospace; font-size: 32px; letter-spacing: 12px; padding: 14px 24px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; color: #111;">${token}</span>
+      </p>
+      <p style="text-align: center; font-size: 12px; color: #666; margin-top: 0;">This code expires in 1 hour.</p>
+    `
+    : "";
+
   const templates: Record<string, { subject: string; html: string }> = {
     signup: {
-      subject: "Confirm your 1145  account",
+      subject: "Confirm your 1145 account",
       html: `
         <!DOCTYPE html>
         <html>
@@ -55,7 +66,9 @@ const getEmailTemplate = (
             </div>
             <div class="content">
               <p>Hi ${userName},</p>
-              <p>Thank you for signing up! Please confirm your email address to get started.</p>
+              <p>Thanks for signing up. Enter the code below on the verification screen to activate your account:</p>
+              ${otpBlock}
+              <p style="text-align: center;">Or click the button to confirm instantly:</p>
               <p style="text-align: center;">
                 <a href="${actionUrl}" class="button" style="color: white;">Confirm Email</a>
               </p>
@@ -63,7 +76,7 @@ const getEmailTemplate = (
               <p>Best regards,<br>The 1145 Team</p>
             </div>
             <div class="footer">
-              <p>© 2025 1145 LifestyleE&trade; LIC&reg;. All rights reserved.</p>
+              <p>© 2025 1145 Lifestyle&trade;. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -257,7 +270,8 @@ const handler = async (req: Request): Promise<Response> => {
     const { subject, html } = getEmailTemplate(
       email_data.email_action_type,
       userName,
-      actionUrl
+      actionUrl,
+      email_data.token
     );
 
     console.log(`Sending ${email_data.email_action_type} email to ${user.email}`);
