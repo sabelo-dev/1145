@@ -332,7 +332,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: 'consumer' | 'vendor' = 'consumer'): Promise<{ redirectPath?: string }> => {
+  const register = async (email: string, password: string, name: string, role: 'consumer' | 'vendor' | 'driver' | 'influencer' = 'consumer'): Promise<{ redirectPath?: string }> => {
     loadingManager.startLoading('register');
     
     try {
