@@ -160,18 +160,26 @@ const InfluencerOnboardingPage: React.FC = () => {
       );
       if (profErr) throw profErr;
 
-      // Save social accounts (manual entries — go into pending verification queue)
+      // Save social accounts (manual entries — pending verification via OAuth later)
       const rows = socials
         .filter((s) => s.handle.trim())
-        .map((s) => ({
-          user_id: user.id,
-          platform: s.platform,
-          handle: s.handle.trim().replace(/^@/, ""),
-          profile_url: s.url || null,
-          is_verified: false,
-        }));
+        .map((s) => {
+          const handle = s.handle.trim().replace(/^@/, "");
+          return {
+            user_id: user.id,
+            platform: s.platform,
+            username: handle,
+            platform_user_id: handle, // placeholder until OAuth resolves the real id
+            profile_url: s.url || null,
+            is_verified: false,
+            status: "pending",
+          };
+        });
       if (rows.length > 0) {
-        await supabase.from("social_accounts").upsert(rows as any, { onConflict: "user_id,platform" });
+        // Skip rows that already exist; ignore duplicate errors
+        for (const row of rows) {
+          await supabase.from("social_accounts").insert(row as any);
+        }
       }
 
       // Ensure influencer role
