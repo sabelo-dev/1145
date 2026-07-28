@@ -167,7 +167,7 @@ const DriverOnboardingPage: React.FC = () => {
         if (!form.vehicleMake || !form.vehicleModel || !form.vehicleYear || !form.vehicleColor || !form.vehicleRegistration)
           return "Complete vehicle details.";
         if (!form.vehiclePhoto) return "Upload a vehicle photo.";
-        if (!form.vehicleRegistrationDoc && !form.vehicleRegDoc) return "Upload vehicle registration papers.";
+        if (!form.vehicleRegDoc) return "Upload vehicle registration papers.";
         if (!form.vehicleInsurance) return "Upload proof of insurance.";
         return null;
       case 4:
