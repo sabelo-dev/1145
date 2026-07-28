@@ -133,7 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: profile.name,
           avatar_url: profile.avatar_url,
           phone: profile.phone,
-          role: primaryRole
+          role: primaryRole,
+          emailVerified: !!session.user.email_confirmed_at,
         };
         setUser(userData);
         
