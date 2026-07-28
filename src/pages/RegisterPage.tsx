@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Check, Eye, EyeOff, Loader2, ShoppingBag, Store } from "lucide-react";
+import { Car, Check, Eye, EyeOff, Loader2, ShoppingBag, Sparkles, Store } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import AuthSplitShell from "@/components/auth/AuthSplitShell";
