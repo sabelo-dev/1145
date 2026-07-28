@@ -370,10 +370,22 @@ const MerchantOnboarding: React.FC = () => {
 
       // Trigger activation confirmation (email + optional SMS) only after ACTIVE
       try {
-        const { error: fnError } = await supabase.functions.invoke("send-merchant-activation-email");
-        if (fnError) console.error("Activation email invoke error:", fnError);
-      } catch (e) {
+        const { data: notifData, error: fnError } = await supabase.functions.invoke("send-merchant-activation-email");
+        if (fnError) {
+          console.error("Activation email invoke error:", fnError);
+          setNotificationResult({
+            email: { status: "failed", error: fnError.message },
+            sms: { status: "skipped" },
+          });
+        } else if (notifData) {
+          setNotificationResult({ email: notifData.email, sms: notifData.sms });
+        }
+      } catch (e: any) {
         console.error("Activation email failed:", e);
+        setNotificationResult({
+          email: { status: "failed", error: e?.message ?? String(e) },
+          sms: { status: "skipped" },
+        });
       }
 
       toast({ title: "Store Activated!", description: "A confirmation has been sent to your email." });
