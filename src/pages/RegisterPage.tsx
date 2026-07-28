@@ -185,6 +185,20 @@ const RegisterPage: React.FC = () => {
                       title="Merchant"
                       desc="Sell products and services"
                     />
+                    <RoleCard
+                      active={role === "driver"}
+                      onClick={() => field.onChange("driver")}
+                      icon={<Car className="h-4 w-4" />}
+                      title="Driver"
+                      desc="Drive rides and deliveries"
+                    />
+                    <RoleCard
+                      active={role === "influencer"}
+                      onClick={() => field.onChange("influencer")}
+                      icon={<Sparkles className="h-4 w-4" />}
+                      title="Influencer"
+                      desc="Promote and earn commissions"
+                    />
                   </div>
                   <FormMessage />
                 </FormItem>
