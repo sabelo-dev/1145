@@ -368,7 +368,7 @@ const MerchantOnboarding: React.FC = () => {
 
       const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-      const { error } = await supabase.from("products").insert({
+      const { data: newProduct, error } = await supabase.from("products").insert({
         store_id: store.id,
         name: data.title,
         slug: `${slug}-${Date.now()}`,
@@ -378,8 +378,18 @@ const MerchantOnboarding: React.FC = () => {
         category: data.category,
         sku: data.sku || null,
         status: "pending",
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      // Link the uploaded product image to the newly created product
+      if (productImage && newProduct?.id) {
+        await supabase.from("product_images").insert({
+          product_id: newProduct.id,
+          image_url: productImage,
+          position: 0,
+        });
+      }
+
 
       await updateOnboardingStatus("FIRST_PRODUCT_CREATED");
       setStep(7);
@@ -524,12 +534,13 @@ const MerchantOnboarding: React.FC = () => {
         {step === 6 && (
           <StepFirstProduct
             productImage={productImage}
-            onImageUpload={(f) => handleFileUpload(f, setProductImage)}
+            onImageUpload={(f) => handleFileUpload(f, setProductImage, 'product-images')}
             onNext={handleFirstProduct}
             onBack={() => setStep(5)}
             isLoading={isLoading}
           />
         )}
+
 
         {step === 7 && (
           <StepReviewActivation

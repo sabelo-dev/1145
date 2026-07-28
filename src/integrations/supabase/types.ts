@@ -8773,6 +8773,10 @@ export type Database = {
         Returns: number
       }
       calculate_zone_surge: { Args: { p_zone_id: string }; Returns: number }
+      can_access_lease_agreement: {
+        Args: { p_contract_id: string }
+        Returns: boolean
+      }
       can_vendor_add_product: {
         Args: { p_vendor_id: string }
         Returns: boolean
@@ -8936,6 +8940,14 @@ export type Database = {
         Returns: boolean
       }
       reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
+      resolve_custom_domain: {
+        Args: { p_domain: string }
+        Returns: {
+          domain: string
+          store_id: string
+          vendor_id: string
+        }[]
+      }
       score_driver_for_dispatch: {
         Args: {
           p_driver_id: string

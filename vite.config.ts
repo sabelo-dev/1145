@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
@@ -60,9 +60,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // Strip console.* and debugger statements from production bundles so no
+  // debug output leaks into the Play Store / App Store builds. Development
+  // and Lovable preview builds keep them for troubleshooting.
+  esbuild: mode === 'production' ? { drop: ['console', 'debugger'] } : {},
   build: {
     target: 'es2020',
     cssCodeSplit: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -77,4 +82,5 @@ export default defineConfig({
       },
     },
   },
-})
+}))
+

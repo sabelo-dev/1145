@@ -20,6 +20,8 @@ import {
   Wrench, CheckCircle, Clock, Loader2, BarChart3,
 } from "lucide-react";
 import type { LeaseableAsset, LeaseContract, LeaseApplication } from "@/types/leasing";
+import LeaseAgreementManager from "@/components/leasing/LeaseAgreementManager";
+
 
 const statusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
   switch (status) {
@@ -226,6 +228,7 @@ const MerchantLeases = () => {
                   <TableHeader><TableRow>
                     <TableHead>Contract #</TableHead><TableHead>Lessee</TableHead><TableHead>Monthly</TableHead>
                     <TableHead>Paid / Due</TableHead><TableHead>Status</TableHead><TableHead>Late</TableHead>
+                    <TableHead className="text-right">Agreement</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {contracts.map((contract) => (
@@ -245,9 +248,13 @@ const MerchantLeases = () => {
                             <Badge variant="outline" className="rounded-full text-emerald-600">0</Badge>
                           )}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <LeaseAgreementManager contract={contract as any} role="owner" onChanged={fetchData} />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
+
                 </Table>
               )}
             </CardContent>

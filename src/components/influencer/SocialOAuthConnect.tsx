@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Session } from '@supabase/supabase-js';
+import { getAppUrl } from '@/lib/appUrl';
 
 // Platform icons as inline SVGs to avoid style prop issues
 const FacebookIcon = ({ className }: { className?: string }) => (

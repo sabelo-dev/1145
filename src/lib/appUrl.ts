@@ -59,17 +59,20 @@ export const getPlatformBaseUrl = (options: AppUrlOptions = {}) => {
     env?.VITE_APP_URL,
     env?.SITE_URL,
   ].find(Boolean);
-
   const explicitBaseUrl = normalizeBaseUrl(explicitValue);
-  if (explicitBaseUrl) {
-    return explicitBaseUrl;
-  }
 
   const hostname = options.hostname ?? (typeof window !== "undefined" ? window.location.hostname : "1145.io");
   const origin = options.origin ?? (typeof window !== "undefined" ? window.location.origin : DEFAULT_PLATFORM_BASE_URL);
 
+  // In dev/preview environments, ALWAYS prefer the current origin so OAuth
+  // callbacks, password resets, and email links land back on the environment
+  // the user is actually using — not the production URL from VITE_SITE_URL.
   if (isPreviewHost(hostname)) {
-    return normalizeBaseUrl(origin) ?? DEFAULT_PLATFORM_BASE_URL;
+    return normalizeBaseUrl(origin) ?? explicitBaseUrl ?? DEFAULT_PLATFORM_BASE_URL;
+  }
+
+  if (explicitBaseUrl) {
+    return explicitBaseUrl;
   }
 
   if (isPlatformHost(hostname)) {

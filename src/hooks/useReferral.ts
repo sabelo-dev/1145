@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { UserReferralCode, Referral, ReferralStats } from '@/types/referral';
 import { useUCoin } from './useUCoin';
 import { useToast } from '@/hooks/use-toast';
+import { getAppUrl } from '@/lib/appUrl';
 
 export function useReferral() {
   const { user } = useAuth();
