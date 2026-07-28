@@ -209,6 +209,11 @@ function AppRouter() {
             <WalletPage />
           </ProtectedRoute>
         } />
+        <Route path="wallet/mining" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <MiningDashboardPage />
+          </ProtectedRoute>
+        } />
         <Route path="track-order" element={<TrackOrderPage />} />
         
         <Route path="auth/confirm" element={<AuthConfirmPage />} />
