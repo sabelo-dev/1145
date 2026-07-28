@@ -51,6 +51,7 @@ const MerchantDashboardPage = lazy(() => import("@/pages/MerchantDashboardPage")
 const DriverLoginPage = lazy(() => import("@/pages/driver/DriverLoginPage"));
 const DriverDashboardPage = lazy(() => import("@/pages/driver/DriverDashboardPage"));
 const DriverRegisterPage = lazy(() => import("@/pages/driver/DriverRegisterPage"));
+const DriverOnboardingPage = lazy(() => import("@/pages/driver/DriverOnboardingPage"));
 const FleetDashboardPage = lazy(() => import("@/pages/fleet/FleetDashboardPage"));
 
 // Influencer
