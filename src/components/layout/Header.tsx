@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search, X, ShoppingCart, Menu,  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -102,13 +102,20 @@ const Header: React.FC = () => {
                 const Icon = item.icon;
                 return (
                   <li key={item.path}>
-                    <Link
+                    <NavLink
                       to={item.path}
-                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+                      end={item.path === "/"}
+                      className={({ isActive }) =>
+                        `flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                          isActive
+                            ? "bg-accent text-accent-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`
+                      }
                     >
                       <Icon className="h-3.5 w-3.5" />
                       <span className="hidden lg:inline">{item.label}</span>
-                    </Link>
+                    </NavLink>
                   </li>
                 );
               })}
