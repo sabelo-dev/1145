@@ -271,18 +271,19 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "1145 Lifestyle <onboarding@resend.dev>",
+      from: "1145 Lifestyle <no-reply@send.1145lifestyle.com>",
       to: [user.email],
       subject: subject,
-      reply_to: "support@1145.io",
+      reply_to: "support@1145lifestyle.com",
       html: html,
     });
 
     if ((emailResponse as any)?.error) {
       console.error("Resend send error:", (emailResponse as any).error);
+      // Don't block signup/auth flow on email delivery failure
       return new Response(
-        JSON.stringify({ error: (emailResponse as any).error }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ success: true, warning: (emailResponse as any).error }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
@@ -294,8 +295,9 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in auth-email-hook:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    // Return 200 so Supabase auth doesn't block signup on hook failure
+    return new Response(JSON.stringify({ success: true, warning: error.message }), {
+      status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }
