@@ -77,6 +77,7 @@ const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 
 // Auth
 const AuthConfirmPage = lazy(() => import("@/pages/AuthConfirmPage"));
+const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 
 // Super App
 const ServiceHubPage = lazy(() => import("@/pages/ServiceHubPage"));
