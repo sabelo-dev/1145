@@ -481,17 +481,6 @@ const MerchantOnboarding: React.FC = () => {
         )}
 
         {step === 6 && (
-          <StepFirstProduct
-            productImage={productImage}
-            onImageUpload={(f) => handleFileUpload(f, setProductImage, 'product-images')}
-            onNext={handleFirstProduct}
-            onBack={() => setStep(5)}
-            isLoading={isLoading}
-          />
-        )}
-
-
-        {step === 7 && (
           <StepReviewActivation
             checklist={checklist}
             allComplete={allComplete}
