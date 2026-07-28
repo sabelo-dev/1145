@@ -1,31 +1,34 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
-import RegisterForm from "@/components/auth/RegisterForm";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
+import AuthShell from "@/components/auth/AuthShell";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 
 const RegisterPage: React.FC = () => {
   useFrameBreakout();
   const { user } = useAuth();
 
-  // If user is already logged in, redirect to homepage
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
+  if (user) return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">Create an Account</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Join 1145 Lifestyle to start shopping and tracking your orders
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <RegisterForm />
-      </div>
-    </div>
+    <AuthShell
+      title="Create your account"
+      subtitle="Join 1145 Lifestyle with a single click"
+      footer={
+        <span className="text-muted-foreground">
+          Already have an account?{" "}
+          <Link to="/login" className="font-medium text-foreground hover:underline">
+            Sign in
+          </Link>
+        </span>
+      }
+    >
+      <OAuthButtons mode="register" />
+      <p className="mt-6 text-xs text-center text-muted-foreground">
+        By continuing you agree to our Terms of Service and Privacy Policy.
+      </p>
+    </AuthShell>
   );
 };
 

@@ -3,8 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
 const GOOGLE_MAPS_API_KEY =
-  (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() ||
-  "AIzaSyDdvMPREt7NEPYNtDhU0qowu4hidtrDJwo";
+  (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() || "";
+
 const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
 
 let googleMapsPromise: Promise<void> | null = null;
@@ -57,40 +57,31 @@ export function loadGoogleMaps(): Promise<void> {
         .querySelectorAll(`script[src*="maps.googleapis.com"]`)
         .forEach((s) => s.remove());
 
-      const script = document.createElement("script");
-      script.id = GOOGLE_MAPS_SCRIPT_ID;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry,marker&loading=async&callback=__gmapsInit`;
-      script.async = true;
-      script.defer = true;
-
-      // Create a global callback
-      (window as any).__gmapsInit = () => {
-        // Script loaded
-      };
-
-      document.head.appendChild(script);
+      await new Promise<void>((resolve, reject) => {
+        const script = document.createElement("script");
+        script.id = GOOGLE_MAPS_SCRIPT_ID;
+        // Use loading=async and no callback — importLibrary() handles readiness.
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=weekly&libraries=places,geometry,marker&loading=async`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Failed to load Google Maps script"));
+        document.head.appendChild(script);
+      });
     }
 
     // Wait for importLibrary to become available
     await waitForGoogleMaps();
 
     // Import required libraries
-    const libs = ["maps", "places", "geometry", "marker"] as const;
+    const libs = ["maps", "places", "marker"] as const;
     for (const lib of libs) {
-      try {
-        await window.google!.maps.importLibrary(lib);
-      } catch (e) {
-        console.warn(`Failed to import ${lib} library:`, e);
-        if (lib !== "geometry") throw e; // geometry is optional
-      }
+      await window.google!.maps.importLibrary(lib);
     }
 
-    // Try routes but don't fail if unavailable
-    try {
-      await window.google!.maps.importLibrary("routes");
-    } catch {
-      // routes library is optional
-    }
+    // Optional libraries — best effort
+    try { await window.google!.maps.importLibrary("geometry"); } catch { /* optional */ }
+    try { await window.google!.maps.importLibrary("routes"); } catch { /* optional */ }
 
     librariesImported = true;
   })().catch((err) => {
@@ -101,6 +92,7 @@ export function loadGoogleMaps(): Promise<void> {
 
   return googleMapsPromise;
 }
+
 
 interface GoogleMapProps {
   className?: string;
@@ -165,10 +157,13 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
-        mapId: "ride_map_id",
+        // Google's public demo map ID enables Advanced Markers without
+        // requiring a Cloud Console vector map to be registered.
+        mapId: "DEMO_MAP_ID",
         disableDefaultUI: true,
         zoomControl: true,
       });
+
 
       mapInstanceRef.current = map;
       onMapReady?.(map);

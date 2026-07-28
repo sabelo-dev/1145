@@ -325,6 +325,37 @@ export const fetchNewArrivals = async (limit: number = 4): Promise<Product[]> =>
 };
 
 /**
+ * Fetches featured/approved vendor brands from database
+ */
+export interface FeaturedBrand {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  businessType: string | null;
+}
+
+export const fetchFeaturedBrands = async (limit: number = 6): Promise<FeaturedBrand[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("vendors")
+      .select("id, business_name, logo_url, business_type, status")
+      .eq("status", "approved")
+      .order("search_boost", { ascending: false, nullsFirst: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data || []).map((v: any) => ({
+      id: v.id,
+      name: v.business_name,
+      logoUrl: v.logo_url,
+      businessType: v.business_type,
+    }));
+  } catch (error) {
+    console.error("Error fetching featured brands:", error);
+    return [];
+  }
+};
+
+/**
  * Fetches popular products
  */
 export const fetchPopularProducts = async (limit: number = 4): Promise<Product[]> => {
