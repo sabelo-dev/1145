@@ -150,7 +150,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: session.user.email || '',
           name: session.user.user_metadata?.name || '',
           avatar_url: session.user.user_metadata?.avatar_url || null,
-          role: 'consumer'
+          role: 'consumer',
+          emailVerified: !!session.user.email_confirmed_at,
         };
         setUser(userData);
         setIsAdmin(false);
