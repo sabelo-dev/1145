@@ -57,6 +57,7 @@ const FleetDashboardPage = lazy(() => import("@/pages/fleet/FleetDashboardPage")
 // Influencer
 const InfluencerLoginPage = lazy(() => import("@/pages/influencer/InfluencerLoginPage"));
 const InfluencerDashboardPage = lazy(() => import("@/pages/influencer/InfluencerDashboardPage"));
+const InfluencerOnboardingPage = lazy(() => import("@/pages/influencer/InfluencerOnboardingPage"));
 
 // Subcategory & special pages
 const SubcategoryPage = lazy(() => import("@/pages/SubcategoryPage"));
