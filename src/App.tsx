@@ -234,7 +234,9 @@ function AppRouter() {
         } />
         <Route path="merchant/dashboard" element={
           <ProtectedRoute requireAuth requireMerchant>
-            <MerchantDashboardPage />
+            <RoleOnboardingGate role="vendor">
+              <MerchantDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         
@@ -245,9 +247,16 @@ function AppRouter() {
         
         <Route path="driver/login" element={<DriverLoginPage />} />
         <Route path="driver/register" element={<DriverRegisterPage />} />
+        <Route path="driver/onboarding" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <DriverOnboardingPage />
+          </ProtectedRoute>
+        } />
         <Route path="driver/dashboard" element={
           <ProtectedRoute requireAuth requireDriver>
-            <DriverDashboardPage />
+            <RoleOnboardingGate role="driver">
+              <DriverDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         <Route path="fleet/dashboard" element={
@@ -257,9 +266,16 @@ function AppRouter() {
         } />
         
         <Route path="influencer/login" element={<InfluencerLoginPage />} />
+        <Route path="influencer/onboarding" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <InfluencerOnboardingPage />
+          </ProtectedRoute>
+        } />
         <Route path="influencer/dashboard" element={
           <ProtectedRoute requireAuth requireInfluencer>
-            <InfluencerDashboardPage />
+            <RoleOnboardingGate role="influencer">
+              <InfluencerDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         
