@@ -40,6 +40,8 @@ const TrackOrderPage = lazy(() => import("@/pages/TrackOrderPage"));
 // Admin
 const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminMiningPage = lazy(() => import("@/pages/admin/AdminMiningPage"));
+const MiningDashboardPage = lazy(() => import("@/pages/MiningDashboardPage"));
 
 // Merchant
 const MerchantLoginPage = lazy(() => import("@/pages/MerchantLoginPage"));
