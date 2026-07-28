@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ redirectPath?: string }>;
-  register: (email: string, password: string, name: string, role?: 'consumer' | 'vendor') => Promise<{ redirectPath?: string }>;
+  register: (email: string, password: string, name: string, role?: 'consumer' | 'vendor' | 'driver' | 'influencer') => Promise<{ redirectPath?: string }>;
   logout: () => Promise<void>;
   isMerchant: boolean;
   isAdmin: boolean;
@@ -332,7 +332,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: 'consumer' | 'vendor' = 'consumer'): Promise<{ redirectPath?: string }> => {
+  const register = async (email: string, password: string, name: string, role: 'consumer' | 'vendor' | 'driver' | 'influencer' = 'consumer'): Promise<{ redirectPath?: string }> => {
     loadingManager.startLoading('register');
     
     try {

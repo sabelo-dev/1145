@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Check, Eye, EyeOff, Loader2, ShoppingBag, Store } from "lucide-react";
+import { Car, Check, Eye, EyeOff, Loader2, ShoppingBag, Sparkles, Store } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import AuthSplitShell from "@/components/auth/AuthSplitShell";
@@ -27,7 +27,7 @@ const registerSchema = z
     email: z.string().trim().min(1, "Email is required").email("Enter a valid email").max(255),
     password: z.string().min(8, "Password must be at least 8 characters").max(72),
     confirmPassword: z.string(),
-    role: z.enum(["consumer", "vendor"]),
+    role: z.enum(["consumer", "vendor", "driver", "influencer"]),
     terms: z.boolean().refine((v) => v, { message: "Please accept the terms to continue" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -184,6 +184,20 @@ const RegisterPage: React.FC = () => {
                       icon={<Store className="h-4 w-4" />}
                       title="Merchant"
                       desc="Sell products and services"
+                    />
+                    <RoleCard
+                      active={role === "driver"}
+                      onClick={() => field.onChange("driver")}
+                      icon={<Car className="h-4 w-4" />}
+                      title="Driver"
+                      desc="Drive rides and deliveries"
+                    />
+                    <RoleCard
+                      active={role === "influencer"}
+                      onClick={() => field.onChange("influencer")}
+                      icon={<Sparkles className="h-4 w-4" />}
+                      title="Influencer"
+                      desc="Promote and earn commissions"
                     />
                   </div>
                   <FormMessage />
