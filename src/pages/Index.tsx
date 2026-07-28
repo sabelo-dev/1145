@@ -175,8 +175,8 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <Car className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-semibold">Arriving in 3 min</p>
-                  <p className="text-[10px] text-muted-foreground">1145X · Toyota Corolla · CA 123-456</p>
+                  <p className="text-xs font-semibold">Rides on demand</p>
+                  <p className="text-[10px] text-muted-foreground">Tap "See prices" to get matched with a nearby driver.</p>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </div>
