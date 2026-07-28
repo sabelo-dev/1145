@@ -376,13 +376,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try { await supabase.auth.signOut(); } catch (_) {}
         clearAuthState();
 
-        if (!data.user.email_confirmed_at && data.session === null) {
+        const verifyPath = `/verify-email?email=${encodeURIComponent(email)}`;
+        if (!data.user.email_confirmed_at) {
           loadingManager.stopLoading('register');
           toast({
-            title: "Registration Successful",
-            description: "Please check your email to verify your account, then log in.",
+            title: "Check your email",
+            description: "We sent a 6-digit confirmation code to your inbox.",
           });
-          return { redirectPath: '/login' };
+          return { redirectPath: verifyPath };
         } else {
           toast({
             title: "Registration Successful",
