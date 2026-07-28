@@ -133,7 +133,7 @@ const generateEmailHtml = (
         ${dateInfo}
         
         <div style="margin-top: 30px; text-align: center;">
-          <a href="${Deno.env.get("SITE_URL") || "https://your-site.com"}${isWinnerNotification ? "/dashboard" : "/vendor/dashboard"}" 
+          <a href="${Deno.env.get("SITE_URL") || "https://1145.io"}${isWinnerNotification ? "/dashboard" : "/vendor/dashboard"}" 
              style="display: inline-block; background-color: ${statusDetails.color}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600;">
             ${isWinnerNotification ? "Complete Purchase" : "View Dashboard"}
           </a>
@@ -194,7 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "1145 Auctions <no-reply@mail.1145.io>",
+      from: "1145 Auctions <no-reply@send.1145.io>",
       to: [userEmail],
       subject: statusDetails.subject,
       html,
