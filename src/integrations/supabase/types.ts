@@ -2254,6 +2254,126 @@ export type Database = {
           },
         ]
       }
+      driver_kyc: {
+        Row: {
+          background_check_consent: boolean
+          bank_account_last4: string | null
+          bank_name: string | null
+          city: string
+          code_of_conduct_accepted: boolean
+          country: string
+          created_at: string
+          date_of_birth: string
+          device_fingerprint: string | null
+          fic_declaration_accepted: boolean
+          full_legal_name: string
+          id: string
+          id_document_back_url: string | null
+          id_document_front_url: string
+          id_number: string
+          ip_address: string | null
+          license_back_url: string
+          license_expiry: string
+          license_front_url: string
+          license_number: string
+          postal_code: string
+          province: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_hash: string
+          selfie_url: string
+          street_address: string
+          submitted_at: string
+          tax_number: string | null
+          updated_at: string
+          user_id: string
+          vehicle_insurance_url: string | null
+          vehicle_photo_url: string | null
+          vehicle_registration_doc_url: string | null
+          vehicle_roadworthy_url: string | null
+          verification_status: string
+        }
+        Insert: {
+          background_check_consent?: boolean
+          bank_account_last4?: string | null
+          bank_name?: string | null
+          city: string
+          code_of_conduct_accepted?: boolean
+          country?: string
+          created_at?: string
+          date_of_birth: string
+          device_fingerprint?: string | null
+          fic_declaration_accepted?: boolean
+          full_legal_name: string
+          id?: string
+          id_document_back_url?: string | null
+          id_document_front_url: string
+          id_number: string
+          ip_address?: string | null
+          license_back_url: string
+          license_expiry: string
+          license_front_url: string
+          license_number: string
+          postal_code: string
+          province: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_hash: string
+          selfie_url: string
+          street_address: string
+          submitted_at?: string
+          tax_number?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle_insurance_url?: string | null
+          vehicle_photo_url?: string | null
+          vehicle_registration_doc_url?: string | null
+          vehicle_roadworthy_url?: string | null
+          verification_status?: string
+        }
+        Update: {
+          background_check_consent?: boolean
+          bank_account_last4?: string | null
+          bank_name?: string | null
+          city?: string
+          code_of_conduct_accepted?: boolean
+          country?: string
+          created_at?: string
+          date_of_birth?: string
+          device_fingerprint?: string | null
+          fic_declaration_accepted?: boolean
+          full_legal_name?: string
+          id?: string
+          id_document_back_url?: string | null
+          id_document_front_url?: string
+          id_number?: string
+          ip_address?: string | null
+          license_back_url?: string
+          license_expiry?: string
+          license_front_url?: string
+          license_number?: string
+          postal_code?: string
+          province?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_hash?: string
+          selfie_url?: string
+          street_address?: string
+          submitted_at?: string
+          tax_number?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle_insurance_url?: string | null
+          vehicle_photo_url?: string | null
+          vehicle_registration_doc_url?: string | null
+          vehicle_roadworthy_url?: string | null
+          verification_status?: string
+        }
+        Relationships: []
+      }
       driver_locations: {
         Row: {
           current_vehicle_id: string | null
@@ -2698,6 +2818,7 @@ export type Database = {
           id: string
           license_number: string | null
           name: string
+          onboarding_completed_at: string | null
           ontime_rate: number | null
           phone: string | null
           rating: number | null
@@ -2723,6 +2844,7 @@ export type Database = {
           id?: string
           license_number?: string | null
           name: string
+          onboarding_completed_at?: string | null
           ontime_rate?: number | null
           phone?: string | null
           rating?: number | null
@@ -2748,6 +2870,7 @@ export type Database = {
           id?: string
           license_number?: string | null
           name?: string
+          onboarding_completed_at?: string | null
           ontime_rate?: number | null
           phone?: string | null
           rating?: number | null
@@ -2972,6 +3095,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      fraud_signals: {
+        Row: {
+          created_at: string
+          device_fingerprint: string | null
+          id: string
+          ip_address: string | null
+          request_id: string
+          score: number
+          signals: Json
+          user_agent: string | null
+          user_id: string
+          vpn_detected: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id: string
+          score?: number
+          signals?: Json
+          user_agent?: string | null
+          user_id: string
+          vpn_detected?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id?: string
+          score?: number
+          signals?: Json
+          user_agent?: string | null
+          user_id?: string
+          vpn_detected?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_signals_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gold_price_cache: {
         Row: {
@@ -3453,6 +3623,7 @@ export type Database = {
           id_number: string | null
           is_active: boolean | null
           last_name: string | null
+          onboarding_completed_at: string | null
           performance_stats: Json | null
           phone: string | null
           platforms_access: string[] | null
@@ -3479,6 +3650,7 @@ export type Database = {
           id_number?: string | null
           is_active?: boolean | null
           last_name?: string | null
+          onboarding_completed_at?: string | null
           performance_stats?: Json | null
           phone?: string | null
           platforms_access?: string[] | null
@@ -3505,6 +3677,7 @@ export type Database = {
           id_number?: string | null
           is_active?: boolean | null
           last_name?: string | null
+          onboarding_completed_at?: string | null
           performance_stats?: Json | null
           phone?: string | null
           platforms_access?: string[] | null
@@ -4846,6 +5019,57 @@ export type Database = {
           },
         ]
       }
+      mining_activities: {
+        Row: {
+          auto_expire_hours: number
+          code: string
+          cooldown_seconds: number
+          created_at: string
+          daily_cap: number | null
+          description: string | null
+          display_name: string
+          evidence_schema: Json
+          id: string
+          is_active: boolean
+          requires_moderation: boolean
+          reward_mg: number
+          rules: Json
+          updated_at: string
+        }
+        Insert: {
+          auto_expire_hours?: number
+          code: string
+          cooldown_seconds?: number
+          created_at?: string
+          daily_cap?: number | null
+          description?: string | null
+          display_name: string
+          evidence_schema?: Json
+          id?: string
+          is_active?: boolean
+          requires_moderation?: boolean
+          reward_mg?: number
+          rules?: Json
+          updated_at?: string
+        }
+        Update: {
+          auto_expire_hours?: number
+          code?: string
+          cooldown_seconds?: number
+          created_at?: string
+          daily_cap?: number | null
+          description?: string | null
+          display_name?: string
+          evidence_schema?: Json
+          id?: string
+          is_active?: boolean
+          requires_moderation?: boolean
+          reward_mg?: number
+          rules?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mining_campaigns: {
         Row: {
           banner_url: string | null
@@ -4972,6 +5196,200 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "mining_tasks"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_events: {
+        Row: {
+          actor: string | null
+          created_at: string
+          id: string
+          payload: Json
+          request_id: string
+          stage: string
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          request_id: string
+          stage: string
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          request_id?: string
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_evidence: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          kind: string
+          request_id: string
+          storage_path: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          kind: string
+          request_id: string
+          storage_path?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          kind?: string
+          request_id?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_evidence_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_queue_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          next_run_at: string
+          request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          next_run_at?: string
+          request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          next_run_at?: string
+          request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_queue_jobs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_requests: {
+        Row: {
+          activity_code: string
+          created_at: string
+          credited_at: string | null
+          evidence: Json
+          expires_at: string | null
+          fraud_score: number
+          id: string
+          idempotency_key: string
+          metadata: Json
+          reference_id: string | null
+          reference_type: string | null
+          rejection_reason: string | null
+          reward_mg: number
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          validated_at: string | null
+          validator: string | null
+        }
+        Insert: {
+          activity_code: string
+          created_at?: string
+          credited_at?: string | null
+          evidence?: Json
+          expires_at?: string | null
+          fraud_score?: number
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          rejection_reason?: string | null
+          reward_mg?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          validated_at?: string | null
+          validator?: string | null
+        }
+        Update: {
+          activity_code?: string
+          created_at?: string
+          credited_at?: string | null
+          evidence?: Json
+          expires_at?: string | null
+          fraud_score?: number
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          rejection_reason?: string | null
+          reward_mg?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          validated_at?: string | null
+          validator?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_requests_activity_code_fkey"
+            columns: ["activity_code"]
+            isOneToOne: false
+            referencedRelation: "mining_activities"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -6453,6 +6871,175 @@ export type Database = {
         }
         Relationships: []
       }
+      social_connection_events: {
+        Row: {
+          actor: string
+          connection_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          provider: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actor?: string
+          connection_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          provider?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actor?: string
+          connection_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          provider?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_connection_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_connection_tokens: {
+        Row: {
+          access_token_ct: string
+          access_token_iv: string
+          connection_id: string
+          created_at: string
+          expires_at: string | null
+          key_version: number
+          refresh_token_ct: string | null
+          refresh_token_iv: string | null
+          scope: string | null
+          token_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token_ct: string
+          access_token_iv: string
+          connection_id: string
+          created_at?: string
+          expires_at?: string | null
+          key_version?: number
+          refresh_token_ct?: string | null
+          refresh_token_iv?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token_ct?: string
+          access_token_iv?: string
+          connection_id?: string
+          created_at?: string
+          expires_at?: string | null
+          key_version?: number
+          refresh_token_ct?: string | null
+          refresh_token_iv?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_connection_tokens_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_connections: {
+        Row: {
+          account_type: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          error_message: string | null
+          granted_scopes: string[]
+          id: string
+          last_sync_at: string | null
+          last_validation_at: string | null
+          metadata: Json
+          missing_scopes: string[]
+          oauth_code_verifier: string | null
+          oauth_redirect_uri: string | null
+          oauth_state: string | null
+          oauth_state_expires_at: string | null
+          provider: string
+          provider_account_id: string | null
+          required_scopes: string[]
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          error_message?: string | null
+          granted_scopes?: string[]
+          id?: string
+          last_sync_at?: string | null
+          last_validation_at?: string | null
+          metadata?: Json
+          missing_scopes?: string[]
+          oauth_code_verifier?: string | null
+          oauth_redirect_uri?: string | null
+          oauth_state?: string | null
+          oauth_state_expires_at?: string | null
+          provider: string
+          provider_account_id?: string | null
+          required_scopes?: string[]
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          error_message?: string | null
+          granted_scopes?: string[]
+          id?: string
+          last_sync_at?: string | null
+          last_validation_at?: string | null
+          metadata?: Json
+          missing_scopes?: string[]
+          oauth_code_verifier?: string | null
+          oauth_redirect_uri?: string | null
+          oauth_state?: string | null
+          oauth_state_expires_at?: string | null
+          provider?: string
+          provider_account_id?: string | null
+          required_scopes?: string[]
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       social_media_posts: {
         Row: {
           content: string
@@ -6674,6 +7261,130 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "social_media_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_queue: {
+        Row: {
+          attempts: number
+          connection_id: string
+          content: Json
+          created_at: string
+          error: string | null
+          id: string
+          max_attempts: number
+          next_run_at: string
+          post_ref_id: string | null
+          provider: string
+          provider_post_id: string | null
+          provider_response: Json | null
+          published_at: string | null
+          scheduled_for: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          connection_id: string
+          content?: Json
+          created_at?: string
+          error?: string | null
+          id?: string
+          max_attempts?: number
+          next_run_at?: string
+          post_ref_id?: string | null
+          provider: string
+          provider_post_id?: string | null
+          provider_response?: Json | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          connection_id?: string
+          content?: Json
+          created_at?: string
+          error?: string | null
+          id?: string
+          max_attempts?: number
+          next_run_at?: string
+          post_ref_id?: string | null
+          provider?: string
+          provider_post_id?: string | null
+          provider_response?: Json | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_queue_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_webhook_events: {
+        Row: {
+          connection_id: string | null
+          error: string | null
+          event_id: string | null
+          event_type: string | null
+          headers: Json
+          id: string
+          ip_address: string | null
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          provider: string
+          received_at: string
+          signature_valid: boolean
+        }
+        Insert: {
+          connection_id?: string | null
+          error?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          headers?: Json
+          id?: string
+          ip_address?: string | null
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Update: {
+          connection_id?: string | null
+          error?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          headers?: Json
+          id?: string
+          ip_address?: string | null
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_webhook_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "social_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -7280,6 +7991,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ucoin_ledger: {
+        Row: {
+          created_at: string
+          delta_mg: number
+          id: string
+          kind: string
+          reason: string | null
+          request_id: string | null
+          running_balance: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta_mg: number
+          id?: string
+          kind: string
+          reason?: string | null
+          request_id?: string | null
+          running_balance?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delta_mg?: number
+          id?: string
+          kind?: string
+          reason?: string | null
+          request_id?: string | null
+          running_balance?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ucoin_ledger_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ucoin_spending_options: {
         Row: {
@@ -8909,6 +9661,7 @@ export type Database = {
         | { Args: { _user_id: string }; Returns: boolean }
       is_auction_active: { Args: { _auction_id: string }; Returns: boolean }
       is_driver: { Args: { _user_id: string }; Returns: boolean }
+      is_influencer: { Args: { _user_id: string }; Returns: boolean }
       is_registered_for_auction: {
         Args: { _auction_id: string; _user_id: string }
         Returns: boolean
@@ -8922,6 +9675,26 @@ export type Database = {
       mg_gold_to_currency: {
         Args: { p_currency_code: string; p_mg_gold: number }
         Returns: number
+      }
+      mining_credit_request: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
+      mining_emit_action: {
+        Args: {
+          p_activity_code: string
+          p_evidence?: Json
+          p_idempotency_key: string
+          p_metadata?: Json
+          p_reference_id?: string
+          p_reference_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      mining_reverse_request: {
+        Args: { p_reason: string; p_request_id: string }
+        Returns: boolean
       }
       process_referral_mining_bonus: {
         Args: { p_completion_id: string; p_miner_id: string; p_reward: number }

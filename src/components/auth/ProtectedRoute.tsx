@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
   requireMerchant?: boolean;
   requireDriver?: boolean;
   requireInfluencer?: boolean;
+  requireVerified?: boolean;
   fallbackPath?: string;
 }
 
@@ -19,6 +20,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireMerchant = false,
   requireDriver = false,
   requireInfluencer = false,
+  requireVerified = false,
   fallbackPath = '/'
 }) => {
   const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer } = useAuth();
@@ -35,9 +37,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requireAuth && !user) {
-    const loginPath = requireAdmin ? '/admin/login' : 
-                      requireMerchant ? '/merchant/login' : 
-                      requireDriver ? '/driver/login' : 
+    const loginPath = requireAdmin ? '/admin/login' :
+                      requireMerchant ? '/merchant/login' :
+                      requireDriver ? '/driver/login' :
                       requireInfluencer ? '/influencer/login' : '/login';
     return <Navigate to={loginPath} replace />;
   }
@@ -48,6 +50,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
     if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // Block sensitive actions until email is verified (admins bypass)
+  if (requireAuth && requireVerified && user && !user.emailVerified && !isAdmin) {
+    return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email)}`} replace />;
   }
 
   if (requireAdmin && (!user || !isAdmin)) {
@@ -70,3 +77,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 };
 
 export default ProtectedRoute;
+

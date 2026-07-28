@@ -15,6 +15,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
 import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy loaded pages
@@ -39,6 +40,9 @@ const TrackOrderPage = lazy(() => import("@/pages/TrackOrderPage"));
 // Admin
 const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminMiningPage = lazy(() => import("@/pages/admin/AdminMiningPage"));
+const AdminSocialConnectionsPage = lazy(() => import("@/pages/admin/AdminSocialConnectionsPage"));
+const MiningDashboardPage = lazy(() => import("@/pages/MiningDashboardPage"));
 
 // Merchant
 const MerchantLoginPage = lazy(() => import("@/pages/MerchantLoginPage"));
@@ -50,11 +54,14 @@ const MerchantDashboardPage = lazy(() => import("@/pages/MerchantDashboardPage")
 const DriverLoginPage = lazy(() => import("@/pages/driver/DriverLoginPage"));
 const DriverDashboardPage = lazy(() => import("@/pages/driver/DriverDashboardPage"));
 const DriverRegisterPage = lazy(() => import("@/pages/driver/DriverRegisterPage"));
+const DriverOnboardingPage = lazy(() => import("@/pages/driver/DriverOnboardingPage"));
 const FleetDashboardPage = lazy(() => import("@/pages/fleet/FleetDashboardPage"));
 
 // Influencer
 const InfluencerLoginPage = lazy(() => import("@/pages/influencer/InfluencerLoginPage"));
 const InfluencerDashboardPage = lazy(() => import("@/pages/influencer/InfluencerDashboardPage"));
+const InfluencerOnboardingPage = lazy(() => import("@/pages/influencer/InfluencerOnboardingPage"));
+const InfluencerSocialConnectionsPage = lazy(() => import("@/pages/influencer/InfluencerSocialConnectionsPage"));
 
 // Subcategory & special pages
 const SubcategoryPage = lazy(() => import("@/pages/SubcategoryPage"));
@@ -77,6 +84,7 @@ const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 
 // Auth
 const AuthConfirmPage = lazy(() => import("@/pages/AuthConfirmPage"));
+const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 
 // Super App
 const ServiceHubPage = lazy(() => import("@/pages/ServiceHubPage"));
@@ -147,7 +155,7 @@ function AppRouter() {
           <Route path="account" element={<Navigate to="/dashboard" replace />} />
           <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <ConsumerDashboard />
             </ProtectedRoute>
           } />
@@ -167,13 +175,13 @@ function AppRouter() {
           <Route path="terms" element={<TermsPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
           <Route path="lease/apply/:assetId" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <LeaseApplyPage />
             </ProtectedRoute>
           } />
           <Route path="lease/marketplace" element={<LeaseMarketplacePage />} />
           <Route path="lease/my-assets" element={
-            <ProtectedRoute requireAuth>
+            <ProtectedRoute requireAuth requireVerified>
               <AssetOwnerDashboard />
             </ProtectedRoute>
           } />
@@ -186,23 +194,28 @@ function AppRouter() {
           <Route path=":propertyId" element={<StayDetailPage />} />
         </Route>
         <Route path="rides" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideHistoryPage />
           </ProtectedRoute>
         } />
         <Route path="rides/request" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideRequestPage />
           </ProtectedRoute>
         } />
         <Route path="rides/track/:rideId" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <RideTrackingPage />
           </ProtectedRoute>
         } />
         <Route path="wallet" element={
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute requireAuth requireVerified>
             <WalletPage />
+          </ProtectedRoute>
+        } />
+        <Route path="wallet/mining" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <MiningDashboardPage />
           </ProtectedRoute>
         } />
         <Route path="track-order" element={<TrackOrderPage />} />
@@ -210,7 +223,9 @@ function AppRouter() {
         <Route path="auth/confirm" element={<AuthConfirmPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
+
         
         <Route path="admin/login" element={<AdminLoginPage />} />
         <Route path="admin/dashboard" element={
@@ -218,6 +233,17 @@ function AppRouter() {
             <AdminDashboard />
           </ProtectedRoute>
         } />
+        <Route path="admin/ucoin/mining" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminMiningPage />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/social" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminSocialConnectionsPage />
+          </ProtectedRoute>
+        } />
+        
         
         <Route path="merchant/login" element={<MerchantLoginPage />} />
         <Route path="merchant/register" element={<MerchantRegisterPage />} />
@@ -228,7 +254,9 @@ function AppRouter() {
         } />
         <Route path="merchant/dashboard" element={
           <ProtectedRoute requireAuth requireMerchant>
-            <MerchantDashboardPage />
+            <RoleOnboardingGate role="vendor">
+              <MerchantDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         
@@ -239,9 +267,16 @@ function AppRouter() {
         
         <Route path="driver/login" element={<DriverLoginPage />} />
         <Route path="driver/register" element={<DriverRegisterPage />} />
+        <Route path="driver/onboarding" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <DriverOnboardingPage />
+          </ProtectedRoute>
+        } />
         <Route path="driver/dashboard" element={
           <ProtectedRoute requireAuth requireDriver>
-            <DriverDashboardPage />
+            <RoleOnboardingGate role="driver">
+              <DriverDashboardPage />
+            </RoleOnboardingGate>
           </ProtectedRoute>
         } />
         <Route path="fleet/dashboard" element={
@@ -251,11 +286,24 @@ function AppRouter() {
         } />
         
         <Route path="influencer/login" element={<InfluencerLoginPage />} />
-        <Route path="influencer/dashboard" element={
-          <ProtectedRoute requireAuth requireInfluencer>
-            <InfluencerDashboardPage />
+        <Route path="influencer/onboarding" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <InfluencerOnboardingPage />
           </ProtectedRoute>
         } />
+        <Route path="influencer/dashboard" element={
+          <ProtectedRoute requireAuth requireInfluencer>
+            <RoleOnboardingGate role="influencer">
+              <InfluencerDashboardPage />
+            </RoleOnboardingGate>
+          </ProtectedRoute>
+        } />
+        <Route path="influencer/social" element={
+          <ProtectedRoute requireAuth requireInfluencer>
+            <InfluencerSocialConnectionsPage />
+          </ProtectedRoute>
+        } />
+        
         
         <Route path="*" element={<NotFound />} />
       </Routes>
