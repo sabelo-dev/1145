@@ -211,7 +211,9 @@ function AppRouter() {
         <Route path="auth/confirm" element={<AuthConfirmPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
+
         
         <Route path="admin/login" element={<AdminLoginPage />} />
         <Route path="admin/dashboard" element={
