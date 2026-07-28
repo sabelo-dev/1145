@@ -26,14 +26,6 @@ const services = [
   { name: "Stay", desc: "Book a stay", icon: Building2, href: "/stays", tag: "New" },
 ];
 
-const featuredBrands = [
-  { name: "Aurum", tag: "Luxury" },
-  { name: "Kai Studio", tag: "Fashion" },
-  { name: "Nova Tech", tag: "Electronics" },
-  { name: "Terra Home", tag: "Living" },
-  { name: "Flux Athletics", tag: "Sport" },
-  { name: "Muse & Co", tag: "Beauty" },
-];
 
 const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   const navigate = useNavigate();
