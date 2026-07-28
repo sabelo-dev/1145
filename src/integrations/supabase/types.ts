@@ -2254,6 +2254,126 @@ export type Database = {
           },
         ]
       }
+      driver_kyc: {
+        Row: {
+          background_check_consent: boolean
+          bank_account_last4: string | null
+          bank_name: string | null
+          city: string
+          code_of_conduct_accepted: boolean
+          country: string
+          created_at: string
+          date_of_birth: string
+          device_fingerprint: string | null
+          fic_declaration_accepted: boolean
+          full_legal_name: string
+          id: string
+          id_document_back_url: string | null
+          id_document_front_url: string
+          id_number: string
+          ip_address: string | null
+          license_back_url: string
+          license_expiry: string
+          license_front_url: string
+          license_number: string
+          postal_code: string
+          province: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_hash: string
+          selfie_url: string
+          street_address: string
+          submitted_at: string
+          tax_number: string | null
+          updated_at: string
+          user_id: string
+          vehicle_insurance_url: string | null
+          vehicle_photo_url: string | null
+          vehicle_registration_doc_url: string | null
+          vehicle_roadworthy_url: string | null
+          verification_status: string
+        }
+        Insert: {
+          background_check_consent?: boolean
+          bank_account_last4?: string | null
+          bank_name?: string | null
+          city: string
+          code_of_conduct_accepted?: boolean
+          country?: string
+          created_at?: string
+          date_of_birth: string
+          device_fingerprint?: string | null
+          fic_declaration_accepted?: boolean
+          full_legal_name: string
+          id?: string
+          id_document_back_url?: string | null
+          id_document_front_url: string
+          id_number: string
+          ip_address?: string | null
+          license_back_url: string
+          license_expiry: string
+          license_front_url: string
+          license_number: string
+          postal_code: string
+          province: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_hash: string
+          selfie_url: string
+          street_address: string
+          submitted_at?: string
+          tax_number?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle_insurance_url?: string | null
+          vehicle_photo_url?: string | null
+          vehicle_registration_doc_url?: string | null
+          vehicle_roadworthy_url?: string | null
+          verification_status?: string
+        }
+        Update: {
+          background_check_consent?: boolean
+          bank_account_last4?: string | null
+          bank_name?: string | null
+          city?: string
+          code_of_conduct_accepted?: boolean
+          country?: string
+          created_at?: string
+          date_of_birth?: string
+          device_fingerprint?: string | null
+          fic_declaration_accepted?: boolean
+          full_legal_name?: string
+          id?: string
+          id_document_back_url?: string | null
+          id_document_front_url?: string
+          id_number?: string
+          ip_address?: string | null
+          license_back_url?: string
+          license_expiry?: string
+          license_front_url?: string
+          license_number?: string
+          postal_code?: string
+          province?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_hash?: string
+          selfie_url?: string
+          street_address?: string
+          submitted_at?: string
+          tax_number?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle_insurance_url?: string | null
+          vehicle_photo_url?: string | null
+          vehicle_registration_doc_url?: string | null
+          vehicle_roadworthy_url?: string | null
+          verification_status?: string
+        }
+        Relationships: []
+      }
       driver_locations: {
         Row: {
           current_vehicle_id: string | null
@@ -2698,6 +2818,7 @@ export type Database = {
           id: string
           license_number: string | null
           name: string
+          onboarding_completed_at: string | null
           ontime_rate: number | null
           phone: string | null
           rating: number | null
@@ -2723,6 +2844,7 @@ export type Database = {
           id?: string
           license_number?: string | null
           name: string
+          onboarding_completed_at?: string | null
           ontime_rate?: number | null
           phone?: string | null
           rating?: number | null
@@ -2748,6 +2870,7 @@ export type Database = {
           id?: string
           license_number?: string | null
           name?: string
+          onboarding_completed_at?: string | null
           ontime_rate?: number | null
           phone?: string | null
           rating?: number | null
@@ -3453,6 +3576,7 @@ export type Database = {
           id_number: string | null
           is_active: boolean | null
           last_name: string | null
+          onboarding_completed_at: string | null
           performance_stats: Json | null
           phone: string | null
           platforms_access: string[] | null
@@ -3479,6 +3603,7 @@ export type Database = {
           id_number?: string | null
           is_active?: boolean | null
           last_name?: string | null
+          onboarding_completed_at?: string | null
           performance_stats?: Json | null
           phone?: string | null
           platforms_access?: string[] | null
@@ -3505,6 +3630,7 @@ export type Database = {
           id_number?: string | null
           is_active?: boolean | null
           last_name?: string | null
+          onboarding_completed_at?: string | null
           performance_stats?: Json | null
           phone?: string | null
           platforms_access?: string[] | null
