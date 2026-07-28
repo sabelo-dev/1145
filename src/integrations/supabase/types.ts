@@ -3096,6 +3096,53 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_signals: {
+        Row: {
+          created_at: string
+          device_fingerprint: string | null
+          id: string
+          ip_address: string | null
+          request_id: string
+          score: number
+          signals: Json
+          user_agent: string | null
+          user_id: string
+          vpn_detected: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id: string
+          score?: number
+          signals?: Json
+          user_agent?: string | null
+          user_id: string
+          vpn_detected?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id?: string
+          score?: number
+          signals?: Json
+          user_agent?: string | null
+          user_id?: string
+          vpn_detected?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_signals_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gold_price_cache: {
         Row: {
           created_at: string
@@ -4972,6 +5019,57 @@ export type Database = {
           },
         ]
       }
+      mining_activities: {
+        Row: {
+          auto_expire_hours: number
+          code: string
+          cooldown_seconds: number
+          created_at: string
+          daily_cap: number | null
+          description: string | null
+          display_name: string
+          evidence_schema: Json
+          id: string
+          is_active: boolean
+          requires_moderation: boolean
+          reward_mg: number
+          rules: Json
+          updated_at: string
+        }
+        Insert: {
+          auto_expire_hours?: number
+          code: string
+          cooldown_seconds?: number
+          created_at?: string
+          daily_cap?: number | null
+          description?: string | null
+          display_name: string
+          evidence_schema?: Json
+          id?: string
+          is_active?: boolean
+          requires_moderation?: boolean
+          reward_mg?: number
+          rules?: Json
+          updated_at?: string
+        }
+        Update: {
+          auto_expire_hours?: number
+          code?: string
+          cooldown_seconds?: number
+          created_at?: string
+          daily_cap?: number | null
+          description?: string | null
+          display_name?: string
+          evidence_schema?: Json
+          id?: string
+          is_active?: boolean
+          requires_moderation?: boolean
+          reward_mg?: number
+          rules?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mining_campaigns: {
         Row: {
           banner_url: string | null
@@ -5098,6 +5196,200 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "mining_tasks"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_events: {
+        Row: {
+          actor: string | null
+          created_at: string
+          id: string
+          payload: Json
+          request_id: string
+          stage: string
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          request_id: string
+          stage: string
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          request_id?: string
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_evidence: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          kind: string
+          request_id: string
+          storage_path: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          kind: string
+          request_id: string
+          storage_path?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          kind?: string
+          request_id?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_evidence_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_queue_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          next_run_at: string
+          request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          next_run_at?: string
+          request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          next_run_at?: string
+          request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_queue_jobs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mining_requests: {
+        Row: {
+          activity_code: string
+          created_at: string
+          credited_at: string | null
+          evidence: Json
+          expires_at: string | null
+          fraud_score: number
+          id: string
+          idempotency_key: string
+          metadata: Json
+          reference_id: string | null
+          reference_type: string | null
+          rejection_reason: string | null
+          reward_mg: number
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          validated_at: string | null
+          validator: string | null
+        }
+        Insert: {
+          activity_code: string
+          created_at?: string
+          credited_at?: string | null
+          evidence?: Json
+          expires_at?: string | null
+          fraud_score?: number
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          rejection_reason?: string | null
+          reward_mg?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          validated_at?: string | null
+          validator?: string | null
+        }
+        Update: {
+          activity_code?: string
+          created_at?: string
+          credited_at?: string | null
+          evidence?: Json
+          expires_at?: string | null
+          fraud_score?: number
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          rejection_reason?: string | null
+          reward_mg?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          validated_at?: string | null
+          validator?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_requests_activity_code_fkey"
+            columns: ["activity_code"]
+            isOneToOne: false
+            referencedRelation: "mining_activities"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -7407,6 +7699,47 @@ export type Database = {
         }
         Relationships: []
       }
+      ucoin_ledger: {
+        Row: {
+          created_at: string
+          delta_mg: number
+          id: string
+          kind: string
+          reason: string | null
+          request_id: string | null
+          running_balance: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta_mg: number
+          id?: string
+          kind: string
+          reason?: string | null
+          request_id?: string | null
+          running_balance?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delta_mg?: number
+          id?: string
+          kind?: string
+          reason?: string | null
+          request_id?: string | null
+          running_balance?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ucoin_ledger_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "mining_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ucoin_spending_options: {
         Row: {
           category: string
@@ -9049,6 +9382,26 @@ export type Database = {
       mg_gold_to_currency: {
         Args: { p_currency_code: string; p_mg_gold: number }
         Returns: number
+      }
+      mining_credit_request: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
+      mining_emit_action: {
+        Args: {
+          p_activity_code: string
+          p_evidence?: Json
+          p_idempotency_key: string
+          p_metadata?: Json
+          p_reference_id?: string
+          p_reference_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      mining_reverse_request: {
+        Args: { p_reason: string; p_request_id: string }
+        Returns: boolean
       }
       process_referral_mining_bonus: {
         Args: { p_completion_id: string; p_miner_id: string; p_reward: number }

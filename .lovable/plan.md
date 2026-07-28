@@ -1,72 +1,119 @@
-## Goal
+# UCoin Mining & Validation System
 
-When a new user registers as **merchant**, **driver**, or **influencer**, force a role-specific onboarding flow before they can use the dashboard. Each flow collects only what that role needs. The **driver** flow adds strong anti-fraud controls (ID verification, document uploads, selfie liveness, uniqueness checks).
+Rebuild UCoin rewards around Proof-of-Action: no coins credited until an action is fully completed, validated, fraud-checked, deduped, and recorded in an append-only ledger. Existing `award_ucoin` shortcut paths (order completed, review submitted, mining tasks, referrals) are replaced by an event-driven pipeline.
 
-## Routing & gate
+## Scope of this plan
+End-to-end backend + minimal user/admin UI. Activities covered in first release: Daily Login, Purchase, Referral, Delivery, Review, Social Share, Video Watch, KYC/Registration. Others (surveys, community, bug reports) plug into the same framework later via config.
 
-- Add routes `/driver/onboarding` and `/influencer/onboarding`. Merchant already has `/merchant/onboarding`.
-- New `RoleOnboardingGate` wrapper (used inside `ProtectedRoute` for role dashboards) checks the user's role and the completion flag for their profile row. If incomplete → redirect to the matching onboarding route.
-- After login/verify-email redirect logic: if role ∈ {merchant, driver, influencer} and onboarding incomplete, land on the onboarding page instead of the dashboard.
-
-## Merchant onboarding (already exists)
-
-Keep the current multi-step `MerchantOnboardingPage` — no functional changes beyond ensuring the gate uses `vendors.status != 'PENDING_PROFILE'` as the "complete" signal.
-
-## Driver onboarding (new, multi-step + anti-fraud)
-
-Steps in `DriverOnboardingPage`:
-1. **Personal** — full legal name, phone (OTP verified via existing Supabase phone), date of birth (must be 18+), residential address.
-2. **Government ID** — SA ID / passport number + upload front & back to `driver-kyc` bucket (private).
-3. **Driver's licence** — licence number, expiry, upload front & back; expiry must be in the future.
-4. **Vehicle** — type, make/model/year, colour, registration plate, upload vehicle photo + registration papers + insurance certificate + roadworthy certificate.
-5. **Selfie liveness** — capture a selfie via `getUserMedia`, uploaded to `driver-kyc`; stored hash compared to reject duplicates.
-6. **Banking + agreements** — payout bank account (SA banks list), tax number optional, accept driver code of conduct + background-check consent + FIC declaration.
-
-### Driver anti-fraud measures
-
-- New private storage bucket `driver-kyc` (owner-only read, admin read via RLS).
-- DB constraints: `UNIQUE(license_number)` on `drivers`; `UNIQUE(id_number)` on new `driver_kyc` table; `UNIQUE(vehicle_registration)` on `drivers`.
-- New table `driver_kyc` (user_id PK, id_number, id_document_urls, license_urls, vehicle_doc_urls, selfie_url, selfie_hash, bank_account_last4, verification_status: pending/approved/rejected, submitted_at, reviewed_by, review_notes, ip_address, device_fingerprint). RLS: driver reads/writes own, admin all.
-- Driver status stays `pending` until an admin approves; `RoleOnboardingGate` allows access to a limited "pending review" dashboard state but blocks going online / accepting rides until approved.
-- Record submission `ip_address` and `device_fingerprint` (FingerprintJS-lite via `navigator.userAgent` + canvas hash) for admin fraud review.
-- Reject signup if `id_number`, `license_number`, plate, phone, or selfie hash already exists on another driver (uniqueness pre-check via edge function `driver-kyc-precheck`).
-- 18+ age check enforced client-side and by a DB trigger on `driver_kyc.date_of_birth`.
-
-## Influencer onboarding (new)
-
-`InfluencerOnboardingPage` steps:
-1. **Public identity** — display name, username (unique on `influencer_profiles`), bio, profile photo.
-2. **Contact & niche** — first/last name, phone, primary niche (multi-select from fashion/beauty/tech/food/travel/fitness/lifestyle), audience size band, primary country.
-3. **Social profiles** — connect at least one social account through the existing OAuth flow (Instagram / TikTok / X / YouTube / Facebook). Manual URL fallback if OAuth fails; those go to admin verification queue.
-4. **Payout details** — payout method (bank / UCoin wallet), agree to influencer terms + FTC disclosure policy.
-
-Completion flag: `influencer_profiles.username IS NOT NULL AND phone IS NOT NULL AND at least one row in social_accounts`.
-
-## Post-registration redirect
-
-In `RegisterPage.onSubmit` and `verify-email` success handler, after account creation with a non-consumer role, navigate to the role's onboarding path once the email is verified.
-
-## Technical section
-
-- **New DB migration**
-  - `driver_kyc` table with GRANTs, RLS, and update-timestamp trigger.
-  - Add `onboarding_completed_at timestamptz` to `drivers`, `influencer_profiles`; helper view is not needed — gates check the column.
-  - Unique indexes on `drivers.license_number`, `drivers.vehicle_registration`, `driver_kyc.id_number`, `driver_kyc.selfie_hash`, `influencer_profiles.username`.
-  - Private storage bucket `driver-kyc` with per-user-folder policies (`{auth.uid()}/...`).
-  - Trigger on `driver_kyc` enforcing age >= 18.
-- **New edge function** `driver-kyc-precheck` — validates uniqueness of id/licence/plate/phone before final submit; uses service role, JWT-verified caller.
-- **New components**
-  - `src/pages/driver/DriverOnboardingPage.tsx` (stepper).
-  - `src/pages/influencer/InfluencerOnboardingPage.tsx` (stepper).
-  - `src/components/auth/RoleOnboardingGate.tsx` used inside role-protected routes.
-  - Shared `src/components/onboarding/Stepper.tsx`, `DocumentUpload.tsx`, `SelfieCapture.tsx`.
-- **App.tsx** — add new routes; wrap `DriverDashboardPage` and `InfluencerDashboardPage` with `RoleOnboardingGate`.
-- **AuthContext / LoginForm** — extend post-login redirect to detect incomplete onboarding for the three roles.
-- All uploads go through validated Zod schemas (mime type, size ≤ 5 MB per file, ≤ 15 MB total).
+## Data model (new tables)
 
 ```text
-register → verify-email → role check
-                        ├─ merchant → /merchant/onboarding → dashboard
-                        ├─ driver   → /driver/onboarding (6 steps + KYC) → pending review → dashboard
-                        └─ influencer → /influencer/onboarding (4 steps) → dashboard
+mining_activities         config: code, display_name, reward, evidence_schema,
+                          rules (jsonb), cooldown, daily_cap, requires_moderation,
+                          auto_expire_hours, is_active
+mining_requests           lifecycle rows: user_id, activity_code, status
+                          (pending|validating|awaiting_verification|approved|
+                          rejected|expired|failed|credited|reversed),
+                          reward_mg, fraud_score, evidence jsonb, metadata jsonb,
+                          reference_type, reference_id, idempotency_key UNIQUE,
+                          started_at, validated_at, credited_at, validator,
+                          rejection_reason
+mining_events             append-only event log per request (stage, actor, payload)
+mining_evidence           optional file/proof rows linked to request
+ucoin_ledger              append-only: request_id, user_id, delta_mg, kind
+                          (credit|reversal|adjustment), running_balance, created_at
+ucoin_reversals           reason, original_request_id, admin_id
+fraud_signals             per-request signals (device, ip, vpn, velocity, graph)
+mining_queue_jobs         backing table for async workers (status, attempts,
+                          next_run_at, locked_by)
 ```
+
+Wallet balance in `ucoin_wallets.balance` becomes a cached projection of `ucoin_ledger`; a `refresh_wallet_from_ledger(user_id)` function recalculates on demand.
+
+## Pipeline
+
+```text
+emit_action(activity, evidence, idempotency_key)
+   -> insert mining_requests (pending) + mining_events(started)
+   -> enqueue mining_queue_jobs
+worker:
+   -> validating: run activity rules engine (JSON DSL in mining_activities.rules)
+   -> awaiting_verification: if activity needs external confirmation
+      (purchase delivered + return window, referral first purchase, etc.)
+   -> fraud scoring: compute fraud_score from fraud_signals + rules
+   -> dedupe: reject if (user_id, activity_code, reference) already credited
+   -> moderation: create review task if flagged
+   -> approved -> credit: insert ucoin_ledger row + update wallet in txn
+   -> notification: user_notifications row
+```
+
+All state transitions write a row to `mining_events`. Failed/expired terminal states never credit.
+
+## Activity rules (initial set)
+
+- **daily_login**: 1/day per user, requires trusted device, 24h cooldown
+- **purchase**: awaits order.status=delivered AND now > delivered_at + return_window (7d), no refund
+- **referral**: awaits referee email+phone verified, KYC passed, first order delivered + return window
+- **delivery**: awaits driver POD (OTP + photo + rating >= 3), GPS route sanity
+- **review**: awaits verified_purchase + moderation.approved + min 20 words + not-duplicate hash
+- **social_share**: awaits tracked link click from unique device with dwell > 10s, no bot UA
+- **video_watch**: awaits >=95% watched + quiz passed if configured
+- **kyc_complete**: awaits kyc.status=verified
+
+Reward amounts, cooldowns, and caps live in `mining_activities` so business can tune without deploys.
+
+## Server code
+
+`supabase/functions/ucoin-mining/` (single function, action-routed):
+- `POST /emit` — accepts `{activity, evidence, idempotency_key, reference}`; validates JWT; inserts request; enqueues job. Idempotent.
+- `POST /worker/tick` — drains queue (cron every minute via pg_cron + pg_net).
+- `POST /admin/decision` — approve/reject flagged requests (admin only).
+- `POST /admin/reverse` — reversal writing negative ledger row.
+- Shared rules engine module evaluates JSON rules with helpers (`orderDelivered`, `returnWindowClosed`, `hasVerifiedPurchase`, `fraudScore`, `dedupeKey`).
+
+Fraud scoring helper combines: account age, device fingerprint reuse, IP/VPN, action velocity, referral graph loops, GPS/OTP mismatch.
+
+## Trigger migration
+
+Existing triggers (`trigger_ucoin_order_completed`, `trigger_ucoin_review_submitted`, `complete_mining_task` direct-credit path, referral direct credits) are rewritten to call `emit_action` instead of `award_ucoin`. `award_ucoin` becomes internal-only, called exclusively by the credit step after approval. Historical `ucoin_transactions` rows are preserved; new activity flows through the ledger.
+
+## UI
+
+**User dashboard** (`/wallet/mining`):
+- List of mining_requests with status pill, reward, started/validated/credited timestamps, rejection reason, reference link.
+- Filter by activity + status. Empty states + explanations.
+
+**Admin dashboard** (`/admin/ucoin/mining`):
+- Queue health (pending/validating/awaiting counts, oldest age).
+- Review queue for flagged requests: evidence viewer, fraud score, approve/reject with reason.
+- Reversal tool with reason picker.
+- Activity config editor (reward, cooldown, cap, rules toggle) writing to `mining_activities`.
+- Export CSV.
+
+Small user-facing notifications: "You earned N UCoin — Verified Purchase" / "Mining request rejected — Duplicate referral".
+
+## Security
+
+- RLS: users read only their own `mining_requests` / `ucoin_ledger`; admins full via `has_role`.
+- `emit_action` requires authenticated JWT; edge function verifies user matches.
+- Ledger table is insert-only for `authenticated` (via SECURITY DEFINER), no update/delete.
+- Idempotency key UNIQUE prevents replay.
+
+## Rollout
+
+1. Migrations: tables, indexes, RLS, seed `mining_activities` config, cron schedule.
+2. Edge function `ucoin-mining` + rules engine module.
+3. Replace direct-credit triggers with `emit_action` calls.
+4. User `/wallet/mining` page + link from wallet.
+5. Admin `/admin/ucoin/mining` with queue, review, reversal, config.
+6. Backfill: leave historical `ucoin_transactions`; new activity starts fresh.
+
+## Out of scope (future, per spec §25)
+Reputation multipliers, staking, achievements, seasonal campaigns, ML anomaly detection, governance voting — architecture leaves hooks (multiplier column on request, campaign_id already on completions) but no UI in v1.
+
+## Acceptance
+- No path credits wallet without a preceding `mining_requests.status='approved'` and matching `ucoin_ledger` row.
+- Wallet balance == SUM(ucoin_ledger.delta_mg) for every user.
+- Every request has ≥1 `mining_events` row per stage transition.
+- Duplicate `idempotency_key` returns the original request, never a second credit.
+- Refund on a purchase produces a reversal ledger row and status=`reversed`.

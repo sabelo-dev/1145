@@ -40,6 +40,8 @@ const TrackOrderPage = lazy(() => import("@/pages/TrackOrderPage"));
 // Admin
 const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminMiningPage = lazy(() => import("@/pages/admin/AdminMiningPage"));
+const MiningDashboardPage = lazy(() => import("@/pages/MiningDashboardPage"));
 
 // Merchant
 const MerchantLoginPage = lazy(() => import("@/pages/MerchantLoginPage"));
@@ -209,6 +211,11 @@ function AppRouter() {
             <WalletPage />
           </ProtectedRoute>
         } />
+        <Route path="wallet/mining" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <MiningDashboardPage />
+          </ProtectedRoute>
+        } />
         <Route path="track-order" element={<TrackOrderPage />} />
         
         <Route path="auth/confirm" element={<AuthConfirmPage />} />
@@ -222,6 +229,11 @@ function AppRouter() {
         <Route path="admin/dashboard" element={
           <ProtectedRoute requireAuth requireAdmin>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/ucoin/mining" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminMiningPage />
           </ProtectedRoute>
         } />
         
