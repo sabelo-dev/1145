@@ -295,8 +295,9 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in auth-email-hook:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    // Return 200 so Supabase auth doesn't block signup on hook failure
+    return new Response(JSON.stringify({ success: true, warning: error.message }), {
+      status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }
