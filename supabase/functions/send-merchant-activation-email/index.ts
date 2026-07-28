@@ -48,33 +48,49 @@ serve(async (req) => {
     const storeName = vendor.business_name || "your store";
     const dashboardUrl = "https://1145.io/merchant/dashboard";
 
+    let emailStatus: "sent" | "skipped" | "failed" = "skipped";
+    let emailError: string | null = null;
+    let smsStatus: "sent" | "skipped" | "failed" = "skipped";
+    let smsError: string | null = null;
+
     // Send confirmation email
     if (RESEND_API_KEY && email) {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "1145 Lifestyle <no-reply@send.1145.io>",
-          to: [email],
-          subject: `🎉 ${storeName} is now live on 1145`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px;">
-              <h1 style="color:#000;">Your store is activated</h1>
-              <p>Hi there,</p>
-              <p>Congratulations — <strong>${storeName}</strong> has completed onboarding and is now live on 1145 Lifestyle.</p>
-              <p>You can start listing products, receiving orders, and managing payouts from your merchant dashboard.</p>
-              <p style="margin: 24px 0;">
-                <a href="${dashboardUrl}" style="background:#000;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block;">Open Merchant Dashboard</a>
-              </p>
-              <p style="color:#666;font-size:12px;">If you didn't request this, please contact support@1145.io.</p>
-            </div>
-          `,
-        }),
-      });
-      if (!res.ok) console.error("Resend error:", await res.text());
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from: "1145 Lifestyle <no-reply@send.1145.io>",
+            to: [email],
+            subject: `🎉 ${storeName} is now live on 1145`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px;">
+                <h1 style="color:#000;">Your store is activated</h1>
+                <p>Hi there,</p>
+                <p>Congratulations — <strong>${storeName}</strong> has completed onboarding and is now live on 1145 Lifestyle.</p>
+                <p>You can start listing products, receiving orders, and managing payouts from your merchant dashboard.</p>
+                <p style="margin: 24px 0;">
+                  <a href="${dashboardUrl}" style="background:#000;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block;">Open Merchant Dashboard</a>
+                </p>
+                <p style="color:#666;font-size:12px;">If you didn't request this, please contact support@1145.io.</p>
+              </div>
+            `,
+          }),
+        });
+        if (res.ok) {
+          emailStatus = "sent";
+        } else {
+          emailStatus = "failed";
+          emailError = await res.text();
+          console.error("Resend error:", emailError);
+        }
+      } catch (e: any) {
+        emailStatus = "failed";
+        emailError = e?.message ?? String(e);
+      }
     }
 
     // Optional SMS via GatewayAPI if configured
@@ -84,7 +100,7 @@ serve(async (req) => {
       const digits = String(vendor.business_phone).replace(/\D/g, "");
       if (digits.length >= 10) {
         try {
-          await fetch("https://connector-gateway.lovable.dev/gatewayapi/mobile/single", {
+          const smsRes = await fetch("https://connector-gateway.lovable.dev/gatewayapi/mobile/single", {
             method: "POST",
             headers: {
               Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -97,13 +113,25 @@ serve(async (req) => {
               message: `${storeName} is now live on 1145. Manage your store: ${dashboardUrl}`,
             }),
           });
-        } catch (e) {
-          console.error("SMS send failed:", e);
+          if (smsRes.ok) {
+            smsStatus = "sent";
+          } else {
+            smsStatus = "failed";
+            smsError = await smsRes.text();
+          }
+        } catch (e: any) {
+          smsStatus = "failed";
+          smsError = e?.message ?? String(e);
         }
       }
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({
+      success: true,
+      vendorStatus: "ACTIVE",
+      email: { status: emailStatus, to: email, error: emailError },
+      sms: { status: smsStatus, to: vendor.business_phone ?? null, error: smsError },
+    }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
