@@ -6871,6 +6871,175 @@ export type Database = {
         }
         Relationships: []
       }
+      social_connection_events: {
+        Row: {
+          actor: string
+          connection_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          provider: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actor?: string
+          connection_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          provider?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actor?: string
+          connection_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          provider?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_connection_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_connection_tokens: {
+        Row: {
+          access_token_ct: string
+          access_token_iv: string
+          connection_id: string
+          created_at: string
+          expires_at: string | null
+          key_version: number
+          refresh_token_ct: string | null
+          refresh_token_iv: string | null
+          scope: string | null
+          token_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token_ct: string
+          access_token_iv: string
+          connection_id: string
+          created_at?: string
+          expires_at?: string | null
+          key_version?: number
+          refresh_token_ct?: string | null
+          refresh_token_iv?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token_ct?: string
+          access_token_iv?: string
+          connection_id?: string
+          created_at?: string
+          expires_at?: string | null
+          key_version?: number
+          refresh_token_ct?: string | null
+          refresh_token_iv?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_connection_tokens_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_connections: {
+        Row: {
+          account_type: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          error_message: string | null
+          granted_scopes: string[]
+          id: string
+          last_sync_at: string | null
+          last_validation_at: string | null
+          metadata: Json
+          missing_scopes: string[]
+          oauth_code_verifier: string | null
+          oauth_redirect_uri: string | null
+          oauth_state: string | null
+          oauth_state_expires_at: string | null
+          provider: string
+          provider_account_id: string | null
+          required_scopes: string[]
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          error_message?: string | null
+          granted_scopes?: string[]
+          id?: string
+          last_sync_at?: string | null
+          last_validation_at?: string | null
+          metadata?: Json
+          missing_scopes?: string[]
+          oauth_code_verifier?: string | null
+          oauth_redirect_uri?: string | null
+          oauth_state?: string | null
+          oauth_state_expires_at?: string | null
+          provider: string
+          provider_account_id?: string | null
+          required_scopes?: string[]
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          error_message?: string | null
+          granted_scopes?: string[]
+          id?: string
+          last_sync_at?: string | null
+          last_validation_at?: string | null
+          metadata?: Json
+          missing_scopes?: string[]
+          oauth_code_verifier?: string | null
+          oauth_redirect_uri?: string | null
+          oauth_state?: string | null
+          oauth_state_expires_at?: string | null
+          provider?: string
+          provider_account_id?: string | null
+          required_scopes?: string[]
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       social_media_posts: {
         Row: {
           content: string
@@ -7092,6 +7261,130 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "social_media_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_queue: {
+        Row: {
+          attempts: number
+          connection_id: string
+          content: Json
+          created_at: string
+          error: string | null
+          id: string
+          max_attempts: number
+          next_run_at: string
+          post_ref_id: string | null
+          provider: string
+          provider_post_id: string | null
+          provider_response: Json | null
+          published_at: string | null
+          scheduled_for: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          connection_id: string
+          content?: Json
+          created_at?: string
+          error?: string | null
+          id?: string
+          max_attempts?: number
+          next_run_at?: string
+          post_ref_id?: string | null
+          provider: string
+          provider_post_id?: string | null
+          provider_response?: Json | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          connection_id?: string
+          content?: Json
+          created_at?: string
+          error?: string | null
+          id?: string
+          max_attempts?: number
+          next_run_at?: string
+          post_ref_id?: string | null
+          provider?: string
+          provider_post_id?: string | null
+          provider_response?: Json | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_queue_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_webhook_events: {
+        Row: {
+          connection_id: string | null
+          error: string | null
+          event_id: string | null
+          event_type: string | null
+          headers: Json
+          id: string
+          ip_address: string | null
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          provider: string
+          received_at: string
+          signature_valid: boolean
+        }
+        Insert: {
+          connection_id?: string | null
+          error?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          headers?: Json
+          id?: string
+          ip_address?: string | null
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Update: {
+          connection_id?: string | null
+          error?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          headers?: Json
+          id?: string
+          ip_address?: string | null
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_webhook_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "social_connections"
             referencedColumns: ["id"]
           },
         ]
