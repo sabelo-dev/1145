@@ -52,6 +52,13 @@ async function loadTokens(client: ReturnType<typeof createClient>, connectionId:
   return data;
 }
 
+function b64ToHex(b64: string): string {
+  const bin = atob(b64);
+  let out = "\\x";
+  for (let i = 0; i < bin.length; i++) out += bin.charCodeAt(i).toString(16).padStart(2, "0");
+  return out;
+}
+
 async function saveTokens(
   client: ReturnType<typeof createClient>,
   connectionId: string,
@@ -63,14 +70,14 @@ async function saveTokens(
   const { error } = await client.from("social_connection_tokens").upsert(
     {
       connection_id: connectionId,
-      access_token_ct: access.ciphertext,
-      access_token_iv: access.iv,
-      refresh_token_ct: refresh?.ciphertext ?? null,
-      refresh_token_iv: refresh?.iv ?? null,
+      access_token_ct: b64ToHex(access.ciphertext),
+      access_token_iv: b64ToHex(access.iv),
+      refresh_token_ct: refresh ? b64ToHex(refresh.ciphertext) : null,
+      refresh_token_iv: refresh ? b64ToHex(refresh.iv) : null,
       expires_at: expiresAt,
       scope: bundle.scope ?? null,
       token_type: bundle.tokenType ?? null,
-      key_version: access.keyVersion,
+      key_version: 1,
     },
     { onConflict: "connection_id" },
   );
