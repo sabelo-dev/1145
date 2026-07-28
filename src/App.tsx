@@ -231,6 +231,11 @@ function AppRouter() {
             <AdminDashboard />
           </ProtectedRoute>
         } />
+        <Route path="admin/ucoin/mining" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminMiningPage />
+          </ProtectedRoute>
+        } />
         
         <Route path="merchant/login" element={<MerchantLoginPage />} />
         <Route path="merchant/register" element={<MerchantRegisterPage />} />
