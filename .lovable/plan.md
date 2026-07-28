@@ -1,119 +1,72 @@
-# UCoin Mining & Validation System
+# 1145 Influencer Social Media Integration — Build Plan
 
-Rebuild UCoin rewards around Proof-of-Action: no coins credited until an action is fully completed, validated, fraud-checked, deduped, and recorded in an append-only ledger. Existing `award_ucoin` shortcut paths (order completed, review submitted, mining tasks, referrals) are replaced by an event-driven pipeline.
+Custom OAuth per provider. Facebook, Instagram (via Meta Graph), and TikTok fully wired for connect + read + publish. Foundation supports adding YouTube, X, LinkedIn, Pinterest, Snapchat, Threads later without core changes.
 
-## Scope of this plan
-End-to-end backend + minimal user/admin UI. Activities covered in first release: Daily Login, Purchase, Referral, Delivery, Review, Social Share, Video Watch, KYC/Registration. Others (surveys, community, bug reports) plug into the same framework later via config.
+## What already exists (reused, not rebuilt)
+- `social_accounts`, `social_oauth_tokens`, `social_media_posts`, `social_post_platforms`, `social_post_metrics`, `approved_social_accounts`, `influencer_profiles`.
+- Some TikTok/LinkedIn/X OAuth edge functions in prior work.
 
-## Data model (new tables)
+Gap: no unified lifecycle state machine, no encrypted-at-rest token layer, no publish queue, no webhook dedupe, no admin/influencer connection-health dashboards, no end-to-end validation step, no Meta (FB/IG) OAuth wired.
 
-```text
-mining_activities         config: code, display_name, reward, evidence_schema,
-                          rules (jsonb), cooldown, daily_cap, requires_moderation,
-                          auto_expire_hours, is_active
-mining_requests           lifecycle rows: user_id, activity_code, status
-                          (pending|validating|awaiting_verification|approved|
-                          rejected|expired|failed|credited|reversed),
-                          reward_mg, fraud_score, evidence jsonb, metadata jsonb,
-                          reference_type, reference_id, idempotency_key UNIQUE,
-                          started_at, validated_at, credited_at, validator,
-                          rejection_reason
-mining_events             append-only event log per request (stage, actor, payload)
-mining_evidence           optional file/proof rows linked to request
-ucoin_ledger              append-only: request_id, user_id, delta_mg, kind
-                          (credit|reversal|adjustment), running_balance, created_at
-ucoin_reversals           reason, original_request_id, admin_id
-fraud_signals             per-request signals (device, ip, vpn, velocity, graph)
-mining_queue_jobs         backing table for async workers (status, attempts,
-                          next_run_at, locked_by)
-```
+## Phase 1 — Foundation (single migration + shared helpers)
 
-Wallet balance in `ucoin_wallets.balance` becomes a cached projection of `ucoin_ledger`; a `refresh_wallet_from_ledger(user_id)` function recalculates on demand.
+New tables (RLS: owner + admin):
+- `social_connections` — one row per (user, provider, provider_account_id). Fields: `status` (Pending/Authenticating/AwaitingPermissions/Validating/Connected/PermissionMissing/TokenExpired/Disconnected/Revoked/Suspended/Error), `granted_scopes text[]`, `required_scopes text[]`, `missing_scopes text[]`, `account_type`, `username`, `display_name`, `avatar_url`, `token_expires_at`, `last_validation_at`, `last_sync_at`, `metadata jsonb`. Unique `(provider, provider_account_id)` prevents duplicate linking.
+- `social_connection_tokens` — encrypted `access_token_ct bytea`, `refresh_token_ct bytea`, `token_type`, `expires_at`. Encrypted with `pgcrypto` using `SOCIAL_TOKEN_ENC_KEY` (server-only, read via `current_setting`). No client access — locked behind SECURITY DEFINER accessors.
+- `social_connection_events` — immutable audit trail (`event_type`, `payload jsonb`, `actor`).
+- `social_webhook_events` — inbound event dedupe + signature verification results.
+- `social_post_queue` — publish jobs (`status`, `attempts`, `next_run_at`, `error`, `provider_response`).
 
-## Pipeline
+Shared code:
+- `supabase/functions/_shared/socialCrypto.ts` — encrypt/decrypt via Deno's `crypto.subtle` (AES-GCM) with `SOCIAL_TOKEN_ENC_KEY`.
+- `supabase/functions/_shared/socialLifecycle.ts` — status transitions + `logConnectionEvent`.
+- `supabase/functions/_shared/socialProviders/` — one file per provider exporting `{ authUrl, exchangeCode, refresh, verifyOwnership, checkScopes, readProfile, publish, verifyWebhook }`. Meta, Instagram (Graph), TikTok in this phase; stub interfaces for the rest.
 
-```text
-emit_action(activity, evidence, idempotency_key)
-   -> insert mining_requests (pending) + mining_events(started)
-   -> enqueue mining_queue_jobs
-worker:
-   -> validating: run activity rules engine (JSON DSL in mining_activities.rules)
-   -> awaiting_verification: if activity needs external confirmation
-      (purchase delivered + return window, referral first purchase, etc.)
-   -> fraud scoring: compute fraud_score from fraud_signals + rules
-   -> dedupe: reject if (user_id, activity_code, reference) already credited
-   -> moderation: create review task if flagged
-   -> approved -> credit: insert ucoin_ledger row + update wallet in txn
-   -> notification: user_notifications row
-```
+## Phase 2 — OAuth start / callback / validation
 
-All state transitions write a row to `mining_events`. Failed/expired terminal states never credit.
+Edge functions:
+- `social-oauth-start` — takes `provider`, generates CSRF `state` + PKCE `code_verifier`, stores in `social_connections` with status `Pending`, returns provider auth URL.
+- `social-oauth-callback` — verifies `state`, exchanges code, encrypts and stores tokens, runs the End-to-End Validation Workflow:
+  1. token valid
+  2. required scopes granted (else `PermissionMissing` + list missing)
+  3. ownership matches (compare provider user id to authenticated 1145 user)
+  4. read-test: fetch profile (proves API reachable + token works)
+  5. publish capability probe (dry run / capability endpoint, no public content)
+- Marks `Connected` only if every step passes. Every step writes to `social_connection_events`.
+- `social-connection-revalidate` — admin-triggered force revalidation.
+- `social-token-refresh` — cron every 15 min, refreshes tokens < 30 min from expiry, flips status on failure.
 
-## Activity rules (initial set)
+## Phase 3 — Publish + engagement pipeline
 
-- **daily_login**: 1/day per user, requires trusted device, 24h cooldown
-- **purchase**: awaits order.status=delivered AND now > delivered_at + return_window (7d), no refund
-- **referral**: awaits referee email+phone verified, KYC passed, first order delivered + return window
-- **delivery**: awaits driver POD (OTP + photo + rating >= 3), GPS route sanity
-- **review**: awaits verified_purchase + moderation.approved + min 20 words + not-duplicate hash
-- **social_share**: awaits tracked link click from unique device with dwell > 10s, no bot UA
-- **video_watch**: awaits >=95% watched + quiz passed if configured
-- **kyc_complete**: awaits kyc.status=verified
+- `social-post-publish` — validates media/caption per provider limits, checks capability, enqueues to `social_post_queue`, publishes via provider API, stores provider post id + timestamp + raw response. Never marks published without provider confirmation.
+- `social-post-worker` — cron drains queue with exponential backoff.
+- `social-webhook` — one endpoint, dispatches to provider handler, verifies signature + timestamp, dedupes by event id, stores in `social_webhook_events`, updates `social_post_metrics` and comments.
 
-Reward amounts, cooldowns, and caps live in `mining_activities` so business can tune without deploys.
+## Phase 4 — Dashboards
 
-## Server code
+- Influencer `/influencer/connections`: connect cards per provider, connection health, granted scopes, token expiry warning, revalidate button, publish history, recent engagement, diagnostics.
+- Admin `/admin/social-integrations`: all active connections, health filter, failed auths, granted scopes, force revalidate, revoke, audit log export.
 
-`supabase/functions/ucoin-mining/` (single function, action-routed):
-- `POST /emit` — accepts `{activity, evidence, idempotency_key, reference}`; validates JWT; inserts request; enqueues job. Idempotent.
-- `POST /worker/tick` — drains queue (cron every minute via pg_cron + pg_net).
-- `POST /admin/decision` — approve/reject flagged requests (admin only).
-- `POST /admin/reverse` — reversal writing negative ledger row.
-- Shared rules engine module evaluates JSON rules with helpers (`orderDelivered`, `returnWindowClosed`, `hasVerifiedPurchase`, `fraudScore`, `dedupeKey`).
+## Secrets required (I'll request when Phase 2 lands)
 
-Fraud scoring helper combines: account age, device fingerprint reuse, IP/VPN, action velocity, referral graph loops, GPS/OTP mismatch.
+- `SOCIAL_TOKEN_ENC_KEY` (generated 64-char)
+- `META_APP_ID` / `META_APP_SECRET` (Facebook + Instagram share the Meta app)
+- `META_WEBHOOK_VERIFY_TOKEN`
+- `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` (already partially present — will reuse)
 
-## Trigger migration
+## Out of scope this pass
 
-Existing triggers (`trigger_ucoin_order_completed`, `trigger_ucoin_review_submitted`, `complete_mining_task` direct-credit path, referral direct credits) are rewritten to call `emit_action` instead of `award_ucoin`. `award_ucoin` becomes internal-only, called exclusively by the credit step after approval. Historical `ucoin_transactions` rows are preserved; new activity flows through the ledger.
+- YouTube, X, LinkedIn, Pinterest, Snapchat, Threads wiring (framework will accept them; each needs its own developer-portal app + a ~150-line provider file when you're ready).
+- Content moderation beyond format/length/hashtag limits.
+- Cross-provider analytics rollups (metrics stored per-provider first).
 
-## UI
+## Technical notes
 
-**User dashboard** (`/wallet/mining`):
-- List of mining_requests with status pill, reward, started/validated/credited timestamps, rejection reason, reference link.
-- Filter by activity + status. Empty states + explanations.
+- Token encryption: AES-GCM in edge functions; DB stores ciphertext only. Even a full DB dump does not leak tokens without `SOCIAL_TOKEN_ENC_KEY`.
+- RLS: influencers see only their own `social_connections`; admins see all via `is_admin()`; `social_connection_tokens` has zero client-side read policies — accessed only through SECURITY DEFINER RPCs called by edge functions using service role.
+- Duplicate-account guard enforced by unique index + explicit check in callback.
+- Every state transition and every provider call writes one row to `social_connection_events` for compliance.
 
-**Admin dashboard** (`/admin/ucoin/mining`):
-- Queue health (pending/validating/awaiting counts, oldest age).
-- Review queue for flagged requests: evidence viewer, fraud score, approve/reject with reason.
-- Reversal tool with reason picker.
-- Activity config editor (reward, cooldown, cap, rules toggle) writing to `mining_activities`.
-- Export CSV.
+## Delivery order
 
-Small user-facing notifications: "You earned N UCoin — Verified Purchase" / "Mining request rejected — Duplicate referral".
-
-## Security
-
-- RLS: users read only their own `mining_requests` / `ucoin_ledger`; admins full via `has_role`.
-- `emit_action` requires authenticated JWT; edge function verifies user matches.
-- Ledger table is insert-only for `authenticated` (via SECURITY DEFINER), no update/delete.
-- Idempotency key UNIQUE prevents replay.
-
-## Rollout
-
-1. Migrations: tables, indexes, RLS, seed `mining_activities` config, cron schedule.
-2. Edge function `ucoin-mining` + rules engine module.
-3. Replace direct-credit triggers with `emit_action` calls.
-4. User `/wallet/mining` page + link from wallet.
-5. Admin `/admin/ucoin/mining` with queue, review, reversal, config.
-6. Backfill: leave historical `ucoin_transactions`; new activity starts fresh.
-
-## Out of scope (future, per spec §25)
-Reputation multipliers, staking, achievements, seasonal campaigns, ML anomaly detection, governance voting — architecture leaves hooks (multiplier column on request, campaign_id already on completions) but no UI in v1.
-
-## Acceptance
-- No path credits wallet without a preceding `mining_requests.status='approved'` and matching `ucoin_ledger` row.
-- Wallet balance == SUM(ucoin_ledger.delta_mg) for every user.
-- Every request has ≥1 `mining_events` row per stage transition.
-- Duplicate `idempotency_key` returns the original request, never a second credit.
-- Refund on a purchase produces a reversal ledger row and status=`reversed`.
+I'll ship Phase 1 first (one migration + shared modules), then pause for you to confirm before Phase 2 requests the Meta secrets and wires OAuth. Phases 3 and 4 follow the same pattern.
