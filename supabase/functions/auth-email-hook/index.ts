@@ -270,7 +270,8 @@ const handler = async (req: Request): Promise<Response> => {
     const { subject, html } = getEmailTemplate(
       email_data.email_action_type,
       userName,
-      actionUrl
+      actionUrl,
+      email_data.token
     );
 
     console.log(`Sending ${email_data.email_action_type} email to ${user.email}`);
