@@ -35,18 +35,21 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [trending, setTrending] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [featuredBrands, setFeaturedBrands] = useState<FeaturedBrand[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const [f, t, n] = await Promise.all([
+        const [f, t, n, b] = await Promise.all([
           fetchFeaturedProducts(4),
           fetchPopularProducts(4),
           fetchNewArrivals(4),
+          fetchFeaturedBrands(6),
         ]);
         setFeatured(f || []);
         setTrending(t || []);
         setNewArrivals(n || []);
+        setFeaturedBrands(b || []);
       } catch (e) {
         console.error("Home load failed", e);
       }
