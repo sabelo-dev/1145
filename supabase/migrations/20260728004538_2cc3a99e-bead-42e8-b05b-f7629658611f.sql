@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.is_vendor_owned_path(text, text) TO authenticated, anon;
