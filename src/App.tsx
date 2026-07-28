@@ -15,6 +15,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
 import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy loaded pages
