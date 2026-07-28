@@ -276,7 +276,7 @@ const MerchantOnboarding: React.FC = () => {
     }
 
     try {
-      const filePath = `${user.id}/${vendorData.id}/${Date.now()}`;
+      const filePath = `${vendorData.id}/${Date.now()}`;
       const { publicUrl } = await uploadFileToStorage({
         bucket,
         path: filePath,
