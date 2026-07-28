@@ -8,6 +8,7 @@ export interface User {
   avatar_url?: string;
   phone?: string;
   role: AppRole;
+  emailVerified?: boolean;
 }
 
 export interface Profile {
