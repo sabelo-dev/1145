@@ -108,8 +108,8 @@ Photos, and Push Notifications — matching the manifest.
 
 Both live in the app and are publicly accessible:
 
-- Privacy Policy: `https://1145lifestyle.com/privacy`
-- Terms of Service: `https://1145lifestyle.com/terms`
+- Privacy Policy: `https://1145.io/privacy`
+- Terms of Service: `https://1145.io/terms`
 
 Paste those URLs into **Play Console → App content → Privacy Policy** and
 into **App Store Connect → App Privacy**.
@@ -127,7 +127,7 @@ For a store build you **must** supply your own key:
 2. Enable: Maps JavaScript API, Places API (New), Geocoding, Routes.
 3. Restrict the key by **Application → Android apps** (package name +
    SHA-1 fingerprint) and **iOS apps** (bundle ID). Add HTTP referrers
-   `https://1145lifestyle.com/*` and `https://*.lovable.app/*` for web.
+   `https://1145.io/*` and `https://*.lovable.app/*` for web.
 4. Add to `.env` before `npm run build`:
    ```
    VITE_GOOGLE_MAPS_API_KEY=AIzaSy...
