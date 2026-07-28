@@ -271,10 +271,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "1145 Lifestyle <no-reply@send.1145lifestyle.com>",
+      from: "1145 <no-reply@send.1145.io>",
       to: [user.email],
       subject: subject,
-      reply_to: "support@1145lifestyle.com",
+      reply_to: "support@1145.io",
       html: html,
     });
 
