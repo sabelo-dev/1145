@@ -126,6 +126,9 @@ const WalletPage: React.FC = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-bold tracking-tight">Wallet</h1>
+          <Button variant="outline" size="sm" className="ml-auto" onClick={() => navigate("/fintech")}>
+            Cards & Banks
+          </Button>
         </div>
       </div>
 
