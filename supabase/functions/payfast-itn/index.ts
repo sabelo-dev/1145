@@ -324,6 +324,65 @@ serve(async (req) => {
         }
       }
     }
+
+    // Handle wallet deposits — DEPOSIT-{userId}-{ts}
+    if (paymentId && paymentId.startsWith("DEPOSIT-") && customStr1 === "wallet_deposit" && customStr2) {
+      const userId = customStr2;
+      if (paymentStatus === "COMPLETE") {
+        try {
+          await supabaseAdmin.rpc("credit_wallet", {
+            p_user_id: userId,
+            p_bucket: "available",
+            p_amount: amountGross,
+            p_type: "deposit",
+            p_provider: "payfast",
+            p_provider_reference: pfPaymentId,
+            p_related_type: "deposit",
+            p_related_id: paymentId,
+            p_metadata: { m_payment_id: paymentId },
+          });
+          await supabaseAdmin.from("user_notifications").insert({
+            user_id: userId, type: "deposit_completed",
+            title: "Deposit successful",
+            message: `R${amountGross.toFixed(2)} added to your 1145 Wallet.`,
+          });
+          // Capture the token if provided (subscription_type=1/2 attaches a token on future ITNs)
+          if (data.token) {
+            await supabaseAdmin.from("payment_instruments").upsert({
+              user_id: userId, provider: "payfast", provider_token: data.token,
+              brand: data.card_type || null, last4: data.card_last_four || null,
+              status: "active", verified_at: new Date().toISOString(),
+            }, { onConflict: "provider,provider_token" });
+          }
+          console.log(`Wallet credited: ${userId} +R${amountGross}`);
+        } catch (err) {
+          console.error("Failed to credit wallet:", err);
+        }
+      }
+    }
+
+    // Handle card linking — LINKCARD-{userId}-{ts}
+    if (paymentId && paymentId.startsWith("LINKCARD-") && customStr1 === "link_card" && customStr2) {
+      const userId = customStr2;
+      if (paymentStatus === "COMPLETE" && data.token) {
+        try {
+          await supabaseAdmin.from("payment_instruments").upsert({
+            user_id: userId, provider: "payfast", provider_token: data.token,
+            brand: data.card_type || null, last4: data.card_last_four || null,
+            holder_name: data.name_first ? `${data.name_first} ${data.name_last || ""}`.trim() : null,
+            status: "active", verified_at: new Date().toISOString(),
+          }, { onConflict: "provider,provider_token" });
+          await supabaseAdmin.from("user_notifications").insert({
+            user_id: userId, type: "card_linked",
+            title: "Card linked", message: `Card ending ${data.card_last_four || "••••"} was added to your wallet.`,
+          });
+          console.log(`Card linked for ${userId}`);
+        } catch (err) {
+          console.error("Failed to store card token:", err);
+        }
+      }
+    }
+    
     
     // Return OK to PayFast
     return new Response("OK", { 
