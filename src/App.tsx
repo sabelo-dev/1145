@@ -92,6 +92,8 @@ const RideRequestPage = lazy(() => import("@/pages/rides/RideRequestPage"));
 const RideTrackingPage = lazy(() => import("@/pages/rides/RideTrackingPage"));
 const RideHistoryPage = lazy(() => import("@/pages/rides/RideHistoryPage"));
 const WalletPage = lazy(() => import("@/pages/wallet/WalletPage"));
+const FintechPage = lazy(() => import("@/pages/wallet/FintechPage"));
+const AdminFintechPage = lazy(() => import("@/pages/admin/AdminFintechPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
 const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
@@ -216,6 +218,16 @@ function AppRouter() {
         <Route path="wallet/mining" element={
           <ProtectedRoute requireAuth requireVerified>
             <MiningDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="fintech" element={
+          <ProtectedRoute requireAuth requireVerified>
+            <FintechPage />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/fintech" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminFintechPage />
           </ProtectedRoute>
         } />
         <Route path="track-order" element={<TrackOrderPage />} />
