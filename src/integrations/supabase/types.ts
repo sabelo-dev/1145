@@ -2985,6 +2985,72 @@ export type Database = {
         }
         Relationships: []
       }
+      fintech_admin_audit: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json
+          id: string
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
+      fintech_fraud_events: {
+        Row: {
+          created_at: string
+          device_fingerprint: string | null
+          event_type: string
+          id: string
+          ip: string | null
+          resolved: boolean
+          risk_score: number
+          signals: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint?: string | null
+          event_type: string
+          id?: string
+          ip?: string | null
+          resolved?: boolean
+          risk_score?: number
+          signals?: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string | null
+          event_type?: string
+          id?: string
+          ip?: string | null
+          resolved?: boolean
+          risk_score?: number
+          signals?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       flash_deals: {
         Row: {
           claimed_count: number
@@ -3919,6 +3985,84 @@ export type Database = {
           },
         ]
       }
+      kyc_profiles: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          dob: string | null
+          email_verified: boolean
+          id: string
+          id_document_ref: string | null
+          id_number_hash: string | null
+          legal_name: string | null
+          level: Database["public"]["Enums"]["kyc_level"]
+          liveness_passed: boolean
+          mobile_verified: boolean
+          postal_code: string | null
+          province: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_ref: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          dob?: string | null
+          email_verified?: boolean
+          id?: string
+          id_document_ref?: string | null
+          id_number_hash?: string | null
+          legal_name?: string | null
+          level?: Database["public"]["Enums"]["kyc_level"]
+          liveness_passed?: boolean
+          mobile_verified?: boolean
+          postal_code?: string | null
+          province?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          dob?: string | null
+          email_verified?: boolean
+          id?: string
+          id_document_ref?: string | null
+          id_number_hash?: string | null
+          legal_name?: string | null
+          level?: Database["public"]["Enums"]["kyc_level"]
+          liveness_passed?: boolean
+          mobile_verified?: boolean
+          postal_code?: string | null
+          province?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lease_applications: {
         Row: {
           applicant_email: string | null
@@ -4572,6 +4716,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      linked_bank_accounts: {
+        Row: {
+          account_holder_name: string
+          account_last4: string
+          account_type: string | null
+          bank_name: string
+          branch_code: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          provider: string
+          provider_account_ref: string | null
+          user_id: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          account_holder_name: string
+          account_last4: string
+          account_type?: string | null
+          bank_name: string
+          branch_code?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          provider?: string
+          provider_account_ref?: string | null
+          user_id: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          account_holder_name?: string
+          account_last4?: string
+          account_type?: string | null
+          bank_name?: string
+          branch_code?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          provider?: string
+          provider_account_ref?: string | null
+          user_id?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
       }
       lodging_bookings: {
         Row: {
@@ -5687,6 +5882,54 @@ export type Database = {
           tracking_url?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      payment_instruments: {
+        Row: {
+          brand: string | null
+          created_at: string
+          exp_month: number | null
+          exp_year: number | null
+          holder_name: string | null
+          id: string
+          is_default: boolean
+          last4: string | null
+          provider: string
+          provider_token: string
+          status: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          exp_month?: number | null
+          exp_year?: number | null
+          holder_name?: string | null
+          id?: string
+          is_default?: boolean
+          last4?: string | null
+          provider?: string
+          provider_token: string
+          status?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          exp_month?: number | null
+          exp_year?: number | null
+          holder_name?: string | null
+          id?: string
+          is_default?: boolean
+          last4?: string | null
+          provider?: string
+          provider_token?: string
+          status?: string
+          user_id?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -7915,6 +8158,30 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_limits: {
+        Row: {
+          daily_deposit: number
+          daily_withdrawal: number
+          kyc_level: Database["public"]["Enums"]["kyc_level"]
+          monthly_withdrawal: number
+          single_withdrawal_max: number
+        }
+        Insert: {
+          daily_deposit: number
+          daily_withdrawal: number
+          kyc_level: Database["public"]["Enums"]["kyc_level"]
+          monthly_withdrawal: number
+          single_withdrawal_max: number
+        }
+        Update: {
+          daily_deposit?: number
+          daily_withdrawal?: number
+          kyc_level?: Database["public"]["Enums"]["kyc_level"]
+          monthly_withdrawal?: number
+          single_withdrawal_max?: number
+        }
+        Relationships: []
+      }
       trip_pins: {
         Row: {
           attempts: number
@@ -9211,6 +9478,74 @@ export type Database = {
           },
         ]
       }
+      wallet_ledger: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          bank_reference: string | null
+          bucket: Database["public"]["Enums"]["wallet_bucket"]
+          created_at: string
+          currency: string
+          direction: Database["public"]["Enums"]["ledger_direction"]
+          id: string
+          metadata: Json
+          provider: string | null
+          provider_reference: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          status: string
+          type: Database["public"]["Enums"]["ledger_type"]
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          bank_reference?: string | null
+          bucket?: Database["public"]["Enums"]["wallet_bucket"]
+          created_at?: string
+          currency?: string
+          direction: Database["public"]["Enums"]["ledger_direction"]
+          id?: string
+          metadata?: Json
+          provider?: string | null
+          provider_reference?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          status?: string
+          type: Database["public"]["Enums"]["ledger_type"]
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          bank_reference?: string | null
+          bucket?: Database["public"]["Enums"]["wallet_bucket"]
+          created_at?: string
+          currency?: string
+          direction?: Database["public"]["Enums"]["ledger_direction"]
+          id?: string
+          metadata?: Json
+          provider?: string | null
+          provider_reference?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          status?: string
+          type?: Database["public"]["Enums"]["ledger_type"]
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_ledger_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -9279,6 +9614,42 @@ export type Database = {
           },
         ]
       }
+      wallets: {
+        Row: {
+          available_balance: number
+          created_at: string
+          currency: string
+          id: string
+          pending_balance: number
+          status: string
+          updated_at: string
+          user_id: string
+          withdrawal_balance: number
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          pending_balance?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+          withdrawal_balance?: number
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          pending_balance?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+          withdrawal_balance?: number
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string
@@ -9304,6 +9675,65 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          created_at: string
+          currency: string
+          fraud_score: number | null
+          id: string
+          metadata: Json
+          provider_reference: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          created_at?: string
+          currency?: string
+          fraud_score?: number | null
+          id?: string
+          metadata?: Json
+          provider_reference?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          created_at?: string
+          currency?: string
+          fraud_score?: number | null
+          id?: string
+          metadata?: Json
+          provider_reference?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "linked_bank_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -9561,9 +9991,37 @@ export type Database = {
         }
         Returns: Json
       }
+      credit_wallet: {
+        Args: {
+          p_amount: number
+          p_bucket: Database["public"]["Enums"]["wallet_bucket"]
+          p_metadata?: Json
+          p_provider?: string
+          p_provider_reference?: string
+          p_related_id?: string
+          p_related_type?: string
+          p_type: Database["public"]["Enums"]["ledger_type"]
+          p_user_id: string
+        }
+        Returns: string
+      }
       currency_to_mg_gold: {
         Args: { p_amount: number; p_currency_code: string }
         Returns: number
+      }
+      debit_wallet: {
+        Args: {
+          p_amount: number
+          p_bucket: Database["public"]["Enums"]["wallet_bucket"]
+          p_metadata?: Json
+          p_provider?: string
+          p_provider_reference?: string
+          p_related_id?: string
+          p_related_type?: string
+          p_type: Database["public"]["Enums"]["ledger_type"]
+          p_user_id: string
+        }
+        Returns: string
       }
       delete_vendor_cascade: {
         Args: { vendor_uuid: string }
@@ -9582,6 +10040,10 @@ export type Database = {
           price_per_mg_usd: number
           price_per_oz_usd: number
         }[]
+      }
+      get_or_create_1145_wallet: {
+        Args: { p_user_id: string }
+        Returns: string
       }
       get_or_create_referral_code: {
         Args: { p_user_id: string }
@@ -9649,6 +10111,7 @@ export type Database = {
       }
       get_vendor_features: { Args: { vendor_id: string }; Returns: Json }
       get_vendor_tier_config: { Args: { p_vendor_id: string }; Returns: Json }
+      get_wallet_summary: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -9775,6 +10238,22 @@ export type Database = {
         | "passenger"
         | "fleet_manager"
         | "service_provider"
+      kyc_level: "none" | "basic" | "enhanced"
+      ledger_direction: "credit" | "debit"
+      ledger_type:
+        | "deposit"
+        | "purchase"
+        | "refund"
+        | "vendor_payout"
+        | "driver_earning"
+        | "influencer_commission"
+        | "referral_reward"
+        | "subscription"
+        | "withdrawal_request"
+        | "withdrawal_completed"
+        | "reversal"
+        | "adjustment"
+      wallet_bucket: "available" | "pending" | "withdrawal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -9912,6 +10391,23 @@ export const Constants = {
         "fleet_manager",
         "service_provider",
       ],
+      kyc_level: ["none", "basic", "enhanced"],
+      ledger_direction: ["credit", "debit"],
+      ledger_type: [
+        "deposit",
+        "purchase",
+        "refund",
+        "vendor_payout",
+        "driver_earning",
+        "influencer_commission",
+        "referral_reward",
+        "subscription",
+        "withdrawal_request",
+        "withdrawal_completed",
+        "reversal",
+        "adjustment",
+      ],
+      wallet_bucket: ["available", "pending", "withdrawal"],
     },
   },
 } as const
