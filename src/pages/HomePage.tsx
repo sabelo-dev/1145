@@ -6,6 +6,7 @@ import CategorySection from "@/components/home/CategorySection";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import PromoSection from "@/components/home/PromoSection";
 import Footer from "@/components/layout/Footer";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import SEO from "@/components/SEO";
 import { Product, Category } from "@/types";
 import { fetchCategories, fetchFeaturedProducts, fetchNewArrivals, fetchPopularProducts } from "@/services/products";
@@ -105,6 +106,8 @@ const HomePage: React.FC = () => {
         </>
       )}
       <Footer />
+      <div className="h-0 pb-nav md:pb-0" />
+      <MobileBottomNav />
     </div>
   );
 };

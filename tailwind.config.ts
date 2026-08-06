@@ -75,16 +75,17 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom WWE e-commerce colors
+				// Legacy palette remapped onto design tokens so older screens
+				// inherit the new Ink & Gold identity automatically.
 				wwe: {
-					navy: '#1a2b4c',
-					gold: '#f8cb4a',
-					lightGray: '#f5f5f7',
-					darkGray: '#333333',
-					success: '#4CAF50',
-					danger: '#FF5252',
-					warning: '#FFC107',
-					info: '#2196F3',
+					navy: 'hsl(var(--primary))',
+					gold: 'hsl(var(--accent))',
+					lightGray: 'hsl(var(--muted))',
+					darkGray: 'hsl(var(--foreground))',
+					success: 'hsl(var(--success))',
+					danger: 'hsl(var(--destructive))',
+					warning: 'hsl(var(--warning))',
+					info: 'hsl(var(--accent))',
 				},
 			},
 			fontFamily: {
