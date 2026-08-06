@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import SEO from "@/components/SEO";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { Product } from "@/types";
@@ -355,6 +356,8 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
       </section>
       
       <Footer />
+      <div className="h-0 pb-nav md:pb-0" />
+      <MobileBottomNav />
     </div>
   );
 });

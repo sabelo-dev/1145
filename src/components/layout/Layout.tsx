@@ -6,10 +6,10 @@ import MobileBottomNav from "./MobileBottomNav";
 
 const Layout: React.FC = memo(() => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      {/* pb-20 on mobile reserves room for the fixed bottom nav (56px + safe-area) */}
-      <main className="flex-1 pb-20 md:pb-0" role="main">
+      {/* pb-nav reserves room for the fixed bottom nav (height + safe-area) */}
+      <main className="flex-1 pb-nav md:pb-0" role="main">
         <Outlet />
       </main>
       <Footer />
