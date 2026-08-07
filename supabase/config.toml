@@ -68,3 +68,7 @@ verify_jwt = true
 
 [functions.fintech-admin]
 verify_jwt = true
+
+[functions.merchant-subscription]
+verify_jwt = true
+

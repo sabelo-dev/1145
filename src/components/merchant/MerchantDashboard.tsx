@@ -74,6 +74,8 @@ import {
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
+import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
+import type { SubscriptionTier } from "@/services/subscription";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
@@ -151,32 +153,45 @@ const VendorDashboard = () => {
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
 
-  const handleUpgrade = async (plan: 'standard' | 'premium') => {
-    if (!vendorData?.id) return;
-    
-    const { error } = await supabase
-      .from('vendors')
-      .update({ subscription_tier: plan })
-      .eq('id', vendorData.id);
-    
-    if (error) {
-      toast.error('Failed to update subscription');
-      throw error;
-    }
-    
-    // Refresh vendor data
+  const refreshVendorData = async () => {
+    if (!user?.id) return;
     const { data: updated } = await supabase
       .from('vendors')
       .select('*')
-      .eq('id', vendorData.id)
-      .single();
-    
-    if (updated) {
-      setVendorData(updated);
-    }
-    
-    toast.success(plan === 'premium' ? 'Welcome to Premium!' : 'Plan updated successfully');
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (updated) setVendorData(updated);
   };
+
+  const { changePlan, cancelPlan } = useSubscriptionActions({
+    currentTier: (vendorData?.subscription_tier as SubscriptionTier) || 'starter',
+    onChanged: refreshVendorData,
+  });
+
+  const handleUpgrade = async (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => {
+    const result = await changePlan(tier, billing);
+    if (!result?.redirected) setShowUpgradeModal(false);
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!window.confirm('Cancel your subscription? You keep access until the current period ends.')) return;
+    await cancelPlan().catch(() => undefined);
+  };
+
+  // Handle return from PayFast checkout
+  useEffect(() => {
+    const status = searchParams.get('subscription');
+    if (!status) return;
+    if (status === 'success') {
+      toast.success('Payment received — your new plan activates within a minute.');
+      setActiveTab('subscription');
+      setTimeout(() => { refreshVendorData(); }, 4000);
+    } else if (status === 'cancelled') {
+      toast.info('Subscription checkout cancelled.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
 
   return (
     <ProtectedRoute requireAuth requireMerchant>
@@ -192,6 +207,7 @@ const VendorDashboard = () => {
           showUpgradeModal={showUpgradeModal}
           setShowUpgradeModal={setShowUpgradeModal}
           onUpgrade={handleUpgrade}
+          onCancelSubscription={handleCancelSubscription}
         />
       </SidebarProvider>
     </ProtectedRoute>
@@ -214,7 +230,8 @@ interface VendorDashboardContentProps {
   vendorData: any;
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
-  onUpgrade: (plan: 'standard' | 'premium') => Promise<void>;
+  onUpgrade: (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => Promise<void>;
+  onCancelSubscription: () => Promise<void>;
 }
 
 const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
@@ -228,6 +245,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
   showUpgradeModal,
   setShowUpgradeModal,
   onUpgrade,
+  onCancelSubscription,
 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -322,6 +340,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <SubscriptionStatusCard
               vendorId={vendorData.id}
               onUpgrade={() => setShowUpgradeModal(true)}
+              onCancel={onCancelSubscription}
               className="mb-6"
             />
           )}
@@ -330,11 +349,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             isOpen={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
             currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
-            onUpgrade={async (tier, billing) => {
-              console.log('Upgrading to:', tier, billing);
-              // TODO: Implement actual upgrade logic
-              setShowUpgradeModal(false);
-            }}
+            onUpgrade={onUpgrade}
           />
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
