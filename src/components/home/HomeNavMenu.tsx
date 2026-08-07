@@ -60,16 +60,16 @@ const HomeNavMenu: React.FC = () => {
 
   return (
     <nav
-      className={`bg-background sticky top-0 z-40 transition-all duration-300 ease-in-out ${isScrolled
-        ? "border-b border-border shadow-sm"
+      className={`app-bar transition-all duration-300 ease-in-out ${isScrolled
+        ? "border-b border-border/70 shadow-soft"
         : "border-b border-transparent"
         }`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between gap-3 py-2">
+        <div className="flex items-center justify-between gap-3 h-14 md:h-auto md:py-2">
           {/* Logo */}
           <Link to="/shop" className="flex-shrink-0">
-            <img src="/logo.png" alt="1145" className="h-8 w-8 rounded-md" />
+            <img src="/logo.png" alt="1145" className="h-9 w-9 rounded-xl shadow-soft" />
           </Link>
 
           {/* Desktop Search Bar - hidden on mobile */}
@@ -90,7 +90,7 @@ const HomeNavMenu: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="flex-shrink-0 md:hidden"
+            className="flex-shrink-0 md:hidden h-10 w-10 rounded-full press"
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
           >
             <Search className="h-5 w-5" />
@@ -104,7 +104,7 @@ const HomeNavMenu: React.FC = () => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+                    className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
@@ -115,7 +115,7 @@ const HomeNavMenu: React.FC = () => {
             <li>
               {user ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap outline-none">
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap outline-none">
                     <User className="h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuTrigger>
@@ -172,7 +172,7 @@ const HomeNavMenu: React.FC = () => {
               ) : (
                 <Link
                   to="/login"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
                 >
                   <LogIn className="h-4 w-4" />
                   <span>Sign In</span>
@@ -187,7 +187,7 @@ const HomeNavMenu: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="flex-shrink-0 md:hidden"
+            className="flex-shrink-0 md:hidden h-10 w-10 rounded-full press"
             onClick={() => setMobileMenuOpen(true)}
           >
             <Menu className="h-5 w-5" />
