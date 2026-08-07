@@ -163,7 +163,7 @@ const VendorDashboard = () => {
     if (updated) setVendorData(updated);
   };
 
-  const { changePlan } = useSubscriptionActions({
+  const { changePlan, cancelPlan } = useSubscriptionActions({
     currentTier: (vendorData?.subscription_tier as SubscriptionTier) || 'starter',
     onChanged: refreshVendorData,
   });
@@ -172,6 +172,25 @@ const VendorDashboard = () => {
     const result = await changePlan(tier, billing);
     if (!result?.redirected) setShowUpgradeModal(false);
   };
+
+  const handleCancelSubscription = async () => {
+    if (!window.confirm('Cancel your subscription? You keep access until the current period ends.')) return;
+    await cancelPlan().catch(() => undefined);
+  };
+
+  // Handle return from PayFast checkout
+  useEffect(() => {
+    const status = searchParams.get('subscription');
+    if (!status) return;
+    if (status === 'success') {
+      toast.success('Payment received — your new plan activates within a minute.');
+      setActiveTab('subscription');
+      setTimeout(() => { refreshVendorData(); }, 4000);
+    } else if (status === 'cancelled') {
+      toast.info('Subscription checkout cancelled.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
 
   return (
@@ -188,6 +207,7 @@ const VendorDashboard = () => {
           showUpgradeModal={showUpgradeModal}
           setShowUpgradeModal={setShowUpgradeModal}
           onUpgrade={handleUpgrade}
+          onCancelSubscription={handleCancelSubscription}
         />
       </SidebarProvider>
     </ProtectedRoute>
@@ -211,6 +231,7 @@ interface VendorDashboardContentProps {
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
   onUpgrade: (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => Promise<void>;
+  onCancelSubscription: () => Promise<void>;
 }
 
 const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
@@ -224,6 +245,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
   showUpgradeModal,
   setShowUpgradeModal,
   onUpgrade,
+  onCancelSubscription,
 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -318,6 +340,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <SubscriptionStatusCard
               vendorId={vendorData.id}
               onUpgrade={() => setShowUpgradeModal(true)}
+              onCancel={onCancelSubscription}
               className="mb-6"
             />
           )}
