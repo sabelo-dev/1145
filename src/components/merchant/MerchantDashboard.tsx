@@ -151,32 +151,26 @@ const VendorDashboard = () => {
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
 
-  const handleUpgrade = async (plan: 'standard' | 'premium') => {
-    if (!vendorData?.id) return;
-    
-    const { error } = await supabase
-      .from('vendors')
-      .update({ subscription_tier: plan })
-      .eq('id', vendorData.id);
-    
-    if (error) {
-      toast.error('Failed to update subscription');
-      throw error;
-    }
-    
-    // Refresh vendor data
+  const refreshVendorData = async () => {
+    if (!user?.id) return;
     const { data: updated } = await supabase
       .from('vendors')
       .select('*')
-      .eq('id', vendorData.id)
-      .single();
-    
-    if (updated) {
-      setVendorData(updated);
-    }
-    
-    toast.success(plan === 'premium' ? 'Welcome to Premium!' : 'Plan updated successfully');
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (updated) setVendorData(updated);
   };
+
+  const { changePlan } = useSubscriptionActions({
+    currentTier: (vendorData?.subscription_tier as SubscriptionTier) || 'starter',
+    onChanged: refreshVendorData,
+  });
+
+  const handleUpgrade = async (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => {
+    const result = await changePlan(tier, billing);
+    if (!result?.redirected) setShowUpgradeModal(false);
+  };
+
 
   return (
     <ProtectedRoute requireAuth requireMerchant>
