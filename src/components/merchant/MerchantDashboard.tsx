@@ -74,6 +74,8 @@ import {
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
+import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
+import type { SubscriptionTier } from "@/services/subscription";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
@@ -208,7 +210,7 @@ interface VendorDashboardContentProps {
   vendorData: any;
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
-  onUpgrade: (plan: 'standard' | 'premium') => Promise<void>;
+  onUpgrade: (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => Promise<void>;
 }
 
 const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
@@ -324,11 +326,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             isOpen={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
             currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
-            onUpgrade={async (tier, billing) => {
-              console.log('Upgrading to:', tier, billing);
-              // TODO: Implement actual upgrade logic
-              setShowUpgradeModal(false);
-            }}
+            onUpgrade={onUpgrade}
           />
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
