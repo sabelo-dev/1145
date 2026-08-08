@@ -1,151 +1,170 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+const quickLinks = [
+  { to: "/shop", label: "Shop" },
+  { to: "/categories", label: "Categories" },
+  { to: "/deals", label: "Deals & Promotions" },
+  { to: "/new-arrivals", label: "New Arrivals" },
+  { to: "/best-sellers", label: "Best Sellers" },
+];
+
+const serviceLinks = [
+  { to: "/contact", label: "Contact Us" },
+  { to: "/faq", label: "FAQ" },
+  { to: "/shipping", label: "Shipping & Delivery" },
+  { to: "/returns", label: "Returns & Refunds" },
+  { to: "/terms", label: "Terms & Conditions" },
+  { to: "/privacy", label: "Privacy Policy" },
+];
+
+const socials = [
+  { href: "https://facebook.com/lsionlinemall/", Icon: Facebook, label: "Facebook" },
+  { href: "https://x.com/lsionlinemall/", Icon: Twitter, label: "X" },
+  { href: "https://www.instagram.com/lsionlinemall/", Icon: Instagram, label: "Instagram" },
+  { href: "https://youtube.com//@lsionlinemall", Icon: Youtube, label: "YouTube" },
+];
+
+const LinkList: React.FC<{ items: { to: string; label: string }[] }> = ({ items }) => (
+  <ul className="space-y-2.5 text-sm text-gray-300">
+    {items.map((l) => (
+      <li key={l.to}>
+        <Link to={l.to} className="inline-flex min-h-[32px] items-center hover:text-white">
+          {l.label}
+        </Link>
+      </li>
+    ))}
+  </ul>
+);
+
+const ContactList: React.FC = () => (
+  <ul className="space-y-3 text-sm text-gray-300">
+    <li className="flex items-start">
+      <MapPin size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+      <span>RSA</span>
+    </li>
+    <li className="flex items-center">
+      <Phone size={18} className="mr-2 flex-shrink-0" />
+      <a href="tel:+27602535492" className="hover:text-white">+27 (60) 253-5492</a>
+    </li>
+    <li className="flex items-center">
+      <Mail size={18} className="mr-2 flex-shrink-0" />
+      <a href="mailto:support@1145.io" className="hover:text-white break-all">support@1145.io</a>
+    </li>
+  </ul>
+);
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-wwe-navy text-white pt-12 pb-6">
+    <footer className="bg-wwe-navy text-white pt-10 md:pt-12 pb-6 pb-nav md:pb-6">
       <div className="wwe-container">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* About Column */}
+        {/* Brand */}
+        <div className="md:hidden">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="1145 Lifestyle" className="h-10 w-10 rounded-md" loading="lazy" />
+            <span className="text-base font-semibold">1145 Lifestyle</span>
+          </div>
+          <p className="mt-3 text-sm text-gray-300">
+            A next-generation commerce ecosystem to shop, travel, transact and monetize — all in one platform.
+          </p>
+          <div className="mt-4 flex gap-5">
+            {socials.map(({ href, Icon, label }) => (
+              <a
+                key={label}
+                href={href}
+                aria-label={label}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 text-gray-300 hover:text-white"
+              >
+                <Icon size={20} />
+              </a>
+            ))}
+          </div>
+
+          {/* Collapsible sections keep the mobile footer short */}
+          <Accordion type="single" collapsible className="mt-6 border-t border-white/10">
+            <AccordionItem value="quick" className="border-white/10">
+              <AccordionTrigger className="text-base font-semibold hover:no-underline">Quick Links</AccordionTrigger>
+              <AccordionContent><LinkList items={quickLinks} /></AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="service" className="border-white/10">
+              <AccordionTrigger className="text-base font-semibold hover:no-underline">Customer Service</AccordionTrigger>
+              <AccordionContent><LinkList items={serviceLinks} /></AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="contact" className="border-white/10">
+              <AccordionTrigger className="text-base font-semibold hover:no-underline">Contact Us</AccordionTrigger>
+              <AccordionContent><ContactList /></AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+
+        {/* Desktop columns */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <img src="/logo.png" alt="1145 Lifestyle" className="h-10 w-10 rounded-md mb-3" />
+            <img src="/logo.png" alt="1145 Lifestyle" className="h-10 w-10 rounded-md mb-3" loading="lazy" />
             <h3 className="text-lg font-semibold mb-4">About 1145 Lifestyle</h3>
             <p className="text-sm text-gray-300 mb-4">
-              1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.
+              1145 is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform.
             </p>
             <div className="flex space-x-4 mt-4">
-              <a href="https://facebook.com/lsionlinemall/" className="text-gray-300 hover:text-white">
-                <Facebook size={20} />
-              </a>
-              <a href="https://x.com/lsionlinemall/" className="text-gray-300 hover:text-white">
-                <Twitter size={20} />
-              </a>
-              <a href="https://www.instagram.com/lsionlinemall/" className="text-gray-300 hover:text-white">
-                <Instagram size={20} />
-              </a>
-              <a href="https://youtube.com//@lsionlinemall" className="text-gray-300 hover:text-white">
-                <Youtube size={20} />
-              </a>
+              {socials.map(({ href, Icon, label }) => (
+                <a key={label} href={href} aria-label={label} className="text-gray-300 hover:text-white">
+                  <Icon size={20} />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <Link to="/shop" className="hover:text-white">
-                  Shop
-                </Link>
-              </li>
-              <li>
-                <Link to="/categories" className="hover:text-white">
-                  Categories
-                </Link>
-              </li>
-              <li>
-                <Link to="/deals" className="hover:text-white">
-                  Deals & Promotions
-                </Link>
-              </li>
-              <li>
-                <Link to="/new-arrivals" className="hover:text-white">
-                  New Arrivals
-                </Link>
-              </li>
-              <li>
-                <Link to="/best-sellers" className="hover:text-white">
-                  Best Sellers
-                </Link>
-              </li>
-            </ul>
+            <LinkList items={quickLinks} />
           </div>
 
-          {/* Customer Service */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <Link to="/contact" className="hover:text-white">
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link to="/faq" className="hover:text-white">
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link to="/shipping" className="hover:text-white">
-                  Shipping & Delivery
-                </Link>
-              </li>
-              <li>
-                <Link to="/returns" className="hover:text-white">
-                  Returns & Refunds
-                </Link>
-              </li>
-              <li>
-                <Link to="/terms" className="hover:text-white">
-                  Terms & Conditions
-                </Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="hover:text-white">
-                  Privacy Policy
-                </Link>
-              </li>
-            </ul>
+            <LinkList items={serviceLinks} />
           </div>
 
-          {/* Contact Information */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
-            <ul className="space-y-3 text-sm text-gray-300">
-              <li className="flex items-start">
-                <MapPin size={18} className="mr-2 mt-1 flex-shrink-0" />
-                <span>RSA</span>
-              </li>
-              <li className="flex items-center">
-                <Phone size={18} className="mr-2 flex-shrink-0" />
-                <span>+27 (60) 253-5492</span>
-              </li>
-              <li className="flex items-center">
-                <Mail size={18} className="mr-2 flex-shrink-0" />
-                <span>support@1145.io</span>
-              </li>
-            </ul>
+            <ContactList />
           </div>
         </div>
 
-        {/* Newsletter Signup */}
-        <div className="border-t border-gray-700 mt-10 pt-8 pb-4">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="mb-4 md:mb-0">
-              <h4 className="text-lg font-semibold mb-2">Subscribe to our Newsletter</h4>
+        {/* Newsletter */}
+        <div className="border-t border-gray-700 mt-8 md:mt-10 pt-6 md:pt-8 pb-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h4 className="text-base md:text-lg font-semibold mb-1.5">Subscribe to our Newsletter</h4>
               <p className="text-sm text-gray-300">
-                Get the latest news, updates and special offers delivered directly to your inbox.
+                Get the latest news, updates and special offers in your inbox.
               </p>
             </div>
             <div className="flex w-full md:w-auto">
               <input
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 placeholder="Your Email Address"
-                className="px-4 py-2 rounded-l-md w-full md:w-auto bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-wwe-gold text-white"
+                aria-label="Email address"
+                className="h-11 px-4 rounded-l-xl w-full md:w-auto bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-wwe-gold text-white text-base"
               />
-              <button className="px-4 py-2 bg-wwe-gold text-wwe-navy font-medium rounded-r-md hover:bg-opacity-90">
+              <button className="h-11 shrink-0 px-4 bg-wwe-gold text-wwe-navy font-medium rounded-r-xl hover:bg-opacity-90">
                 Subscribe
               </button>
             </div>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="text-center text-sm text-gray-400 mt-8">
+        <div className="text-center text-xs md:text-sm text-gray-400 mt-6 md:mt-8">
           <p>&copy; {currentYear} 1145 Lifestyle. All rights reserved.</p>
         </div>
       </div>
