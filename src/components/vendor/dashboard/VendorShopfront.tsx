@@ -373,7 +373,7 @@ const VendorShopfront = () => {
       )}
 
       <Tabs defaultValue="basics" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-4">
           <TabsTrigger value="basics">Basics</TabsTrigger>
           <TabsTrigger value="design" disabled={tier === 'starter'}>
             Design {tier === 'starter' && <Lock className="h-3 w-3 ml-1" />}

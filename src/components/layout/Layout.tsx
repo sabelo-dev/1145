@@ -8,10 +8,11 @@ const Layout: React.FC = memo(() => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      {/* pb-nav reserves room for the fixed bottom nav (height + safe-area) */}
-      <main className="flex-1 pb-nav md:pb-0" role="main">
+      {/* Footer carries the bottom-nav offset (pb-nav) so content never hides behind it */}
+      <main className="flex-1" role="main">
         <Outlet />
       </main>
+
       <Footer />
       <MobileBottomNav />
     </div>

@@ -170,7 +170,7 @@ const FintechPage: React.FC = () => {
         )}
 
         <Tabs defaultValue="cards" className="w-full">
-          <TabsList className="grid grid-cols-4 h-10">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-4 h-10">
             <TabsTrigger value="cards" className="text-xs"><CreditCard className="h-4 w-4 mr-1" />Cards</TabsTrigger>
             <TabsTrigger value="banks" className="text-xs"><Landmark className="h-4 w-4 mr-1" />Banks</TabsTrigger>
             <TabsTrigger value="activity" className="text-xs">Activity</TabsTrigger>

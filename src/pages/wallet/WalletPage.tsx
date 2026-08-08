@@ -156,7 +156,7 @@ const WalletPage: React.FC = () => {
 
         {/* Content Sections */}
         <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
-          <TabsList className="grid w-full grid-cols-3 h-10">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3 h-10">
             <TabsTrigger value="overview" className="text-xs font-medium">Activity</TabsTrigger>
             <TabsTrigger value="send" className="text-xs font-medium">Send</TabsTrigger>
             <TabsTrigger value="trade" className="text-xs font-medium gap-1.5">

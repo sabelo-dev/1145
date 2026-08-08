@@ -222,9 +222,10 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* Highlights Bar */}
       <div className="container mx-auto px-4 -mt-8 relative z-20 mb-8">
         <div className="glass rounded-2xl p-4 md:p-5 shadow-lg">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             {highlights.map((h) => (
-              <div key={h.label} className="flex items-center gap-3 justify-center">
+              <div key={h.label} className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3 justify-center text-center sm:text-left">
+
                 <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                   <h.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </div>
