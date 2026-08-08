@@ -184,7 +184,7 @@ const SafetyComplianceDashboard: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-4">
           <TabsTrigger value="alerts" className="flex items-center gap-1">
             <AlertTriangle className="h-4 w-4" /> Alerts
             {activeCount > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{activeCount}</Badge>}

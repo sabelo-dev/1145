@@ -182,7 +182,7 @@ const AdminSocialMedia: React.FC = () => {
       </div>
 
       <Tabs defaultValue="posts" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-4">
           <TabsTrigger value="posts" className="flex items-center gap-2">
             <Share2 className="h-4 w-4" />
             Posts

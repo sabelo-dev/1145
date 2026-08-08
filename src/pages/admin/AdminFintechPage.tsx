@@ -97,7 +97,7 @@ const AdminFintechPage: React.FC = () => {
         </div>
 
         <Tabs defaultValue="withdrawals">
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-5">
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="flags">Flagged</TabsTrigger>
             <TabsTrigger value="frozen">Frozen</TabsTrigger>
