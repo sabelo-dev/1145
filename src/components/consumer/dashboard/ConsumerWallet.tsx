@@ -14,7 +14,7 @@ const ConsumerWallet: React.FC = () => {
       </div>
 
       <Tabs defaultValue="ucoin" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3">
           <TabsTrigger value="ucoin" className="flex items-center gap-2">
             <Coins className="h-4 w-4" />
             UCoin

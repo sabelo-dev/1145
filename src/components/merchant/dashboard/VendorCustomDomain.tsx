@@ -366,7 +366,7 @@ const VendorCustomDomain = () => {
                   <p className="text-xs text-muted-foreground">Add the following DNS records at your domain registrar:</p>
 
                   <div className="space-y-2">
-                    <div className="grid grid-cols-4 gap-2 text-xs font-mono bg-background p-2 rounded">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono bg-background p-2 rounded">
                       <span className="font-semibold">Type</span>
                       <span className="font-semibold">Name</span>
                       <span className="font-semibold col-span-2">Value</span>

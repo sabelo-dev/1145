@@ -1564,7 +1564,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                           />
                           
                           {variation.images && variation.images.length > 0 && (
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                               {variation.images.map((image, imgIndex) => (
                                 <div key={imgIndex} className="relative group">
                                   <img
@@ -1700,7 +1700,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     items={images.map((_, index) => `image-${index}`)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {images.map((image, index) => (
                         <SortableImageItem
                           key={`image-${index}`}

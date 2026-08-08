@@ -159,7 +159,7 @@ const ConsumerNotifications: React.FC = () => {
       </div>
 
       <Tabs value={filter} onValueChange={setFilter}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-6">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="unread">Unread {unreadCount > 0 && `(${unreadCount})`}</TabsTrigger>
           <TabsTrigger value="announcement">Announcements</TabsTrigger>

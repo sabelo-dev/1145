@@ -89,7 +89,7 @@ export function UnifiedTransactionList({ transactions, isLoading }: UnifiedTrans
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all">
-          <TabsList className="w-full grid grid-cols-3 h-9 mb-3">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3 h-9 mb-3">
             <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
             <TabsTrigger value="wallet" className="text-xs">Cash & Gold</TabsTrigger>
             <TabsTrigger value="ucoin" className="text-xs">UCoin</TabsTrigger>

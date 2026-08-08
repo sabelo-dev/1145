@@ -479,7 +479,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="w-full grid grid-cols-3 mb-4">
+              <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3 mb-4">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="orders">Orders</TabsTrigger>
                 <TabsTrigger value="auctions">Auctions</TabsTrigger>

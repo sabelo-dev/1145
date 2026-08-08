@@ -231,7 +231,7 @@ export function MiningTaskList({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="affiliate">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3">
               <TabsTrigger value="affiliate">Affiliate</TabsTrigger>
               <TabsTrigger value="engagement">Engagement</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>

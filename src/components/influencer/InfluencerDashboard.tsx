@@ -106,7 +106,7 @@ const InfluencerDashboard: React.FC = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-6 lg:w-auto lg:inline-grid">
             <TabsTrigger value="feed" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Feed</span>
