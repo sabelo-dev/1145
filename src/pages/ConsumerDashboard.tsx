@@ -332,7 +332,7 @@ const ConsumerDashboardContent: React.FC<ConsumerDashboardContentProps> = ({
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-6 overflow-auto">
+        <div className="flex-1 min-w-0 overflow-x-hidden p-4 md:p-6 overflow-auto">
           {renderActiveModule()}
         </div>
       </main>

@@ -224,7 +224,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         </SidebarContent>
       </Sidebar>
 
-      <SidebarInset className="flex-1">
+      <SidebarInset className="flex-1 min-w-0 overflow-x-hidden">
         <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />

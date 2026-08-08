@@ -244,7 +244,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
         </SidebarContent>
       </Sidebar>
       
-      <SidebarInset className="flex-1">
+      <SidebarInset className="flex-1 min-w-0 overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
@@ -283,7 +283,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
           </DropdownMenu>
         </header>
         
-        <main className="flex-1 p-4 md:p-6 bg-background">
+        <main className="flex-1 min-w-0 overflow-x-hidden p-4 md:p-6 bg-background">
           {isTrialExpired && (
             <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
               <h3 className="font-semibold text-destructive mb-2">Trial Expired</h3>
