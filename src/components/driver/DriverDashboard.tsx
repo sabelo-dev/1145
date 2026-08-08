@@ -278,7 +278,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-6 bg-background overflow-auto">
+        <main className="flex-1 p-4 md:p-4 md:p-6 bg-background overflow-auto">
           <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} />
         </main>
       </SidebarInset>

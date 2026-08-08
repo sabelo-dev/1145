@@ -314,7 +314,7 @@ const ConsumerDashboardContent: React.FC<ConsumerDashboardContentProps> = ({
       </Sidebar>
 
       <main className="flex-1 flex flex-col">
-        <header className="h-14 flex items-center justify-between border-b px-6">
+        <header className="h-14 flex items-center justify-between border-b px-4 md:px-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
@@ -332,7 +332,7 @@ const ConsumerDashboardContent: React.FC<ConsumerDashboardContentProps> = ({
           </div>
         </header>
 
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 p-4 md:p-6 overflow-auto">
           {renderActiveModule()}
         </div>
       </main>

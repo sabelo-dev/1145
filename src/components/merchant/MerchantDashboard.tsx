@@ -322,7 +322,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
           </DropdownMenu>
         </header>
         
-        <main className="flex-1 p-6 bg-background">
+        <main className="flex-1 p-4 md:p-6 bg-background">
           {isTrialExpired && (
             <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
               <h3 className="font-semibold text-destructive mb-2">Trial Expired</h3>
