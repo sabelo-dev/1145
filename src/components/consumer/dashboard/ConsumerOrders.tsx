@@ -617,7 +617,7 @@ const ConsumerOrders: React.FC = () => {
             placeholder="Search orders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 sm:placeholder:content-none"
+            className="pl-10"
           />
 
         </div>
