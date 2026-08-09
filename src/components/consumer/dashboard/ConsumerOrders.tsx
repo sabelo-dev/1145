@@ -521,17 +521,23 @@ const ConsumerOrders: React.FC = () => {
     <div className="space-y-6">
       {/* Header with Stats */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 hidden sm:block">
             <h2 className="text-2xl font-bold tracking-tight">Order History</h2>
             <p className="text-muted-foreground">View and track your recent orders</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2" disabled={orders.length === 0}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 h-10 w-10 p-0 sm:h-9 sm:w-auto sm:px-3"
+                  disabled={orders.length === 0}
+                  aria-label="Export orders"
+                >
                   <Download className="h-4 w-4" />
-                  Export
+                  <span className="hidden sm:inline">Export</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -545,56 +551,63 @@ const ConsumerOrders: React.FC = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="sm" onClick={fetchOrders} className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchOrders}
+              className="gap-2 h-10 w-10 p-0 sm:h-9 sm:w-auto sm:px-3"
+              aria-label="Refresh orders"
+            >
               <RefreshCw className="h-4 w-4" />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
           </div>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Package className="h-5 w-5 text-blue-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <div className="p-2 bg-blue-500/20 rounded-lg shrink-0">
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{orderStats.activeOrders}</p>
-                  <p className="text-xs text-muted-foreground">Active Orders</p>
+                <div className="min-w-0 w-full">
+                  <p className="text-xl sm:text-2xl font-bold leading-tight">{orderStats.activeOrders}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate">Active</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Truck className="h-5 w-5 text-green-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <div className="p-2 bg-green-500/20 rounded-lg shrink-0">
+                  <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{orderStats.deliveredOrders}</p>
-                  <p className="text-xs text-muted-foreground">Delivered</p>
+                <div className="min-w-0 w-full">
+                  <p className="text-xl sm:text-2xl font-bold leading-tight">{orderStats.deliveredOrders}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate">Delivered</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/20 rounded-lg">
-                  <ShoppingBag className="h-5 w-5 text-amber-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <div className="p-2 bg-amber-500/20 rounded-lg shrink-0">
+                  <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">R{orderStats.totalSpent.toFixed(0)}</p>
-                  <p className="text-xs text-muted-foreground">Total Spent</p>
+                <div className="min-w-0 w-full">
+                  <p className="text-xl sm:text-2xl font-bold leading-tight truncate">R{orderStats.totalSpent.toFixed(0)}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate">Spent</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
