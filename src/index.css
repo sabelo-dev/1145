@@ -116,17 +116,24 @@
     @apply border-border;
   }
 
-  html, body {
+  html {
+    /* Single scroll container: never clip here or sticky/scroll breaks */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
-    overscroll-behavior-y: none;
-    text-size-adjust: 100%;
-    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-    max-width: 100vw;
-    overflow-x: hidden;
+    /* `clip` prevents sideways scroll WITHOUT creating a scroll container
+       (unlike `hidden`, which breaks position: sticky and traps scrolling) */
+    overflow-x: clip;
+    max-width: 100%;
   }
+
 
   /* Long words / URLs must never blow out narrow phone layouts */
   @media (max-width: 767px) {
