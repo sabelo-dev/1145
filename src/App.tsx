@@ -158,7 +158,9 @@ function AppRouter() {
           <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={
             <ProtectedRoute requireAuth requireVerified>
-              <ConsumerDashboard />
+              <RoleDashboardRedirect>
+                <ConsumerDashboard />
+              </RoleDashboardRedirect>
             </ProtectedRoute>
           } />
           <Route path="contact" element={<ContactPage />} />
