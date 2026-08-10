@@ -15,6 +15,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleDashboardRedirect from "@/components/auth/RoleDashboardRedirect";
 import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
 import ScrollToTop from "@/components/ScrollToTop";
 
@@ -158,7 +159,9 @@ function AppRouter() {
           <Route path="consumer/dashboard" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={
             <ProtectedRoute requireAuth requireVerified>
-              <ConsumerDashboard />
+              <RoleDashboardRedirect>
+                <ConsumerDashboard />
+              </RoleDashboardRedirect>
             </ProtectedRoute>
           } />
           <Route path="contact" element={<ContactPage />} />
