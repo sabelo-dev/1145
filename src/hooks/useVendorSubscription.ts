@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { normalizeTier } from "@/utils/subscriptionTier";
 
 export interface SubscriptionTierConfig {
   max_products: number | null;
@@ -118,7 +119,7 @@ export const useVendorSubscription = (vendorId?: string) => {
         promotionsUsed = count || 0;
       }
 
-      const tier = (vendor.subscription_tier as VendorSubscriptionData['tier']) || 'starter';
+      const tier = normalizeTier(vendor.subscription_tier) as VendorSubscriptionData['tier'];
 
       const configByTier: Record<VendorSubscriptionData['tier'], SubscriptionTierConfig> = {
         starter: {
