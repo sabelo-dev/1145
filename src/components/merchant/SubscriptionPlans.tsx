@@ -91,7 +91,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       p.name.toLowerCase() === tier && 
       p.billing_period === billingPeriod
     );
-    return plan?.price ?? fallbackPricing[tier][billingPeriod];
+    return plan?.price ?? (fallbackPricing[tier] ?? fallbackPricing.starter)[billingPeriod];
   };
 
   const getPlan = (tier: TierType): SubscriptionPlan | undefined => {
@@ -131,11 +131,11 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       {/* Plans Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {tiers.map((tier) => {
-          const config = tierConfig[tier];
+          const config = tierConfig[tier] ?? tierConfig.starter;
           const Icon = config.icon;
           const price = getPrice(tier);
           const plan = getPlan(tier);
-          const features = tierFeatures[tier];
+          const features = tierFeatures[tier] ?? tierFeatures.starter;
           const isRecommended = tier === 'silver';
           
           return (

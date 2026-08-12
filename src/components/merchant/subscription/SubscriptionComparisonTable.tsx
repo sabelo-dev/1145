@@ -141,9 +141,9 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
         <div className="col-span-1" />
         
         {tiers.map((tier) => {
-          const config = tierConfig[tier];
+          const config = tierConfig[tier] ?? tierConfig.starter;
           const Icon = config.icon;
-          const price = pricing[tier][billingPeriod];
+          const price = (pricing[tier] ?? pricing.starter)[billingPeriod];
           const isCurrentTier = currentTier === tier;
           const isRecommended = tier === 'silver';
           
