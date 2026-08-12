@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { decryptToken } from '../_shared/socialCrypto.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -114,7 +115,7 @@ Deno.serve(async (req) => {
 
         switch (platform) {
           case 'facebook': {
-            result = await publishToFacebook(post, tokenData);
+            result = await publishToFacebook(post, tokenData, supabase, userId);
             break;
           }
           case 'instagram': {
@@ -202,66 +203,98 @@ Deno.serve(async (req) => {
   }
 });
 
-async function publishToFacebook(post: any, tokenData: any): Promise<PlatformResult> {
-  const accessToken = tokenData.page_access_token || tokenData.access_token;
-  const pageId = tokenData.page_id || tokenData.account_id;
+const FB_GRAPH_VERSION = 'v26.0';
 
-  // Determine if we have media
-  const hasMedia = post.media_urls && post.media_urls.length > 0;
-  let endpoint = `https://graph.facebook.com/v18.0/${pageId}/feed`;
-  let body: Record<string, any> = {
-    message: post.content,
-    access_token: accessToken,
-  };
+/** Loads the user's active Facebook connection (page-level credentials). */
+async function getFacebookConnection(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from('social_oauth_tokens')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('platform', 'facebook')
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  // If there are media URLs, upload them first
-  if (hasMedia) {
-    const photoIds: string[] = [];
-    
-    for (const mediaUrl of post.media_urls) {
-      // Upload photo
-      const photoResponse = await fetch(`https://graph.facebook.com/v18.0/${pageId}/photos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: mediaUrl,
-          published: false,
-          access_token: accessToken,
-        }),
-      });
-      const photoData = await photoResponse.json();
-      
-      if (photoData.id) {
-        photoIds.push(photoData.id);
-      }
-    }
+  if (error) {
+    console.error('Error loading Facebook connection:', error);
+    throw new Error('Failed to load Facebook connection');
+  }
+  return data;
+}
 
-    if (photoIds.length > 0) {
-      body.attached_media = photoIds.map(id => ({ media_fbid: id }));
-    }
+/**
+ * Tokens may be stored encrypted (AES-GCM via socialCrypto) as `enc:v1:<iv>:<ct>`
+ * or as plaintext from older OAuth callbacks. Handle both.
+ */
+async function decrypt(token: string): Promise<string> {
+  if (!token.startsWith('enc:v1:')) return token;
+  const [, , iv, ciphertext] = token.split(':');
+  return await decryptToken({ iv, ciphertext });
+}
+
+async function publishToFacebook(post: any, tokenData: any, supabase: any, userId: string): Promise<PlatformResult> {
+  const connection = tokenData ?? (await getFacebookConnection(supabase, userId));
+
+  if (!connection?.page_id) {
+    throw new Error('Facebook Page is not connected');
+  }
+  if (!connection?.page_access_token) {
+    throw new Error('Facebook Page access token is missing');
   }
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const accessToken = await decrypt(connection.page_access_token);
+  const pageId = connection.page_id;
+  const message: string = post.content ?? '';
 
-  const data = await response.json();
+  const params = new URLSearchParams({ message, access_token: accessToken });
 
-  if (data.error) {
-    return {
-      platform: 'facebook',
-      success: false,
-      error: data.error.message,
-    };
+  // Attach media (if any) as unpublished photos first.
+  const mediaUrls: string[] = Array.isArray(post.media_urls) ? post.media_urls : [];
+  if (mediaUrls.length > 0) {
+    const photoIds: string[] = [];
+    for (const mediaUrl of mediaUrls) {
+      const photoResponse = await fetch(
+        `https://graph.facebook.com/${FB_GRAPH_VERSION}/${pageId}/photos`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            url: mediaUrl,
+            published: 'false',
+            access_token: accessToken,
+          }),
+        },
+      );
+      const photoData = await photoResponse.json();
+      if (photoData?.id) photoIds.push(photoData.id);
+      else console.error('Facebook photo upload error:', photoData);
+    }
+    photoIds.forEach((id, i) => params.set(`attached_media[${i}]`, JSON.stringify({ media_fbid: id })));
+  }
+
+  const response = await fetch(
+    `https://graph.facebook.com/${FB_GRAPH_VERSION}/${pageId}/feed`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params,
+    },
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || result.error) {
+    console.error('Facebook Graph API error:', result);
+    throw new Error(result.error?.message || 'Facebook publishing failed');
   }
 
   return {
     platform: 'facebook',
     success: true,
-    external_post_id: data.id,
-    external_post_url: `https://facebook.com/${data.id}`,
+    external_post_id: result.id,
+    external_post_url: `https://facebook.com/${result.id}`,
   };
 }
 
