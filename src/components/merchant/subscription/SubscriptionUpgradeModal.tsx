@@ -187,7 +187,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
             {/* Plans Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {tiers.map((tier, index) => {
-                const config = tierConfig[tier];
+                const config = tierConfig[tier] ?? tierConfig.starter;
                 const Icon = config.icon;
                 const price = pricing[tier][billingPeriod];
                 const isCurrentTier = tier === currentTier;
@@ -313,10 +313,10 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Downgrade to {pendingDowngrade ? tierConfig[pendingDowngrade].label : ''}?
+            Downgrade to {pendingDowngrade ? (tierConfig[pendingDowngrade] ?? tierConfig.starter).label : ''}?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            You'll immediately lose the benefits of your current {tierConfig[currentTier].label} plan,
+            You'll immediately lose the benefits of your current {(tierConfig[currentTier] ?? tierConfig.starter).label} plan,
             including higher product limits, lower commission and faster payouts. Listings above the new
             limit stay visible but you won't be able to add more until you're under the limit.
           </AlertDialogDescription>
