@@ -76,6 +76,7 @@ import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
 import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
 import type { SubscriptionTier } from "@/services/subscription";
+import { normalizeTier } from "@/utils/subscriptionTier";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
@@ -164,7 +165,7 @@ const VendorDashboard = () => {
   };
 
   const { changePlan, cancelPlan } = useSubscriptionActions({
-    currentTier: (vendorData?.subscription_tier as SubscriptionTier) || 'starter',
+    currentTier: normalizeTier(vendorData?.subscription_tier) as SubscriptionTier,
     onChanged: refreshVendorData,
   });
 
@@ -348,7 +349,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
           <SubscriptionUpgradeModal
             isOpen={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
-            currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
+            currentTier={normalizeTier(vendorData?.subscription_tier)}
             onUpgrade={onUpgrade}
           />
           
@@ -367,7 +368,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <TabsContent value="subscription" className="mt-0">
               <VendorSubscriptionPage 
                 vendorId={vendorData?.id}
-                currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
+                currentTier={normalizeTier(vendorData?.subscription_tier)}
                 onUpgrade={() => setShowUpgradeModal(true)}
               />
             </TabsContent>
