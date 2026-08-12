@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
 
         switch (platform) {
           case 'facebook': {
-            result = await publishToFacebook(post, tokenData);
+            result = await publishToFacebook(post, tokenData, supabase, userId);
             break;
           }
           case 'instagram': {
