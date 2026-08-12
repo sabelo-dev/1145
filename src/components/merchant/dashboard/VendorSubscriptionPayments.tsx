@@ -23,8 +23,8 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
 import { normalizeTier } from "@/utils/subscriptionTier";
+import {
   CreditCard,
   Wallet,
   Building2,
