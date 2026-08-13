@@ -51,7 +51,7 @@ const tierConfig: Record<TierType, {
     icon: Medal,
     label: 'Bronze',
     description: 'For growing sellers',
-    color: 'text-amber-700',
+    color: 'text-gold',
     features: [
       '100 product listings',
       '5 promotions/month',
@@ -81,7 +81,7 @@ const tierConfig: Record<TierType, {
     icon: Crown,
     label: 'Gold',
     description: 'For top performers',
-    color: 'text-yellow-600',
+    color: 'text-gold',
     features: [
       'Unlimited products',
       'Unlimited promotions',
@@ -182,7 +182,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                       'relative',
                       isCurrentTier && 'ring-2 ring-primary',
                       isRecommended && 'border-primary',
-                      tier === 'gold' && 'border-yellow-400/50'
+                      tier === 'gold' && 'border-gold/50'
                     )}
                   >
                     {isRecommended && (
@@ -237,7 +237,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                         size="sm"
                         className={cn(
                           "w-full text-xs",
-                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600'
                         )}
                         variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
                         disabled={isCurrentTier || loading}

@@ -208,7 +208,7 @@ const LeaseMarketplacePage: React.FC = () => {
 
                       <div className="flex items-center gap-2">
                         {(asset.rating || 0) > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{(asset.rating || 0).toFixed(1)}</span>
+                          <span className="flex items-center gap-0.5 text-xs"><Star className="h-3 w-3 fill-gold text-gold" />{(asset.rating || 0).toFixed(1)}</span>
                         )}
                         {(asset.total_leases || 0) > 0 && (
                           <span className="text-xs text-muted-foreground">{asset.total_leases} leased</span>

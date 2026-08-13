@@ -238,7 +238,7 @@ const MerchantLodging = () => {
   const stats = [
     { label: "Properties", value: properties.length, icon: Building2, color: "text-primary", bg: "bg-primary/10" },
     { label: "Active Listings", value: activeProps.length, icon: Eye, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { label: "Pending Bookings", value: pendingBookings.length, icon: Calendar, color: "text-amber-600", bg: "bg-gold/10" },
+    { label: "Pending Bookings", value: pendingBookings.length, icon: Calendar, color: "text-gold", bg: "bg-gold/10" },
     { label: "Total Revenue", value: `R${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-blue-600", bg: "bg-blue-500/10" },
   ];
 

@@ -337,7 +337,7 @@ const RideTrackingPage: React.FC = () => {
                   <div className="flex items-center gap-2 mt-0.5">
                     {driverInfo.rating && (
                       <div className="flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
                         <span className="text-xs font-medium text-foreground">{driverInfo.rating.toFixed(1)}</span>
                       </div>
                     )}
@@ -443,7 +443,7 @@ const RideTrackingPage: React.FC = () => {
               <div className="flex justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button key={star} onClick={() => setRating(star)} className="p-1 transition-transform hover:scale-110">
-                    <Star className={`h-8 w-8 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                    <Star className={`h-8 w-8 ${star <= rating ? "fill-gold text-gold" : "text-muted-foreground/30"}`} />
                   </button>
                 ))}
               </div>

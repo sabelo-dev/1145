@@ -25,7 +25,7 @@ const tipIcons: Record<string, React.ElementType> = {
 
 const priorityConfig = {
   low: { color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/30', icon: Info },
-  medium: { color: 'text-gold/10', bg: 'bg-amber-100 dark:bg-amber-900/30', icon: Lightbulb },
+  medium: { color: 'text-gold/10', bg: 'bg-gold/10 dark:bg-gold/15/30', icon: Lightbulb },
   high: { color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30', icon: AlertTriangle },
   urgent: { color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/30', icon: AlertTriangle }
 };

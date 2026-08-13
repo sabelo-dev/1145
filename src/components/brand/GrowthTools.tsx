@@ -294,7 +294,7 @@ export function GrowthTools({
               </div>
               <div className="flex justify-between">
                 <span>Cost:</span>
-                <span className="font-bold text-amber-600">{selectedPlacement.cost} credits</span>
+                <span className="font-bold text-gold">{selectedPlacement.cost} credits</span>
               </div>
             </div>
             {(promoCredits?.balance || 0) < selectedPlacement.cost && (

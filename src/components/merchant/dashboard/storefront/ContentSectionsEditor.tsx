@@ -393,7 +393,7 @@ const ContentSectionsEditor: React.FC<ContentSectionsEditorProps> = ({
                   {[1, 2, 3, 4, 5].map(star => (
                     <Star
                       key={star}
-                      className={`h-4 w-4 cursor-pointer ${star <= t.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
+                      className={`h-4 w-4 cursor-pointer ${star <= t.rating ? 'fill-gold text-gold' : 'text-muted-foreground'}`}
                       onClick={() => isEditing && updateTestimonial(t.id, 'rating', star)}
                     />
                   ))}

@@ -259,7 +259,7 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
 
                     {job.notes && (
                       <div className="p-3 bg-gold/10 rounded-lg">
-                        <p className="text-sm text-amber-800">
+                        <p className="text-sm text-gold">
                           <strong>Note:</strong> {job.notes}
                         </p>
                       </div>

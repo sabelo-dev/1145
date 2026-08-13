@@ -159,7 +159,7 @@ export function ReferralDashboard() {
             <Coins className="h-4 w-4 text-gold/10" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.totalEarned}</div>
+            <div className="text-2xl font-bold text-gold">{stats.totalEarned}</div>
             {stats.pendingEarnings > 0 && (
               <p className="text-xs text-green-600">+{stats.pendingEarnings} pending</p>
             )}
@@ -198,7 +198,7 @@ export function ReferralDashboard() {
             </div>
             
             <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-              <div className="p-2 rounded-full bg-gold/10 text-amber-600">
+              <div className="p-2 rounded-full bg-gold/10 text-gold">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
@@ -267,7 +267,7 @@ export function ReferralDashboard() {
                         <Button
                           size="sm"
                           onClick={() => claimReferralReward(referral.id, 'purchase')}
-                          className="bg-amber-600 hover:bg-amber-700"
+                          className="bg-gold hover:bg-gold"
                         >
                           <Coins className="h-3 w-3 mr-1" />
                           Claim 25
@@ -282,7 +282,7 @@ export function ReferralDashboard() {
                           </Badge>
                         )}
                         {referral.purchase_reward_paid && (
-                          <Badge variant="outline" className="text-amber-600 border-amber-600">
+                          <Badge variant="outline" className="text-gold border-gold">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Purchase
                           </Badge>

@@ -21,7 +21,7 @@ const slides = [
     subtitle: "Your money, secured by real value",
     icon: Wallet,
     image: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&q=80",
-    accent: "from-amber-400/30 to-orange-500/30",
+    accent: "from-gold/30 to-orange-500/30",
   },
   {
     title: "Lease Smart",

@@ -302,7 +302,7 @@ const AdminDrivers = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-gold/10 fill-yellow-500" />
+                          <Star className="h-4 w-4 text-gold/10 fill-gold/100" />
                           <span>{driver.rating?.toFixed(1) || "-"}</span>
                         </div>
                       </TableCell>
@@ -416,7 +416,7 @@ const AdminDrivers = () => {
                 <div>
                   <Label className="text-muted-foreground">Rating</Label>
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-gold/10 fill-yellow-500" />
+                    <Star className="h-4 w-4 text-gold/10 fill-gold/100" />
                     <span className="font-medium">{selectedDriver.rating?.toFixed(1) || "N/A"}</span>
                   </div>
                 </div>

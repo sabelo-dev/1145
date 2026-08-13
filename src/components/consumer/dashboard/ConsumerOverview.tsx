@@ -444,8 +444,8 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
                 <p className="text-sm text-muted-foreground">Total Spent</p>
                 <p className="text-2xl font-bold">R{stats.totalSpent.toLocaleString()}</p>
               </div>
-              <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-full">
-                <CreditCard className="h-5 w-5 text-amber-600" />
+              <div className="p-3 bg-gold/10 dark:bg-gold/15/30 rounded-full">
+                <CreditCard className="h-5 w-5 text-gold" />
               </div>
             </div>
           </CardContent>

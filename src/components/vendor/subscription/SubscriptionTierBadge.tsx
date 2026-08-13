@@ -36,7 +36,7 @@ const SubscriptionTierBadge: React.FC<SubscriptionTierBadgeProps> = ({
       variant={isGold ? 'default' : 'secondary'}
       className={cn(
         sizeClasses[size],
-        isGold && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0',
+        isGold && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600 text-white border-0',
         !isGold && 'bg-muted text-muted-foreground',
         className
       )}

@@ -201,7 +201,7 @@ export const InfluencerAccountsTab: React.FC = () => {
                               Verified
                             </Badge>
                           ) : account.is_active ? (
-                            <Badge variant="outline" className="text-amber-600 border-amber-600">
+                            <Badge variant="outline" className="text-gold border-gold">
                               <Clock className="h-3 w-3 mr-1" />
                               Pending
                             </Badge>

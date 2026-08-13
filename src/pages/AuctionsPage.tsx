@@ -785,7 +785,7 @@ const AuctionsPage = () => {
                                   ) : rank === 2 ? (
                                     <Medal className="h-5 w-5 text-gray-400" />
                                   ) : rank === 3 ? (
-                                    <Award className="h-5 w-5 text-amber-600" />
+                                    <Award className="h-5 w-5 text-gold" />
                                   ) : (
                                     <span className="text-sm font-medium text-muted-foreground">
                                       #{rank}

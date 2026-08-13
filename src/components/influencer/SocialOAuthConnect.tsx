@@ -425,7 +425,7 @@ export const SocialOAuthConnect: React.FC = () => {
                                   {account.page_name || account.account_handle || account.account_id}
                                 </div>
                                 {account.token_expires_at && (
-                                  <div className={`text-xs ${expiring ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                                  <div className={`text-xs ${expiring ? 'text-gold' : 'text-muted-foreground'}`}>
                                     {expiring && <AlertCircle className="h-3 w-3 inline mr-1" />}
                                     Expires {format(new Date(account.token_expires_at), 'MMM d, yyyy')}
                                   </div>

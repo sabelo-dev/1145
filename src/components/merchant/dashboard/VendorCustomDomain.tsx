@@ -350,8 +350,8 @@ const VendorCustomDomain = () => {
             {domain.status === "verifying" && (
               <CardContent>
                 <div className="p-4 bg-gold/10 border border-gold/10 rounded-lg flex items-center gap-3">
-                  <RefreshCcw className="h-5 w-5 text-yellow-600 animate-spin shrink-0" />
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                  <RefreshCcw className="h-5 w-5 text-gold animate-spin shrink-0" />
+                  <p className="text-sm text-gold dark:text-gold">
                     DNS verification is in progress. This usually takes a few minutes.
                   </p>
                 </div>

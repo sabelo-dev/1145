@@ -23,8 +23,8 @@ const CheckoutCancelPage: React.FC = () => {
               Your payment was cancelled. No charges have been made to your account.
             </p>
 
-            <div className="bg-gold/10 border border-yellow-200 rounded-lg p-4 mb-8">
-              <p className="text-sm text-yellow-800">
+            <div className="bg-gold/10 border border-gold/10 rounded-lg p-4 mb-8">
+              <p className="text-sm text-gold">
                 Your items are still in your cart. You can continue with your purchase or modify your order.
               </p>
             </div>
