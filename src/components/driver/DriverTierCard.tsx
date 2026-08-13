@@ -102,7 +102,7 @@ const DriverTierCard: React.FC<DriverTierCardProps> = ({
               <p className="font-bold">{currentTier?.base_pay_multiplier || 1}x</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-muted/50">
-              <Clock className="h-5 w-5 mx-auto mb-1 text-amber-500" />
+              <Clock className="h-5 w-5 mx-auto mb-1 text-gold" />
               <p className="text-xs text-muted-foreground">Cashout Fee</p>
               <p className="font-bold">{currentTier?.cashout_fee_percent || 5}%</p>
             </div>

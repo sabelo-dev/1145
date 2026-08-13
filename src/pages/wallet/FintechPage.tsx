@@ -22,7 +22,7 @@ const statusBadge = (s: string) => {
     verified: { icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", label: "Verified" },
     approved: { icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", label: "Approved" },
     completed: { icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", label: "Completed" },
-    pending: { icon: Clock, className: "bg-amber-500/10 text-amber-700 dark:text-amber-400", label: "Pending" },
+    pending: { icon: Clock, className: "bg-gold/10 text-gold dark:text-gold", label: "Pending" },
     failed: { icon: XCircle, className: "bg-destructive/10 text-destructive", label: "Failed" },
     rejected: { icon: XCircle, className: "bg-destructive/10 text-destructive", label: "Rejected" },
     active: { icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", label: "Active" },
@@ -155,9 +155,9 @@ const FintechPage: React.FC = () => {
         </motion.div>
 
         {!kycOk && (
-          <Card className="border-amber-500/40 bg-amber-500/5">
+          <Card className="border-gold/40 bg-gold/5">
             <CardContent className="flex items-start gap-3 py-4">
-              <ShieldAlert className="h-5 w-5 text-amber-600 mt-0.5" />
+              <ShieldAlert className="h-5 w-5 text-gold mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">Verify your identity (KYC) to withdraw</p>
                 <p className="text-sm text-muted-foreground">

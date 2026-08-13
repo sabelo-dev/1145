@@ -234,7 +234,7 @@ const RideRequestPage: React.FC = () => {
   const mapRoute = pickupCoords && dropoffCoords && step !== "location" ? { origin: pickupCoords, destination: dropoffCoords } : undefined;
   const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
-  const surgeColor = surgeMultiplier >= 2.0 ? "text-destructive" : surgeMultiplier >= 1.5 ? "text-orange-500" : surgeMultiplier > 1.0 ? "text-yellow-600" : "text-emerald-600";
+  const surgeColor = surgeMultiplier >= 2.0 ? "text-destructive" : surgeMultiplier >= 1.5 ? "text-orange-500" : surgeMultiplier > 1.0 ? "text-gold" : "text-emerald-600";
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row">

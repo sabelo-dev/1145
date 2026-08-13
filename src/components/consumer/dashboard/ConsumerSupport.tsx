@@ -145,7 +145,7 @@ const ConsumerSupport: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const config: Record<string, string> = {
       open: "bg-blue-100 text-blue-800",
-      in_progress: "bg-yellow-100 text-yellow-800",
+      in_progress: "bg-gold/10 text-gold",
       resolved: "bg-green-100 text-green-800",
       closed: "bg-gray-100 text-gray-800",
     };
@@ -157,7 +157,7 @@ const ConsumerSupport: React.FC = () => {
   };
 
   const getPriorityBadge = (priority: string) => {
-    const colors: Record<string, string> = { low: "bg-green-100 text-green-800", medium: "bg-yellow-100 text-yellow-800", high: "bg-red-100 text-red-800" };
+    const colors: Record<string, string> = { low: "bg-green-100 text-green-800", medium: "bg-gold/10 text-gold", high: "bg-red-100 text-red-800" };
     return <Badge variant="outline" className={colors[priority] || ""}>{priority.charAt(0).toUpperCase() + priority.slice(1)}</Badge>;
   };
 

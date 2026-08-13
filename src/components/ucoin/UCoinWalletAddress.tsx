@@ -70,10 +70,10 @@ export function UCoinWalletAddress({ wallet, isLoading }: UCoinWalletAddressProp
   };
 
   return (
-    <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50/50 to-background dark:from-amber-950/20">
+    <Card className="border-gold dark:border-gold/50 bg-gradient-to-br from-gold/10 to-background dark:from-gold/20">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-amber-600" />
+          <Wallet className="h-4 w-4 text-gold" />
           Your Wallet Address
         </CardTitle>
       </CardHeader>

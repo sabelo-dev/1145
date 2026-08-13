@@ -41,7 +41,7 @@ const MobileBottomNav: React.FC = () => {
               end={path === "/"}
               onClick={tap}
               className={({ isActive }) =>
-                `${itemClass} ${isActive ? "text-foreground" : "text-muted-foreground"}`
+                `${itemClass} ${isActive ? "text-navy-900" : "text-muted-foreground"}`
               }
             >
               {({ isActive }) => (
@@ -50,15 +50,16 @@ const MobileBottomNav: React.FC = () => {
                     <motion.span
                       layoutId="bottom-nav-indicator"
                       transition={{ type: "spring", stiffness: 480, damping: 36 }}
-                      className="absolute inset-x-4 top-1 h-9 rounded-full bg-secondary"
+                      className="absolute inset-x-4 top-1 h-9 rounded-full bg-cyan-soft"
                     />
                   )}
                   <span className="relative flex flex-col items-center gap-1">
                     <Icon
                       className={`h-[22px] w-[22px] transition-transform duration-200 ${
-                        isActive ? "stroke-[2.4] -translate-y-px" : ""
+                        isActive ? "stroke-[2.4] -translate-y-px text-primary" : ""
                       }`}
                     />
+
                     <span>{label}</span>
                   </span>
                 </>
@@ -78,7 +79,7 @@ const MobileBottomNav: React.FC = () => {
               <span className="relative">
                 <ShoppingCart className="h-[22px] w-[22px]" />
                 {count > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-accent text-accent-foreground rounded-full text-[9px] font-bold flex items-center justify-center ring-2 ring-background">
+                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-primary text-primary-foreground rounded-full text-[9px] font-bold flex items-center justify-center ring-2 ring-background">
                     {count > 9 ? "9+" : count}
                   </span>
                 )}

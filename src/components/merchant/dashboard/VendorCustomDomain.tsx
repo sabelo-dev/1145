@@ -210,7 +210,7 @@ const VendorCustomDomain = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "active": return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case "verifying": return <RefreshCcw className="h-5 w-5 text-yellow-500 animate-spin" />;
+      case "verifying": return <RefreshCcw className="h-5 w-5 text-gold animate-spin" />;
       case "suspended": return <PauseCircle className="h-5 w-5 text-orange-500" />;
       case "failed": return <AlertCircle className="h-5 w-5 text-destructive" />;
       default: return <Clock className="h-5 w-5 text-muted-foreground" />;
@@ -349,9 +349,9 @@ const VendorCustomDomain = () => {
             {/* Verifying state */}
             {domain.status === "verifying" && (
               <CardContent>
-                <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-3">
-                  <RefreshCcw className="h-5 w-5 text-yellow-600 animate-spin shrink-0" />
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                <div className="p-4 bg-gold/10 border border-gold/10 rounded-lg flex items-center gap-3">
+                  <RefreshCcw className="h-5 w-5 text-gold animate-spin shrink-0" />
+                  <p className="text-sm text-gold dark:text-gold">
                     DNS verification is in progress. This usually takes a few minutes.
                   </p>
                 </div>

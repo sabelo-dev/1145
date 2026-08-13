@@ -122,7 +122,7 @@ const ConsumerReviews: React.FC = () => {
       {[1, 2, 3, 4, 5].map(star => (
         <Star
           key={star}
-          className={`h-4 w-4 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"} ${interactive ? "cursor-pointer hover:text-yellow-400" : ""}`}
+          className={`h-4 w-4 ${star <= rating ? "fill-gold text-gold" : "text-gray-300"} ${interactive ? "cursor-pointer hover:text-gold" : ""}`}
           onClick={() => interactive && onSelect?.(star)}
         />
       ))}

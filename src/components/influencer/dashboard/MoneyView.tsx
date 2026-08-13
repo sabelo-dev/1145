@@ -157,7 +157,7 @@ export const MoneyView: React.FC<MoneyViewProps> = ({
             {[
               { label: 'Posts', value: stats.postCount, width: 100, color: 'bg-primary' },
               { label: 'Engagement', value: stats.totalEngagement, width: Math.min(80, stats.totalEngagement > 0 ? 80 : 0), color: 'bg-blue-500' },
-              { label: 'Clicks', value: stats.totalClicks, width: Math.min(60, stats.totalClicks > 0 ? 60 : 0), color: 'bg-amber-500' },
+              { label: 'Clicks', value: stats.totalClicks, width: Math.min(60, stats.totalClicks > 0 ? 60 : 0), color: 'bg-gold/10' },
               { label: 'Conversions', value: stats.totalConversions, width: Math.min(40, stats.totalConversions > 0 ? 40 : 0), color: 'bg-emerald-500' },
             ].map((step, i) => (
               <div key={step.label} className="flex items-center gap-3">

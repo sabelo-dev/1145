@@ -97,7 +97,7 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
     switch (color) {
       case "red": return "from-red-500 to-red-600";
       case "orange": return "from-orange-500 to-orange-600";
-      case "yellow": return "from-amber-400 to-amber-500";
+      case "yellow": return "from-gold to-gold/10";
       default: return "from-emerald-500 to-emerald-600";
     }
   };
@@ -184,11 +184,11 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
 
       {/* Location warning */}
       {!currentLocation && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-gold/10 bg-gold/10">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-amber-500/10">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <div className="p-2 rounded-xl bg-gold/10">
+                <AlertTriangle className="h-5 w-5 text-gold" />
               </div>
               <div>
                 <p className="font-semibold text-sm">Location Required</p>
@@ -269,7 +269,7 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
                     {match.job.earnings && (
                       <Badge className="rounded-full bg-emerald-600 text-xs font-semibold">
                         R{match.job.earnings.toFixed(2)}
-                        {match.surge_multiplier > 1 && <Zap className="h-3 w-3 ml-1 text-amber-300" />}
+                        {match.surge_multiplier > 1 && <Zap className="h-3 w-3 ml-1 text-gold" />}
                       </Badge>
                     )}
                   </div>

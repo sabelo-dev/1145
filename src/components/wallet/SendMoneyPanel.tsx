@@ -191,7 +191,7 @@ export function SendMoneyPanel({
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Amount (UCoin)</label>
                 <div className="relative">
-                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500" />
+                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
                   <Input
                     type="number"
                     placeholder="0"
@@ -217,7 +217,7 @@ export function SendMoneyPanel({
               />
 
               <Button
-                className="w-full gap-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
+                className="w-full gap-2 bg-gradient-to-r from-gold to-gold hover:from-gold hover:to-gold text-white"
                 onClick={handleSendUcoin}
                 disabled={isTransferring || amountNum <= 0}
               >

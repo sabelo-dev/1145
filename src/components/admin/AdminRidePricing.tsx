@@ -163,7 +163,7 @@ const AdminRidePricing: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Zap className="h-5 w-5 text-amber-500" /> Surge Pricing
+              <Zap className="h-5 w-5 text-gold" /> Surge Pricing
             </CardTitle>
             <CardDescription>Dynamic pricing based on demand</CardDescription>
           </CardHeader>
@@ -266,7 +266,7 @@ const AdminRidePricing: React.FC = () => {
                   </div>
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between"><span className="text-muted-foreground">Normal</span><span className="font-bold text-foreground">R{baseFare.toFixed(2)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground flex items-center gap-1"><Moon className="h-3 w-3" />Night</span><span className="font-bold text-amber-600">R{nightFare.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground flex items-center gap-1"><Moon className="h-3 w-3" />Night</span><span className="font-bold text-gold">R{nightFare.toFixed(2)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground flex items-center gap-1"><Zap className="h-3 w-3" />Peak Surge</span><span className="font-bold text-destructive">R{surgeFare.toFixed(2)}</span></div>
                   </div>
                 </div>

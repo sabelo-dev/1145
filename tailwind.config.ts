@@ -53,6 +53,28 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))'
 				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
+				disabled: 'hsl(var(--disabled))',
+				// ── 1145 brand scales ──
+				navy: {
+					DEFAULT: 'hsl(var(--navy-900))',
+					900: 'hsl(var(--navy-900))',
+					800: 'hsl(var(--navy-800))',
+					700: 'hsl(var(--navy-700))',
+					border: 'hsl(var(--navy-border))'
+				},
+				cyan: {
+					DEFAULT: 'hsl(var(--cyan))',
+					soft: 'hsl(var(--cyan-soft))',
+					foreground: 'hsl(var(--navy-900))'
+				},
+				gold: {
+					DEFAULT: 'hsl(var(--gold))',
+					foreground: 'hsl(var(--navy-900))'
+				},
 				surface: {
 					DEFAULT: 'hsl(var(--surface))',
 					muted: 'hsl(var(--surface-muted))'
@@ -75,18 +97,19 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Legacy palette remapped onto design tokens so older screens
-				// inherit the new Ink & Gold identity automatically.
+				// Legacy palette remapped onto 1145 tokens so older screens
+				// inherit the unified identity automatically.
 				wwe: {
-					navy: 'hsl(var(--primary))',
-					gold: 'hsl(var(--accent))',
+					navy: 'hsl(var(--navy-900))',
+					gold: 'hsl(var(--gold))',
 					lightGray: 'hsl(var(--muted))',
 					darkGray: 'hsl(var(--foreground))',
 					success: 'hsl(var(--success))',
 					danger: 'hsl(var(--destructive))',
 					warning: 'hsl(var(--warning))',
-					info: 'hsl(var(--accent))',
+					info: 'hsl(var(--info))',
 				},
+
 			},
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -109,7 +109,7 @@ export function UCoinTransferForm({ wallet, limits, isTransferring, onTransfer }
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (UCoin)</Label>
             <div className="relative">
-              <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500" />
+              <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
               <Input
                 id="amount"
                 type="number"

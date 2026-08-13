@@ -18,12 +18,12 @@ const Hero: React.FC = () => {
       <div className="wwe-container relative z-10">
         <div className="flex flex-col items-center justify-center text-center py-8 md:py-12 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 mb-4 animate-fade-in">
-            <Sparkles className="h-3 w-3 text-yellow-300" />
+            <Sparkles className="h-3 w-3 text-gold" />
             <span className="text-xs text-white font-medium">Coming Soon</span>
           </div>
 
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 animate-fade-in">
-            Welcome to <span className="text-yellow-300">1145 Lifestyle</span>
+            Welcome to <span className="text-gold">1145 Lifestyle</span>
           </h1>
 
           <p className="text-base md:text-lg text-white/90 mb-2 animate-fade-in">
@@ -38,7 +38,7 @@ const Hero: React.FC = () => {
             <Link to="/register">
               <Button 
                 size="default" 
-                className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-bold px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                className="bg-gold text-gray-900 hover:bg-gold font-bold px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
               >
                 <ShoppingBag className="h-4 w-4 mr-2" />
                 Register Now

@@ -38,8 +38,8 @@ const STATUS_TONE: Record<string, string> = {
   connected: "bg-green-100 text-green-800",
   validating: "bg-blue-100 text-blue-800",
   authenticating: "bg-blue-100 text-blue-800",
-  awaiting_permissions: "bg-amber-100 text-amber-800",
-  permission_missing: "bg-amber-100 text-amber-800",
+  awaiting_permissions: "bg-gold/10 text-gold",
+  permission_missing: "bg-gold/10 text-gold",
   token_expired: "bg-orange-100 text-orange-800",
   suspended: "bg-orange-100 text-orange-800",
   revoked: "bg-red-100 text-red-800",
@@ -152,7 +152,7 @@ export default function AdminSocialConnectionsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{connections.length}</div><div className="text-sm text-muted-foreground">Total connections</div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-green-600">{connections.filter(c => c.status === "connected").length}</div><div className="text-sm text-muted-foreground">Connected</div></CardContent></Card>
-        <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-amber-600">{connections.filter(c => ["permission_missing","token_expired","suspended"].includes(c.status)).length}</div><div className="text-sm text-muted-foreground">Needs attention</div></CardContent></Card>
+        <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-gold">{connections.filter(c => ["permission_missing","token_expired","suspended"].includes(c.status)).length}</div><div className="text-sm text-muted-foreground">Needs attention</div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-red-600">{connections.filter(c => ["revoked","error"].includes(c.status)).length}</div><div className="text-sm text-muted-foreground">Revoked / errored</div></CardContent></Card>
       </div>
 

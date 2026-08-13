@@ -38,8 +38,8 @@ const STATUS_TONE: Record<string, string> = {
   connected: "bg-green-100 text-green-800",
   validating: "bg-blue-100 text-blue-800",
   authenticating: "bg-blue-100 text-blue-800",
-  awaiting_permissions: "bg-amber-100 text-amber-800",
-  permission_missing: "bg-amber-100 text-amber-800",
+  awaiting_permissions: "bg-gold/10 text-gold",
+  permission_missing: "bg-gold/10 text-gold",
   token_expired: "bg-orange-100 text-orange-800",
   revoked: "bg-red-100 text-red-800",
   suspended: "bg-orange-100 text-orange-800",
@@ -188,7 +188,7 @@ export default function InfluencerSocialConnectionsPage() {
                             <span className="font-semibold capitalize">{c.provider}</span>
                             <Badge className={STATUS_TONE[c.status] ?? ""}>{c.status}</Badge>
                             {warn.level === "expired" && <Badge variant="destructive">Token expired</Badge>}
-                            {warn.level === "soon" && <Badge className="bg-amber-100 text-amber-800">{warn.label}</Badge>}
+                            {warn.level === "soon" && <Badge className="bg-gold/10 text-gold">{warn.label}</Badge>}
                           </div>
                           <div className="text-sm text-muted-foreground">{c.display_name ?? c.username ?? "—"}</div>
                         </div>

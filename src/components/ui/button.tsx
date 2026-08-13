@@ -18,6 +18,14 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        /** 1145 secondary action — cyan outline on light surfaces */
+        cyanOutline:
+          "border border-primary bg-transparent text-foreground hover:bg-cyan-soft",
+        /** High-contrast navy action */
+        dark: "bg-navy-900 text-primary-foreground hover:bg-navy-800",
+        /** Premium / value actions only (upgrade, elite, gold-backed) */
+        premium: "bg-gold text-gold-foreground shadow-soft hover:bg-gold/90",
+
       },
       size: {
         default: "h-11 px-5 py-2 md:h-10 md:px-4",

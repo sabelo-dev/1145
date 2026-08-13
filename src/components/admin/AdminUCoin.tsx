@@ -240,10 +240,10 @@ export default function AdminUCoin() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <Coins className="h-4 w-4 text-amber-500" />
+            <Coins className="h-4 w-4 text-gold" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.totalBalance.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-gold">{stats.totalBalance.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">UCoin in circulation</p>
           </CardContent>
         </Card>
@@ -316,7 +316,7 @@ export default function AdminUCoin() {
                     <TableRow key={rule.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                          <div className="p-1.5 rounded bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold">
                             {categoryIcons[rule.category] || <Coins className="h-4 w-4" />}
                           </div>
                           <span className="font-medium text-sm">{rule.category.replace(/_/g, ' ')}</span>
@@ -331,7 +331,7 @@ export default function AdminUCoin() {
                           {rule.multiplier}x
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-bold text-amber-600">
+                      <TableCell className="text-right font-bold text-gold">
                         {rule.amount * rule.multiplier}
                       </TableCell>
                       <TableCell>
@@ -384,7 +384,7 @@ export default function AdminUCoin() {
                     <TableRow key={option.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                          <div className="p-1.5 rounded bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold">
                             {categoryIcons[option.category] || <Gift className="h-4 w-4" />}
                           </div>
                           <span className="font-medium text-sm">{option.category.replace(/_/g, ' ')}</span>
@@ -393,7 +393,7 @@ export default function AdminUCoin() {
                       <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
                         {option.description}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-amber-600">{option.cost}</TableCell>
+                      <TableCell className="text-right font-bold text-gold">{option.cost}</TableCell>
                       <TableCell className="text-right">
                         {option.value}{option.value_type === 'percentage' ? '%' : option.value_type === 'boost' ? 'hrs' : ''}
                       </TableCell>
@@ -470,8 +470,8 @@ export default function AdminUCoin() {
                 />
                 <Label>Active</Label>
               </div>
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
-                <p className="text-sm text-amber-700 dark:text-amber-300">
+              <div className="p-3 bg-gold/10 dark:bg-gold/15 rounded-lg">
+                <p className="text-sm text-gold dark:text-gold">
                   Effective reward: <strong>{editingRule.amount * editingRule.multiplier} UCoin</strong>
                 </p>
               </div>

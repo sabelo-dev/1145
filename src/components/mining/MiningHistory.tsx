@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MiningCompletion } from '@/hooks/useSocialMining';
 
 const statusConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-  pending: { icon: Clock, color: 'text-yellow-500', label: 'Pending' },
+  pending: { icon: Clock, color: 'text-gold', label: 'Pending' },
   verified: { icon: CheckCircle2, color: 'text-blue-500', label: 'Verified' },
   paid: { icon: Coins, color: 'text-green-500', label: 'Paid' },
   rejected: { icon: XCircle, color: 'text-red-500', label: 'Rejected' }

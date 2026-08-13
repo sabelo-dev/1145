@@ -191,7 +191,7 @@ const AdminReviews: React.FC = () => {
     return Array.from({ length: 5 }, (_, i) => (
       <StarIcon
         key={i}
-        className={`h-4 w-4 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+        className={`h-4 w-4 ${i < rating ? 'fill-gold text-gold' : 'text-gray-300'}`}
       />
     ));
   };
@@ -225,7 +225,7 @@ const AdminReviews: React.FC = () => {
             <CardDescription>Average Rating</CardDescription>
             <div className="flex items-center gap-2">
               <CardTitle className="text-3xl">{analytics.avgRating.toFixed(1)}</CardTitle>
-              <StarIcon className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+              <StarIcon className="h-6 w-6 fill-gold text-gold" />
             </div>
           </CardHeader>
         </Card>
@@ -279,7 +279,7 @@ const AdminReviews: React.FC = () => {
               <div key={rating} className="flex items-center gap-3">
                 <div className="flex items-center gap-1 w-20">
                   <span className="font-medium">{rating}</span>
-                  <StarIcon className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <StarIcon className="h-4 w-4 fill-gold text-gold" />
                 </div>
                 <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
                   <div 
