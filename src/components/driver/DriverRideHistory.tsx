@@ -85,7 +85,7 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
       label: "Avg Rating",
       value: stats.avgRating ? stats.avgRating.toFixed(1) : "N/A",
       icon: Star,
-      color: "text-gold/10",
+      color: "text-gold",
       bg: "bg-gold/10",
     },
   ];

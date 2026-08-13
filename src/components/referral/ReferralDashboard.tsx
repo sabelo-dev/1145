@@ -156,7 +156,7 @@ export function ReferralDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">UCoin Earned</CardTitle>
-            <Coins className="h-4 w-4 text-gold/10" />
+            <Coins className="h-4 w-4 text-gold" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gold">{stats.totalEarned}</div>

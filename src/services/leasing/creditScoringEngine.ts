@@ -68,7 +68,7 @@ export const creditScoringEngine = {
   getScoreColor(score: number): string {
     if (score >= 750) return 'text-emerald-500';
     if (score >= 650) return 'text-primary';
-    if (score >= 500) return 'text-gold/10';
+    if (score >= 500) return 'text-gold';
     if (score >= 300) return 'text-orange-500';
     return 'text-destructive';
   },

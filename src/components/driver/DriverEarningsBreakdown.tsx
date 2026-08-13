@@ -44,7 +44,7 @@ const DriverEarningsBreakdown: React.FC<DriverEarningsBreakdownProps> = ({
   const breakdownItems = [
     { label: 'Base Pay', value: totals.base, icon: DollarSign, color: 'text-green-500' },
     { label: 'Distance Pay', value: totals.distance, icon: MapPin, color: 'text-blue-500' },
-    { label: 'Urgency Bonus', value: totals.urgency, icon: Zap, color: 'text-gold/10' },
+    { label: 'Urgency Bonus', value: totals.urgency, icon: Zap, color: 'text-gold' },
     { label: 'Surge Pay', value: totals.surge, icon: TrendingUp, color: 'text-red-500' },
     { label: 'Tips', value: totals.tips, icon: Gift, color: 'text-purple-500' },
     { label: 'Tier Bonus', value: totals.tierBonus, icon: Star, color: 'text-primary' },

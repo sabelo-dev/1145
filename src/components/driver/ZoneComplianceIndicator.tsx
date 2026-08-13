@@ -77,7 +77,7 @@ const ZoneComplianceIndicator: React.FC<ZoneComplianceIndicatorProps> = ({
 
   const statusBg = {
     GREEN: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
-    YELLOW: 'bg-gold/10 dark:bg-gold/15/20 border-gold/10 dark:border-gold',
+    YELLOW: 'bg-gold/10 dark:bg-gold/15 border-gold/10 dark:border-gold',
     RED: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
   };
 

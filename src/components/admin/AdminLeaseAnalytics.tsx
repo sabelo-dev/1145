@@ -64,7 +64,7 @@ const AdminLeaseAnalytics = () => {
     { label: "Lease Revenue", value: `R${totalLeaseRevenue.toLocaleString()}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-500/10" },
     { label: "Overdue Payments", value: overduePayments.length, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
     { label: "Asset Utilization", value: `${utilizationRate}%`, icon: Percent, color: "text-blue-600", bg: "bg-blue-500/10" },
-    { label: "Defaulted", value: defaultedContracts.length, icon: TrendingUp, color: "text-gold/10", bg: "bg-gold/10" },
+    { label: "Defaulted", value: defaultedContracts.length, icon: TrendingUp, color: "text-gold", bg: "bg-gold/10" },
   ];
 
   const paymentHealth = [

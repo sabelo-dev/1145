@@ -221,7 +221,7 @@ const AdminDrivers = () => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-gold/10" />
+              <UserPlus className="h-5 w-5 text-gold" />
               <span className="text-2xl font-bold">{stats.pending}</span>
             </div>
           </CardContent>

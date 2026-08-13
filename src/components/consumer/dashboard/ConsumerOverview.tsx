@@ -270,7 +270,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
           description: `R${bid.bid_amount.toFixed(2)} bid`,
           date: bid.created_at,
           icon: Gavel,
-          color: "text-gold/10",
+          color: "text-gold",
         });
       });
 
@@ -296,7 +296,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
           description: `${review.rating} star review`,
           date: review.created_at,
           icon: Star,
-          color: "text-gold/10",
+          color: "text-gold",
         });
       });
 
@@ -332,7 +332,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
 
   const quickActions = [
     { icon: Package, label: "Track Orders", section: "orders", color: "text-blue-500", count: stats.activeOrders },
-    { icon: Gavel, label: "Auctions", section: "auction-watchlist", color: "text-gold/10", count: stats.activeBids },
+    { icon: Gavel, label: "Auctions", section: "auction-watchlist", color: "text-gold", count: stats.activeBids },
     { icon: Heart, label: "Wishlist", section: "wishlist", color: "text-pink-500", count: stats.wishlistCount },
     { icon: Bell, label: "Notifications", section: "notifications", color: "text-purple-500" },
   ];
@@ -444,7 +444,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
                 <p className="text-sm text-muted-foreground">Total Spent</p>
                 <p className="text-2xl font-bold">R{stats.totalSpent.toLocaleString()}</p>
               </div>
-              <div className="p-3 bg-gold/10 dark:bg-gold/15/30 rounded-full">
+              <div className="p-3 bg-gold/10 dark:bg-gold/15 rounded-full">
                 <CreditCard className="h-5 w-5 text-gold" />
               </div>
             </div>
@@ -583,7 +583,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
                             ) : activity.type === "outbid" ? (
                               <AlertCircle className="h-5 w-5 text-orange-500" />
                             ) : (
-                              <Gavel className="h-5 w-5 text-gold/10" />
+                              <Gavel className="h-5 w-5 text-gold" />
                             )}
                             <div>
                               <p className="font-medium text-sm line-clamp-1">{activity.productName}</p>
@@ -623,7 +623,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
               onClick={() => onNavigate("orders")}
             >
               <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-gold/10" />
+                <Truck className="h-4 w-4 text-gold" />
                 <span className="text-sm">Active Orders</span>
               </div>
               <span className="font-semibold">{stats.activeOrders}</span>
@@ -634,7 +634,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
               onClick={() => onNavigate("auction-watchlist")}
             >
               <div className="flex items-center gap-2">
-                <Gavel className="h-4 w-4 text-gold/10" />
+                <Gavel className="h-4 w-4 text-gold" />
                 <span className="text-sm">Active Bids</span>
               </div>
               <span className="font-semibold">{stats.activeBids}</span>
@@ -656,7 +656,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
               onClick={() => onNavigate("reviews")}
             >
               <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-gold/10" />
+                <Star className="h-4 w-4 text-gold" />
                 <span className="text-sm">Reviews Written</span>
               </div>
               <span className="font-semibold">{stats.reviewsCount}</span>

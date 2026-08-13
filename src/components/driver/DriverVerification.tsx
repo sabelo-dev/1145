@@ -44,7 +44,7 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
     return verified ? (
       <CheckCircle className="h-5 w-5 text-green-500" />
     ) : (
-      <Clock className="h-5 w-5 text-gold/10" />
+      <Clock className="h-5 w-5 text-gold" />
     );
   };
 
@@ -113,10 +113,10 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
           </div>
 
           {verificationStatus.overall_status !== 'verified' && (
-            <div className="flex items-start gap-3 p-3 bg-gold/10 dark:bg-gold/15/20 rounded-lg">
+            <div className="flex items-start gap-3 p-3 bg-gold/10 dark:bg-gold/15 rounded-lg">
               <AlertTriangle className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-gold dark:text-gold/10">
+                <p className="font-medium text-gold dark:text-gold">
                   Complete Your Verification
                 </p>
                 <p className="text-sm text-gold dark:text-gold">

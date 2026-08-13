@@ -103,7 +103,7 @@ const DriverRideAnalytics: React.FC<DriverRideAnalyticsProps> = ({ driver }) => 
   const statCards = [
     { label: "Total Rides", value: stats.totalRides.toString(), icon: Car, color: "text-primary", bg: "bg-primary/10" },
     { label: "Total Earnings", value: `R${stats.totalEarnings.toFixed(2)}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { label: "Avg Rating", value: stats.avgRating ? stats.avgRating.toFixed(1) : "N/A", icon: Star, color: "text-gold/10", bg: "bg-gold/10" },
+    { label: "Avg Rating", value: stats.avgRating ? stats.avgRating.toFixed(1) : "N/A", icon: Star, color: "text-gold", bg: "bg-gold/10" },
     { label: "Avg Fare", value: `R${stats.avgFare.toFixed(2)}`, icon: Route, color: "text-blue-600", bg: "bg-blue-500/10" },
     { label: "Completion Rate", value: `${stats.completionRate.toFixed(0)}%`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-500/10" },
     { label: "Cancel Rate", value: `${stats.cancelRate.toFixed(0)}%`, icon: Clock, color: "text-destructive", bg: "bg-destructive/10" },

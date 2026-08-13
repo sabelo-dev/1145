@@ -81,7 +81,7 @@ const pricing = {
 
 const tierConfig = {
   starter: { icon: Star, label: 'Starter', description: 'Get started for free', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  bronze: { icon: Medal, label: 'Bronze', description: 'For growing sellers', color: 'text-gold', bgColor: 'bg-gold/10 dark:bg-gold/15/30' },
+  bronze: { icon: Medal, label: 'Bronze', description: 'For growing sellers', color: 'text-gold', bgColor: 'bg-gold/10 dark:bg-gold/15' },
   silver: { icon: Gem, label: 'Silver', description: 'For established brands', color: 'text-slate-500', bgColor: 'bg-slate-100 dark:bg-slate-800/50' },
   gold: { icon: Crown, label: 'Gold', description: 'For top performers', color: 'text-gold', bgColor: 'bg-gradient-to-br from-gold/10 to-orange-50 dark:from-gold/20 dark:to-orange-900/20' },
 };

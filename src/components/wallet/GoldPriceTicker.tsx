@@ -15,7 +15,7 @@ export function GoldPriceTicker() {
       className="flex items-center justify-between bg-card border rounded-xl px-4 py-2.5"
     >
       <div className="flex items-center gap-2.5">
-        <div className="p-1.5 rounded-full bg-gold dark:bg-gold/15/30">
+        <div className="p-1.5 rounded-full bg-gold dark:bg-gold/15">
           <Scale className="h-3.5 w-3.5 text-gold dark:text-gold" />
         </div>
         <div>

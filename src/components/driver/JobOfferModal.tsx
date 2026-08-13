@@ -132,7 +132,7 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
             {offer.surge_multiplier > 1 && (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-gold/20 backdrop-blur-sm px-3 py-1">
                 <Zap className="h-3.5 w-3.5 text-gold" />
-                <span className="text-xs font-semibold text-gold/10">
+                <span className="text-xs font-semibold text-gold">
                   {offer.surge_multiplier}x surge active
                 </span>
               </div>

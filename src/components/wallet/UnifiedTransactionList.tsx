@@ -44,7 +44,7 @@ const getIcon = (tx: Transaction) => {
 const getColor = (tx: Transaction) => {
   const amt = tx.net_amount ?? tx.amount;
   const t = tx.type;
-  if (t.includes('gold_buy')) return { text: 'text-gold dark:text-gold', bg: 'bg-gold dark:bg-gold/15/30' };
+  if (t.includes('gold_buy')) return { text: 'text-gold dark:text-gold', bg: 'bg-gold dark:bg-gold/15' };
   if (t.includes('gold_sell')) return { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' };
   if (t === 'earn' || amt > 0) return { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' };
   return { text: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' };

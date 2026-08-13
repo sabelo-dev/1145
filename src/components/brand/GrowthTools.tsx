@@ -86,7 +86,7 @@ export function GrowthTools({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-gold/10">
-                <Coins className="h-6 w-6 text-gold/10" />
+                <Coins className="h-6 w-6 text-gold" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Promo Credits</p>

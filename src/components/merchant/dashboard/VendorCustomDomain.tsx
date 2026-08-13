@@ -210,7 +210,7 @@ const VendorCustomDomain = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "active": return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case "verifying": return <RefreshCcw className="h-5 w-5 text-gold/10 animate-spin" />;
+      case "verifying": return <RefreshCcw className="h-5 w-5 text-gold animate-spin" />;
       case "suspended": return <PauseCircle className="h-5 w-5 text-orange-500" />;
       case "failed": return <AlertCircle className="h-5 w-5 text-destructive" />;
       default: return <Clock className="h-5 w-5 text-muted-foreground" />;

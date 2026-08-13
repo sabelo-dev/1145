@@ -446,7 +446,7 @@ const MerchantLodging = () => {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           {p.city && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{p.city}{p.province ? `, ${p.province}` : ""}</span>}
                           <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{p.max_guests || 2} guests</span>
-                          {p.rating ? <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 text-gold/10" />{p.rating.toFixed(1)}</span> : null}
+                          {p.rating ? <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 text-gold" />{p.rating.toFixed(1)}</span> : null}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">

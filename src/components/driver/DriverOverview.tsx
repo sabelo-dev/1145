@@ -210,7 +210,7 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-gold/10" />
+            <Star className="h-5 w-5 text-gold" />
             Your Rating
           </CardTitle>
         </CardHeader>

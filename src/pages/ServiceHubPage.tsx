@@ -49,7 +49,7 @@ const services = [
     icon: Wallet,
     gradient: "from-gold/10 to-orange-500",
     iconBg: "bg-gold/10",
-    iconColor: "text-gold/10",
+    iconColor: "text-gold",
     route: "/wallet",
     tag: null,
   },

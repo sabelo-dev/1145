@@ -388,7 +388,7 @@ export const SocialOAuthConnect: React.FC = () => {
                         {isConnecting ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         ) : needsSetup ? (
-                          <AlertCircle className="h-4 w-4 mr-2 text-gold/10" />
+                          <AlertCircle className="h-4 w-4 mr-2 text-gold" />
                         ) : null}
                         {needsSetup ? 'Setup Required' : 'Connect'}
                       </Button>

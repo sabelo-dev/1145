@@ -110,7 +110,7 @@ const AdminRideMonitoring: React.FC = () => {
 
   const statCards = [
     { label: "Active Rides", value: stats.active, icon: Car, color: "text-blue-500" },
-    { label: "Waiting for Driver", value: stats.requested, icon: Clock, color: "text-gold/10" },
+    { label: "Waiting for Driver", value: stats.requested, icon: Clock, color: "text-gold" },
     { label: "Completed Today", value: stats.completed, icon: Activity, color: "text-emerald-500" },
     { label: "Cancelled", value: stats.cancelled, icon: Ban, color: "text-destructive" },
   ];

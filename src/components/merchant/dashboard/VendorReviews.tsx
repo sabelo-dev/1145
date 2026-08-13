@@ -374,7 +374,7 @@ const VendorReviews = () => {
                 <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-gold" />
                   <div>
-                    <div className="font-medium text-gold dark:text-gold/10">Neutral</div>
+                    <div className="font-medium text-gold dark:text-gold">Neutral</div>
                     <div className="text-xs text-gold dark:text-gold">{analytics.neutralCount} reviews</div>
                   </div>
                 </div>

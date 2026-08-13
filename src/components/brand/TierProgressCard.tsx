@@ -46,7 +46,7 @@ export function TierProgressCard({ currentTier, allTiers, currentMetrics }: Tier
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-gold/10" />
+          <Crown className="h-5 w-5 text-gold" />
           Brand Tier Program
         </CardTitle>
         <CardDescription>

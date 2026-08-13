@@ -30,7 +30,7 @@ const AuctionNotificationCenter: React.FC = () => {
       case 'outbid':
         return <AlertTriangle className="h-4 w-4 text-destructive" />;
       case 'auction_won':
-        return <Trophy className="h-4 w-4 text-gold/10" />;
+        return <Trophy className="h-4 w-4 text-gold" />;
       case 'auction_ending':
         return <Clock className="h-4 w-4 text-orange-500" />;
       case 'auction_started':

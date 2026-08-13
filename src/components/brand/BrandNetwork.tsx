@@ -62,7 +62,7 @@ export function BrandNetwork({
         <Card className="border-gold/10 bg-gold/10">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gold/10" />
+              <Clock className="h-5 w-5 text-gold" />
               Pending Partnership Requests
             </CardTitle>
           </CardHeader>
