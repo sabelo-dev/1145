@@ -240,7 +240,7 @@ export default function AdminUCoin() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <Coins className="h-4 w-4 text-amber-500" />
+            <Coins className="h-4 w-4 text-gold/100" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.totalBalance.toLocaleString()}</div>
@@ -470,7 +470,7 @@ export default function AdminUCoin() {
                 />
                 <Label>Active</Label>
               </div>
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+              <div className="p-3 bg-gold/10 dark:bg-amber-950/30 rounded-lg">
                 <p className="text-sm text-amber-700 dark:text-amber-300">
                   Effective reward: <strong>{editingRule.amount * editingRule.multiplier} UCoin</strong>
                 </p>

@@ -278,7 +278,7 @@ const CustomerDeliveryTracking: React.FC<CustomerDeliveryTrackingProps> = ({
 
           {/* Delivery OTP */}
           {delivery.status === "in_transit" && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+            <div className="bg-gold/10 dark:bg-amber-900/20 rounded-lg p-4 text-center">
               <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
                 Your delivery OTP
               </p>

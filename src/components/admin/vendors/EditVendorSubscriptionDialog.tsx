@@ -42,7 +42,7 @@ const TIERS = [
   { value: "starter", label: "Starter", color: "bg-gray-500" },
   { value: "bronze", label: "Bronze", color: "bg-amber-700" },
   { value: "silver", label: "Silver", color: "bg-slate-400" },
-  { value: "gold", label: "Gold", color: "bg-yellow-500" },
+  { value: "gold", label: "Gold", color: "bg-gold/100" },
 ];
 
 const STATUSES = [

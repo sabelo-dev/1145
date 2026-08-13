@@ -237,7 +237,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                         size="sm"
                         className={cn(
                           "w-full text-xs",
-                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/100 to-orange-500 hover:from-amber-600 hover:to-orange-600'
                         )}
                         variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
                         disabled={isCurrentTier || loading}

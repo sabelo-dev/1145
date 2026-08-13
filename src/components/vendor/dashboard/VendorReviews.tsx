@@ -370,7 +370,7 @@ const VendorReviews = () => {
                 </span>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gold/10 dark:bg-yellow-950 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-yellow-600" />
                   <div>

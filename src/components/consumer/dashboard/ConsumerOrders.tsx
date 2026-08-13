@@ -269,8 +269,8 @@ const ConsumerOrders: React.FC = () => {
     > = {
       pending: { variant: "secondary" },
       processing: { variant: "default", className: "bg-blue-500" },
-      shipped: { variant: "outline", className: "border-amber-500 text-amber-600" },
-      in_transit: { variant: "default", className: "bg-amber-500" },
+      shipped: { variant: "outline", className: "border-gold/100 text-amber-600" },
+      in_transit: { variant: "default", className: "bg-gold/100" },
       delivered: { variant: "default", className: "bg-green-500" },
       cancelled: { variant: "destructive" },
       returned: { variant: "secondary" },
@@ -592,10 +592,10 @@ const ConsumerOrders: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
+          <Card className="bg-gradient-to-br from-gold/100/10 to-amber-600/5 border-gold/100/20">
             <CardContent className="p-3 sm:p-4">
               <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <div className="p-2 bg-amber-500/20 rounded-lg shrink-0">
+                <div className="p-2 bg-gold/100/20 rounded-lg shrink-0">
                   <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                 </div>
                 <div className="min-w-0 w-full">

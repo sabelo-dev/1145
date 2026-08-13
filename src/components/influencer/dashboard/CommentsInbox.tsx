@@ -152,7 +152,7 @@ export const CommentsInbox: React.FC<CommentsInboxProps> = ({
                     exit={{ opacity: 0, x: 10 }}
                     transition={{ delay: i * 0.02 }}
                   >
-                    <Card className={`transition-all ${comment.is_high_value ? 'border-amber-500/50 bg-amber-500/5' : ''} ${comment.is_handled ? 'opacity-60' : ''}`}>
+                    <Card className={`transition-all ${comment.is_high_value ? 'border-gold/100/50 bg-gold/100/5' : ''} ${comment.is_handled ? 'opacity-60' : ''}`}>
                       <CardContent className="p-3">
                         <div className="flex gap-3">
                           <Avatar className="h-8 w-8 flex-shrink-0">
@@ -167,7 +167,7 @@ export const CommentsInbox: React.FC<CommentsInboxProps> = ({
                               <span className="font-medium text-sm">@{comment.username}</span>
                               <SentimentIcon className={`h-3 w-3 ${sentiment.color}`} />
                               {comment.is_high_value && (
-                                <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                                <Star className="h-3 w-3 text-gold/100 fill-amber-500" />
                               )}
                               <span className="text-xs text-muted-foreground ml-auto">
                                 {formatDistanceToNow(new Date(comment.posted_at), { addSuffix: true })}

@@ -102,7 +102,7 @@ const SafetyComplianceDashboard: React.FC = () => {
     switch (severity) {
       case 'CRITICAL': return 'bg-red-500 text-white';
       case 'HIGH': return 'bg-orange-500 text-white';
-      case 'MEDIUM': return 'bg-amber-500 text-white';
+      case 'MEDIUM': return 'bg-gold/100 text-white';
       default: return 'bg-blue-500 text-white';
     }
   };
@@ -110,7 +110,7 @@ const SafetyComplianceDashboard: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active': return <Badge variant="destructive">Active</Badge>;
-      case 'acknowledged': return <Badge className="bg-amber-500">Acknowledged</Badge>;
+      case 'acknowledged': return <Badge className="bg-gold/100">Acknowledged</Badge>;
       case 'investigating': return <Badge className="bg-blue-500 text-white">Investigating</Badge>;
       case 'escalated': return <Badge variant="destructive">Escalated</Badge>;
       case 'resolved': return <Badge className="bg-green-500 text-white">Resolved</Badge>;
@@ -151,7 +151,7 @@ const SafetyComplianceDashboard: React.FC = () => {
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-amber-500" />
+              <Bell className="h-5 w-5 text-gold/100" />
               <div>
                 <p className="text-2xl font-bold">{activeCount}</p>
                 <p className="text-xs text-muted-foreground">Active Alerts</p>

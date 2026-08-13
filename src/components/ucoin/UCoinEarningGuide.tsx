@@ -59,7 +59,7 @@ export function UCoinEarningGuide({ rules, isLoading }: UCoinEarningGuideProps) 
               className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-gold dark:bg-gold/30 text-gold dark:text-gold">
+                <div className="p-2 rounded-full bg-gold dark:bg-gold/15/30 text-gold dark:text-gold">
                   {categoryIcons[rule.category] || <Coins className="h-4 w-4" />}
                 </div>
                 <span className="text-sm font-medium">{rule.description}</span>

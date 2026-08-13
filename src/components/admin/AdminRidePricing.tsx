@@ -163,7 +163,7 @@ const AdminRidePricing: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Zap className="h-5 w-5 text-amber-500" /> Surge Pricing
+              <Zap className="h-5 w-5 text-gold/100" /> Surge Pricing
             </CardTitle>
             <CardDescription>Dynamic pricing based on demand</CardDescription>
           </CardHeader>

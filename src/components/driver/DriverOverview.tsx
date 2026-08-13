@@ -101,7 +101,7 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
       case "available":
         return "bg-green-500";
       case "busy":
-        return "bg-amber-500";
+        return "bg-gold/100";
       case "offline":
         return "bg-gray-500";
       case "pending":
@@ -210,7 +210,7 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-amber-500" />
+            <Star className="h-5 w-5 text-gold/100" />
             Your Rating
           </CardTitle>
         </CardHeader>
@@ -224,7 +224,7 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
                     key={star}
                     className={`h-6 w-6 ${
                       star <= Math.round(driver.rating || 5)
-                        ? "text-amber-500 fill-amber-500"
+                        ? "text-gold/100 fill-amber-500"
                         : "text-gray-300"
                     }`}
                   />

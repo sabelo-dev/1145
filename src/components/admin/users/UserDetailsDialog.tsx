@@ -231,7 +231,7 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
                     <p className="text-xs text-muted-foreground">Reviews Written</p>
                   </div>
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <Star className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
+                    <Star className="h-5 w-5 mx-auto mb-1 text-gold/100" />
                     <p className="text-2xl font-bold">
                       {user.averageRating ? user.averageRating.toFixed(1) : "N/A"}
                     </p>

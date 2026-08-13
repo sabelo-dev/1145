@@ -81,12 +81,12 @@ export function GrowthTools({
   return (
     <div className="space-y-6">
       {/* Credits Balance */}
-      <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20">
+      <Card className="bg-gradient-to-br from-gold/100/10 to-orange-500/10 border-gold/100/20">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-amber-500/20">
-                <Coins className="h-6 w-6 text-amber-500" />
+              <div className="p-3 rounded-full bg-gold/100/20">
+                <Coins className="h-6 w-6 text-gold/100" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Promo Credits</p>

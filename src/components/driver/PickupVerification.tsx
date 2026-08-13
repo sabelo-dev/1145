@@ -117,7 +117,7 @@ const PickupVerification: React.FC<PickupVerificationProps> = ({ job, onVerified
 
   return (
     <Card className="border-2 border-amber-200 dark:border-amber-800">
-      <CardHeader className="bg-amber-50 dark:bg-amber-900/20">
+      <CardHeader className="bg-gold/10 dark:bg-amber-900/20">
         <CardTitle className="flex items-center gap-2">
           <Store className="h-5 w-5 text-amber-600" />
           Pickup Verification

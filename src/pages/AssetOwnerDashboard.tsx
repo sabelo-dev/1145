@@ -77,7 +77,7 @@ const AssetOwnerDashboard: React.FC = () => {
     { label: "Total Assets", value: assets.length.toString(), icon: Package, color: "text-primary", bg: "bg-primary/10" },
     { label: "Active Leases", value: activeContracts.length.toString(), icon: Users, color: "text-blue-600", bg: "bg-blue-500/10" },
     { label: "Monthly Income", value: formatCurrency(monthlyIncome), icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { label: "Total Revenue", value: formatCurrency(totalRevenue), icon: TrendingUp, color: "text-amber-600", bg: "bg-amber-500/10" },
+    { label: "Total Revenue", value: formatCurrency(totalRevenue), icon: TrendingUp, color: "text-amber-600", bg: "bg-gold/100/10" },
   ];
 
   return (

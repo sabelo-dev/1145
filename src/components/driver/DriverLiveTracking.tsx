@@ -114,7 +114,7 @@ const DriverLiveTracking: React.FC<DriverLiveTrackingProps> = ({ driver }) => {
   const getSignalIcon = () => {
     if (!currentLocation?.accuracy) return <Signal className="h-5 w-5" />;
     if (currentLocation.accuracy < 20) return <SignalHigh className="h-5 w-5 text-green-500" />;
-    if (currentLocation.accuracy < 100) return <Signal className="h-5 w-5 text-amber-500" />;
+    if (currentLocation.accuracy < 100) return <Signal className="h-5 w-5 text-gold/100" />;
     if (currentLocation.accuracy < 500) return <SignalLow className="h-5 w-5 text-orange-500" />;
     return <SignalZero className="h-5 w-5 text-red-500" />;
   };
@@ -286,7 +286,7 @@ const DriverLiveTracking: React.FC<DriverLiveTrackingProps> = ({ driver }) => {
               </div>
             </div>
             <div className="flex items-start gap-2">
-              <Signal className="h-4 w-4 text-amber-500 mt-0.5" />
+              <Signal className="h-4 w-4 text-gold/100 mt-0.5" />
               <div>
                 <span className="font-medium">Medium Accuracy (20-100m)</span>
                 <p className="text-muted-foreground">GPS signal is good</p>

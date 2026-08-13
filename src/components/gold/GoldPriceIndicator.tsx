@@ -38,7 +38,7 @@ export function GoldPriceIndicator({ className, showDetails = false }: GoldPrice
             <Badge 
               variant="outline" 
               className={cn(
-                'bg-amber-50 text-gold border-gold dark:bg-gold dark:text-gold dark:border-gold',
+                'bg-gold/10 text-gold border-gold dark:bg-gold/15 dark:text-gold dark:border-gold',
                 className
               )}
             >
@@ -59,8 +59,8 @@ export function GoldPriceIndicator({ className, showDetails = false }: GoldPrice
   }
 
   return (
-    <div className={cn('flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-gold border border-gold dark:border-gold', className)}>
-      <div className="p-2 rounded-full bg-gold dark:bg-gold">
+    <div className={cn('flex items-center gap-3 p-3 rounded-lg bg-gold/10 dark:bg-gold/15 border border-gold dark:border-gold', className)}>
+      <div className="p-2 rounded-full bg-gold dark:bg-gold/15">
         <Coins className="h-5 w-5 text-gold dark:text-gold" />
       </div>
       <div className="flex-1">
