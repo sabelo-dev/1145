@@ -41,7 +41,7 @@ const MobileBottomNav: React.FC = () => {
               end={path === "/"}
               onClick={tap}
               className={({ isActive }) =>
-                `${itemClass} ${isActive ? "text-foreground" : "text-muted-foreground"}`
+                `${itemClass} ${isActive ? "text-navy-900" : "text-muted-foreground"}`
               }
             >
               {({ isActive }) => (
@@ -50,15 +50,16 @@ const MobileBottomNav: React.FC = () => {
                     <motion.span
                       layoutId="bottom-nav-indicator"
                       transition={{ type: "spring", stiffness: 480, damping: 36 }}
-                      className="absolute inset-x-4 top-1 h-9 rounded-full bg-secondary"
+                      className="absolute inset-x-4 top-1 h-9 rounded-full bg-cyan-soft"
                     />
                   )}
                   <span className="relative flex flex-col items-center gap-1">
                     <Icon
                       className={`h-[22px] w-[22px] transition-transform duration-200 ${
-                        isActive ? "stroke-[2.4] -translate-y-px" : ""
+                        isActive ? "stroke-[2.4] -translate-y-px text-primary" : ""
                       }`}
                     />
+
                     <span>{label}</span>
                   </span>
                 </>
