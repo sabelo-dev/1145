@@ -156,7 +156,7 @@ export function ReferralDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">UCoin Earned</CardTitle>
-            <Coins className="h-4 w-4 text-gold/100" />
+            <Coins className="h-4 w-4 text-gold/10" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.totalEarned}</div>
@@ -198,7 +198,7 @@ export function ReferralDashboard() {
             </div>
             
             <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-              <div className="p-2 rounded-full bg-gold/100/10 text-amber-600">
+              <div className="p-2 rounded-full bg-gold/10 text-amber-600">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>

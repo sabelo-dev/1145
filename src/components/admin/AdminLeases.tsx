@@ -134,7 +134,7 @@ const AdminLeases = () => {
 
   const statCards = [
     { label: "Total Applications", value: stats.totalApplications, icon: FileText, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Pending Review", value: stats.pending, icon: Clock, color: "text-gold/100", bg: "bg-gold/100/10" },
+    { label: "Pending Review", value: stats.pending, icon: Clock, color: "text-gold/10", bg: "bg-gold/10" },
     { label: "Active Leases", value: stats.activeContracts, icon: Users, color: "text-emerald-600", bg: "bg-emerald-500/10" },
     { label: "Total Revenue", value: `R${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-500/10" },
   ];

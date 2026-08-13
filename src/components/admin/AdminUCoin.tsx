@@ -240,7 +240,7 @@ export default function AdminUCoin() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <Coins className="h-4 w-4 text-gold/100" />
+            <Coins className="h-4 w-4 text-gold/10" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.totalBalance.toLocaleString()}</div>

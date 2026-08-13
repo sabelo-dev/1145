@@ -155,7 +155,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 </Badge>
               )}
               {tier === 'gold' && !isRecommended && (
-                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-gold/100 to-orange-500 border-0">
+                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-gold/10 to-orange-500 border-0">
                   Best Value
                 </Badge>
               )}
@@ -202,7 +202,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 <Button 
                   className={cn(
                     "w-full",
-                    tier === 'gold' && !isCurrentPlan(tier) && 'bg-gradient-to-r from-gold/100 to-orange-500 hover:from-amber-600 hover:to-orange-600 gap-1'
+                    tier === 'gold' && !isCurrentPlan(tier) && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-amber-600 hover:to-orange-600 gap-1'
                   )}
                   variant={isCurrentPlan(tier) ? "outline" : tier === 'starter' ? "secondary" : "default"}
                   disabled={isCurrentPlan(tier)}

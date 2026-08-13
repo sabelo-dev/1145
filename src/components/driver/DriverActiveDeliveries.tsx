@@ -143,7 +143,7 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
   const getStatusConfig = (status: string) => {
     const configs: Record<string, { color: string; label: string; nextAction: string; nextStatus: string }> = {
       accepted: { color: "bg-blue-500", label: "Accepted", nextAction: "Pick Up", nextStatus: "picked_up" },
-      picked_up: { color: "bg-gold/100", label: "Picked Up", nextAction: "Start Delivery", nextStatus: "in_transit" },
+      picked_up: { color: "bg-gold/10", label: "Picked Up", nextAction: "Start Delivery", nextStatus: "in_transit" },
       in_transit: { color: "bg-purple-500", label: "In Transit", nextAction: "Complete Delivery", nextStatus: "delivered" },
     };
     return configs[status] || { color: "bg-gray-500", label: status, nextAction: "", nextStatus: "" };

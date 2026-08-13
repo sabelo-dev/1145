@@ -27,8 +27,8 @@ const LIFECYCLE_STEPS = [
 ];
 
 const statusLabels: Record<string, { label: string; color: string; animate?: boolean }> = {
-  requested: { label: "Finding a driver...", color: "bg-gold/100", animate: true },
-  searching: { label: "Searching for driver...", color: "bg-gold/100", animate: true },
+  requested: { label: "Finding a driver...", color: "bg-gold/10", animate: true },
+  searching: { label: "Searching for driver...", color: "bg-gold/10", animate: true },
   accepted: { label: "Driver assigned!", color: "bg-primary" },
   arriving: { label: "Driver is on the way", color: "bg-blue-500" },
   arrived: { label: "Driver has arrived", color: "bg-emerald-500" },
@@ -263,7 +263,7 @@ const RideTrackingPage: React.FC = () => {
         {/* Driver Search Status */}
         {isWaitingForDriver && (
           <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-gold/100/10 to-primary/10 px-4 py-3 border-b border-border">
+            <div className="bg-gradient-to-r from-gold/10 to-primary/10 px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <span className="font-semibold text-sm text-foreground">Finding your driver</span>

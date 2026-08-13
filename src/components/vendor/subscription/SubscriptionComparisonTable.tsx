@@ -189,7 +189,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   size="sm"
                   className={cn(
                     "w-full mt-2 text-xs h-7",
-                    tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/100 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                    tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-amber-600 hover:to-orange-600'
                   )}
                   variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
                   disabled={isCurrentTier}

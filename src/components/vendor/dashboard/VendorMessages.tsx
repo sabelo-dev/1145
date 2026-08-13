@@ -397,7 +397,7 @@ const VendorMessages = () => {
       case 'open':
         return 'bg-green-500';
       case 'pending':
-        return 'bg-gold/100';
+        return 'bg-gold/10';
       case 'resolved':
         return 'bg-gray-500';
       default:

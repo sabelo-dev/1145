@@ -58,8 +58,8 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
     const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
       pending: { variant: "secondary" },
       processing: { variant: "default", className: "bg-blue-500" },
-      shipped: { variant: "outline", className: "border-gold/100 text-amber-600" },
-      in_transit: { variant: "default", className: "bg-gold/100" },
+      shipped: { variant: "outline", className: "border-gold/10 text-amber-600" },
+      in_transit: { variant: "default", className: "bg-gold/10" },
       out_for_delivery: { variant: "default", className: "bg-purple-500" },
       delivered: { variant: "default", className: "bg-green-500" },
       cancelled: { variant: "destructive" },

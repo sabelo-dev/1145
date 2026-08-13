@@ -85,8 +85,8 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
       label: "Avg Rating",
       value: stats.avgRating ? stats.avgRating.toFixed(1) : "N/A",
       icon: Star,
-      color: "text-gold/100",
-      bg: "bg-gold/100/10",
+      color: "text-gold/10",
+      bg: "bg-gold/10",
     },
   ];
 
@@ -157,7 +157,7 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
                     )}
                     {ride.rating_by_passenger && (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Star className="h-3 w-3 text-gold/100 fill-amber-500" />{ride.rating_by_passenger}
+                        <Star className="h-3 w-3 text-gold/10 fill-amber-500" />{ride.rating_by_passenger}
                       </span>
                     )}
                   </div>

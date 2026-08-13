@@ -58,7 +58,7 @@ export const EngagementConsole: React.FC<EngagementConsoleProps> = ({ metrics, s
     { icon: MessageCircle, label: 'Total Comments', value: metrics.reduce((s, m) => s + m.comments, 0), color: 'text-blue-500' },
     { icon: Share2, label: 'Total Shares', value: metrics.reduce((s, m) => s + m.shares, 0), color: 'text-green-500' },
     { icon: Bookmark, label: 'Total Saves', value: metrics.reduce((s, m) => s + m.saves, 0), color: 'text-purple-500' },
-    { icon: Eye, label: 'Impressions', value: metrics.reduce((s, m) => s + m.impressions, 0), color: 'text-gold/100' },
+    { icon: Eye, label: 'Impressions', value: metrics.reduce((s, m) => s + m.impressions, 0), color: 'text-gold/10' },
     { icon: Activity, label: 'Engagement Rate', value: `${avgEngagementRate}%`, color: 'text-primary' },
   ];
 

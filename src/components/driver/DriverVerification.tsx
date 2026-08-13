@@ -44,7 +44,7 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
     return verified ? (
       <CheckCircle className="h-5 w-5 text-green-500" />
     ) : (
-      <Clock className="h-5 w-5 text-gold/100" />
+      <Clock className="h-5 w-5 text-gold/10" />
     );
   };
 

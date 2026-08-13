@@ -475,7 +475,7 @@ const DriverOnboardingPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="rounded-lg border p-4 bg-gold/100/5 border-gold/100/40 flex gap-3">
+                <div className="rounded-lg border p-4 bg-gold/10 border-gold/10 flex gap-3">
                   <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                   <p className="text-sm">
                     Providing false information is fraud and will result in permanent ban plus reporting to authorities.

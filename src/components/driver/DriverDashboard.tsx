@@ -182,7 +182,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
 
   const statusColor = driver ? ({
     available: "bg-green-500",
-    busy: "bg-gold/100",
+    busy: "bg-gold/10",
     offline: "bg-gray-500",
     pending: "bg-blue-500",
   }[driver.status] || "bg-gray-500") : "bg-gray-500";

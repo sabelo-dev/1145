@@ -238,7 +238,7 @@ const MerchantLodging = () => {
   const stats = [
     { label: "Properties", value: properties.length, icon: Building2, color: "text-primary", bg: "bg-primary/10" },
     { label: "Active Listings", value: activeProps.length, icon: Eye, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { label: "Pending Bookings", value: pendingBookings.length, icon: Calendar, color: "text-amber-600", bg: "bg-gold/100/10" },
+    { label: "Pending Bookings", value: pendingBookings.length, icon: Calendar, color: "text-amber-600", bg: "bg-gold/10" },
     { label: "Total Revenue", value: `R${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-blue-600", bg: "bg-blue-500/10" },
   ];
 
@@ -446,7 +446,7 @@ const MerchantLodging = () => {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           {p.city && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{p.city}{p.province ? `, ${p.province}` : ""}</span>}
                           <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{p.max_guests || 2} guests</span>
-                          {p.rating ? <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 text-gold/100" />{p.rating.toFixed(1)}</span> : null}
+                          {p.rating ? <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 text-gold/10" />{p.rating.toFixed(1)}</span> : null}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">

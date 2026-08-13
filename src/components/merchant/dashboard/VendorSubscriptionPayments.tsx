@@ -351,7 +351,7 @@ const VendorSubscriptionPayments = () => {
                     ) : payment.status === "failed" ? (
                       <XCircle className="h-5 w-5 text-destructive" />
                     ) : (
-                      <Clock className="h-5 w-5 text-gold/100" />
+                      <Clock className="h-5 w-5 text-gold/10" />
                     )}
                     <div>
                       <p className="text-sm font-medium capitalize">{payment.tier} — {payment.billing_period}</p>

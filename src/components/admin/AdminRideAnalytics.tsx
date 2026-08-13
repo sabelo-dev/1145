@@ -118,7 +118,7 @@ const AdminRideAnalytics: React.FC = () => {
     { label: "Active Now", value: stats.activeRides.toString(), icon: MapPin, color: "text-blue-600", bg: "bg-blue-500/10" },
     { label: "Total Revenue", value: `R${stats.totalRevenue.toFixed(0)}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-500/10", change: "+15%" },
     { label: "Avg Fare", value: `R${stats.avgFare.toFixed(2)}`, icon: Route, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Avg Rating", value: stats.avgRating ? stats.avgRating.toFixed(1) : "N/A", icon: Star, color: "text-gold/100", bg: "bg-gold/100/10" },
+    { label: "Avg Rating", value: stats.avgRating ? stats.avgRating.toFixed(1) : "N/A", icon: Star, color: "text-gold/10", bg: "bg-gold/10" },
     { label: "Active Drivers", value: "—", icon: Users, color: "text-blue-600", bg: "bg-blue-500/10" },
   ];
 

@@ -97,7 +97,7 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
     switch (color) {
       case "red": return "from-red-500 to-red-600";
       case "orange": return "from-orange-500 to-orange-600";
-      case "yellow": return "from-amber-400 to-gold/100";
+      case "yellow": return "from-amber-400 to-gold/10";
       default: return "from-emerald-500 to-emerald-600";
     }
   };
@@ -184,10 +184,10 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
 
       {/* Location warning */}
       {!currentLocation && (
-        <Card className="border-gold/100/30 bg-gold/100/5">
+        <Card className="border-gold/10 bg-gold/10">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-gold/100/10">
+              <div className="p-2 rounded-xl bg-gold/10">
                 <AlertTriangle className="h-5 w-5 text-amber-600" />
               </div>
               <div>

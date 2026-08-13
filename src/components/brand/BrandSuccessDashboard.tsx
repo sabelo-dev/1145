@@ -209,7 +209,7 @@ export function BrandSuccessDashboard({ performance, tier, previousPerformance }
               <div className="flex items-center gap-2">
                 <Progress 
                   value={(performance.returned_orders / Math.max(performance.total_orders, 1)) * 100} 
-                  className="w-32 h-2 [&>div]:bg-gold/100"
+                  className="w-32 h-2 [&>div]:bg-gold/10"
                 />
                 <span className="text-sm font-medium w-12 text-right">{performance.returned_orders}</span>
               </div>

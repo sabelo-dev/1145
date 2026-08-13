@@ -221,7 +221,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
             <CardTitle className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-yellow-600" />
               Your Gold Benefits
-              <Badge className="bg-gradient-to-r from-gold/100 to-orange-500 text-white border-0">Active</Badge>
+              <Badge className="bg-gradient-to-r from-gold/10 to-orange-500 text-white border-0">Active</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>

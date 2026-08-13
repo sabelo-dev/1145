@@ -89,7 +89,7 @@ const AdminAssetLifecycle = () => {
     { label: "Total Assets", value: assets.length, icon: Package, color: "text-primary", bg: "bg-primary/10" },
     { label: "Available", value: assets.filter(a => a.status === "active").length, icon: Package, color: "text-emerald-600", bg: "bg-emerald-500/10" },
     { label: "Currently Leased", value: assets.filter(a => a.status === "leased").length, icon: Settings2, color: "text-blue-600", bg: "bg-blue-500/10" },
-    { label: "Pending Maintenance", value: maintenance.filter(m => m.status === "scheduled").length, icon: Wrench, color: "text-gold/100", bg: "bg-gold/100/10" },
+    { label: "Pending Maintenance", value: maintenance.filter(m => m.status === "scheduled").length, icon: Wrench, color: "text-gold/10", bg: "bg-gold/10" },
   ];
 
   return (
