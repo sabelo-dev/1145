@@ -115,7 +115,7 @@ const MerchantLeases = () => {
     { label: "Listed Assets", value: assets.length, icon: Package, color: "text-primary", bg: "bg-primary/10" },
     { label: "Active Leases", value: activeContracts.length, icon: Users, color: "text-emerald-600", bg: "bg-emerald-500/10" },
     { label: "Lease Revenue", value: `R${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-500/10" },
-    { label: "Pending Apps", value: pendingApps.length, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Pending Apps", value: pendingApps.length, icon: Clock, color: "text-gold", bg: "bg-gold/10" },
   ];
 
   return (

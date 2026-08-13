@@ -81,7 +81,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
               </p>
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-4 w-4 fill-gold text-gold" />
                   <span className="text-sm font-medium">{hero.rating.toFixed(1)}</span>
                 </div>
                 <span className="text-muted-foreground">·</span>
@@ -135,7 +135,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                     {product.name}
                   </h4>
                   <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-3 w-3 fill-gold text-gold" />
                     <span className="text-xs text-muted-foreground">
                       {product.rating.toFixed(1)}
                     </span>

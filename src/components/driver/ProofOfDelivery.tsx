@@ -373,9 +373,9 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ job, onDelivered }) =
           </Tabs>
 
           {/* Help */}
-          <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-            <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-            <p className="text-sm text-amber-800 dark:text-amber-200">
+          <div className="flex items-start gap-2 p-3 bg-gold/10 dark:bg-gold/15 rounded-lg">
+            <AlertCircle className="h-4 w-4 text-gold mt-0.5" />
+            <p className="text-sm text-gold dark:text-gold">
               Cannot deliver? Contact support for assistance with failed deliveries.
             </p>
           </div>

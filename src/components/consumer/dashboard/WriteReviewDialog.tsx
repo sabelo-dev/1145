@@ -256,8 +256,8 @@ const WriteReviewDialog: React.FC<WriteReviewDialogProps> = ({
           <Star
             className={`h-7 w-7 transition-colors ${
               star <= rating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-muted-foreground/30 hover:text-yellow-400/50"
+                ? "fill-gold text-gold"
+                : "text-muted-foreground/30 hover:text-gold/50"
             }`}
           />
         </button>
@@ -310,7 +310,7 @@ const WriteReviewDialog: React.FC<WriteReviewDialogProps> = ({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-400" />
+            <Star className="h-5 w-5 text-gold" />
             Write a Review
           </DialogTitle>
         </DialogHeader>

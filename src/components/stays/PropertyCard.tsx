@@ -61,7 +61,7 @@ const PropertyCard: React.FC<{ property: LodgingProperty }> = ({ property }) => 
           <h3 className="font-semibold text-foreground line-clamp-1 text-sm md:text-base">{property.name}</h3>
           {property.rating > 0 && (
             <div className="flex items-center gap-1 shrink-0 ml-2">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              <Star className="h-3.5 w-3.5 fill-gold text-gold" />
               <span className="text-xs font-medium">{property.rating.toFixed(1)}</span>
               <span className="text-xs text-muted-foreground">({property.review_count})</span>
             </div>

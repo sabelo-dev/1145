@@ -22,7 +22,7 @@ export function UCoinDashboard() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <Coins className="h-16 w-16 mx-auto mb-4 text-amber-500 opacity-50" />
+        <Coins className="h-16 w-16 mx-auto mb-4 text-gold opacity-50" />
         <h2 className="text-xl font-semibold mb-2">Sign in to access Ubuntu Coin</h2>
         <p className="text-muted-foreground">Create an account or sign in to start earning and redeeming UCoin rewards.</p>
       </div>

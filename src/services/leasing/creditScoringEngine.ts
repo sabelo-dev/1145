@@ -17,7 +17,7 @@ export interface CreditScore {
 
 const RISK_COLORS = {
   low: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', label: 'Low Risk' },
-  medium: { bg: 'bg-amber-500/10', text: 'text-amber-600', label: 'Medium Risk' },
+  medium: { bg: 'bg-gold/10', text: 'text-gold', label: 'Medium Risk' },
   high: { bg: 'bg-orange-500/10', text: 'text-orange-600', label: 'High Risk' },
   very_high: { bg: 'bg-destructive/10', text: 'text-destructive', label: 'Very High Risk' },
   unknown: { bg: 'bg-muted', text: 'text-muted-foreground', label: 'Not Scored' },
@@ -68,7 +68,7 @@ export const creditScoringEngine = {
   getScoreColor(score: number): string {
     if (score >= 750) return 'text-emerald-500';
     if (score >= 650) return 'text-primary';
-    if (score >= 500) return 'text-amber-500';
+    if (score >= 500) return 'text-gold';
     if (score >= 300) return 'text-orange-500';
     return 'text-destructive';
   },

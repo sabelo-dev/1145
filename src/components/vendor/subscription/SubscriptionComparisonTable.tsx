@@ -81,9 +81,9 @@ const pricing = {
 
 const tierConfig = {
   starter: { icon: Star, label: 'Starter', description: 'Get started for free', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  bronze: { icon: Medal, label: 'Bronze', description: 'For growing sellers', color: 'text-amber-700', bgColor: 'bg-amber-100 dark:bg-amber-900/30' },
+  bronze: { icon: Medal, label: 'Bronze', description: 'For growing sellers', color: 'text-gold', bgColor: 'bg-gold/10 dark:bg-gold/15' },
   silver: { icon: Gem, label: 'Silver', description: 'For established brands', color: 'text-slate-500', bgColor: 'bg-slate-100 dark:bg-slate-800/50' },
-  gold: { icon: Crown, label: 'Gold', description: 'For top performers', color: 'text-yellow-600', bgColor: 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' },
+  gold: { icon: Crown, label: 'Gold', description: 'For top performers', color: 'text-gold', bgColor: 'bg-gradient-to-br from-gold/10 to-orange-50 dark:from-gold/20 dark:to-orange-900/20' },
 };
 
 const renderValue = (value: boolean | string | number) => {
@@ -153,7 +153,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
               className={cn(
                 'text-center relative overflow-hidden',
                 isCurrentTier && 'ring-2 ring-primary',
-                tier === 'gold' && 'border-yellow-400/50',
+                tier === 'gold' && 'border-gold/50',
                 isRecommended && 'border-primary'
               )}
             >
@@ -189,7 +189,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   size="sm"
                   className={cn(
                     "w-full mt-2 text-xs h-7",
-                    tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                    tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600'
                   )}
                   variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
                   disabled={isCurrentTier}

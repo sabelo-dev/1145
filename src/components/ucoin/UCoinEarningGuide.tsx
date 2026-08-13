@@ -28,7 +28,7 @@ export function UCoinEarningGuide({ rules, isLoading }: UCoinEarningGuideProps) 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
+            <Coins className="h-5 w-5 text-gold" />
             Ways to Earn UCoin
           </CardTitle>
         </CardHeader>
@@ -47,7 +47,7 @@ export function UCoinEarningGuide({ rules, isLoading }: UCoinEarningGuideProps) 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Coins className="h-5 w-5 text-amber-500" />
+          <Coins className="h-5 w-5 text-gold" />
           Ways to Earn UCoin
         </CardTitle>
       </CardHeader>
@@ -59,12 +59,12 @@ export function UCoinEarningGuide({ rules, isLoading }: UCoinEarningGuideProps) 
               className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                <div className="p-2 rounded-full bg-gold dark:bg-gold/15 text-gold dark:text-gold">
                   {categoryIcons[rule.category] || <Coins className="h-4 w-4" />}
                 </div>
                 <span className="text-sm font-medium">{rule.description}</span>
               </div>
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-sm font-semibold">
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-gold to-gold text-white text-sm font-semibold">
                 <Coins className="h-3 w-3" />
                 +{(rule.amount * rule.multiplier).toLocaleString()}
               </div>

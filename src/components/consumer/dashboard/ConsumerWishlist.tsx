@@ -194,7 +194,7 @@ const ConsumerWishlist: React.FC = () => {
                               key={i}
                               className={`text-xs ${
                                 i < Math.floor(product.rating!)
-                                  ? "text-yellow-400"
+                                  ? "text-gold"
                                   : "text-gray-300"
                               }`}
                             >

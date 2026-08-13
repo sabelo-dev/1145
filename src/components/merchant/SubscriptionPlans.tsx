@@ -18,9 +18,9 @@ interface SubscriptionPlansProps {
 
 const tierConfig: Record<TierType, { icon: React.ElementType; color: string; bgGradient: string }> = {
   starter: { icon: Star, color: 'text-muted-foreground', bgGradient: '' },
-  bronze: { icon: Medal, color: 'text-amber-700', bgGradient: '' },
+  bronze: { icon: Medal, color: 'text-gold', bgGradient: '' },
   silver: { icon: Gem, color: 'text-slate-500', bgGradient: '' },
-  gold: { icon: Crown, color: 'text-yellow-600', bgGradient: 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' },
+  gold: { icon: Crown, color: 'text-gold', bgGradient: 'bg-gradient-to-br from-gold/10 to-orange-50 dark:from-gold/20 dark:to-orange-900/20' },
 };
 
 // Placeholder pricing
@@ -143,7 +143,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               key={tier} 
               className={cn(
                 'relative',
-                tier === 'gold' && 'border-yellow-400/50',
+                tier === 'gold' && 'border-gold/50',
                 isRecommended && 'border-primary ring-2 ring-primary/20',
                 isCurrentPlan(tier) && 'ring-2 ring-primary',
                 config.bgGradient
@@ -155,7 +155,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 </Badge>
               )}
               {tier === 'gold' && !isRecommended && (
-                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 border-0">
+                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-gold/10 to-orange-500 border-0">
                   Best Value
                 </Badge>
               )}
@@ -202,7 +202,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 <Button 
                   className={cn(
                     "w-full",
-                    tier === 'gold' && !isCurrentPlan(tier) && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 gap-1'
+                    tier === 'gold' && !isCurrentPlan(tier) && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600 gap-1'
                   )}
                   variant={isCurrentPlan(tier) ? "outline" : tier === 'starter' ? "secondary" : "default"}
                   disabled={isCurrentPlan(tier)}

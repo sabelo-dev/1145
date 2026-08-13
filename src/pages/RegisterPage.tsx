@@ -51,7 +51,7 @@ const scorePassword = (pw: string) => {
 const strengthMeta = [
   { label: "Too weak", color: "bg-destructive" },
   { label: "Weak", color: "bg-destructive" },
-  { label: "Fair", color: "bg-amber-500" },
+  { label: "Fair", color: "bg-gold/10" },
   { label: "Good", color: "bg-emerald-500" },
   { label: "Strong", color: "bg-emerald-600" },
 ];

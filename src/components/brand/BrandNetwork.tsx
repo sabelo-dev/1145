@@ -59,10 +59,10 @@ export function BrandNetwork({
     <div className="space-y-6">
       {/* Pending Invitations */}
       {pendingPromos.length > 0 && (
-        <Card className="border-amber-500/50 bg-amber-500/5">
+        <Card className="border-gold/10 bg-gold/10">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-5 w-5 text-amber-500" />
+              <Clock className="h-5 w-5 text-gold" />
               Pending Partnership Requests
             </CardTitle>
           </CardHeader>

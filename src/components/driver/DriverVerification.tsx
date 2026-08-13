@@ -44,7 +44,7 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
     return verified ? (
       <CheckCircle className="h-5 w-5 text-green-500" />
     ) : (
-      <Clock className="h-5 w-5 text-amber-500" />
+      <Clock className="h-5 w-5 text-gold" />
     );
   };
 
@@ -55,7 +55,7 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
       case 'rejected':
         return <Badge variant="destructive">Rejected</Badge>;
       case 'expired':
-        return <Badge variant="outline" className="text-amber-600 border-amber-400">Expired</Badge>;
+        return <Badge variant="outline" className="text-gold border-gold">Expired</Badge>;
       default:
         return <Badge variant="secondary">Pending Verification</Badge>;
     }
@@ -113,13 +113,13 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
           </div>
 
           {verificationStatus.overall_status !== 'verified' && (
-            <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 p-3 bg-gold/10 dark:bg-gold/15 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-amber-800 dark:text-amber-200">
+                <p className="font-medium text-gold dark:text-gold">
                   Complete Your Verification
                 </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
+                <p className="text-sm text-gold dark:text-gold">
                   Verified drivers get priority access to high-value deliveries and can earn up to 25% more.
                 </p>
               </div>

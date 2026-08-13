@@ -89,7 +89,7 @@ export function StreakCard({ streak, compact = false }: StreakCardProps) {
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3 pt-2">
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <Trophy className="h-4 w-4 mx-auto mb-1 text-amber-500" />
+            <Trophy className="h-4 w-4 mx-auto mb-1 text-gold" />
             <div className="font-bold">{longestStreak}</div>
             <div className="text-xs text-muted-foreground">Best Streak</div>
           </div>

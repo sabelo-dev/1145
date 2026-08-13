@@ -245,7 +245,7 @@ export const InfluencerApplications: React.FC<InfluencerApplicationsProps> = ({ 
                     {format(new Date(app.applied_at), 'MMM d, yyyy')}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                    <Badge variant="outline" className="text-gold border-gold">
                       <Clock className="h-3 w-3 mr-1" />
                       Pending
                     </Badge>
