@@ -27,7 +27,7 @@ export function BadgeDisplay({ earnedBadges, allBadges, showAll = false, compact
   
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'loyalty': return 'from-amber-500 to-orange-500';
+      case 'loyalty': return 'from-gold to-orange-500';
       case 'social': return 'from-pink-500 to-rose-500';
       case 'spending': return 'from-emerald-500 to-green-500';
       case 'special': return 'from-purple-500 to-indigo-500';
@@ -85,7 +85,7 @@ export function BadgeDisplay({ earnedBadges, allBadges, showAll = false, compact
                 </p>
               )}
               {!isEarned && (
-                <p className="text-xs text-amber-500">
+                <p className="text-xs text-gold">
                   Reward: {badge.ucoin_reward} UCoin
                 </p>
               )}
@@ -147,7 +147,7 @@ export function BadgeDisplay({ earnedBadges, allBadges, showAll = false, compact
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-amber-500" />
+            <Award className="h-5 w-5 text-gold" />
             Your Badges
           </span>
           <Badge variant="secondary">

@@ -56,7 +56,7 @@ export function CurrencyToggle({ className, showLabel = true, compact = false }:
 
   const getDisplayModeIcon = () => {
     if (displayMode === 'gold') {
-      return <Coins className="h-4 w-4 text-amber-500" />;
+      return <Coins className="h-4 w-4 text-gold" />;
     }
     return <Globe className="h-4 w-4" />;
   };
@@ -79,14 +79,14 @@ export function CurrencyToggle({ className, showLabel = true, compact = false }:
               Currency Only
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="gold">
-              <Coins className="h-4 w-4 mr-2 text-amber-500" />
+              <Coins className="h-4 w-4 mr-2 text-gold" />
               Gold Only
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="both">
               <div className="flex items-center mr-2">
                 <Globe className="h-3 w-3" />
                 <span className="mx-0.5">+</span>
-                <Coins className="h-3 w-3 text-amber-500" />
+                <Coins className="h-3 w-3 text-gold" />
               </div>
               Both
             </DropdownMenuRadioItem>
@@ -141,14 +141,14 @@ export function CurrencyToggle({ className, showLabel = true, compact = false }:
               Currency Only
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="gold">
-              <Coins className="h-4 w-4 mr-2 text-amber-500" />
+              <Coins className="h-4 w-4 mr-2 text-gold" />
               Gold Only
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="both">
               <div className="flex items-center mr-2">
                 <Globe className="h-3 w-3" />
                 <span className="mx-0.5">+</span>
-                <Coins className="h-3 w-3 text-amber-500" />
+                <Coins className="h-3 w-3 text-gold" />
               </div>
               Currency + Gold
             </DropdownMenuRadioItem>

@@ -24,7 +24,7 @@ export function UCoinBadge({ amount, size = 'md', showIcon = true, className }: 
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-semibold',
+        'inline-flex items-center rounded-full bg-gradient-to-r from-gold to-gold text-white font-semibold',
         sizeClasses[size],
         className
       )}

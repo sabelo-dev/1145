@@ -64,7 +64,7 @@ const rewardColors: Record<string, string> = {
   low: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
   medium: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
   high: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  very_high: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+  very_high: 'bg-gold text-gold dark:bg-gold dark:text-gold'
 };
 
 interface MiningTaskListProps {

@@ -47,7 +47,7 @@ export function GoldTradingPanel({ zarBalance, goldBalanceMg, onTradeComplete }:
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <ArrowRightLeft className="h-5 w-5 text-amber-500" />
+          <ArrowRightLeft className="h-5 w-5 text-gold" />
           Gold Trading
         </CardTitle>
         <CardDescription>Buy and sell gold using your ZAR balance</CardDescription>
@@ -86,7 +86,7 @@ export function GoldTradingPanel({ zarBalance, goldBalanceMg, onTradeComplete }:
             )}
 
             <Button
-              className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
+              className="w-full bg-gradient-to-r from-gold to-gold hover:from-gold hover:to-gold text-white"
               onClick={handleBuy}
               disabled={isTrading || !buyQuote || buyQuote.goldMg <= 0 || (parseFloat(buyAmount) || 0) > zarBalance}
             >
@@ -146,7 +146,7 @@ function QuoteSummary({ quote, type, formatGold }: { quote: GoldQuote; type: 'bu
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">You receive</span>
-            <span className="font-semibold text-amber-600">{formatGold(quote.goldMg)}</span>
+            <span className="font-semibold text-gold">{formatGold(quote.goldMg)}</span>
           </div>
         </>
       ) : (
