@@ -224,7 +224,7 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
                     key={star}
                     className={`h-6 w-6 ${
                       star <= Math.round(driver.rating || 5)
-                        ? "text-gold/10 fill-gold/100"
+                        ? "text-gold fill-gold"
                         : "text-gray-300"
                     }`}
                   />

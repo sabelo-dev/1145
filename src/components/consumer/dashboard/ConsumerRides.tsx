@@ -95,7 +95,7 @@ const ConsumerRides: React.FC = () => {
               )}
               {ride.rating_by_passenger && (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Star className="h-3 w-3 text-gold/10 fill-gold/100" />
+                  <Star className="h-3 w-3 text-gold fill-gold" />
                   {ride.rating_by_passenger}
                 </span>
               )}

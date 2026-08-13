@@ -157,7 +157,7 @@ const DriverRideHistory: React.FC<DriverRideHistoryProps> = ({ driver }) => {
                     )}
                     {ride.rating_by_passenger && (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Star className="h-3 w-3 text-gold/10 fill-gold/100" />{ride.rating_by_passenger}
+                        <Star className="h-3 w-3 text-gold fill-gold" />{ride.rating_by_passenger}
                       </span>
                     )}
                   </div>

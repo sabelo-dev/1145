@@ -167,7 +167,7 @@ export const CommentsInbox: React.FC<CommentsInboxProps> = ({
                               <span className="font-medium text-sm">@{comment.username}</span>
                               <SentimentIcon className={`h-3 w-3 ${sentiment.color}`} />
                               {comment.is_high_value && (
-                                <Star className="h-3 w-3 text-gold/10 fill-gold/100" />
+                                <Star className="h-3 w-3 text-gold fill-gold" />
                               )}
                               <span className="text-xs text-muted-foreground ml-auto">
                                 {formatDistanceToNow(new Date(comment.posted_at), { addSuffix: true })}
