@@ -231,11 +231,23 @@
     font-family: 'Space Grotesk', 'Inter', sans-serif;
     letter-spacing: -0.022em;
     text-wrap: balance;
+    line-height: 1.15;
   }
 
-  h1 { @apply text-3xl md:text-5xl font-bold; }
-  h2 { @apply text-2xl md:text-3xl font-semibold; }
-  h3 { @apply text-lg md:text-xl font-semibold; }
+  /* Fluid type scale — headings interpolate continuously between
+     breakpoints instead of jumping, so resizing never breaks layout.
+     Utility classes on an element still win (same specificity, later layer). */
+  h1 { font-size: clamp(1.75rem, 1.25rem + 2.4vw, 3rem); @apply font-bold; }
+  h2 { font-size: clamp(1.375rem, 1.1rem + 1.3vw, 1.875rem); @apply font-semibold; }
+  h3 { font-size: clamp(1.075rem, 0.98rem + 0.5vw, 1.25rem); @apply font-semibold; }
+  h4 { font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem); @apply font-semibold; }
+
+  /* Landscape phones: reclaim vertical space */
+  @media (max-height: 480px) and (orientation: landscape) {
+    :root { --bottom-nav-h: 3.25rem; }
+    h1 { font-size: clamp(1.5rem, 3vw, 2rem); }
+  }
+
 
   /* Thin, native-feeling scrollbars */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
