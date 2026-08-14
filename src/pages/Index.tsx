@@ -177,7 +177,7 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-semibold">Rides on demand</p>
-                  <p className="text-[10px] text-muted-foreground">Tap "See prices" to get matched with a nearby driver.</p>
+                  <p className="text-[11px] text-muted-foreground">Tap "See prices" to get matched with a nearby driver.</p>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -201,7 +201,7 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
               <motion.div key={s.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03, duration: 0.3 }}>
                 <Link to={s.href} className="group relative bg-muted hover:bg-accent transition rounded-xl p-4 flex flex-col justify-between h-full min-h-[110px]">
                   {s.tag && (
-                    <span className="absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">{s.tag}</span>
+                    <span className="absolute top-2 right-2 text-[11px] font-semibold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">{s.tag}</span>
                   )}
                   <s.icon className="h-6 w-6" />
                   <div className="mt-3">
@@ -255,7 +255,7 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
                     ) : null}
                     <span className="text-lg font-bold tracking-tight text-center">{b.name}</span>
                     {b.businessType && (
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">{b.businessType}</span>
+                      <span className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1">{b.businessType}</span>
                     )}
                     <ArrowRight className="absolute bottom-3 right-3 h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
                   </Link>

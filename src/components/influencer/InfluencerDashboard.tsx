@@ -115,7 +115,7 @@ const InfluencerDashboard: React.FC = () => {
               <MessageCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Inbox</span>
               {dashboard.stats.unhandledComments > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] text-destructive-foreground flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[11px] text-destructive-foreground flex items-center justify-center">
                   {dashboard.stats.unhandledComments > 9 ? '9+' : dashboard.stats.unhandledComments}
                 </span>
               )}
@@ -225,7 +225,7 @@ const InfluencerDashboard: React.FC = () => {
                           >
                             <div className="min-w-0">
                               <p className="text-xs truncate">{post.caption?.slice(0, 40) || 'Post'}</p>
-                              <p className="text-[10px] text-muted-foreground">{commentCount} comments</p>
+                              <p className="text-[11px] text-muted-foreground">{commentCount} comments</p>
                             </div>
                           </Button>
                         );

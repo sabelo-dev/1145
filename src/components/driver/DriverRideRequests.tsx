@@ -171,7 +171,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
                 </React.Fragment>
               ))}
             </div>
-            <div className="flex justify-between text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+            <div className="flex justify-between text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
               <span>Accepted</span>
               <span>Arriving</span>
               <span>In Trip</span>
@@ -195,7 +195,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
                   <MapPin className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pickup</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Pickup</p>
                   <p className="font-medium text-sm truncate">{activeRide.pickup_address}</p>
                   {["accepted", "arriving"].includes(activeRide.status) && (
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs text-emerald-600" onClick={() => openNav(activeRide.pickup_address, activeRide.pickup_lat, activeRide.pickup_lng)}>
@@ -209,7 +209,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
                   <Navigation className="h-4 w-4 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Drop-off</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Drop-off</p>
                   <p className="font-medium text-sm truncate">{activeRide.dropoff_address}</p>
                   {activeRide.status === "in_progress" && (
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs text-blue-600" onClick={() => openNav(activeRide.dropoff_address, activeRide.dropoff_lat, activeRide.dropoff_lng)}>
@@ -325,7 +325,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
                           <MapPin className="h-3.5 w-3.5 text-emerald-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
+                          <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
                           <p className="font-medium text-sm truncate">{ride.pickup_address}</p>
                         </div>
                       </div>
@@ -334,7 +334,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
                           <Navigation className="h-3.5 w-3.5 text-blue-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Drop-off</p>
+                          <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Drop-off</p>
                           <p className="font-medium text-sm truncate">{ride.dropoff_address}</p>
                         </div>
                       </div>

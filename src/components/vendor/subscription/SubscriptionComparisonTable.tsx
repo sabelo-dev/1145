@@ -137,8 +137,8 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
       </div>
 
       {/* Plan Headers */}
-      <div className="grid grid-cols-5 gap-2 md:gap-4">
-        <div className="col-span-1" />
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 md:gap-4">
+        <div className="hidden sm:block sm:col-span-1" />
         
         {tiers.map((tier) => {
           const config = tierConfig[tier];
@@ -158,7 +158,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
               )}
             >
               {isRecommended && (
-                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-0.5 rounded-bl-lg">
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[11px] px-2 py-0.5 rounded-bl-lg">
                   Popular
                 </div>
               )}
@@ -168,7 +168,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   <CardTitle className="text-sm">{config.label}</CardTitle>
                 </div>
                 {isCurrentTier && (
-                  <Badge variant="outline" className="mx-auto text-[10px] px-1.5 py-0">Current</Badge>
+                  <Badge variant="outline" className="mx-auto text-[11px] px-1.5 py-0">Current</Badge>
                 )}
               </CardHeader>
               <CardContent className="p-3 pt-0">
@@ -178,13 +178,13 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   ) : (
                     <>
                       R{price}
-                      <span className="text-[10px] font-normal text-muted-foreground">
+                      <span className="text-[11px] font-normal text-muted-foreground">
                         /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
                       </span>
                     </>
                   )}
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5 hidden md:block">{config.description}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 hidden md:block">{config.description}</p>
                 <Button
                   size="sm"
                   className={cn(
@@ -205,7 +205,8 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
 
       {/* Feature Comparison */}
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 table-scroll">
+          <div className="min-w-[36rem] sm:min-w-0">
           {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
             <div key={category}>
               <div className="bg-muted/50 px-3 py-2 font-semibold text-xs">
@@ -223,7 +224,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   <div className="text-xs col-span-1">
                     {feature.feature}
                     {feature.highlight && (
-                      <Badge variant="outline" className="ml-1 text-[8px] px-1 py-0 hidden md:inline-flex">Key</Badge>
+                      <Badge variant="outline" className="ml-1 text-[11px] px-1 py-0 hidden md:inline-flex">Key</Badge>
                     )}
                   </div>
                   <div className="flex justify-center">
@@ -242,6 +243,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
               ))}
             </div>
           ))}
+          </div>
         </CardContent>
       </Card>
     </div>

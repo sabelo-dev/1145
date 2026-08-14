@@ -160,12 +160,12 @@ function TxList({ transactions }: { transactions: Transaction[] }) {
                         <p className="text-[11px] text-muted-foreground">
                           {format(new Date(tx.created_at), 'h:mm a')}
                           {tx.asset_type && tx.asset_type !== 'ZAR' && (
-                            <Badge variant="outline" className="ml-1.5 text-[9px] py-0 h-4">
+                            <Badge variant="outline" className="ml-1.5 text-[11px] py-0 h-4">
                               {tx.asset_type === 'GOLD' ? 'Gold' : tx.asset_type}
                             </Badge>
                           )}
                           {tx.source === 'ucoin' && (
-                            <Badge variant="outline" className="ml-1.5 text-[9px] py-0 h-4 border-gold text-gold">
+                            <Badge variant="outline" className="ml-1.5 text-[11px] py-0 h-4 border-gold text-gold">
                               UCoin
                             </Badge>
                           )}

@@ -92,10 +92,10 @@ const AdminContent: React.FC = () => {
 
       <Tabs defaultValue="banners" className="space-y-6">
         <TabsList className="w-full flex flex-wrap h-auto gap-1">
-          <TabsTrigger value="banners" className="flex-1 min-w-[100px]">Banners</TabsTrigger>
-          <TabsTrigger value="blog" className="flex-1 min-w-[100px]">Blog</TabsTrigger>
-          <TabsTrigger value="emails" className="flex-1 min-w-[100px]">Email Templates</TabsTrigger>
-          <TabsTrigger value="pages" className="flex-1 min-w-[100px]">Static Pages</TabsTrigger>
+          <TabsTrigger value="banners" className="flex-1 min-w-[6.25rem] whitespace-nowrap">Banners</TabsTrigger>
+          <TabsTrigger value="blog" className="flex-1 min-w-[6.25rem] whitespace-nowrap">Blog</TabsTrigger>
+          <TabsTrigger value="emails" className="flex-1 min-w-[6.25rem] whitespace-nowrap">Email Templates</TabsTrigger>
+          <TabsTrigger value="pages" className="flex-1 min-w-[6.25rem] whitespace-nowrap">Static Pages</TabsTrigger>
         </TabsList>
 
         <TabsContent value="banners">

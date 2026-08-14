@@ -256,7 +256,7 @@ const SafetyComplianceDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2 min-w-[200px]">
+                      <div className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[12.5rem]">
                         {alert.status === 'active' && (
                           <>
                             <Button size="sm" variant="outline" onClick={() => handleAcknowledge(alert.id)}>

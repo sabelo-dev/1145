@@ -50,7 +50,7 @@ const StaysPage: React.FC = () => {
             </h2>
           </div>
           <Select value={filters.type} onValueChange={(v) => setFilters((f) => ({ ...f, type: v === "all" ? "" : v }))}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue placeholder="Property type" />
             </SelectTrigger>
             <SelectContent>

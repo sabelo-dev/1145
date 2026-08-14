@@ -156,7 +156,7 @@ export const OrderDeliveryTracker: React.FC<OrderDeliveryTrackerProps> = ({ orde
                 }`}>
                   {i < currentIdx ? <Check className="h-3 w-3" /> : i + 1}
                 </div>
-                <span className="text-[10px] mt-1 text-center leading-tight w-14">{step.label}</span>
+                <span className="text-[11px] mt-1 text-center leading-tight w-14">{step.label}</span>
               </div>
               {i < statusSteps.length - 1 && (
                 <div className={`flex-1 h-0.5 mt-[-14px] ${i < currentIdx ? "bg-primary" : "bg-muted"}`} />

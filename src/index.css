@@ -160,13 +160,31 @@
   }
 
 
-  /* Long words / URLs must never blow out narrow phone layouts */
+  /* ── Global overflow safety ──────────────────────────────────
+     Long words, URLs, IDs and big numbers must never blow out a
+     container at ANY viewport, not just phones. */
+  p, span, h1, h2, h3, h4, h5, h6, td, th, li, label, dd, dt, a, button {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  /* Media never exceeds its container */
+  img, svg, video, canvas, iframe {
+    max-width: 100%;
+  }
+  img, video { height: auto; }
+
+  /* Flex/grid children default to min-width:auto, which is the single
+     most common cause of accidental horizontal page scroll. */
+  main :where(.flex, .grid) > * {
+    min-width: 0;
+  }
+
   @media (max-width: 767px) {
-    p, span, h1, h2, h3, h4, td, th, li, label {
-      overflow-wrap: anywhere;
-    }
+    p, span, h1, h2, h3, h4, td, th, li, label { overflow-wrap: anywhere; }
     table { font-size: 0.8125rem; }
   }
+
 
 
   body {
@@ -192,12 +210,19 @@
     font-size: 16px;
   }
 
-  /* Apple HIG touch targets */
-  @media (max-width: 767px) {
-    button, a[role="button"], [role="tab"], .tap-target {
+  /* Apple HIG touch targets — 44px minimum for anything tappable.
+     Navigation links get it too (inline prose links are excluded). */
+  @media (pointer: coarse), (max-width: 767px) {
+    button, a[role="button"], [role="tab"], [role="switch"], .tap-target,
+    nav a, header a, footer a, [role="menuitem"], [role="option"] {
       min-height: 44px;
     }
+    nav a, header a, footer a {
+      display: inline-flex;
+      align-items: center;
+    }
   }
+
 
   body.keyboard-open {
     padding-bottom: 0;
@@ -213,11 +238,23 @@
     font-family: 'Space Grotesk', 'Inter', sans-serif;
     letter-spacing: -0.022em;
     text-wrap: balance;
+    line-height: 1.15;
   }
 
-  h1 { @apply text-3xl md:text-5xl font-bold; }
-  h2 { @apply text-2xl md:text-3xl font-semibold; }
-  h3 { @apply text-lg md:text-xl font-semibold; }
+  /* Fluid type scale — headings interpolate continuously between
+     breakpoints instead of jumping, so resizing never breaks layout.
+     Utility classes on an element still win (same specificity, later layer). */
+  h1 { font-size: clamp(1.75rem, 1.25rem + 2.4vw, 3rem); @apply font-bold; }
+  h2 { font-size: clamp(1.375rem, 1.1rem + 1.3vw, 1.875rem); @apply font-semibold; }
+  h3 { font-size: clamp(1.075rem, 0.98rem + 0.5vw, 1.25rem); @apply font-semibold; }
+  h4 { font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem); @apply font-semibold; }
+
+  /* Landscape phones: reclaim vertical space */
+  @media (max-height: 480px) and (orientation: landscape) {
+    :root { --bottom-nav-h: 3.25rem; }
+    h1 { font-size: clamp(1.5rem, 3vw, 2rem); }
+  }
+
 
   /* Thin, native-feeling scrollbars */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -275,6 +312,55 @@
 
 @layer utilities {
   .text-balance { text-wrap: balance; }
+
+  /* ── Responsive layout primitives ──────────────────────────────
+     Use these instead of hand-rolled per-screen breakpoints. */
+
+  /* Auto-fitting card grid: reflows continuously, no breakpoints needed */
+  .auto-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .auto-grid-sm {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+  }
+  .auto-grid-lg {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  }
+
+  /* Stat strips: never squash below a legible width, wrap instead */
+  .stat-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  }
+
+  /* Intentional horizontal scroll for wide data (tables, rails) */
+  .table-scroll {
+    @apply w-full overflow-x-auto overscroll-x-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Row of controls that wraps rather than overflowing */
+  .toolbar {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .toolbar > * { min-width: 0; }
+
+  /* Truncate safely inside flex rows */
+  .min-w-0-all > * { min-width: 0; }
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
 
   /* ── Mobile scrolling helpers ── */
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

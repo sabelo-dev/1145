@@ -114,7 +114,7 @@ export const CommentsInbox: React.FC<CommentsInboxProps> = ({
           >
             <f.icon className="h-3 w-3 mr-1" />
             {f.label}
-            <Badge variant="secondary" className="ml-1 text-[10px] px-1">
+            <Badge variant="secondary" className="ml-1 text-[11px] px-1">
               {filterCounts[f.key as keyof typeof filterCounts]}
             </Badge>
           </Button>
