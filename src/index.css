@@ -160,13 +160,31 @@
   }
 
 
-  /* Long words / URLs must never blow out narrow phone layouts */
+  /* ── Global overflow safety ──────────────────────────────────
+     Long words, URLs, IDs and big numbers must never blow out a
+     container at ANY viewport, not just phones. */
+  p, span, h1, h2, h3, h4, h5, h6, td, th, li, label, dd, dt, a, button {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  /* Media never exceeds its container */
+  img, svg, video, canvas, iframe {
+    max-width: 100%;
+  }
+  img, video { height: auto; }
+
+  /* Flex/grid children default to min-width:auto, which is the single
+     most common cause of accidental horizontal page scroll. */
+  main :where(.flex, .grid) > * {
+    min-width: 0;
+  }
+
   @media (max-width: 767px) {
-    p, span, h1, h2, h3, h4, td, th, li, label {
-      overflow-wrap: anywhere;
-    }
+    p, span, h1, h2, h3, h4, td, th, li, label { overflow-wrap: anywhere; }
     table { font-size: 0.8125rem; }
   }
+
 
 
   body {
