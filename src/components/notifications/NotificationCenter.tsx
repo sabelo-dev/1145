@@ -67,7 +67,7 @@ const NotificationCenter: React.FC = () => {
           {unreadCount > 0 && (
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+              className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[11px]"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>

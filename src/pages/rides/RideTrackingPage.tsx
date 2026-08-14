@@ -245,7 +245,7 @@ const RideTrackingPage: React.FC = () => {
                     }`}>
                       {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className={`h-3.5 w-3.5 ${isCurrent ? "animate-pulse" : ""}`} />}
                     </div>
-                    <span className={`text-[8px] font-medium ${isCurrent ? "text-primary" : isCompleted ? "text-emerald-600" : "text-muted-foreground"}`}>
+                    <span className={`text-[11px] font-medium ${isCurrent ? "text-primary" : isCompleted ? "text-emerald-600" : "text-muted-foreground"}`}>
                       {step.label}
                     </span>
                   </div>
@@ -342,7 +342,7 @@ const RideTrackingPage: React.FC = () => {
                       </div>
                     )}
                     {driverInfo.vehicle_type && (
-                      <Badge variant="secondary" className="text-[10px] capitalize">{driverInfo.vehicle_type}</Badge>
+                      <Badge variant="secondary" className="text-[11px] capitalize">{driverInfo.vehicle_type}</Badge>
                     )}
                     {driverInfo.vehicle_registration && (
                       <span className="text-xs text-muted-foreground">{driverInfo.vehicle_registration}</span>
@@ -409,7 +409,7 @@ const RideTrackingPage: React.FC = () => {
               <div className="font-bold text-foreground">
                 R{(ride.actual_fare || ride.estimated_fare || 0).toFixed(2)}
                 {ride.surge_multiplier > 1 && (
-                  <span className="text-[10px] text-orange-500 ml-1">⚡{ride.surge_multiplier}x</span>
+                  <span className="text-[11px] text-orange-500 ml-1">⚡{ride.surge_multiplier}x</span>
                 )}
               </div>
             </div>

@@ -230,8 +230,8 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <h.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[10px] sm:text-xs font-semibold text-foreground">{h.label}</p>
-                  <p className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:block">{h.desc}</p>
+                  <p className="text-[11px] sm:text-xs font-semibold text-foreground">{h.label}</p>
+                  <p className="text-[11px] sm:text-[11px] text-muted-foreground hidden sm:block">{h.desc}</p>
                 </div>
               </div>
             ))}
@@ -266,7 +266,7 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <Icon className={`h-5 w-5 md:h-6 md:w-6 ${service.iconColor}`} />
                     </div>
                     {service.tag && (
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r ${service.gradient} text-white`}>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r ${service.gradient} text-white`}>
                         {service.tag}
                       </span>
                     )}

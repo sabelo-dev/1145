@@ -158,7 +158,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
               )}
             >
               {isRecommended && (
-                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-0.5 rounded-bl-lg">
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[11px] px-2 py-0.5 rounded-bl-lg">
                   Popular
                 </div>
               )}
@@ -168,7 +168,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   <CardTitle className="text-sm">{config.label}</CardTitle>
                 </div>
                 {isCurrentTier && (
-                  <Badge variant="outline" className="mx-auto text-[10px] px-1.5 py-0">Current</Badge>
+                  <Badge variant="outline" className="mx-auto text-[11px] px-1.5 py-0">Current</Badge>
                 )}
               </CardHeader>
               <CardContent className="p-3 pt-0">
@@ -178,13 +178,13 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   ) : (
                     <>
                       R{price}
-                      <span className="text-[10px] font-normal text-muted-foreground">
+                      <span className="text-[11px] font-normal text-muted-foreground">
                         /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
                       </span>
                     </>
                   )}
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5 hidden md:block">{config.description}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 hidden md:block">{config.description}</p>
                 <Button
                   size="sm"
                   className={cn(
@@ -224,7 +224,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                   <div className="text-xs col-span-1">
                     {feature.feature}
                     {feature.highlight && (
-                      <Badge variant="outline" className="ml-1 text-[8px] px-1 py-0 hidden md:inline-flex">Key</Badge>
+                      <Badge variant="outline" className="ml-1 text-[11px] px-1 py-0 hidden md:inline-flex">Key</Badge>
                     )}
                   </div>
                   <div className="flex justify-center">

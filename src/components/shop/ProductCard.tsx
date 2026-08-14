@@ -139,17 +139,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           {/* Badges */}
           <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
             {isNew && (
-              <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+              <Badge className="bg-primary text-primary-foreground text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
                 NEW
               </Badge>
             )}
             {isOnSale && (
-              <Badge className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+              <Badge className="bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
                 -{discountPercent}%
               </Badge>
             )}
             {!product.inStock && (
-              <Badge variant="destructive" className="text-[10px] font-bold px-2 py-0.5 rounded-md">
+              <Badge variant="destructive" className="text-[11px] font-bold px-2 py-0.5 rounded-md">
                 Sold Out
               </Badge>
             )}
@@ -158,7 +158,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
 
         {/* Product Info */}
         <div className="p-3 md:p-4">
-          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+          <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
             {product.category}
           </div>
           <h3 className="font-semibold text-foreground text-sm leading-tight mb-1.5 line-clamp-2 group-hover:text-primary transition-colors">
@@ -184,7 +184,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           {/* Rating */}
           <div className="flex items-center gap-1 mb-2">
             <StarRating rating={product.rating} />
-            <span className="text-[10px] text-muted-foreground">({product.reviewCount})</span>
+            <span className="text-[11px] text-muted-foreground">({product.reviewCount})</span>
           </div>
 
           {/* Price */}
@@ -218,7 +218,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                             setSelectedVariation(matchingVariation?.id || null);
                           }}
                           className={cn(
-                            "px-2 py-0.5 text-[10px] font-medium border rounded-md transition-all",
+                            "px-2 py-0.5 text-[11px] font-medium border rounded-md transition-all",
                             isSelected
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border text-muted-foreground hover:border-primary/50"
@@ -229,7 +229,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                       );
                     })}
                     {values.length > 4 && (
-                      <span className="text-[10px] text-muted-foreground self-center">+{values.length - 4}</span>
+                      <span className="text-[11px] text-muted-foreground self-center">+{values.length - 4}</span>
                     )}
                   </div>
                 );
