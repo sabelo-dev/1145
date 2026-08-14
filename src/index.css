@@ -306,6 +306,55 @@
 @layer utilities {
   .text-balance { text-wrap: balance; }
 
+  /* ── Responsive layout primitives ──────────────────────────────
+     Use these instead of hand-rolled per-screen breakpoints. */
+
+  /* Auto-fitting card grid: reflows continuously, no breakpoints needed */
+  .auto-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .auto-grid-sm {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+  }
+  .auto-grid-lg {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  }
+
+  /* Stat strips: never squash below a legible width, wrap instead */
+  .stat-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  }
+
+  /* Intentional horizontal scroll for wide data (tables, rails) */
+  .table-scroll {
+    @apply w-full overflow-x-auto overscroll-x-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Row of controls that wraps rather than overflowing */
+  .toolbar {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .toolbar > * { min-width: 0; }
+
+  /* Truncate safely inside flex rows */
+  .min-w-0-all > * { min-width: 0; }
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+
   /* ── Mobile scrolling helpers ── */
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
