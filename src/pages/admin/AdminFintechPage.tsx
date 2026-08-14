@@ -109,7 +109,7 @@ const AdminFintechPage: React.FC = () => {
             {withdrawals.length === 0 ? <EmptyRow text="No withdrawal requests." /> : withdrawals.map((w) => (
               <Card key={w.id}>
                 <CardContent className="flex flex-wrap items-center gap-3 py-3">
-                  <div className="flex-1 min-w-[220px]">
+                  <div className="flex-1 min-w-0 sm:min-w-[13.75rem]">
                     <p className="font-medium">{fmtR(w.amount)} · <span className="capitalize">{w.status}</span></p>
                     <p className="text-xs text-muted-foreground">User: {w.user_id}</p>
                     <p className="text-xs text-muted-foreground">Created: {new Date(w.created_at).toLocaleString()}</p>

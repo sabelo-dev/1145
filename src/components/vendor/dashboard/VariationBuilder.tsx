@@ -508,7 +508,7 @@ const VariationBuilder: React.FC<VariationBuilderProps> = ({
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-6 gap-2">
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                         {colorVariant.images.map((image, imgIndex) => (
                           <div key={imgIndex} className="relative group">
                             <img
