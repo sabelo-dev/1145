@@ -210,12 +210,19 @@
     font-size: 16px;
   }
 
-  /* Apple HIG touch targets */
-  @media (max-width: 767px) {
-    button, a[role="button"], [role="tab"], .tap-target {
+  /* Apple HIG touch targets — 44px minimum for anything tappable.
+     Navigation links get it too (inline prose links are excluded). */
+  @media (pointer: coarse), (max-width: 767px) {
+    button, a[role="button"], [role="tab"], [role="switch"], .tap-target,
+    nav a, header a, footer a, [role="menuitem"], [role="option"] {
       min-height: 44px;
     }
+    nav a, header a, footer a {
+      display: inline-flex;
+      align-items: center;
+    }
   }
+
 
   body.keyboard-open {
     padding-bottom: 0;
