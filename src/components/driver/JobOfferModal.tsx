@@ -169,7 +169,7 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
                   <MapPin className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pickup</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Pickup</p>
                   <p className="font-medium text-sm truncate">{formatAddress(offer.job.pickup_address)}</p>
                 </div>
               </div>
@@ -179,7 +179,7 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
                   <Navigation className="h-4 w-4 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Drop-off</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Drop-off</p>
                   <p className="font-medium text-sm truncate">{formatAddress(offer.job.delivery_address)}</p>
                 </div>
               </div>

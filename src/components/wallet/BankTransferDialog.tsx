@@ -210,7 +210,7 @@ export function BankTransferDialog({ open, onOpenChange, type, zarBalance, onCom
                             <p className="text-xs text-muted-foreground truncate">{acc.account_holder_name} · {acc.account_number_masked}</p>
                           </div>
                           {acc.is_verified && <Shield className="h-4 w-4 text-green-500 shrink-0" />}
-                          {acc.is_default && <Badge className="text-[10px] bg-primary/10 text-primary shrink-0">Default</Badge>}
+                          {acc.is_default && <Badge className="text-[11px] bg-primary/10 text-primary shrink-0">Default</Badge>}
                         </CardContent>
                       </Card>
                     ))}

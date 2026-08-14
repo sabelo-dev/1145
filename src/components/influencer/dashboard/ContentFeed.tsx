@@ -83,7 +83,7 @@ export const ContentFeed: React.FC<ContentFeedProps> = ({
           />
         </div>
         <Select value={platformFilter} onValueChange={setPlatformFilter}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue />
           </SelectTrigger>
@@ -95,7 +95,7 @@ export const ContentFeed: React.FC<ContentFeedProps> = ({
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={v => setSortBy(v as any)}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full sm:w-[150px]">
             <TrendingUp className="h-4 w-4 mr-2" />
             <SelectValue />
           </SelectTrigger>

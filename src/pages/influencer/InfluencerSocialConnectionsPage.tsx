@@ -208,7 +208,7 @@ export default function InfluencerSocialConnectionsPage() {
                         <div className="font-medium mb-1">Permissions</div>
                         <div className="flex flex-wrap gap-1">
                           {(c.granted_scopes ?? []).map((s) => (
-                            <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+                            <Badge key={s} variant="secondary" className="text-[11px]">{s}</Badge>
                           ))}
                           {(c.granted_scopes ?? []).length === 0 && <span className="text-muted-foreground">—</span>}
                         </div>
@@ -217,7 +217,7 @@ export default function InfluencerSocialConnectionsPage() {
                         <div className="font-medium mb-1">Missing</div>
                         <div className="flex flex-wrap gap-1">
                           {(c.missing_scopes ?? []).map((s) => (
-                            <Badge key={s} variant="destructive" className="text-[10px]">{s}</Badge>
+                            <Badge key={s} variant="destructive" className="text-[11px]">{s}</Badge>
                           ))}
                           {(c.missing_scopes ?? []).length === 0 && <span className="text-muted-foreground">All granted</span>}
                         </div>

@@ -36,7 +36,7 @@ const Navigation: React.FC = () => {
             Categories
           </NavigationMenuTrigger>
           <NavigationMenuContent>
-            <div className="w-[400px] p-4">
+            <div className="w-[min(400px,calc(100vw-2rem))] p-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">Clothing</h3>

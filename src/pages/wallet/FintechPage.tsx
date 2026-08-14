@@ -265,7 +265,7 @@ const FintechPage: React.FC = () => {
                       <p className={`font-semibold ${row.direction === "credit" ? "text-emerald-600" : "text-destructive"}`}>
                         {row.direction === "credit" ? "+" : "−"}{fmtR(row.amount)}
                       </p>
-                      {row.balance_after != null && <p className="text-[10px] text-muted-foreground">Balance: {fmtR(row.balance_after)}</p>}
+                      {row.balance_after != null && <p className="text-[11px] text-muted-foreground">Balance: {fmtR(row.balance_after)}</p>}
                     </div>
                   </CardContent>
                 </Card>

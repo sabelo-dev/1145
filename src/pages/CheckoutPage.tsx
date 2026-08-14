@@ -120,7 +120,7 @@ const CheckoutPage: React.FC = () => {
                 ].map((badge) => (
                   <div key={badge.label} className="flex flex-col items-center text-center p-3 rounded-xl bg-muted/50 border border-border/30">
                     <badge.icon className="h-4 w-4 text-primary mb-1" />
-                    <span className="text-[10px] font-medium text-muted-foreground">{badge.label}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground">{badge.label}</span>
                   </div>
                 ))}
               </div>

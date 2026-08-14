@@ -146,7 +146,7 @@ export function UnifiedPortfolioCard({
                   {showBalance ? asset.display : '•••'}
                 </p>
                 {showBalance && (
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{asset.sublabel}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{asset.sublabel}</p>
                 )}
               </motion.div>
             );

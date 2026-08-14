@@ -508,7 +508,7 @@ const VariationBuilder: React.FC<VariationBuilderProps> = ({
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-6 gap-2">
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                         {colorVariant.images.map((image, imgIndex) => (
                           <div key={imgIndex} className="relative group">
                             <img
@@ -526,7 +526,7 @@ const VariationBuilder: React.FC<VariationBuilderProps> = ({
                               <X className="h-3 w-3" />
                             </Button>
                             {imgIndex === 0 && (
-                              <Badge className="absolute bottom-1 left-1 text-[10px] px-1">Main</Badge>
+                              <Badge className="absolute bottom-1 left-1 text-[11px] px-1">Main</Badge>
                             )}
                           </div>
                         ))}

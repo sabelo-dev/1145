@@ -105,7 +105,7 @@ const StorefrontBrandStory: React.FC<StorefrontBrandStoryProps> = ({
                     className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted/50"
                   >
                     <item.icon className="h-4 w-4" style={{ color: accentColor }} />
-                    <span className="text-[10px] font-medium text-muted-foreground">
+                    <span className="text-[11px] font-medium text-muted-foreground">
                       {item.label}
                     </span>
                   </div>

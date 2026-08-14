@@ -134,7 +134,7 @@ const DriverAvailableJobs: React.FC<DriverAvailableJobsProps> = ({ driver, onJob
                       <MapPin className="h-3.5 w-3.5 text-emerald-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
                       <p className="font-medium text-sm truncate">{formatAddress(job.pickup_address)}</p>
                       <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[11px] text-emerald-600" onClick={() => openGoogleMaps(job.pickup_address)}>
                         <Navigation className="h-3 w-3 mr-1" />Map<ExternalLink className="h-2.5 w-2.5 ml-1" />
@@ -147,7 +147,7 @@ const DriverAvailableJobs: React.FC<DriverAvailableJobsProps> = ({ driver, onJob
                       <Navigation className="h-3.5 w-3.5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Deliver to</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Deliver to</p>
                       <p className="font-medium text-sm truncate">{formatAddress(job.delivery_address)}</p>
                       <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[11px] text-blue-600" onClick={() => openGoogleMaps(job.delivery_address)}>
                         <Navigation className="h-3 w-3 mr-1" />Map<ExternalLink className="h-2.5 w-2.5 ml-1" />

@@ -42,7 +42,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ steps, currentS
             ) : (
               <span
                 className={cn(
-                  "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium border",
+                  "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium border",
                   step.id === currentStep
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-muted-foreground/30"

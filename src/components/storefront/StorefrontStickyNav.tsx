@@ -116,7 +116,7 @@ const StorefrontStickyNav: React.FC<StorefrontStickyNavProps> = ({
               </h1>
               {sellerBadge && (
                 <Badge
-                  className="gap-1 text-[10px] flex-shrink-0 rounded-full text-white"
+                  className="gap-1 text-[11px] flex-shrink-0 rounded-full text-white"
                   style={{
                     backgroundColor: vendorTier === "gold" ? "#eab308" : accentColor,
                   }}

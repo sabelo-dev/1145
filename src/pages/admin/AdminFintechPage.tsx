@@ -109,7 +109,7 @@ const AdminFintechPage: React.FC = () => {
             {withdrawals.length === 0 ? <EmptyRow text="No withdrawal requests." /> : withdrawals.map((w) => (
               <Card key={w.id}>
                 <CardContent className="flex flex-wrap items-center gap-3 py-3">
-                  <div className="flex-1 min-w-[220px]">
+                  <div className="flex-1 min-w-0 sm:min-w-[13.75rem]">
                     <p className="font-medium">{fmtR(w.amount)} · <span className="capitalize">{w.status}</span></p>
                     <p className="text-xs text-muted-foreground">User: {w.user_id}</p>
                     <p className="text-xs text-muted-foreground">Created: {new Date(w.created_at).toLocaleString()}</p>
@@ -134,7 +134,7 @@ const AdminFintechPage: React.FC = () => {
                   <div className="flex-1">
                     <p className="font-medium capitalize">{f.event_type.replace(/_/g, " ")} · Risk {f.risk_score}</p>
                     <p className="text-xs text-muted-foreground">User: {f.user_id || "unknown"} · {new Date(f.created_at).toLocaleString()}</p>
-                    <pre className="text-[10px] mt-1 text-muted-foreground overflow-x-auto">{JSON.stringify(f.signals, null, 2)}</pre>
+                    <pre className="text-[11px] mt-1 text-muted-foreground overflow-x-auto">{JSON.stringify(f.signals, null, 2)}</pre>
                   </div>
                   <div className="flex flex-col gap-2">
                     {f.user_id && <Button size="sm" variant="outline" onClick={() => freezeUser(f.user_id, true)}><Lock className="h-3 w-3 mr-1" />Freeze</Button>}

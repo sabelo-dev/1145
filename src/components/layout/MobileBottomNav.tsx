@@ -79,7 +79,7 @@ const MobileBottomNav: React.FC = () => {
               <span className="relative">
                 <ShoppingCart className="h-[22px] w-[22px]" />
                 {count > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-primary text-primary-foreground rounded-full text-[9px] font-bold flex items-center justify-center ring-2 ring-background">
+                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-primary text-primary-foreground rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
                     {count > 9 ? "9+" : count}
                   </span>
                 )}
