@@ -137,8 +137,8 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
       </div>
 
       {/* Plan Headers */}
-      <div className="grid grid-cols-5 gap-2 md:gap-4">
-        <div className="col-span-1" />
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 md:gap-4">
+        <div className="hidden sm:block sm:col-span-1" />
         
         {tiers.map((tier) => {
           const config = tierConfig[tier];
@@ -205,7 +205,8 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
 
       {/* Feature Comparison */}
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 table-scroll">
+          <div className="min-w-[36rem] sm:min-w-0">
           {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
             <div key={category}>
               <div className="bg-muted/50 px-3 py-2 font-semibold text-xs">
@@ -242,6 +243,7 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
               ))}
             </div>
           ))}
+          </div>
         </CardContent>
       </Card>
     </div>
