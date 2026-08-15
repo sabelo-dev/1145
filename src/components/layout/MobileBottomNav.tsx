@@ -1,45 +1,76 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, ShoppingBag, Grid3X3, ShoppingCart, User } from "lucide-react";
+import {
+  CarFront,
+  Grid2x2,
+  House,
+  UserRound,
+  WalletCards,
+  type LucideIcon,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCart } from "@/contexts/CartContext";
 
-const items = [
-  { label: "Home", path: "/", icon: Home },
-  { label: "Shop", path: "/shop", icon: ShoppingBag },
-  { label: "Browse", path: "/categories", icon: Grid3X3 },
+const items: Array<{
+  label: string;
+  path: string;
+  icon: LucideIcon;
+  authRequired?: boolean;
+  exact?: boolean;
+}> = [
+  { label: "Home", path: "/", icon: House, exact: true },
+  { label: "Services", path: "/services", icon: Grid2x2 },
+  { label: "Ride", path: "/rides/request", icon: CarFront },
+  { label: "Wallet", path: "/wallet", icon: WalletCards, authRequired: true },
+  { label: "Account", path: "/dashboard", icon: UserRound, authRequired: true },
 ] as const;
 
 const tap = () => {
-  // Light haptic feedback where supported (Android / PWA)
   if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-    try { navigator.vibrate?.(8); } catch { /* noop */ }
+    try {
+      navigator.vibrate?.(8);
+    } catch {
+      // noop
+    }
   }
 };
 
 const itemClass =
-  "relative flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium tracking-tight transition-colors duration-200";
+  "relative flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none";
 
 const MobileBottomNav: React.FC = () => {
   const { user } = useAuth();
-  const { cart, toggleCart } = useCart();
   const navigate = useNavigate();
-  const count = cart?.items?.length || 0;
+
+  const handleItemNavigate = (path: string, authRequired?: boolean) => {
+    tap();
+    if (authRequired && !user) {
+      navigate("/login", { replace: false });
+      return;
+    }
+    navigate(path);
+  };
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t border-border/70 bg-background/80 backdrop-blur-2xl backdrop-saturate-150"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/85 shadow-[0_-16px_40px_-24px_rgba(15,23,42,0.5)] backdrop-blur-2xl backdrop-saturate-150"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.12rem)" }}
       aria-label="Primary mobile navigation"
     >
-      <ul className="grid grid-cols-5" style={{ height: "var(--bottom-nav-h)" }}>
-        {items.map(({ label, path, icon: Icon }) => (
-          <li key={path} className="flex">
+      <ul className="grid grid-cols-5" style={{ height: "calc(var(--bottom-nav-h) + 0.2rem)" }}>
+        {items.map(({ label, path, icon: Icon, authRequired, exact }) => (
+          <li key={path} className="flex min-w-0">
             <NavLink
               to={path}
-              end={path === "/"}
-              onClick={tap}
+              end={exact}
+              onClick={(event) => {
+                if (authRequired && !user) {
+                  event.preventDefault();
+                  handleItemNavigate(path, authRequired);
+                  return;
+                }
+                tap();
+              }}
               className={({ isActive }) =>
                 `${itemClass} ${isActive ? "text-brand font-semibold" : "text-text-secondary hover:text-brand active:text-brand"}`
               }
@@ -50,57 +81,23 @@ const MobileBottomNav: React.FC = () => {
                     <motion.span
                       layoutId="bottom-nav-indicator"
                       transition={{ type: "spring", stiffness: 480, damping: 36 }}
-                      className="absolute inset-x-4 top-1 h-9 rounded-full bg-surface-selected"
+                      className="absolute inset-x-2 top-1 h-10 rounded-2xl bg-surface-selected shadow-sm ring-1 ring-border/60"
                     />
                   )}
-                  <span className="relative flex flex-col items-center gap-1">
+
+                  <span className="relative flex flex-col items-center justify-center gap-1.5">
                     <Icon
-                      className={`h-[22px] w-[22px] transition-transform duration-200 ${
-                        isActive ? "stroke-[2.4] -translate-y-px text-brand" : ""
+                      className={`h-[21px] w-[21px] transition-all duration-200 ${
+                        isActive ? "stroke-[2.4] text-brand -translate-y-px" : ""
                       }`}
                     />
-
-                    <span>{label}</span>
+                    <span className="leading-none">{label}</span>
                   </span>
                 </>
               )}
             </NavLink>
           </li>
         ))}
-
-        <li className="flex">
-          <button
-            type="button"
-            onClick={() => { tap(); toggleCart(); }}
-            aria-label={`Cart, ${count} items`}
-            className={`${itemClass} text-text-secondary hover:text-brand active:text-brand active:scale-95`}
-          >
-            <span className="relative flex flex-col items-center gap-1">
-              <span className="relative">
-                <ShoppingCart className="h-[22px] w-[22px]" />
-                {count > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-brand text-brand-foreground rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
-                    {count > 9 ? "9+" : count}
-                  </span>
-                )}
-              </span>
-              <span>Cart</span>
-            </span>
-          </button>
-        </li>
-
-        <li className="flex">
-          <button
-            type="button"
-            onClick={() => { tap(); navigate(user ? "/dashboard" : "/login"); }}
-            className={`${itemClass} text-text-secondary hover:text-brand active:text-brand active:scale-95`}
-          >
-            <span className="relative flex flex-col items-center gap-1">
-              <User className="h-[22px] w-[22px]" />
-              <span>{user ? "Account" : "Sign in"}</span>
-            </span>
-          </button>
-        </li>
       </ul>
     </nav>
   );
