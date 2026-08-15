@@ -57,7 +57,25 @@ export default {
 					DEFAULT: 'hsl(var(--info))',
 					foreground: 'hsl(var(--info-foreground))'
 				},
-				disabled: 'hsl(var(--disabled))',
+				disabled: {
+					DEFAULT: 'hsl(var(--disabled))',
+					surface: 'hsl(var(--disabled-surface))',
+					foreground: 'hsl(var(--disabled-foreground))'
+				},
+				// ── 1145 interaction-state tokens ──
+				brand: {
+					DEFAULT: 'hsl(var(--brand))',
+					hover: 'hsl(var(--brand-hover))',
+					pressed: 'hsl(var(--brand-pressed))',
+					foreground: 'hsl(var(--brand-foreground))'
+				},
+				cta: {
+					DEFAULT: 'hsl(var(--cta))',
+					foreground: 'hsl(var(--cta-foreground))'
+				},
+				'text-secondary': 'hsl(var(--text-secondary))',
+				'text-muted': 'hsl(var(--text-muted))',
+
 				// ── 1145 brand scales ──
 				navy: {
 					DEFAULT: 'hsl(var(--navy-900))',
