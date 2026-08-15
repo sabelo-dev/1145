@@ -24,7 +24,7 @@ async function sign(data: Record<string, any>, passphrase: string) {
     const v = data[k];
     if (k !== "signature" && v !== "" && v !== null && v !== undefined) filtered[k] = v;
   }
-  const paramString = Object.keys(filtered).map((k) => `${k}=${phpUrlencode(String(filtered[k]).trim())}`).join("&");
+  const paramString = Object.keys(filtered).sort().map((k) => `${k}=${phpUrlencode(String(filtered[k]).trim())}`).join("&");
   return md5Hash(`${paramString}&passphrase=${phpUrlencode(passphrase)}`);
 }
 

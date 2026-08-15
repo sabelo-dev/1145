@@ -369,7 +369,13 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
               <VendorSubscriptionPage 
                 vendorId={vendorData?.id}
                 currentTier={normalizeTier(vendorData?.subscription_tier)}
-                onUpgrade={() => setShowUpgradeModal(true)}
+                onUpgrade={(tier, billing) => {
+                  if (tier && billing) {
+                    void handleUpgrade(tier, billing);
+                  } else {
+                    setShowUpgradeModal(true);
+                  }
+                }}
               />
             </TabsContent>
             <TabsContent value="billing" className="mt-0">

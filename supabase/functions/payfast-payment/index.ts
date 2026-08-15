@@ -49,6 +49,7 @@ async function generatePayFastSignature(data: Record<string, any>, passphrase: s
   });
 
   const paramString = Object.keys(filteredData)
+    .sort()
     .map((key) => {
       const value = filteredData[key].toString().trim();
       return `${key}=${phpUrlencode(value)}`;

@@ -12,25 +12,37 @@ async function md5Hash(input: string): Promise<string> {
   return crypto.createHash("md5").update(input).digest("hex");
 }
 
+function phpUrlencode(str: string): string {
+  return encodeURIComponent(str)
+    .replace(/!/g, "%21")
+    .replace(/'/g, "%27")
+    .replace(/\(/g, "%28")
+    .replace(/\)/g, "%29")
+    .replace(/\*/g, "%2A")
+    .replace(/~/g, "%7E")
+    .replace(/%20/g, "+")
+    .replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase());
+}
+
 // Verify PayFast signature
 async function verifySignature(data: Record<string, string>, passphrase: string): Promise<boolean> {
   const receivedSignature = data.signature;
-  
-  // Build parameter string excluding signature
+
   const paramString = Object.keys(data)
-    .filter(key => key !== "signature")
-    .map(key => `${key}=${encodeURIComponent(data[key]).replace(/%20/g, "+")}`)
+    .filter((key) => key !== "signature" && data[key] !== "" && data[key] !== null && data[key] !== undefined)
+    .sort()
+    .map((key) => `${key}=${phpUrlencode(String(data[key]).trim())}`)
     .join("&");
-  
-  const stringToHash = passphrase 
-    ? `${paramString}&passphrase=${passphrase}`
+
+  const stringToHash = passphrase
+    ? `${paramString}&passphrase=${phpUrlencode(passphrase)}`
     : paramString;
-  
+
   const calculatedSignature = await md5Hash(stringToHash);
-  
+
   console.log("Received signature:", receivedSignature);
   console.log("Calculated signature:", calculatedSignature);
-  
+
   return calculatedSignature === receivedSignature;
 }
 

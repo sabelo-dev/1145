@@ -36,6 +36,7 @@ function phpUrlencode(str: string): string {
 async function signPayFast(fields: Record<string, string>, passphrase: string): Promise<string> {
   const paramString = Object.keys(fields)
     .filter((k) => fields[k] !== "" && fields[k] !== null && fields[k] !== undefined)
+    .sort()
     .map((k) => `${k}=${phpUrlencode(String(fields[k]).trim())}`)
     .join("&");
   const stringToHash = passphrase
