@@ -95,8 +95,13 @@ export default {
 				},
 				surface: {
 					DEFAULT: 'hsl(var(--surface))',
-					muted: 'hsl(var(--surface-muted))'
+					muted: 'hsl(var(--surface-muted))',
+					input: 'hsl(var(--surface-input))',
+					hover: 'hsl(var(--surface-hover))',
+					pressed: 'hsl(var(--surface-pressed))',
+					selected: 'hsl(var(--surface-selected))'
 				},
+
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
