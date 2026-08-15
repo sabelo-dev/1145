@@ -12,7 +12,7 @@ type TierType = 'starter' | 'bronze' | 'silver' | 'gold';
 interface VendorSubscriptionPageProps {
   vendorId?: string;
   currentTier?: TierType;
-  onUpgrade: () => void;
+  onUpgrade: (tier?: TierType, billing?: 'monthly' | 'yearly') => void;
 }
 
 const tierOrder: TierType[] = ['starter', 'bronze', 'silver', 'gold'];
@@ -62,8 +62,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
   const nextTier = !isTopTier ? tierOrder[currentTierIndex + 1] : null;
 
   const handleSelectPlan = (tier: TierType, billing: 'monthly' | 'yearly') => {
-    console.log('Selected plan:', tier, billing);
-    onUpgrade();
+    onUpgrade(tier, billing);
   };
 
   return (

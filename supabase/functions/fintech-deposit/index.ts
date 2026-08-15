@@ -18,7 +18,7 @@ function phpUrlencode(str: string) {
 async function sign(data: Record<string, any>, passphrase: string) {
   const filtered: Record<string, any> = {};
   for (const k of Object.keys(data)) { const v = data[k]; if (k !== "signature" && v !== "" && v !== null && v !== undefined) filtered[k] = v; }
-  const p = Object.keys(filtered).map(k => `${k}=${phpUrlencode(String(filtered[k]).trim())}`).join("&");
+  const p = Object.keys(filtered).sort().map(k => `${k}=${phpUrlencode(String(filtered[k]).trim())}`).join("&");
   return md5Hash(`${p}&passphrase=${phpUrlencode(passphrase)}`);
 }
 

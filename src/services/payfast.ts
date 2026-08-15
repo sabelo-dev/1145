@@ -77,16 +77,19 @@ export const createPayFastPayment = async (data: PayFastPaymentData): Promise<Pa
 };
 
 const generatePayFastSignature = (data: Record<string, any>, passphrase: string): string => {
-  // Sort the data by key
-  const sortedData = Object.keys(data)
+  const filteredData = Object.keys(data)
+    .filter((key) => key !== 'signature' && data[key] !== '' && data[key] !== null && data[key] !== undefined)
     .sort()
-    .map(key => `${key}=${encodeURIComponent(data[key])}`)
+    .reduce((acc, key) => {
+      acc[key] = data[key];
+      return acc;
+    }, {} as Record<string, any>);
+
+  const paramString = Object.keys(filteredData)
+    .map((key) => `${key}=${encodeURIComponent(String(filteredData[key]).trim()).replace(/%20/g, '+').replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase())}`)
     .join('&');
 
-  // Add passphrase
-  const stringToHash = `${sortedData}&passphrase=${encodeURIComponent(passphrase)}`;
-  
-  // In a real implementation, you would use a proper MD5 hash
-  // For this demo, we'll use a simple hash (replace with proper MD5 in production)
+  const stringToHash = `${paramString}&passphrase=${encodeURIComponent(passphrase).replace(/%20/g, '+').replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase())}`;
+
   return btoa(stringToHash).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
 };
