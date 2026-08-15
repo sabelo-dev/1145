@@ -14,20 +14,25 @@ interface ThemeCustomizationContextType {
   applyPreset: (presetName: string) => void;
 }
 
+/** 1145 defaults — brand navy #1E3A5F, input surface, selected surface. */
 const defaultColors: ThemeColors = {
-  primary: "0 0% 0%",
-  secondary: "30 30% 86%",
-  accent: "30 35% 80%",
+  primary: "213 52% 24%",
+  secondary: "229 33% 97%",
+  accent: "205 100% 96%",
 };
 
 const colorPresets = [
-  { name: "Default", colors: { primary: "0 0% 0%", secondary: "30 30% 86%", accent: "30 35% 80%" } },
-  { name: "Ocean", colors: { primary: "199 89% 48%", secondary: "187 100% 42%", accent: "185 96% 90%" } },
-  { name: "Forest", colors: { primary: "142 76% 36%", secondary: "84 81% 44%", accent: "138 76% 90%" } },
-  { name: "Sunset", colors: { primary: "25 95% 53%", secondary: "38 92% 50%", accent: "30 100% 90%" } },
-  { name: "Royal", colors: { primary: "262 83% 58%", secondary: "280 87% 65%", accent: "270 100% 95%" } },
-  { name: "Rose", colors: { primary: "346 77% 50%", secondary: "330 81% 60%", accent: "340 100% 95%" } },
+  { name: "1145", colors: { primary: "213 52% 24%", secondary: "229 33% 97%", accent: "205 100% 96%" } },
+  { name: "Ocean", colors: { primary: "199 89% 34%", secondary: "187 40% 95%", accent: "185 96% 90%" } },
+  { name: "Forest", colors: { primary: "142 60% 26%", secondary: "84 30% 95%", accent: "138 60% 90%" } },
+  { name: "Sunset", colors: { primary: "25 80% 40%", secondary: "38 50% 96%", accent: "30 100% 90%" } },
+  { name: "Royal", colors: { primary: "262 60% 42%", secondary: "280 30% 96%", accent: "270 100% 95%" } },
+  { name: "Rose", colors: { primary: "346 65% 40%", secondary: "330 30% 96%", accent: "340 100% 95%" } },
 ];
+
+/** Bump when defaults change so stale saved palettes are dropped. */
+const THEME_STORAGE_KEY = "theme-colors-v2";
+
 
 const ThemeCustomizationContext = createContext<ThemeCustomizationContextType | undefined>(undefined);
 
