@@ -41,7 +41,7 @@ const MobileBottomNav: React.FC = () => {
               end={path === "/"}
               onClick={tap}
               className={({ isActive }) =>
-                `${itemClass} ${isActive ? "text-navy-900" : "text-muted-foreground"}`
+                `${itemClass} ${isActive ? "text-brand font-semibold" : "text-text-secondary hover:text-brand active:text-brand"}`
               }
             >
               {({ isActive }) => (
@@ -50,13 +50,13 @@ const MobileBottomNav: React.FC = () => {
                     <motion.span
                       layoutId="bottom-nav-indicator"
                       transition={{ type: "spring", stiffness: 480, damping: 36 }}
-                      className="absolute inset-x-4 top-1 h-9 rounded-full bg-cyan-soft"
+                      className="absolute inset-x-4 top-1 h-9 rounded-full bg-surface-selected"
                     />
                   )}
                   <span className="relative flex flex-col items-center gap-1">
                     <Icon
                       className={`h-[22px] w-[22px] transition-transform duration-200 ${
-                        isActive ? "stroke-[2.4] -translate-y-px text-primary" : ""
+                        isActive ? "stroke-[2.4] -translate-y-px text-brand" : ""
                       }`}
                     />
 
@@ -73,13 +73,13 @@ const MobileBottomNav: React.FC = () => {
             type="button"
             onClick={() => { tap(); toggleCart(); }}
             aria-label={`Cart, ${count} items`}
-            className={`${itemClass} text-muted-foreground active:scale-95`}
+            className={`${itemClass} text-text-secondary hover:text-brand active:text-brand active:scale-95`}
           >
             <span className="relative flex flex-col items-center gap-1">
               <span className="relative">
                 <ShoppingCart className="h-[22px] w-[22px]" />
                 {count > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-primary text-primary-foreground rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
+                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-brand text-brand-foreground rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
                     {count > 9 ? "9+" : count}
                   </span>
                 )}
@@ -93,7 +93,7 @@ const MobileBottomNav: React.FC = () => {
           <button
             type="button"
             onClick={() => { tap(); navigate(user ? "/dashboard" : "/login"); }}
-            className={`${itemClass} text-muted-foreground active:scale-95`}
+            className={`${itemClass} text-text-secondary hover:text-brand active:text-brand active:scale-95`}
           >
             <span className="relative flex flex-col items-center gap-1">
               <User className="h-[22px] w-[22px]" />

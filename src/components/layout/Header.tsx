@@ -108,8 +108,8 @@ const Header: React.FC = () => {
                       className={({ isActive }) =>
                         `flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                           isActive
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                            ? "bg-surface-selected text-brand font-semibold"
+                            : "text-text-secondary hover:text-brand hover:bg-surface-hover active:bg-surface-pressed"
                         }`
                       }
                     >
@@ -132,7 +132,7 @@ const Header: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden h-10 w-10 rounded-full press"
+                className="md:hidden h-10 w-10 rounded-full press text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed"
                 onClick={() => setMobileSearchOpen(true)}
               >
                 <Search className="h-[18px] w-[18px]" />
@@ -146,11 +146,11 @@ const Header: React.FC = () => {
                 onClick={toggleCart} 
                 variant="ghost" 
                 size="icon"
-                className="relative h-10 w-10 md:h-8 md:w-8 rounded-full press"
+                className="relative h-10 w-10 md:h-8 md:w-8 rounded-full press text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed"
               >
                 <ShoppingCart className="h-[18px] w-[18px] md:h-4 md:w-4" />
                 {items.length > 0 && (
-                  <span className="absolute top-1 right-1 md:-top-1 md:-right-1 bg-primary text-primary-foreground rounded-full text-[11px] font-bold min-w-[16px] h-4 px-1 flex items-center justify-center ring-2 ring-background">
+                  <span className="absolute top-1 right-1 md:-top-1 md:-right-1 bg-brand text-brand-foreground rounded-full text-[11px] font-bold min-w-[16px] h-4 px-1 flex items-center justify-center ring-2 ring-background">
                     {items.length}
                   </span>
                 )}
@@ -160,7 +160,7 @@ const Header: React.FC = () => {
               <div className="hidden md:block">
                 {user ? (
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap outline-none">
+                    <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium text-text-secondary hover:text-brand hover:bg-surface-hover transition-colors whitespace-nowrap outline-none">
                       <User className="h-3.5 w-3.5" />
                       <span className="hidden lg:inline">Profile</span>
                     </DropdownMenuTrigger>
@@ -217,7 +217,7 @@ const Header: React.FC = () => {
                 ) : (
                   <Link
                     to="/login"
-                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium text-text-secondary hover:text-brand hover:bg-surface-hover transition-colors whitespace-nowrap"
                   >
                     <LogIn className="h-3.5 w-3.5" />
                     <span className="hidden lg:inline">Sign In</span>
@@ -229,7 +229,7 @@ const Header: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden h-10 w-10 rounded-full press"
+                className="md:hidden h-10 w-10 rounded-full press text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed"
                 onClick={() => setMobileMenuOpen(true)}
               >
                 <Menu className="h-[18px] w-[18px]" />
