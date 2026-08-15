@@ -57,7 +57,25 @@ export default {
 					DEFAULT: 'hsl(var(--info))',
 					foreground: 'hsl(var(--info-foreground))'
 				},
-				disabled: 'hsl(var(--disabled))',
+				disabled: {
+					DEFAULT: 'hsl(var(--disabled))',
+					surface: 'hsl(var(--disabled-surface))',
+					foreground: 'hsl(var(--disabled-foreground))'
+				},
+				// ── 1145 interaction-state tokens ──
+				brand: {
+					DEFAULT: 'hsl(var(--brand))',
+					hover: 'hsl(var(--brand-hover))',
+					pressed: 'hsl(var(--brand-pressed))',
+					foreground: 'hsl(var(--brand-foreground))'
+				},
+				cta: {
+					DEFAULT: 'hsl(var(--cta))',
+					foreground: 'hsl(var(--cta-foreground))'
+				},
+				'text-secondary': 'hsl(var(--text-secondary))',
+				'text-muted': 'hsl(var(--text-muted))',
+
 				// ── 1145 brand scales ──
 				navy: {
 					DEFAULT: 'hsl(var(--navy-900))',
@@ -77,8 +95,13 @@ export default {
 				},
 				surface: {
 					DEFAULT: 'hsl(var(--surface))',
-					muted: 'hsl(var(--surface-muted))'
+					muted: 'hsl(var(--surface-muted))',
+					input: 'hsl(var(--surface-input))',
+					hover: 'hsl(var(--surface-hover))',
+					pressed: 'hsl(var(--surface-pressed))',
+					selected: 'hsl(var(--surface-selected))'
 				},
+
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
