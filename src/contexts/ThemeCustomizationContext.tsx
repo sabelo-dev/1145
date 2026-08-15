@@ -89,12 +89,12 @@ const hexToHsl = (hex: string): string => {
 
 export const ThemeCustomizationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [colors, setColorsState] = useState<ThemeColors>(() => {
-    const saved = localStorage.getItem("theme-colors");
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
     return saved ? JSON.parse(saved) : defaultColors;
   });
 
   useEffect(() => {
-    localStorage.setItem("theme-colors", JSON.stringify(colors));
+    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(colors));
     const root = document.documentElement;
     root.style.setProperty("--primary", colors.primary);
     root.style.setProperty("--secondary", colors.secondary);
