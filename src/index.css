@@ -30,18 +30,38 @@
     --popover: 0 0% 100%;
     --popover-foreground: 223 22% 16%;
 
-    /* Level 2 — Cyan is the principal action color */
-    --primary: 190 100% 50%;
-    --primary-foreground: 226 49% 8%;
+    /* ── 1145 interaction-state tokens (single source of truth) ── */
+    --brand: 213 52% 24%;          /* #1E3A5F  brand / selected / focus */
+    --brand-hover: 213 52% 20%;
+    --brand-pressed: 213 52% 15%;
+    --brand-foreground: 0 0% 100%;
 
-    --secondary: 216 29% 97%;   /* #F4F6F9 */
-    --secondary-foreground: 226 49% 8%;
+    --text-secondary: 217 9% 49%;  /* #737B89 */
+    --text-muted: 217 9% 64%;      /* #9AA1AD */
 
-    --muted: 216 29% 97%;
-    --muted-foreground: 221 11% 46%; /* #667085 */
+    --surface-input: 229 33% 97%;  /* #F6F7FB */
+    --surface-hover: 220 27% 96%;  /* #F1F3F7 */
+    --surface-pressed: 213 35% 93%;/* #E8EDF4 */
+    --surface-selected: 205 100% 96%; /* #EAF5FF */
 
-    --accent: 192 100% 95%;
-    --accent-foreground: 226 49% 8%;
+    --disabled-surface: 225 10% 90%;  /* #E2E4E9 */
+    --disabled-foreground: 217 9% 64%;/* #9AA1AD */
+
+    --cta: 0 0% 0%;                /* #000000 */
+    --cta-foreground: 0 0% 100%;
+
+    /* Level 2 — Brand navy is the principal action color */
+    --primary: var(--brand);
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 229 33% 97%;
+    --secondary-foreground: 223 22% 16%;
+
+    --muted: 229 33% 97%;
+    --muted-foreground: var(--text-secondary);
+
+    --accent: var(--surface-selected);
+    --accent-foreground: var(--brand);
 
     --destructive: 0 72% 51%;   /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
@@ -55,11 +75,12 @@
     --info: 221 83% 53%;        /* #2563EB */
     --info-foreground: 0 0% 100%;
 
-    --disabled: 218 15% 65%;    /* #98A2B3 */
+    --disabled: var(--disabled-foreground);
 
-    --border: 217 29% 91%;      /* #E2E7EF */
-    --input: 217 29% 91%;
-    --ring: 190 100% 50%;
+    --border: 220 11% 91%;      /* #E4E6EB */
+    --input: 220 11% 91%;
+    --ring: var(--brand);
+
 
     --radius: 0.75rem;          /* 12px cards */
 
