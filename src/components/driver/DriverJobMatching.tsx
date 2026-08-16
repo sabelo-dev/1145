@@ -97,7 +97,7 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
     switch (color) {
       case "red": return "from-red-500 to-red-600";
       case "orange": return "from-orange-500 to-orange-600";
-      case "yellow": return "from-amber-400 to-amber-500";
+      case "yellow": return "from-gold to-gold/10";
       default: return "from-emerald-500 to-emerald-600";
     }
   };
@@ -178,17 +178,17 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
             <Badge variant="secondary" className="rounded-full font-mono">{maxDistance} km</Badge>
           </div>
           <Slider value={[maxDistance]} onValueChange={(v) => setMaxDistance(v[0])} min={1} max={30} step={1} />
-          <div className="flex justify-between text-[10px] text-muted-foreground mt-1.5"><span>1 km</span><span>30 km</span></div>
+          <div className="flex justify-between text-[11px] text-muted-foreground mt-1.5"><span>1 km</span><span>30 km</span></div>
         </CardContent>
       </Card>
 
       {/* Location warning */}
       {!currentLocation && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-gold/10 bg-gold/10">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-amber-500/10">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <div className="p-2 rounded-xl bg-gold/10">
+                <AlertTriangle className="h-5 w-5 text-gold" />
               </div>
               <div>
                 <p className="font-semibold text-sm">Location Required</p>
@@ -236,8 +236,8 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
-                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 rounded-full">{match.distance_to_pickup.toFixed(1)} km away</Badge>
+                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Pickup</p>
+                        <Badge variant="outline" className="text-[11px] h-4 px-1.5 rounded-full">{match.distance_to_pickup.toFixed(1)} km away</Badge>
                       </div>
                       <p className="font-medium text-sm truncate">{formatAddress(match.job.pickup_address)}</p>
                       <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[11px] text-emerald-600" onClick={() => openGoogleMaps(match.job.pickup_address)}>
@@ -251,7 +251,7 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
                       <Navigation className="h-3.5 w-3.5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Deliver to</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Deliver to</p>
                       <p className="font-medium text-sm truncate">{formatAddress(match.job.delivery_address)}</p>
                     </div>
                   </div>
@@ -269,7 +269,7 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
                     {match.job.earnings && (
                       <Badge className="rounded-full bg-emerald-600 text-xs font-semibold">
                         R{match.job.earnings.toFixed(2)}
-                        {match.surge_multiplier > 1 && <Zap className="h-3 w-3 ml-1 text-amber-300" />}
+                        {match.surge_multiplier > 1 && <Zap className="h-3 w-3 ml-1 text-gold" />}
                       </Badge>
                     )}
                   </div>

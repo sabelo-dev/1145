@@ -12,25 +12,37 @@ async function md5Hash(input: string): Promise<string> {
   return crypto.createHash("md5").update(input).digest("hex");
 }
 
+function phpUrlencode(str: string): string {
+  return encodeURIComponent(str)
+    .replace(/!/g, "%21")
+    .replace(/'/g, "%27")
+    .replace(/\(/g, "%28")
+    .replace(/\)/g, "%29")
+    .replace(/\*/g, "%2A")
+    .replace(/~/g, "%7E")
+    .replace(/%20/g, "+")
+    .replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase());
+}
+
 // Verify PayFast signature
 async function verifySignature(data: Record<string, string>, passphrase: string): Promise<boolean> {
   const receivedSignature = data.signature;
-  
-  // Build parameter string excluding signature
+
   const paramString = Object.keys(data)
-    .filter(key => key !== "signature")
-    .map(key => `${key}=${encodeURIComponent(data[key]).replace(/%20/g, "+")}`)
+    .filter((key) => key !== "signature" && data[key] !== "" && data[key] !== null && data[key] !== undefined)
+    .sort()
+    .map((key) => `${key}=${phpUrlencode(String(data[key]).trim())}`)
     .join("&");
-  
-  const stringToHash = passphrase 
-    ? `${paramString}&passphrase=${passphrase}`
+
+  const stringToHash = passphrase
+    ? `${paramString}&passphrase=${phpUrlencode(passphrase)}`
     : paramString;
-  
+
   const calculatedSignature = await md5Hash(stringToHash);
-  
+
   console.log("Received signature:", receivedSignature);
   console.log("Calculated signature:", calculatedSignature);
-  
+
   return calculatedSignature === receivedSignature;
 }
 
@@ -324,6 +336,137 @@ serve(async (req) => {
         }
       }
     }
+
+    // Handle wallet deposits — DEPOSIT-{userId}-{ts}
+    if (paymentId && paymentId.startsWith("DEPOSIT-") && customStr1 === "wallet_deposit" && customStr2) {
+      const userId = customStr2;
+      if (paymentStatus === "COMPLETE") {
+        try {
+          await supabaseAdmin.rpc("credit_wallet", {
+            p_user_id: userId,
+            p_bucket: "available",
+            p_amount: amountGross,
+            p_type: "deposit",
+            p_provider: "payfast",
+            p_provider_reference: pfPaymentId,
+            p_related_type: "deposit",
+            p_related_id: paymentId,
+            p_metadata: { m_payment_id: paymentId },
+          });
+          await supabaseAdmin.from("user_notifications").insert({
+            user_id: userId, type: "deposit_completed",
+            title: "Deposit successful",
+            message: `R${amountGross.toFixed(2)} added to your 1145 Wallet.`,
+          });
+          // Capture the token if provided (subscription_type=1/2 attaches a token on future ITNs)
+          if (data.token) {
+            await supabaseAdmin.from("payment_instruments").upsert({
+              user_id: userId, provider: "payfast", provider_token: data.token,
+              brand: data.card_type || null, last4: data.card_last_four || null,
+              status: "active", verified_at: new Date().toISOString(),
+            }, { onConflict: "provider,provider_token" });
+          }
+          console.log(`Wallet credited: ${userId} +R${amountGross}`);
+        } catch (err) {
+          console.error("Failed to credit wallet:", err);
+        }
+      }
+    }
+
+    // Handle merchant subscription payments — SUB-{vendorId}-{ts}
+    if (customStr2 === "subscription" && customStr1) {
+      const paymentRecordId = customStr1;
+      const { data: subPayment } = await supabaseAdmin
+        .from("subscription_payments")
+        .select("*")
+        .eq("id", paymentRecordId)
+        .maybeSingle();
+
+      if (subPayment) {
+        if (paymentStatus === "COMPLETE") {
+          const months = subPayment.billing_period === "yearly" ? 12 : 1;
+          const expires = new Date();
+          expires.setMonth(expires.getMonth() + months);
+
+          await supabaseAdmin
+            .from("subscription_payments")
+            .update({
+              status: "completed",
+              paid_at: new Date().toISOString(),
+              payfast_payment_id: pfPaymentId,
+            })
+            .eq("id", paymentRecordId);
+
+          const { data: vendorRow } = await supabaseAdmin
+            .from("vendors")
+            .select("id, user_id, subscription_tier, subscription_status")
+            .eq("id", subPayment.vendor_id)
+            .maybeSingle();
+
+          await supabaseAdmin
+            .from("vendors")
+            .update({
+              subscription_tier: subPayment.tier,
+              subscription_status: "active",
+              subscription_expires_at: expires.toISOString(),
+            })
+            .eq("id", subPayment.vendor_id);
+
+          await supabaseAdmin.from("vendor_subscription_audit_log").insert({
+            vendor_id: subPayment.vendor_id,
+            changed_by: vendorRow?.user_id ?? subPayment.vendor_id,
+            change_type: "upgrade",
+            old_tier: vendorRow?.subscription_tier ?? null,
+            new_tier: subPayment.tier,
+            old_status: vendorRow?.subscription_status ?? null,
+            new_status: "active",
+            reason: `PayFast subscription payment ${pfPaymentId}`,
+          });
+
+          if (vendorRow?.user_id) {
+            await supabaseAdmin.from("user_notifications").insert({
+              user_id: vendorRow.user_id,
+              type: "subscription_activated",
+              title: `${String(subPayment.tier).toUpperCase()} plan active`,
+              message: `Your payment of R${amountGross.toFixed(2)} was successful. Your plan renews on ${expires.toLocaleDateString()}.`,
+            });
+          }
+
+          console.log(`Subscription ${paymentRecordId} activated for vendor ${subPayment.vendor_id}`);
+        } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
+          await supabaseAdmin
+            .from("subscription_payments")
+            .update({ status: paymentStatus.toLowerCase(), payfast_payment_id: pfPaymentId })
+            .eq("id", paymentRecordId)
+            .eq("status", "pending");
+          console.log(`Subscription payment ${paymentRecordId} ${paymentStatus}`);
+        }
+      }
+    }
+
+    // Handle card linking — LINKCARD-{userId}-{ts}
+
+    if (paymentId && paymentId.startsWith("LINKCARD-") && customStr1 === "link_card" && customStr2) {
+      const userId = customStr2;
+      if (paymentStatus === "COMPLETE" && data.token) {
+        try {
+          await supabaseAdmin.from("payment_instruments").upsert({
+            user_id: userId, provider: "payfast", provider_token: data.token,
+            brand: data.card_type || null, last4: data.card_last_four || null,
+            holder_name: data.name_first ? `${data.name_first} ${data.name_last || ""}`.trim() : null,
+            status: "active", verified_at: new Date().toISOString(),
+          }, { onConflict: "provider,provider_token" });
+          await supabaseAdmin.from("user_notifications").insert({
+            user_id: userId, type: "card_linked",
+            title: "Card linked", message: `Card ending ${data.card_last_four || "••••"} was added to your wallet.`,
+          });
+          console.log(`Card linked for ${userId}`);
+        } catch (err) {
+          console.error("Failed to store card token:", err);
+        }
+      }
+    }
+    
     
     // Return OK to PayFast
     return new Response("OK", { 

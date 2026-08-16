@@ -126,6 +126,9 @@ const WalletPage: React.FC = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-bold tracking-tight">Wallet</h1>
+          <Button variant="outline" size="sm" className="ml-auto" onClick={() => navigate("/fintech")}>
+            Cards & Banks
+          </Button>
         </div>
       </div>
 
@@ -153,7 +156,7 @@ const WalletPage: React.FC = () => {
 
         {/* Content Sections */}
         <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
-          <TabsList className="grid w-full grid-cols-3 h-10">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3 h-10">
             <TabsTrigger value="overview" className="text-xs font-medium">Activity</TabsTrigger>
             <TabsTrigger value="send" className="text-xs font-medium">Send</TabsTrigger>
             <TabsTrigger value="trade" className="text-xs font-medium gap-1.5">

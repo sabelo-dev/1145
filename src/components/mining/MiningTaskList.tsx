@@ -64,7 +64,7 @@ const rewardColors: Record<string, string> = {
   low: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
   medium: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
   high: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  very_high: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+  very_high: 'bg-gold text-gold dark:bg-gold/15 dark:text-gold'
 };
 
 interface MiningTaskListProps {
@@ -231,7 +231,7 @@ export function MiningTaskList({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="affiliate">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3">
               <TabsTrigger value="affiliate">Affiliate</TabsTrigger>
               <TabsTrigger value="engagement">Engagement</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>

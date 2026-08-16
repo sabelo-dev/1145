@@ -47,9 +47,9 @@ const services = [
     name: "Transact",
     description: "Manage your money, payments, and transfers",
     icon: Wallet,
-    gradient: "from-amber-500 to-orange-500",
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-500",
+    gradient: "from-gold/10 to-orange-500",
+    iconBg: "bg-gold/10",
+    iconColor: "text-gold",
     route: "/wallet",
     tag: null,
   },
@@ -145,7 +145,7 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                 className="flex items-center gap-2 mb-6"
               >
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                  <Sparkles className="h-3.5 w-3.5 text-gold" />
                   <span className="text-xs font-medium text-white/90">Your Day To Day App</span>
                 </div>
               </motion.div>
@@ -169,7 +169,7 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
               >
                 Everything you need,
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-300">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold to-orange-300">
                   one platform.
                 </span>
               </motion.h1>
@@ -222,15 +222,16 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* Highlights Bar */}
       <div className="container mx-auto px-4 -mt-8 relative z-20 mb-8">
         <div className="glass rounded-2xl p-4 md:p-5 shadow-lg">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             {highlights.map((h) => (
-              <div key={h.label} className="flex items-center gap-3 justify-center">
+              <div key={h.label} className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3 justify-center text-center sm:text-left">
+
                 <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                   <h.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[10px] sm:text-xs font-semibold text-foreground">{h.label}</p>
-                  <p className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:block">{h.desc}</p>
+                  <p className="text-[11px] sm:text-xs font-semibold text-foreground">{h.label}</p>
+                  <p className="text-[11px] sm:text-[11px] text-muted-foreground hidden sm:block">{h.desc}</p>
                 </div>
               </div>
             ))}
@@ -265,7 +266,7 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <Icon className={`h-5 w-5 md:h-6 md:w-6 ${service.iconColor}`} />
                     </div>
                     {service.tag && (
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r ${service.gradient} text-white`}>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r ${service.gradient} text-white`}>
                         {service.tag}
                       </span>
                     )}

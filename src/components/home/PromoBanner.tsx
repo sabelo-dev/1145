@@ -61,7 +61,7 @@ const PromoBanner: React.FC = () => {
               <span className="text-xs font-bold uppercase tracking-wide">Flash Sale</span>
             </div>
             <p className="text-sm md:text-base font-medium">
-              Up to <span className="font-bold text-yellow-300">50% OFF</span> on selected items!
+              Up to <span className="font-bold text-gold">50% OFF</span> on selected items!
             </p>
           </div>
 

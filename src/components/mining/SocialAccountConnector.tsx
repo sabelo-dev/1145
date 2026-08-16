@@ -97,11 +97,11 @@ export function SocialAccountConnector({ accounts, onConnect, onDisconnect }: So
                   
                   {isConnected ? (
                     <>
-                      <Badge variant="secondary" className="mt-2 text-[10px]">
+                      <Badge variant="secondary" className="mt-2 text-[11px]">
                         <Check className="h-3 w-3 mr-1" />
                         Connected
                       </Badge>
-                      <p className="text-[10px] text-muted-foreground mt-1 truncate">
+                      <p className="text-[11px] text-muted-foreground mt-1 truncate">
                         @{account.username}
                       </p>
                       <Button
@@ -117,7 +117,7 @@ export function SocialAccountConnector({ accounts, onConnect, onDisconnect }: So
                       </Button>
                     </>
                   ) : (
-                    <p className="text-[10px] text-muted-foreground mt-2">
+                    <p className="text-[11px] text-muted-foreground mt-2">
                       Click to connect
                     </p>
                   )}

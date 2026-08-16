@@ -13,7 +13,7 @@ export function DailyMiningProgress({ dailyLimit }: DailyMiningProgressProps) {
   const isAtLimit = dailyLimit.remaining <= 0;
 
   return (
-    <Card className={isAtLimit ? 'border-yellow-500/50' : ''}>
+    <Card className={isAtLimit ? 'border-gold/50' : ''}>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Pickaxe className="h-5 w-5" />
@@ -30,7 +30,7 @@ export function DailyMiningProgress({ dailyLimit }: DailyMiningProgressProps) {
           </div>
           <div className="text-right">
             <div className="flex items-center gap-1 text-sm">
-              <Zap className="h-4 w-4 text-yellow-500" />
+              <Zap className="h-4 w-4 text-gold" />
               <span className="font-medium">{dailyLimit.tasks_completed}</span>
             </div>
             <p className="text-xs text-muted-foreground">tasks done</p>
@@ -43,7 +43,7 @@ export function DailyMiningProgress({ dailyLimit }: DailyMiningProgressProps) {
         />
 
         {isAtLimit ? (
-          <p className="text-sm text-yellow-600 dark:text-yellow-400 text-center">
+          <p className="text-sm text-gold dark:text-gold text-center">
             Daily limit reached! Come back tomorrow for more mining.
           </p>
         ) : (

@@ -47,3 +47,28 @@ verify_jwt = false
 
 [functions.social-analytics]
 verify_jwt = false
+
+[functions.fintech-wallet]
+verify_jwt = true
+
+[functions.fintech-link-card]
+verify_jwt = true
+
+[functions.fintech-remove-card]
+verify_jwt = true
+
+[functions.fintech-link-bank]
+verify_jwt = true
+
+[functions.fintech-deposit]
+verify_jwt = true
+
+[functions.fintech-withdraw]
+verify_jwt = true
+
+[functions.fintech-admin]
+verify_jwt = true
+
+[functions.merchant-subscription]
+verify_jwt = true
+

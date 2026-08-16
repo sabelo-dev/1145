@@ -229,7 +229,7 @@ const VendorReviews = () => {
     switch (sentiment) {
       case "positive": return "text-green-600";
       case "negative": return "text-red-600";
-      case "neutral": return "text-yellow-600";
+      case "neutral": return "text-gold";
       default: return "text-gray-600";
     }
   };
@@ -274,7 +274,7 @@ const VendorReviews = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
-            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+            <Star className="h-4 w-4 text-gold fill-gold" />
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -328,7 +328,7 @@ const VendorReviews = () => {
                 <div key={rating} className="flex items-center gap-3">
                   <div className="flex items-center gap-1 w-20">
                     <span className="font-medium">{rating}</span>
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-4 w-4 fill-gold text-gold" />
                   </div>
                   <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
                     <div 
@@ -370,15 +370,15 @@ const VendorReviews = () => {
                 </span>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gold/10 dark:bg-gold/15 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-yellow-600" />
+                  <Clock className="h-5 w-5 text-gold" />
                   <div>
-                    <div className="font-medium text-yellow-900 dark:text-yellow-100">Neutral</div>
-                    <div className="text-xs text-yellow-700 dark:text-yellow-300">{analytics.neutralCount} reviews</div>
+                    <div className="font-medium text-gold dark:text-gold">Neutral</div>
+                    <div className="text-xs text-gold dark:text-gold">{analytics.neutralCount} reviews</div>
                   </div>
                 </div>
-                <span className="text-2xl font-bold text-yellow-600">
+                <span className="text-2xl font-bold text-gold">
                   {analytics.totalReviews > 0 ? ((analytics.neutralCount / analytics.totalReviews) * 100).toFixed(0) : 0}%
                 </span>
               </div>

@@ -22,7 +22,7 @@ export function UCoinDashboard() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <Coins className="h-16 w-16 mx-auto mb-4 text-amber-500 opacity-50" />
+        <Coins className="h-16 w-16 mx-auto mb-4 text-gold opacity-50" />
         <h2 className="text-xl font-semibold mb-2">Sign in to access Ubuntu Coin</h2>
         <p className="text-muted-foreground">Create an account or sign in to start earning and redeeming UCoin rewards.</p>
       </div>
@@ -37,7 +37,7 @@ export function UCoinDashboard() {
       </div>
 
       <Tabs defaultValue="mining" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-5">
           <TabsTrigger value="mining" className="flex items-center gap-2">
             <Pickaxe className="h-4 w-4" />
             <span className="hidden sm:inline">Mining</span>

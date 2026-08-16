@@ -112,7 +112,7 @@ export function BrandSuccessDashboard({ performance, tier, previousPerformance }
       value: performance.average_rating?.toFixed(1) || 'N/A',
       change: calculateChange(performance.average_rating, previousPerformance?.average_rating || null),
       icon: Star,
-      color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+      color: 'bg-gold/10 text-gold dark:bg-gold/15 dark:text-gold',
       suffix: performance.average_rating ? '/5' : '',
       tooltip: 'Average customer rating'
     },
@@ -209,7 +209,7 @@ export function BrandSuccessDashboard({ performance, tier, previousPerformance }
               <div className="flex items-center gap-2">
                 <Progress 
                   value={(performance.returned_orders / Math.max(performance.total_orders, 1)) * 100} 
-                  className="w-32 h-2 [&>div]:bg-amber-500"
+                  className="w-32 h-2 [&>div]:bg-gold/10"
                 />
                 <span className="text-sm font-medium w-12 text-right">{performance.returned_orders}</span>
               </div>

@@ -355,7 +355,7 @@ const ShopPage: React.FC = () => {
               {/* Sort dropdown for desktop */}
               <div className="hidden md:block">
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue placeholder="Sort By" />
                   </SelectTrigger>
                   <SelectContent>

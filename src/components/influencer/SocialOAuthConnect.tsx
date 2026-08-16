@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Session } from '@supabase/supabase-js';
+import { getAppUrl } from '@/lib/appUrl';
 
 // Platform icons as inline SVGs to avoid style prop issues
 const FacebookIcon = ({ className }: { className?: string }) => (
@@ -387,7 +388,7 @@ export const SocialOAuthConnect: React.FC = () => {
                         {isConnecting ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         ) : needsSetup ? (
-                          <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
+                          <AlertCircle className="h-4 w-4 mr-2 text-gold" />
                         ) : null}
                         {needsSetup ? 'Setup Required' : 'Connect'}
                       </Button>
@@ -424,7 +425,7 @@ export const SocialOAuthConnect: React.FC = () => {
                                   {account.page_name || account.account_handle || account.account_id}
                                 </div>
                                 {account.token_expires_at && (
-                                  <div className={`text-xs ${expiring ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                                  <div className={`text-xs ${expiring ? 'text-gold' : 'text-muted-foreground'}`}>
                                     {expiring && <AlertCircle className="h-3 w-3 inline mr-1" />}
                                     Expires {format(new Date(account.token_expires_at), 'MMM d, yyyy')}
                                   </div>

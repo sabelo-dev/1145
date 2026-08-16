@@ -11,12 +11,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface SubscriptionStatusCardProps {
   vendorId?: string;
   onUpgrade: () => void;
+  onCancel?: () => void;
   className?: string;
 }
 
 const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
   vendorId,
   onUpgrade,
+  onCancel,
   className,
 }) => {
   const {
@@ -163,9 +165,16 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
                     Thank you for being a Gold seller!
                   </p>
                 </div>
-                <Button variant="outline" size="sm">
-                  Manage Subscription
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={onUpgrade}>
+                    Change plan
+                  </Button>
+                  {onCancel && (
+                    <Button variant="ghost" size="sm" onClick={onCancel}>
+                      Cancel
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -3,148 +3,394 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+const jsonHeaders = {
+  ...corsHeaders,
+  "Content-Type": "application/json",
+};
+
+function response(
+  body: Record<string, unknown>,
+  status = 200,
+) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: jsonHeaders,
+  });
+}
+
+serve(async (req: Request) => {
+  // ---------------------------------------------------------
+  // CORS
+  // ---------------------------------------------------------
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
+  }
+
+  // Only POST is allowed
+  if (req.method !== "POST") {
+    return response(
+      {
+        success: false,
+        error: "Method not allowed",
+      },
+      405,
+    );
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // ---------------------------------------------------------
+    // Environment variables
+    // ---------------------------------------------------------
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get(
+      "SUPABASE_SERVICE_ROLE_KEY",
+    );
 
-    // Create admin client with service role key
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase environment variables");
 
-    // Verify the requesting user is an admin
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "No authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return response(
+        {
+          success: false,
+          error: "Server configuration error",
+        },
+        500,
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user: requestingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    // ---------------------------------------------------------
+    // Admin Supabase client
+    // ---------------------------------------------------------
+    const supabaseAdmin = createClient(
+      supabaseUrl,
+      supabaseServiceKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    );
+
+    // ---------------------------------------------------------
+    // Authenticate requesting user
+    // ---------------------------------------------------------
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader) {
+      return response(
+        {
+          success: false,
+          error: "No authorization header",
+        },
+        401,
+      );
+    }
+
+    if (!authHeader.startsWith("Bearer ")) {
+      return response(
+        {
+          success: false,
+          error: "Invalid authorization header",
+        },
+        401,
+      );
+    }
+
+    const token = authHeader.substring(7).trim();
+
+    if (!token) {
+      return response(
+        {
+          success: false,
+          error: "Missing access token",
+        },
+        401,
+      );
+    }
+
+    const {
+      data: { user: requestingUser },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !requestingUser) {
-      return new Response(
-        JSON.stringify({ error: "Invalid token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      console.error("Authentication failed:", authError);
+
+      return response(
+        {
+          success: false,
+          error: "Invalid or expired authentication token",
+        },
+        401,
       );
     }
 
-    // Check if requesting user is an admin
-    const { data: roleData, error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", requestingUser.id)
-      .eq("role", "admin")
-      .maybeSingle();
+    // ---------------------------------------------------------
+    // Verify requesting user is an administrator
+    // ---------------------------------------------------------
+    const { data: roleData, error: roleError } =
+      await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", requestingUser.id)
+        .eq("role", "admin")
+        .maybeSingle();
 
-    if (roleError || !roleData) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized - Admin access required" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    if (roleError) {
+      console.error("Failed to verify administrator role:", roleError);
+
+      return response(
+        {
+          success: false,
+          error: "Unable to verify administrator privileges",
+        },
+        500,
       );
     }
 
-    // Get the user ID to delete from the request body
-    const { userId } = await req.json();
+    if (!roleData) {
+      console.warn(
+        `Unauthorized deletion attempt by user ${requestingUser.id}`,
+      );
+
+      return response(
+        {
+          success: false,
+          error: "Unauthorized - Admin access required",
+        },
+        403,
+      );
+    }
+
+    // ---------------------------------------------------------
+    // Parse request body
+    // ---------------------------------------------------------
+    let body: { userId?: string };
+
+    try {
+      body = await req.json();
+    } catch {
+      return response(
+        {
+          success: false,
+          error: "Invalid JSON request body",
+        },
+        400,
+      );
+    }
+
+    const userId = body.userId?.trim();
 
     if (!userId) {
-      return new Response(
-        JSON.stringify({ error: "User ID is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return response(
+        {
+          success: false,
+          error: "User ID is required",
+        },
+        400,
       );
     }
 
-    // Prevent self-deletion
+    // Basic UUID validation
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    if (!uuidRegex.test(userId)) {
+      return response(
+        {
+          success: false,
+          error: "Invalid user ID format",
+        },
+        400,
+      );
+    }
+
+    // ---------------------------------------------------------
+    // Prevent administrator self-deletion
+    // ---------------------------------------------------------
     if (userId === requestingUser.id) {
-      return new Response(
-        JSON.stringify({ error: "Cannot delete your own account" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return response(
+        {
+          success: false,
+          error: "Cannot delete your own administrator account",
+        },
+        400,
       );
     }
 
-    console.log("Starting deletion for user:", userId);
+    // ---------------------------------------------------------
+    // Verify target user exists
+    // ---------------------------------------------------------
+    const {
+      data: targetUser,
+      error: targetUserError,
+    } = await supabaseAdmin.auth.admin.getUserById(userId);
 
-    // Delete related data in order (handle foreign key constraints)
-    // Delete user roles
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
-    console.log("Deleted user_roles");
-    
-    // Delete influencer profile if exists
-    await supabaseAdmin.from("influencer_profiles").delete().eq("user_id", userId);
-    console.log("Deleted influencer_profiles");
-    
-    // Delete approved social accounts
-    await supabaseAdmin.from("approved_social_accounts").delete().eq("user_id", userId);
-    console.log("Deleted approved_social_accounts");
-    
-    // Delete social media posts created by user
-    await supabaseAdmin.from("social_media_posts").delete().eq("created_by", userId);
-    console.log("Deleted social_media_posts");
-    
-    // Delete the profile
-    await supabaseAdmin.from("profiles").delete().eq("id", userId);
-    console.log("Deleted profile");
+    if (targetUserError) {
+      console.error(
+        "Failed to retrieve target user:",
+        targetUserError,
+      );
 
-    // Finally, try to delete the user from auth.users
-    // Handle case where auth user may already be deleted but profile still exists
-    try {
-      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+      return response(
+        {
+          success: false,
+          error: "Unable to verify target user",
+        },
+        500,
+      );
+    }
 
-      if (deleteError) {
-        // Check if this is a "user not found" error - that's okay, we've cleaned up the profile data
-        const errorMessage = deleteError.message?.toLowerCase() || "";
-        const errorCode = (deleteError as any).code || "";
-        
-        if (errorMessage.includes("user not found") || errorCode === "user_not_found" || (deleteError as any).status === 404) {
-          console.log("Auth user already deleted or not found, profile cleanup completed");
-        } else {
-          // This is an actual error we should report
-          console.error("Error deleting user from auth:", deleteError);
-          return new Response(
-            JSON.stringify({ error: deleteError.message }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      } else {
-        console.log("Successfully deleted auth user");
-      }
-    } catch (authDeleteError: any) {
-      // Catch any thrown errors from the auth delete
-      const errorMessage = authDeleteError?.message?.toLowerCase() || "";
-      if (errorMessage.includes("user not found") || errorMessage.includes("not found")) {
-        console.log("Auth user not found (caught exception), profile cleanup completed");
-      } else {
-        console.error("Exception deleting auth user:", authDeleteError);
-        return new Response(
-          JSON.stringify({ error: authDeleteError?.message || "Failed to delete auth user" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    if (!targetUser?.user) {
+      return response(
+        {
+          success: false,
+          error: "User not found",
+        },
+        404,
+      );
+    }
+
+    console.log(
+      `Admin ${requestingUser.id} starting deletion for user ${userId}`,
+    );
+
+    // ---------------------------------------------------------
+    // Helper for safe database deletion
+    // ---------------------------------------------------------
+    async function deleteByUserId(
+      table: string,
+      column: string,
+    ) {
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .eq(column, userId);
+
+      if (error) {
+        console.error(
+          `Failed deleting from ${table}:`,
+          error,
+        );
+
+        throw new Error(
+          `Failed to delete related data from ${table}: ${error.message}`,
         );
       }
+
+      console.log(`Deleted related records from ${table}`);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: "User deleted successfully" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    // ---------------------------------------------------------
+    // Delete application-owned data
+    //
+    // IMPORTANT:
+    // Only include tables here that are safe to delete.
+    // Financial/audit records should generally NOT be deleted.
+    // ---------------------------------------------------------
+
+    await deleteByUserId("user_roles", "user_id");
+
+    await deleteByUserId("influencer_profiles", "user_id");
+
+    await deleteByUserId(
+      "approved_social_accounts",
+      "user_id",
     );
-  } catch (error: any) {
-    console.error("Error in delete-user function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+
+    await deleteByUserId(
+      "social_media_posts",
+      "created_by",
+    );
+
+    // ---------------------------------------------------------
+    // Delete profile
+    // ---------------------------------------------------------
+    const {
+      error: profileDeleteError,
+    } = await supabaseAdmin
+      .from("profiles")
+      .delete()
+      .eq("id", userId);
+
+    if (profileDeleteError) {
+      console.error(
+        "Failed deleting profile:",
+        profileDeleteError,
+      );
+
+      throw new Error(
+        `Failed to delete user profile: ${profileDeleteError.message}`,
+      );
+    }
+
+    console.log(`Deleted profile for user ${userId}`);
+
+    // ---------------------------------------------------------
+    // Finally delete auth.users
+    // ---------------------------------------------------------
+    const {
+      error: authDeleteError,
+    } = await supabaseAdmin.auth.admin.deleteUser(
+      userId,
+    );
+
+    if (authDeleteError) {
+      console.error(
+        "Failed deleting authentication user:",
+        authDeleteError,
+      );
+
+      return response(
+        {
+          success: false,
+          error:
+            "Application data was removed, but the authentication account could not be deleted",
+          details: authDeleteError.message,
+          userId,
+        },
+        500,
+      );
+    }
+
+    console.log(
+      `Successfully deleted auth user ${userId}`,
+    );
+
+    // ---------------------------------------------------------
+    // Final response
+    // ---------------------------------------------------------
+    return response({
+      success: true,
+      message: "User deleted successfully",
+      userId,
+    });
+  } catch (error: unknown) {
+    console.error(
+      "Unexpected error in delete-user function:",
+      error,
+    );
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unexpected error occurred";
+
+    return response(
+      {
+        success: false,
+        error: message,
+      },
+      500,
     );
   }
 });

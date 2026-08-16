@@ -130,9 +130,9 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
               </span>
             </div>
             {offer.surge_multiplier > 1 && (
-              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 backdrop-blur-sm px-3 py-1">
-                <Zap className="h-3.5 w-3.5 text-amber-300" />
-                <span className="text-xs font-semibold text-amber-200">
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-gold/20 backdrop-blur-sm px-3 py-1">
+                <Zap className="h-3.5 w-3.5 text-gold" />
+                <span className="text-xs font-semibold text-gold">
                   {offer.surge_multiplier}x surge active
                 </span>
               </div>
@@ -169,7 +169,7 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
                   <MapPin className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pickup</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Pickup</p>
                   <p className="font-medium text-sm truncate">{formatAddress(offer.job.pickup_address)}</p>
                 </div>
               </div>
@@ -179,7 +179,7 @@ const JobOfferModal: React.FC<JobOfferModalProps> = ({
                   <Navigation className="h-4 w-4 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Drop-off</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Drop-off</p>
                   <p className="font-medium text-sm truncate">{formatAddress(offer.job.delivery_address)}</p>
                 </div>
               </div>

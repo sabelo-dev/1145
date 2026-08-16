@@ -81,12 +81,12 @@ export function GrowthTools({
   return (
     <div className="space-y-6">
       {/* Credits Balance */}
-      <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20">
+      <Card className="bg-gradient-to-br from-gold/10 to-orange-500/10 border-gold/10">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-amber-500/20">
-                <Coins className="h-6 w-6 text-amber-500" />
+              <div className="p-3 rounded-full bg-gold/10">
+                <Coins className="h-6 w-6 text-gold" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Promo Credits</p>
@@ -294,7 +294,7 @@ export function GrowthTools({
               </div>
               <div className="flex justify-between">
                 <span>Cost:</span>
-                <span className="font-bold text-amber-600">{selectedPlacement.cost} credits</span>
+                <span className="font-bold text-gold">{selectedPlacement.cost} credits</span>
               </div>
             </div>
             {(promoCredits?.balance || 0) < selectedPlacement.cost && (

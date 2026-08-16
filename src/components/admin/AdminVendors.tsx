@@ -187,9 +187,9 @@ const AdminVendors: React.FC = () => {
 
   const getTierBadgeColor = (tier: string | undefined) => {
     switch (tier) {
-      case "gold": return "bg-yellow-500 text-black";
+      case "gold": return "bg-gold/10 text-black";
       case "silver": return "bg-slate-400 text-white";
-      case "bronze": return "bg-amber-700 text-white";
+      case "bronze": return "bg-gold text-white";
       default: return "bg-gray-500 text-white";
     }
   };
@@ -245,7 +245,7 @@ const AdminVendors: React.FC = () => {
                       : `${DEFAULT_PLATFORM_MARKUP_PERCENTAGE}%`}
                   </span>
                   {vendor.custom_markup_percentage !== null && vendor.custom_markup_percentage !== undefined && (
-                    <Badge variant="outline" className="ml-1 text-[10px]">Custom</Badge>
+                    <Badge variant="outline" className="ml-1 text-[11px]">Custom</Badge>
                   )}
                 </TableCell>
                 <TableCell>

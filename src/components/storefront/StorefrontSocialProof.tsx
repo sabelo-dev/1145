@@ -93,7 +93,7 @@ const StorefrontSocialProof: React.FC<StorefrontSocialProofProps> = ({
                           key={s}
                           className={`h-3.5 w-3.5 ${
                             s <= t.rating
-                              ? "fill-yellow-400 text-yellow-400"
+                              ? "fill-gold text-gold"
                               : "text-muted"
                           }`}
                         />

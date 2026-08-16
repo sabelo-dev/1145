@@ -14,8 +14,17 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Star, ArrowRight, Medal, Gem, Infinity } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type TierType = 'starter' | 'bronze' | 'silver' | 'gold';
 
@@ -51,7 +60,7 @@ const tierConfig: Record<TierType, {
     icon: Medal,
     label: 'Bronze',
     description: 'For growing sellers',
-    color: 'text-amber-700',
+    color: 'text-gold',
     features: [
       '100 product listings',
       '5 promotions/month',
@@ -81,7 +90,7 @@ const tierConfig: Record<TierType, {
     icon: Crown,
     label: 'Gold',
     description: 'For top performers',
-    color: 'text-yellow-600',
+    color: 'text-gold',
     features: [
       'Unlimited products',
       'Unlimited promotions',
@@ -114,25 +123,35 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
   const [activeTab, setActiveTab] = useState<'simple' | 'detailed'>('simple');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
-  const handleSelectPlan = async (tier: TierType, billing: 'monthly' | 'yearly') => {
-    if (tier === currentTier) return;
-    
+  const [pendingDowngrade, setPendingDowngrade] = useState<TierType | null>(null);
+  const tiers: TierType[] = ['starter', 'bronze', 'silver', 'gold'];
+
+  const applyPlan = async (tier: TierType, billing: 'monthly' | 'yearly') => {
     try {
       setLoading(true);
       await onUpgrade(tier, billing);
-      toast.success(`Welcome to ${tierConfig[tier].label}! Enjoy your new features.`);
-      onClose();
     } catch (error) {
-      toast.error('Failed to change plan. Please try again.');
+      // Errors are surfaced by the caller
     } finally {
       setLoading(false);
+      setPendingDowngrade(null);
     }
   };
 
-  const tiers: TierType[] = ['starter', 'bronze', 'silver', 'gold'];
+  const handleSelectPlan = async (tier: TierType, billing: 'monthly' | 'yearly') => {
+    if (tier === currentTier) return;
+    const isDowngrade = tiers.indexOf(tier) < tiers.indexOf(currentTier);
+    if (isDowngrade) {
+      setPendingDowngrade(tier);
+      return;
+    }
+    await applyPlan(tier, billing);
+  };
+
   const currentTierIndex = tiers.indexOf(currentTier);
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -168,7 +187,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
             {/* Plans Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {tiers.map((tier, index) => {
-                const config = tierConfig[tier];
+                const config = tierConfig[tier] ?? tierConfig.starter;
                 const Icon = config.icon;
                 const price = pricing[tier][billingPeriod];
                 const isCurrentTier = tier === currentTier;
@@ -182,7 +201,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                       'relative',
                       isCurrentTier && 'ring-2 ring-primary',
                       isRecommended && 'border-primary',
-                      tier === 'gold' && 'border-yellow-400/50'
+                      tier === 'gold' && 'border-gold/50'
                     )}
                   >
                     {isRecommended && (
@@ -237,7 +256,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                         size="sm"
                         className={cn(
                           "w-full text-xs",
-                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600'
                         )}
                         variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
                         disabled={isCurrentTier || loading}
@@ -289,6 +308,31 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
         </Tabs>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={!!pendingDowngrade} onOpenChange={(open) => !open && setPendingDowngrade(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Downgrade to {pendingDowngrade ? (tierConfig[pendingDowngrade] ?? tierConfig.starter).label : ''}?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            You'll immediately lose the benefits of your current {(tierConfig[currentTier] ?? tierConfig.starter).label} plan,
+            including higher product limits, lower commission and faster payouts. Listings above the new
+            limit stay visible but you won't be able to add more until you're under the limit.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={loading}>Keep my plan</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={loading}
+            onClick={() => pendingDowngrade && applyPlan(pendingDowngrade, billingPeriod)}
+          >
+            {loading ? 'Processing…' : 'Confirm downgrade'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 

@@ -30,11 +30,22 @@ interface AuthEmailRequest {
 const getEmailTemplate = (
   actionType: string,
   userName: string,
-  actionUrl: string
+  actionUrl: string,
+  token?: string
 ): { subject: string; html: string } => {
+  const otpBlock = token
+    ? `
+      <p style="margin: 24px 0 8px; text-align: center; color: #333;">Your 6-digit confirmation code:</p>
+      <p style="text-align: center; margin: 0 0 24px;">
+        <span style="display: inline-block; font-family: 'Courier New', monospace; font-size: 32px; letter-spacing: 12px; padding: 14px 24px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; color: #111;">${token}</span>
+      </p>
+      <p style="text-align: center; font-size: 12px; color: #666; margin-top: 0;">This code expires in 1 hour.</p>
+    `
+    : "";
+
   const templates: Record<string, { subject: string; html: string }> = {
     signup: {
-      subject: "Confirm your 1145  account",
+      subject: "Confirm your 1145 account",
       html: `
         <!DOCTYPE html>
         <html>
@@ -55,7 +66,9 @@ const getEmailTemplate = (
             </div>
             <div class="content">
               <p>Hi ${userName},</p>
-              <p>Thank you for signing up! Please confirm your email address to get started.</p>
+              <p>Thanks for signing up. Enter the code below on the verification screen to activate your account:</p>
+              ${otpBlock}
+              <p style="text-align: center;">Or click the button to confirm instantly:</p>
               <p style="text-align: center;">
                 <a href="${actionUrl}" class="button" style="color: white;">Confirm Email</a>
               </p>
@@ -63,7 +76,7 @@ const getEmailTemplate = (
               <p>Best regards,<br>The 1145 Team</p>
             </div>
             <div class="footer">
-              <p>© 2025 1145 LifestyleE&trade; LIC&reg;. All rights reserved.</p>
+              <p>© 2025 1145 Lifestyle&trade;. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -234,7 +247,17 @@ const handler = async (req: Request): Promise<Response> => {
     const payload: AuthEmailRequest = await req.json();
     console.log("Auth email hook received:", JSON.stringify(payload, null, 2));
 
-    const { user, email_data } = payload;
+    const { user, email_data } = payload || {} as AuthEmailRequest;
+
+    // Health-check / probe payloads from Supabase don't include a user — ack them.
+    if (!user || !user.email || !email_data) {
+      console.log("Hook probe payload received; acknowledging without sending email.");
+      return new Response(JSON.stringify({ success: true, skipped: true, reason: "probe" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const userName =
       user.user_metadata?.name ||
       user.user_metadata?.full_name ||
@@ -257,7 +280,8 @@ const handler = async (req: Request): Promise<Response> => {
     const { subject, html } = getEmailTemplate(
       email_data.email_action_type,
       userName,
-      actionUrl
+      actionUrl,
+      email_data.token
     );
 
     console.log(`Sending ${email_data.email_action_type} email to ${user.email}`);
@@ -271,7 +295,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "1145 Lifestyle <onboarding@resend.dev>",
+      from: "1145 <no-reply@1145.io>",
       to: [user.email],
       subject: subject,
       reply_to: "support@1145.io",
@@ -280,9 +304,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     if ((emailResponse as any)?.error) {
       console.error("Resend send error:", (emailResponse as any).error);
+      // Don't block signup/auth flow on email delivery failure
       return new Response(
-        JSON.stringify({ error: (emailResponse as any).error }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ success: true, warning: (emailResponse as any).error }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
@@ -294,8 +319,9 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in auth-email-hook:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    // Return 200 so Supabase auth doesn't block signup on hook failure
+    return new Response(JSON.stringify({ success: true, warning: error.message }), {
+      status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }

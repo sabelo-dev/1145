@@ -59,7 +59,7 @@ export function UCoinValueDisplay({
         <TooltipTrigger asChild>
           <span className={`inline-flex items-center gap-1 cursor-help ${sizeClasses[size]} ${className}`}>
             {showIcon && displayMode === 'ucoin' && (
-              <Coins className={`${iconSizes[size]} text-amber-500`} />
+              <Coins className={`${iconSizes[size]} text-gold`} />
             )}
             <span>{getDisplayValue()}</span>
           </span>

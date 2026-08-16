@@ -45,6 +45,63 @@ export default {
 					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
+				disabled: {
+					DEFAULT: 'hsl(var(--disabled))',
+					surface: 'hsl(var(--disabled-surface))',
+					foreground: 'hsl(var(--disabled-foreground))'
+				},
+				// ── 1145 interaction-state tokens ──
+				brand: {
+					DEFAULT: 'hsl(var(--brand))',
+					hover: 'hsl(var(--brand-hover))',
+					pressed: 'hsl(var(--brand-pressed))',
+					foreground: 'hsl(var(--brand-foreground))'
+				},
+				cta: {
+					DEFAULT: 'hsl(var(--cta))',
+					foreground: 'hsl(var(--cta-foreground))'
+				},
+				'text-secondary': 'hsl(var(--text-secondary))',
+				'text-muted': 'hsl(var(--text-muted))',
+
+				// ── 1145 brand scales ──
+				navy: {
+					DEFAULT: 'hsl(var(--navy-900))',
+					900: 'hsl(var(--navy-900))',
+					800: 'hsl(var(--navy-800))',
+					700: 'hsl(var(--navy-700))',
+					border: 'hsl(var(--navy-border))'
+				},
+				cyan: {
+					DEFAULT: 'hsl(var(--cyan))',
+					soft: 'hsl(var(--cyan-soft))',
+					foreground: 'hsl(var(--navy-900))'
+				},
+				gold: {
+					DEFAULT: 'hsl(var(--gold))',
+					foreground: 'hsl(var(--navy-900))'
+				},
+				surface: {
+					DEFAULT: 'hsl(var(--surface))',
+					muted: 'hsl(var(--surface-muted))',
+					input: 'hsl(var(--surface-input))',
+					hover: 'hsl(var(--surface-hover))',
+					pressed: 'hsl(var(--surface-pressed))',
+					selected: 'hsl(var(--surface-selected))'
+				},
+
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
@@ -63,22 +120,40 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom WWE e-commerce colors
+				// Legacy palette remapped onto 1145 tokens so older screens
+				// inherit the unified identity automatically.
 				wwe: {
-					navy: '#1a2b4c',
-					gold: '#f8cb4a',
-					lightGray: '#f5f5f7',
-					darkGray: '#333333',
-					success: '#4CAF50',
-					danger: '#FF5252',
-					warning: '#FFC107',
-					info: '#2196F3',
+					navy: 'hsl(var(--navy-900))',
+					gold: 'hsl(var(--gold))',
+					lightGray: 'hsl(var(--muted))',
+					darkGray: 'hsl(var(--foreground))',
+					success: 'hsl(var(--success))',
+					danger: 'hsl(var(--destructive))',
+					warning: 'hsl(var(--warning))',
+					info: 'hsl(var(--info))',
 				},
+
+			},
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				display: ['Space Grotesk', 'Inter', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				md: 'calc(var(--radius) - 4px)',
+				sm: 'calc(var(--radius) - 8px)',
+				xl: 'calc(var(--radius) + 4px)',
+				'2xl': 'calc(var(--radius) + 8px)'
+			},
+			boxShadow: {
+				soft: 'var(--shadow-soft)',
+				elevated: 'var(--shadow-elevated)',
+				float: 'var(--shadow-float)',
+				glow: 'var(--shadow-glow)'
+			},
+			transitionTimingFunction: {
+				spring: 'cubic-bezier(0.22, 1, 0.36, 1)',
+				'out-soft': 'cubic-bezier(0.16, 1, 0.3, 1)'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -117,6 +192,17 @@ export default {
 						transform: 'translateY(10px)'
 					}
 				},
+				'scale-in': {
+					'0%': { opacity: '0', transform: 'scale(0.96)' },
+					'100%': { opacity: '1', transform: 'scale(1)' }
+				},
+				'slide-up': {
+					'0%': { opacity: '0', transform: 'translateY(16px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				shimmer: {
+					'100%': { transform: 'translateX(100%)' }
+				},
 				'gradient-x': {
 					'0%, 100%': {
 						'background-size': '200% 200%',
@@ -133,7 +219,10 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
 				'fade-out': 'fade-out 0.3s ease-out',
-				'gradient-x': 'gradient-x 2s ease infinite'
+				'gradient-x': 'gradient-x 2s ease infinite',
+				'scale-in': 'scale-in 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
+				'slide-up': 'slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+				shimmer: 'shimmer 1.6s infinite'
 			}
 		}
 	},

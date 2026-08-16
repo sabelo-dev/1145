@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeTier } from "@/utils/subscriptionTier";
 import {
   CreditCard,
   Wallet,
@@ -108,7 +109,7 @@ const VendorSubscriptionPayments = () => {
     if (!vendorId || !vendorData) return;
     setProcessing(true);
 
-    const tier = vendorData.subscription_tier || "starter";
+    const tier = normalizeTier(vendorData.subscription_tier);
     const price = TIER_PRICES[tier]?.[selectedBilling] || 0;
 
     if (price === 0) {
@@ -240,7 +241,7 @@ const VendorSubscriptionPayments = () => {
     return <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
 
-  const currentTier = vendorData?.subscription_tier || "starter";
+  const currentTier = normalizeTier(vendorData?.subscription_tier);
   const currentPrice = TIER_PRICES[currentTier]?.monthly || 0;
   const nextBilling = vendorData?.subscription_next_billing_date;
 
@@ -350,7 +351,7 @@ const VendorSubscriptionPayments = () => {
                     ) : payment.status === "failed" ? (
                       <XCircle className="h-5 w-5 text-destructive" />
                     ) : (
-                      <Clock className="h-5 w-5 text-yellow-500" />
+                      <Clock className="h-5 w-5 text-gold" />
                     )}
                     <div>
                       <p className="text-sm font-medium capitalize">{payment.tier} — {payment.billing_period}</p>

@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import SEO from "@/components/SEO";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { Product } from "@/types";
-import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals } from "@/services/products";
+import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals, fetchFeaturedBrands, FeaturedBrand } from "@/services/products";
 
 const services = [
   { name: "Shop", desc: "Marketplace", icon: ShoppingBag, href: "/shop", tag: "Popular" },
@@ -26,14 +27,6 @@ const services = [
   { name: "Stay", desc: "Book a stay", icon: Building2, href: "/stays", tag: "New" },
 ];
 
-const featuredBrands = [
-  { name: "Aurum", tag: "Luxury" },
-  { name: "Kai Studio", tag: "Fashion" },
-  { name: "Nova Tech", tag: "Electronics" },
-  { name: "Terra Home", tag: "Living" },
-  { name: "Flux Athletics", tag: "Sport" },
-  { name: "Muse & Co", tag: "Beauty" },
-];
 
 const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   const navigate = useNavigate();
@@ -43,18 +36,21 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [trending, setTrending] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [featuredBrands, setFeaturedBrands] = useState<FeaturedBrand[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const [f, t, n] = await Promise.all([
+        const [f, t, n, b] = await Promise.all([
           fetchFeaturedProducts(4),
           fetchPopularProducts(4),
           fetchNewArrivals(4),
+          fetchFeaturedBrands(6),
         ]);
         setFeatured(f || []);
         setTrending(t || []);
         setNewArrivals(n || []);
+        setFeaturedBrands(b || []);
       } catch (e) {
         console.error("Home load failed", e);
       }
@@ -88,51 +84,51 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
               transition={{ duration: 0.5 }}
               className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05]"
             >
-              Go anywhere. Get anything. <span className="text-muted-foreground">All with 1145.</span>
+              Go anywhere. Get anything. <span className="text-text-secondary">All with <span className="text-brand">1145</span>.</span>
             </motion.h1>
 
             <Tabs defaultValue="ride" className="w-full">
               <TabsList className="bg-transparent p-0 h-auto gap-6 border-b border-border rounded-none w-full justify-start">
-                <TabsTrigger value="ride" className="data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 pb-3 text-sm font-medium">
+                <TabsTrigger value="ride" className="text-text-secondary hover:text-brand hover:bg-surface-hover rounded-t-md data-[state=active]:border-b-2 data-[state=active]:border-brand data-[state=active]:text-foreground data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:[&_svg]:text-brand rounded-b-none px-2 pb-3 text-sm font-medium">
                   <Car className="h-4 w-4 mr-2" /> Ride
                 </TabsTrigger>
-                <TabsTrigger value="package" className="data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 pb-3 text-sm font-medium">
+                <TabsTrigger value="package" className="text-text-secondary hover:text-brand hover:bg-surface-hover rounded-t-md data-[state=active]:border-b-2 data-[state=active]:border-brand data-[state=active]:text-foreground data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:[&_svg]:text-brand rounded-b-none px-2 pb-3 text-sm font-medium">
                   <Package className="h-4 w-4 mr-2" /> Package & Send
                 </TabsTrigger>
-                <TabsTrigger value="shop" className="data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none px-0 pb-3 text-sm font-medium">
+                <TabsTrigger value="shop" className="text-text-secondary hover:text-brand hover:bg-surface-hover rounded-t-md data-[state=active]:border-b-2 data-[state=active]:border-brand data-[state=active]:text-foreground data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:[&_svg]:text-brand rounded-b-none px-2 pb-3 text-sm font-medium">
                   <ShoppingBag className="h-4 w-4 mr-2" /> Shop
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="ride" className="mt-5">
                 <form onSubmit={handleRequest} className="space-y-2.5">
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Pickup location" className="pl-11 h-12 text-sm bg-muted border-0 rounded-md" />
+                  <div className="relative group">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
+                    <Input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Pickup location" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Dropoff location" className="pl-11 h-12 text-sm bg-muted border-0 rounded-md" />
+                  <div className="relative group">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
+                    <Input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Dropoff location" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </div>
                   <div className="grid grid-cols-2 gap-2.5">
-                    <div className="relative">
-                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <select value={when} onChange={(e) => setWhen(e.target.value)} className="w-full h-12 pl-11 pr-4 bg-muted rounded-md text-sm appearance-none border-0 focus:outline-none focus:ring-2 focus:ring-ring">
+                    <div className="relative group">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
+                      <select value={when} onChange={(e) => setWhen(e.target.value)} className="w-full h-12 pl-11 pr-4 bg-surface-input rounded-md text-sm text-foreground appearance-none border border-transparent transition-colors hover:bg-surface-hover focus:bg-background focus:border-brand focus:outline-none">
                         <option value="now">Today</option>
                         <option value="tomorrow">Tomorrow</option>
                         <option value="later">Pick a date</option>
                       </select>
                     </div>
-                    <div className="relative">
-                      <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <select className="w-full h-12 pl-11 pr-4 bg-muted rounded-md text-sm appearance-none border-0 focus:outline-none focus:ring-2 focus:ring-ring">
+                    <div className="relative group">
+                      <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
+                      <select className="w-full h-12 pl-11 pr-4 bg-surface-input rounded-md text-sm text-foreground appearance-none border border-transparent transition-colors hover:bg-surface-hover focus:bg-background focus:border-brand focus:outline-none">
                         <option>Now</option><option>In 15 min</option><option>In 30 min</option><option>In 1 hour</option>
                       </select>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-3 pt-1">
-                    <Button type="submit" className="h-11 px-6 font-medium">See prices</Button>
-                    <Link to="/login" className="inline-flex items-center h-11 px-2 text-sm font-medium underline underline-offset-4">
+                    <Button type="submit" variant="cta" disabled={!pickup.trim() || !destination.trim()} className="h-11 px-6 font-semibold">See prices</Button>
+                    <Link to="/login" className="inline-flex items-center h-11 px-2 text-sm font-medium text-foreground underline underline-offset-4 decoration-current transition-colors hover:text-brand active:text-brand-pressed">
                       Log in to see recent activity
                     </Link>
                   </div>
@@ -141,13 +137,13 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <TabsContent value="package" className="mt-5">
                 <div className="space-y-2.5">
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Sender address" className="pl-11 h-12 text-sm bg-muted border-0 rounded-md" />
+                  <div className="relative group">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
+                    <Input placeholder="Sender address" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Recipient address" className="pl-11 h-12 text-sm bg-muted border-0 rounded-md" />
+                  <div className="relative group">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
+                    <Input placeholder="Recipient address" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </div>
                   <Button className="h-11 px-6 font-medium" onClick={() => navigate("/rides/request")}>Get a quote</Button>
                 </div>
@@ -155,9 +151,9 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <TabsContent value="shop" className="mt-5">
                 <div className="space-y-2.5">
-                  <div className="relative">
-                    <ShoppingBag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search products, brands, categories" className="pl-11 h-12 text-sm bg-muted border-0 rounded-md" onKeyDown={(e) => { if (e.key === "Enter") navigate(`/shop?search=${encodeURIComponent((e.target as HTMLInputElement).value)}`); }} />
+                  <div className="relative group">
+                    <ShoppingBag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
+                    <Input placeholder="Search products, brands, categories" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" onKeyDown={(e) => { if (e.key === "Enter") navigate(`/shop?search=${encodeURIComponent((e.target as HTMLInputElement).value)}`); }} />
                   </div>
                   <Button className="h-11 px-6 font-medium" onClick={() => navigate("/shop")}>Browse marketplace</Button>
                 </div>
@@ -166,7 +162,7 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
 
           {/* Right: compact visual (50% smaller than before) */}
-          <div className="relative w-full max-w-sm mx-auto lg:max-w-none lg:w-[70%] lg:ml-auto aspect-[4/3] rounded-2xl overflow-hidden bg-muted">
+          <div className="relative w-full max-w-sm mx-auto lg:max-w-none lg:w-[70%] lg:ml-auto aspect-[4/3] rounded-2xl overflow-hidden bg-surface-input border border-border">
             <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(135deg, hsl(var(--primary)/0.15), hsl(var(--primary)/0.05)), radial-gradient(circle at 30% 30%, hsl(var(--primary)/0.35), transparent 55%), radial-gradient(circle at 70% 70%, hsl(var(--primary)/0.2), transparent 50%)" }} />
             <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 400 300" fill="none">
               <path d="M0 180 Q120 140 200 200 T400 170" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeDasharray="5 5" fill="none" />
@@ -180,8 +176,8 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <Car className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-semibold">Arriving in 3 min</p>
-                  <p className="text-[10px] text-muted-foreground">1145X · Toyota Corolla · CA 123-456</p>
+                  <p className="text-xs font-semibold">Rides on demand</p>
+                  <p className="text-[11px] text-muted-foreground">Tap "See prices" to get matched with a nearby driver.</p>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -203,9 +199,9 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             {services.map((s, i) => (
               <motion.div key={s.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03, duration: 0.3 }}>
-                <Link to={s.href} className="group relative bg-muted hover:bg-accent transition rounded-xl p-4 flex flex-col justify-between h-full min-h-[110px]">
+                <Link to={s.href} className="group relative bg-surface-input hover:bg-surface-hover active:bg-surface-pressed hover:text-brand transition rounded-xl p-4 flex flex-col justify-between h-full min-h-[110px]">
                   {s.tag && (
-                    <span className="absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">{s.tag}</span>
+                    <span className="absolute top-2 right-2 text-[11px] font-semibold px-1.5 py-0.5 rounded bg-surface-selected text-brand">{s.tag}</span>
                   )}
                   <s.icon className="h-6 w-6" />
                   <div className="mt-3">
@@ -238,30 +234,38 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
       )}
 
       {/* FEATURED BRANDS */}
-      <section className="border-b border-border bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-1">
-                <Star className="h-3 w-3" /> Featured brands
+      {featuredBrands.length > 0 && (
+        <section className="border-b border-border bg-muted/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                  <Star className="h-3 w-3" /> Featured brands
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold">Shop by brand</h2>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold">Shop by brand</h2>
+              <Link to="/shop"><Button variant="outline" size="sm">Discover all</Button></Link>
             </div>
-            <Link to="/shop"><Button variant="outline" size="sm">Discover all</Button></Link>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {featuredBrands.map((b, i) => (
+                <motion.div key={b.id} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}>
+                  <Link to={`/shop?brand=${encodeURIComponent(b.name)}`} className="group relative aspect-square rounded-xl bg-background border border-border flex flex-col items-center justify-center p-4 hover:border-foreground transition overflow-hidden">
+                    {b.logoUrl ? (
+                      <img src={b.logoUrl} alt={b.name} className="max-h-16 max-w-[80%] object-contain mb-2" loading="lazy" />
+                    ) : null}
+                    <span className="text-lg font-bold tracking-tight text-center">{b.name}</span>
+                    {b.businessType && (
+                      <span className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1">{b.businessType}</span>
+                    )}
+                    <ArrowRight className="absolute bottom-3 right-3 h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {featuredBrands.map((b, i) => (
-              <motion.div key={b.name} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}>
-                <Link to={`/shop?brand=${encodeURIComponent(b.name)}`} className="group relative aspect-square rounded-xl bg-background border border-border flex flex-col items-center justify-center p-4 hover:border-foreground transition">
-                  <span className="text-lg font-bold tracking-tight">{b.name}</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">{b.tag}</span>
-                  <ArrowRight className="absolute bottom-3 right-3 h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
+
 
       {/* TRENDING */}
       {trending.length > 0 && (
@@ -352,6 +356,8 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
       </section>
       
       <Footer />
+      <div className="h-0 pb-nav md:pb-0" />
+      <MobileBottomNav />
     </div>
   );
 });

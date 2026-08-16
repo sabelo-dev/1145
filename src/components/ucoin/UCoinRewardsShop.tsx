@@ -54,7 +54,7 @@ export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoadi
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
+            <Coins className="h-5 w-5 text-gold" />
             Rewards Shop
           </CardTitle>
         </CardHeader>
@@ -74,7 +74,7 @@ export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoadi
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
+            <Coins className="h-5 w-5 text-gold" />
             Rewards Shop
           </CardTitle>
         </CardHeader>
@@ -93,7 +93,7 @@ export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoadi
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
+            <Coins className="h-5 w-5 text-gold" />
             Rewards Shop
           </CardTitle>
         </CardHeader>
@@ -107,20 +107,20 @@ export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoadi
                   key={option.id}
                   className={`relative rounded-lg border p-4 transition-all ${
                     canAfford 
-                      ? 'hover:border-amber-500 hover:shadow-md cursor-pointer' 
+                      ? 'hover:border-gold hover:shadow-md cursor-pointer' 
                       : 'opacity-60'
                   }`}
                   onClick={() => canAfford && setSelectedOption(option)}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-500 text-white">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-gold to-gold text-white">
                       {categoryIcons[option.category] || <Coins className="h-5 w-5" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">{option.description}</p>
                       <div className="flex items-center gap-1 mt-1">
-                        <Coins className="h-3 w-3 text-amber-500" />
-                        <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                        <Coins className="h-3 w-3 text-gold" />
+                        <span className="text-sm font-semibold text-gold dark:text-gold">
                           {option.cost.toLocaleString()}
                         </span>
                       </div>
@@ -145,7 +145,7 @@ export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoadi
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Coins className="h-5 w-5 text-amber-500" />
+              <Coins className="h-5 w-5 text-gold" />
               Confirm Redemption
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -159,7 +159,7 @@ export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoadi
             <AlertDialogAction
               onClick={handleRedeem}
               disabled={isRedeeming}
-              className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600"
+              className="bg-gradient-to-r from-gold to-gold hover:from-gold hover:to-gold"
             >
               {isRedeeming ? 'Redeeming...' : (
                 <>

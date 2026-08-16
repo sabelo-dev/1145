@@ -102,7 +102,7 @@ const SafetyComplianceDashboard: React.FC = () => {
     switch (severity) {
       case 'CRITICAL': return 'bg-red-500 text-white';
       case 'HIGH': return 'bg-orange-500 text-white';
-      case 'MEDIUM': return 'bg-amber-500 text-white';
+      case 'MEDIUM': return 'bg-gold/10 text-white';
       default: return 'bg-blue-500 text-white';
     }
   };
@@ -110,7 +110,7 @@ const SafetyComplianceDashboard: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active': return <Badge variant="destructive">Active</Badge>;
-      case 'acknowledged': return <Badge className="bg-amber-500">Acknowledged</Badge>;
+      case 'acknowledged': return <Badge className="bg-gold/10">Acknowledged</Badge>;
       case 'investigating': return <Badge className="bg-blue-500 text-white">Investigating</Badge>;
       case 'escalated': return <Badge variant="destructive">Escalated</Badge>;
       case 'resolved': return <Badge className="bg-green-500 text-white">Resolved</Badge>;
@@ -151,7 +151,7 @@ const SafetyComplianceDashboard: React.FC = () => {
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-amber-500" />
+              <Bell className="h-5 w-5 text-gold" />
               <div>
                 <p className="text-2xl font-bold">{activeCount}</p>
                 <p className="text-xs text-muted-foreground">Active Alerts</p>
@@ -184,7 +184,7 @@ const SafetyComplianceDashboard: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-4">
           <TabsTrigger value="alerts" className="flex items-center gap-1">
             <AlertTriangle className="h-4 w-4" /> Alerts
             {activeCount > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{activeCount}</Badge>}
@@ -256,7 +256,7 @@ const SafetyComplianceDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2 min-w-[200px]">
+                      <div className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[12.5rem]">
                         {alert.status === 'active' && (
                           <>
                             <Button size="sm" variant="outline" onClick={() => handleAcknowledge(alert.id)}>

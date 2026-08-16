@@ -44,7 +44,7 @@ function CountdownTimer({ endTime }: { endTime: string }) {
   return (
     <div className={cn(
       "flex items-center gap-1 text-sm font-mono",
-      isUrgent ? "text-red-500" : "text-amber-500"
+      isUrgent ? "text-red-500" : "text-gold"
     )}>
       <Clock className="h-4 w-4" />
       <span>{String(timeLeft.hours).padStart(2, '0')}</span>:
@@ -80,7 +80,7 @@ export function FlashDealCarousel({ deals, title = "⚡ Flash Deals" }: FlashDea
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold flex items-center gap-2">
-          <Zap className="h-5 w-5 text-amber-500" />
+          <Zap className="h-5 w-5 text-gold" />
           {title}
         </h2>
         <Badge variant="destructive" className="animate-pulse">
@@ -107,7 +107,7 @@ export function FlashDealCarousel({ deals, title = "⚡ Flash Deals" }: FlashDea
             
             return (
               <CarouselItem key={deal.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                <Card className="overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
+                <Card className="overflow-hidden border-2 border-gold/30 bg-gradient-to-br from-gold/5 to-orange-500/5">
                   <div className="relative">
                     <img
                       src={deal.image_url || '/placeholder.svg'}

@@ -109,7 +109,7 @@ const MerchantRideAnalytics: React.FC = () => {
   const statCards = [
     { label: "Total Deliveries", value: stats.totalDeliveries.toString(), icon: Truck, color: "text-primary", bg: "bg-primary/10" },
     { label: "Completed", value: stats.completedDeliveries.toString(), icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { label: "Shipping Cost", value: `R${stats.totalShippingCost.toFixed(2)}`, icon: DollarSign, color: "text-amber-600", bg: "bg-amber-500/10" },
+    { label: "Shipping Cost", value: `R${stats.totalShippingCost.toFixed(2)}`, icon: DollarSign, color: "text-gold", bg: "bg-gold/10" },
     { label: "Completion Rate", value: `${stats.onTimeRate.toFixed(0)}%`, icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-500/10" },
   ];
 

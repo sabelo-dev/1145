@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Home, ShoppingBag, Grid3X3, TrendingUp, Percent, Gavel, LogIn, User, Package, Settings, LogOut, Store, Truck, Search, X, ShoppingCart, Menu,  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -69,17 +69,17 @@ const Header: React.FC = () => {
   return (
     <>
       <header 
-        className={`sticky top-0 z-40 transition-all duration-300 ease-in-out ${
-          isScrolled 
-            ? "bg-background/80 backdrop-blur-md border-b border-border shadow-sm" 
-            : "bg-background border-b border-transparent"
+        className={`app-bar transition-all duration-300 ease-in-out ${
+          isScrolled
+            ? "border-b border-border/70 shadow-soft"
+            : "border-b border-transparent"
         }`}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 h-14 md:h-auto md:py-2">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
-              <img src="/logo.png" alt="1145" className="h-8 w-8 rounded-md" />
+              <img src="/logo.png" alt="1145" className="h-9 w-9 rounded-xl shadow-soft" />
             </Link>
 
             {/* Desktop Search Bar */}
@@ -102,13 +102,20 @@ const Header: React.FC = () => {
                 const Icon = item.icon;
                 return (
                   <li key={item.path}>
-                    <Link
+                    <NavLink
                       to={item.path}
-                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+                      end={item.path === "/"}
+                      className={({ isActive }) =>
+                        `flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                          isActive
+                            ? "bg-surface-selected text-brand font-semibold"
+                            : "text-text-secondary hover:text-brand hover:bg-surface-hover active:bg-surface-pressed"
+                        }`
+                      }
                     >
                       <Icon className="h-3.5 w-3.5" />
                       <span className="hidden lg:inline">{item.label}</span>
-                    </Link>
+                    </NavLink>
                   </li>
                 );
               })}
@@ -125,10 +132,10 @@ const Header: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden h-8 w-8"
+                className="md:hidden h-10 w-10 rounded-full press text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed"
                 onClick={() => setMobileSearchOpen(true)}
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-[18px] w-[18px]" />
               </Button>
 
               {/* Notification Center */}
@@ -139,11 +146,11 @@ const Header: React.FC = () => {
                 onClick={toggleCart} 
                 variant="ghost" 
                 size="icon"
-                className="relative h-8 w-8"
+                className="relative h-10 w-10 md:h-8 md:w-8 rounded-full press text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="h-[18px] w-[18px] md:h-4 md:w-4" />
                 {items.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center">
+                  <span className="absolute top-1 right-1 md:-top-1 md:-right-1 bg-brand text-brand-foreground rounded-full text-[11px] font-bold min-w-[16px] h-4 px-1 flex items-center justify-center ring-2 ring-background">
                     {items.length}
                   </span>
                 )}
@@ -153,7 +160,7 @@ const Header: React.FC = () => {
               <div className="hidden md:block">
                 {user ? (
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap outline-none">
+                    <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium text-text-secondary hover:text-brand hover:bg-surface-hover transition-colors whitespace-nowrap outline-none">
                       <User className="h-3.5 w-3.5" />
                       <span className="hidden lg:inline">Profile</span>
                     </DropdownMenuTrigger>
@@ -210,7 +217,7 @@ const Header: React.FC = () => {
                 ) : (
                   <Link
                     to="/login"
-                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium text-text-secondary hover:text-brand hover:bg-surface-hover transition-colors whitespace-nowrap"
                   >
                     <LogIn className="h-3.5 w-3.5" />
                     <span className="hidden lg:inline">Sign In</span>
@@ -222,10 +229,10 @@ const Header: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden h-8 w-8"
+                className="md:hidden h-10 w-10 rounded-full press text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed"
                 onClick={() => setMobileMenuOpen(true)}
               >
-                <Menu className="h-4 w-4" />
+                <Menu className="h-[18px] w-[18px]" />
               </Button>
             </div>
           </div>

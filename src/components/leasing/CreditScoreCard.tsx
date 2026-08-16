@@ -114,7 +114,7 @@ const CreditScoreCard: React.FC<CreditScoreCardProps> = ({ compact, onScoreLoade
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className={`text-2xl font-black ${scoreColor}`}>{score.score}</span>
-              <span className="text-[10px] text-muted-foreground">/850</span>
+              <span className="text-[11px] text-muted-foreground">/850</span>
             </div>
           </div>
           <div className="flex-1">

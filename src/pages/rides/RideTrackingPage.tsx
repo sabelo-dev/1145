@@ -27,8 +27,8 @@ const LIFECYCLE_STEPS = [
 ];
 
 const statusLabels: Record<string, { label: string; color: string; animate?: boolean }> = {
-  requested: { label: "Finding a driver...", color: "bg-yellow-500", animate: true },
-  searching: { label: "Searching for driver...", color: "bg-yellow-500", animate: true },
+  requested: { label: "Finding a driver...", color: "bg-gold/10", animate: true },
+  searching: { label: "Searching for driver...", color: "bg-gold/10", animate: true },
   accepted: { label: "Driver assigned!", color: "bg-primary" },
   arriving: { label: "Driver is on the way", color: "bg-blue-500" },
   arrived: { label: "Driver has arrived", color: "bg-emerald-500" },
@@ -245,7 +245,7 @@ const RideTrackingPage: React.FC = () => {
                     }`}>
                       {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className={`h-3.5 w-3.5 ${isCurrent ? "animate-pulse" : ""}`} />}
                     </div>
-                    <span className={`text-[8px] font-medium ${isCurrent ? "text-primary" : isCompleted ? "text-emerald-600" : "text-muted-foreground"}`}>
+                    <span className={`text-[11px] font-medium ${isCurrent ? "text-primary" : isCompleted ? "text-emerald-600" : "text-muted-foreground"}`}>
                       {step.label}
                     </span>
                   </div>
@@ -263,7 +263,7 @@ const RideTrackingPage: React.FC = () => {
         {/* Driver Search Status */}
         {isWaitingForDriver && (
           <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-yellow-500/10 to-primary/10 px-4 py-3 border-b border-border">
+            <div className="bg-gradient-to-r from-gold/10 to-primary/10 px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <span className="font-semibold text-sm text-foreground">Finding your driver</span>
@@ -337,12 +337,12 @@ const RideTrackingPage: React.FC = () => {
                   <div className="flex items-center gap-2 mt-0.5">
                     {driverInfo.rating && (
                       <div className="flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
                         <span className="text-xs font-medium text-foreground">{driverInfo.rating.toFixed(1)}</span>
                       </div>
                     )}
                     {driverInfo.vehicle_type && (
-                      <Badge variant="secondary" className="text-[10px] capitalize">{driverInfo.vehicle_type}</Badge>
+                      <Badge variant="secondary" className="text-[11px] capitalize">{driverInfo.vehicle_type}</Badge>
                     )}
                     {driverInfo.vehicle_registration && (
                       <span className="text-xs text-muted-foreground">{driverInfo.vehicle_registration}</span>
@@ -409,7 +409,7 @@ const RideTrackingPage: React.FC = () => {
               <div className="font-bold text-foreground">
                 R{(ride.actual_fare || ride.estimated_fare || 0).toFixed(2)}
                 {ride.surge_multiplier > 1 && (
-                  <span className="text-[10px] text-orange-500 ml-1">⚡{ride.surge_multiplier}x</span>
+                  <span className="text-[11px] text-orange-500 ml-1">⚡{ride.surge_multiplier}x</span>
                 )}
               </div>
             </div>
@@ -443,7 +443,7 @@ const RideTrackingPage: React.FC = () => {
               <div className="flex justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button key={star} onClick={() => setRating(star)} className="p-1 transition-transform hover:scale-110">
-                    <Star className={`h-8 w-8 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                    <Star className={`h-8 w-8 ${star <= rating ? "fill-gold text-gold" : "text-muted-foreground/30"}`} />
                   </button>
                 ))}
               </div>

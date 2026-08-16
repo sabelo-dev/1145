@@ -12,7 +12,7 @@ type TierType = 'starter' | 'bronze' | 'silver' | 'gold';
 interface VendorSubscriptionPageProps {
   vendorId?: string;
   currentTier?: TierType;
-  onUpgrade: () => void;
+  onUpgrade: (tier?: TierType, billing?: 'monthly' | 'yearly') => void;
 }
 
 const tierOrder: TierType[] = ['starter', 'bronze', 'silver', 'gold'];
@@ -62,8 +62,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
   const nextTier = !isTopTier ? tierOrder[currentTierIndex + 1] : null;
 
   const handleSelectPlan = (tier: TierType, billing: 'monthly' | 'yearly') => {
-    console.log('Selected plan:', tier, billing);
-    onUpgrade();
+    onUpgrade(tier, billing);
   };
 
   return (
@@ -216,18 +215,18 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
 
       {/* Current Tier Benefits (for Gold users) */}
       {isTopTier && (
-        <Card className="border-yellow-400/30 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-900/10 dark:to-orange-900/10">
+        <Card className="border-gold/30 bg-gradient-to-br from-gold/10 to-orange-50/50 dark:from-gold/10 dark:to-orange-900/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-yellow-600" />
+              <Crown className="h-5 w-5 text-gold" />
               Your Gold Benefits
-              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">Active</Badge>
+              <Badge className="bg-gradient-to-r from-gold/10 to-orange-500 text-white border-0">Active</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                <Shield className="h-5 w-5 text-yellow-600 shrink-0" />
+                <Shield className="h-5 w-5 text-gold shrink-0" />
                 <div>
                   <h4 className="font-medium">Premium Badge</h4>
                   <p className="text-sm text-muted-foreground">
@@ -236,7 +235,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                <TrendingUp className="h-5 w-5 text-yellow-600 shrink-0" />
+                <TrendingUp className="h-5 w-5 text-gold shrink-0" />
                 <div>
                   <h4 className="font-medium">1.5x Search Boost</h4>
                   <p className="text-sm text-muted-foreground">
@@ -245,7 +244,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                <Zap className="h-5 w-5 text-yellow-600 shrink-0" />
+                <Zap className="h-5 w-5 text-gold shrink-0" />
                 <div>
                   <h4 className="font-medium">Priority Support</h4>
                   <p className="text-sm text-muted-foreground">
@@ -254,7 +253,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                <Star className="h-5 w-5 text-yellow-600 shrink-0" />
+                <Star className="h-5 w-5 text-gold shrink-0" />
                 <div>
                   <h4 className="font-medium">R500 Monthly Ad Credits</h4>
                   <p className="text-sm text-muted-foreground">
@@ -263,7 +262,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                <Package className="h-5 w-5 text-yellow-600 shrink-0" />
+                <Package className="h-5 w-5 text-gold shrink-0" />
                 <div>
                   <h4 className="font-medium">Unlimited Everything</h4>
                   <p className="text-sm text-muted-foreground">
@@ -272,7 +271,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                <Percent className="h-5 w-5 text-yellow-600 shrink-0" />
+                <Percent className="h-5 w-5 text-gold shrink-0" />
                 <div>
                   <h4 className="font-medium">Lowest Fees</h4>
                   <p className="text-sm text-muted-foreground">

@@ -234,7 +234,7 @@ const RideRequestPage: React.FC = () => {
   const mapRoute = pickupCoords && dropoffCoords && step !== "location" ? { origin: pickupCoords, destination: dropoffCoords } : undefined;
   const selectedVehicle = vehicleTypes.find((t) => t.id === selectedType);
 
-  const surgeColor = surgeMultiplier >= 2.0 ? "text-destructive" : surgeMultiplier >= 1.5 ? "text-orange-500" : surgeMultiplier > 1.0 ? "text-yellow-600" : "text-emerald-600";
+  const surgeColor = surgeMultiplier >= 2.0 ? "text-destructive" : surgeMultiplier >= 1.5 ? "text-orange-500" : surgeMultiplier > 1.0 ? "text-gold" : "text-emerald-600";
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row">
@@ -247,11 +247,11 @@ const RideRequestPage: React.FC = () => {
         <div className="flex items-center gap-1.5">
           {surgeMultiplier > 1.0 && (
             <div className="px-2 py-1 rounded-full bg-orange-500/10 border border-orange-500/20">
-              <span className="text-[10px] font-bold text-orange-600">⚡ {surgeMultiplier}x</span>
+              <span className="text-[11px] font-bold text-orange-600">⚡ {surgeMultiplier}x</span>
             </div>
           )}
           <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
+            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
           </div>
         </div>
       </div>
@@ -269,11 +269,11 @@ const RideRequestPage: React.FC = () => {
             {surgeMultiplier > 1.0 && (
               <div className="px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3 text-orange-500" />
-                <span className="text-[10px] font-bold text-orange-600">{surgeMultiplier}x Surge</span>
+                <span className="text-[11px] font-bold text-orange-600">{surgeMultiplier}x Surge</span>
               </div>
             )}
             <div className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
+              <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">● Live</span>
             </div>
           </div>
         </div>
@@ -287,7 +287,7 @@ const RideRequestPage: React.FC = () => {
               </div>
               <div className="flex-1">
                 <p className="text-xs font-bold text-foreground">High demand in your area</p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   Prices are {surgeMultiplier}x higher than normal. {demandLevel === "extreme" ? "Very busy!" : "Moderate demand."}
                 </p>
               </div>
@@ -414,7 +414,7 @@ const RideRequestPage: React.FC = () => {
                         <MapPin className="h-3.5 w-3.5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Pickup</p>
+                        <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">Pickup</p>
                         <p className="text-xs font-medium text-foreground truncate">{pickup}</p>
                       </div>
                     </div>
@@ -423,7 +423,7 @@ const RideRequestPage: React.FC = () => {
                         <Navigation className="h-3.5 w-3.5 text-destructive" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Drop-off</p>
+                        <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">Drop-off</p>
                         <p className="text-xs font-medium text-foreground truncate">{dropoff}</p>
                       </div>
                     </div>
@@ -439,7 +439,7 @@ const RideRequestPage: React.FC = () => {
                     ].map((stat) => (
                       <div key={stat.label} className="text-center p-2 rounded-lg bg-muted/50 border border-border/50">
                         <stat.icon className="h-3.5 w-3.5 mx-auto text-muted-foreground mb-1" />
-                        <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{stat.label}</p>
                         <p className="text-[11px] font-bold text-foreground">{stat.value}</p>
                       </div>
                     ))}
@@ -457,16 +457,16 @@ const RideRequestPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-foreground capitalize">{paymentMethod}</p>
-                        <p className="text-[10px] text-muted-foreground">Payment method</p>
+                        <p className="text-[11px] text-muted-foreground">Payment method</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black tracking-tighter text-foreground">R{estimatedFare.toFixed(2)}</p>
                       {surgeMultiplier > 1.0 && (
-                        <p className="text-[10px] text-orange-500 font-semibold">⚡ {surgeMultiplier}x surge applied</p>
+                        <p className="text-[11px] text-orange-500 font-semibold">⚡ {surgeMultiplier}x surge applied</p>
                       )}
                       {surgeMultiplier <= 1.0 && (
-                        <p className="text-[10px] text-muted-foreground">estimated</p>
+                        <p className="text-[11px] text-muted-foreground">estimated</p>
                       )}
                     </div>
                   </div>
@@ -481,7 +481,7 @@ const RideRequestPage: React.FC = () => {
               >
                 {isRequesting ? (<><Loader2 className="h-5 w-5 animate-spin" />Dispatching...</>) : (<><Shield className="h-5 w-5" />Confirm & Request Ride</>)}
               </button>
-              <p className="text-center text-[10px] text-muted-foreground">By requesting, you agree to our terms. Fare may vary with traffic.</p>
+              <p className="text-center text-[11px] text-muted-foreground">By requesting, you agree to our terms. Fare may vary with traffic.</p>
             </div>
           )}
         </div>
@@ -555,8 +555,8 @@ const RideRequestPage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-sm text-foreground">{type.display_name}</span>
-                        {isCheapest && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase">Popular</span>}
-                        {isPremium && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-secondary/15 text-secondary-foreground uppercase">Premium</span>}
+                        {isCheapest && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase">Popular</span>}
+                        {isPremium && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-secondary/15 text-secondary-foreground uppercase">Premium</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" />{type.max_passengers}</span>
@@ -567,10 +567,10 @@ const RideRequestPage: React.FC = () => {
                     <div className="text-right shrink-0">
                       <p className="text-lg font-black text-foreground">R{fare.toFixed(0)}</p>
                       {surgeMultiplier > 1.0 && (
-                        <p className="text-[9px] text-orange-500 font-semibold">⚡ surge</p>
+                        <p className="text-[11px] text-orange-500 font-semibold">⚡ surge</p>
                       )}
                       {surgeMultiplier <= 1.0 && (
-                        <p className="text-[10px] text-muted-foreground">est. fare</p>
+                        <p className="text-[11px] text-muted-foreground">est. fare</p>
                       )}
                     </div>
 

@@ -106,7 +106,7 @@ const InfluencerDashboard: React.FC = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-6 lg:w-auto lg:inline-grid">
             <TabsTrigger value="feed" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Feed</span>
@@ -115,7 +115,7 @@ const InfluencerDashboard: React.FC = () => {
               <MessageCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Inbox</span>
               {dashboard.stats.unhandledComments > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] text-destructive-foreground flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[11px] text-destructive-foreground flex items-center justify-center">
                   {dashboard.stats.unhandledComments > 9 ? '9+' : dashboard.stats.unhandledComments}
                 </span>
               )}
@@ -225,7 +225,7 @@ const InfluencerDashboard: React.FC = () => {
                           >
                             <div className="min-w-0">
                               <p className="text-xs truncate">{post.caption?.slice(0, 40) || 'Post'}</p>
-                              <p className="text-[10px] text-muted-foreground">{commentCount} comments</p>
+                              <p className="text-[11px] text-muted-foreground">{commentCount} comments</p>
                             </div>
                           </Button>
                         );

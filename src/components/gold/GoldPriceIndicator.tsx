@@ -38,7 +38,7 @@ export function GoldPriceIndicator({ className, showDetails = false }: GoldPrice
             <Badge 
               variant="outline" 
               className={cn(
-                'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+                'bg-gold/10 text-gold border-gold dark:bg-gold/15 dark:text-gold dark:border-gold',
                 className
               )}
             >
@@ -59,13 +59,13 @@ export function GoldPriceIndicator({ className, showDetails = false }: GoldPrice
   }
 
   return (
-    <div className={cn('flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800', className)}>
-      <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900">
-        <Coins className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+    <div className={cn('flex items-center gap-3 p-3 rounded-lg bg-gold/10 dark:bg-gold/15 border border-gold dark:border-gold', className)}>
+      <div className="p-2 rounded-full bg-gold dark:bg-gold/15">
+        <Coins className="h-5 w-5 text-gold dark:text-gold" />
       </div>
       <div className="flex-1">
         <p className="text-sm text-muted-foreground">Current Gold Price</p>
-        <p className="text-lg font-semibold text-amber-700 dark:text-amber-300">{formattedPrice}/oz</p>
+        <p className="text-lg font-semibold text-gold dark:text-gold">{formattedPrice}/oz</p>
       </div>
       <div className="text-right">
         <p className="text-xs text-muted-foreground">Last updated</p>

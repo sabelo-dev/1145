@@ -58,7 +58,7 @@ export const EngagementConsole: React.FC<EngagementConsoleProps> = ({ metrics, s
     { icon: MessageCircle, label: 'Total Comments', value: metrics.reduce((s, m) => s + m.comments, 0), color: 'text-blue-500' },
     { icon: Share2, label: 'Total Shares', value: metrics.reduce((s, m) => s + m.shares, 0), color: 'text-green-500' },
     { icon: Bookmark, label: 'Total Saves', value: metrics.reduce((s, m) => s + m.saves, 0), color: 'text-purple-500' },
-    { icon: Eye, label: 'Impressions', value: metrics.reduce((s, m) => s + m.impressions, 0), color: 'text-amber-500' },
+    { icon: Eye, label: 'Impressions', value: metrics.reduce((s, m) => s + m.impressions, 0), color: 'text-gold' },
     { icon: Activity, label: 'Engagement Rate', value: `${avgEngagementRate}%`, color: 'text-primary' },
   ];
 
@@ -87,7 +87,7 @@ export const EngagementConsole: React.FC<EngagementConsoleProps> = ({ metrics, s
                 <p className="text-lg font-bold">
                   {typeof m.value === 'number' ? m.value.toLocaleString() : m.value}
                 </p>
-                <p className="text-[10px] text-muted-foreground">{m.label}</p>
+                <p className="text-[11px] text-muted-foreground">{m.label}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -113,7 +113,7 @@ export const EngagementConsole: React.FC<EngagementConsoleProps> = ({ metrics, s
                     animate={{ height: `${Math.max(height, 2)}%` }}
                     transition={{ delay: i * 0.03, duration: 0.4 }}
                   />
-                  <span className="text-[9px] text-muted-foreground mt-1 rotate-[-45deg] origin-top-left whitespace-nowrap">
+                  <span className="text-[11px] text-muted-foreground mt-1 rotate-[-45deg] origin-top-left whitespace-nowrap">
                     {day.label}
                   </span>
                   {/* Tooltip */}

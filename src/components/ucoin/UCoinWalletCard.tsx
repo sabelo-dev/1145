@@ -16,7 +16,7 @@ export function UCoinWalletCard({ wallet, isLoading }: UCoinWalletCardProps) {
   if (isLoading) {
     return (
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-500 p-6">
+        <div className="bg-gradient-to-br from-gold via-gold to-orange-500 p-6">
           <Skeleton className="h-8 w-32 bg-white/30" />
           <Skeleton className="h-12 w-48 mt-2 bg-white/30" />
         </div>
@@ -43,7 +43,7 @@ export function UCoinWalletCard({ wallet, isLoading }: UCoinWalletCardProps) {
 
   return (
     <Card className="overflow-hidden border-0 shadow-lg">
-      <div className="bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-500 p-6 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-gold via-gold to-orange-500 p-6 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
         
@@ -51,7 +51,7 @@ export function UCoinWalletCard({ wallet, isLoading }: UCoinWalletCardProps) {
           <div className="flex items-center gap-2 mb-2">
             <Coins className="h-6 w-6" />
             <span className="font-semibold text-lg">Ubuntu Coin Balance</span>
-            <Sparkles className="h-4 w-4 text-yellow-200" />
+            <Sparkles className="h-4 w-4 text-gold" />
           </div>
           <TooltipProvider>
             <Tooltip>

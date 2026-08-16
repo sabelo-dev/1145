@@ -87,7 +87,7 @@ const StayDetailPage: React.FC = () => {
               </div>
               {property.rating > 0 && (
                 <div className="flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-lg">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <Star className="h-4 w-4 fill-gold text-gold" />
                   <span className="font-bold">{property.rating.toFixed(1)}</span>
                   <span className="text-xs text-muted-foreground">({property.review_count})</span>
                 </div>
@@ -152,7 +152,7 @@ const StayDetailPage: React.FC = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <div className="flex">
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                            <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-gold text-gold" : "text-muted-foreground/30"}`} />
                           ))}
                         </div>
                         <span className="text-xs text-muted-foreground">{r.profiles?.name || "Guest"}</span>

@@ -11,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { FileText, Calendar, DollarSign, AlertTriangle, TrendingUp, ExternalLink, Package } from "lucide-react";
 import type { LeaseContract, LeasePayment } from "@/types/leasing";
+import LeaseAgreementManager from "@/components/leasing/LeaseAgreementManager";
+
 
 const statusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
   switch (status) {
@@ -150,7 +152,12 @@ const ConsumerLeases = () => {
                         <Progress value={progress} className="h-2 [&>div]:bg-primary" />
                         <p className="text-xs text-muted-foreground mt-1.5">{contract.payments_remaining} payments remaining</p>
                       </div>
+
+                      <div className="mt-4 flex justify-end">
+                        <LeaseAgreementManager contract={contract as any} role="lessee" onChanged={fetchData} />
+                      </div>
                     </CardContent>
+
                   </Card>
                 );
               })}

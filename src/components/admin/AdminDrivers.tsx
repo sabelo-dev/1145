@@ -138,7 +138,7 @@ const AdminDrivers = () => {
       case "suspended":
         return <Badge variant="destructive">Suspended</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
+        return <Badge className="bg-gold/10">Pending</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -221,7 +221,7 @@ const AdminDrivers = () => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-yellow-500" />
+              <UserPlus className="h-5 w-5 text-gold" />
               <span className="text-2xl font-bold">{stats.pending}</span>
             </div>
           </CardContent>
@@ -302,7 +302,7 @@ const AdminDrivers = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                          <Star className="h-4 w-4 text-gold fill-gold" />
                           <span>{driver.rating?.toFixed(1) || "-"}</span>
                         </div>
                       </TableCell>
@@ -416,7 +416,7 @@ const AdminDrivers = () => {
                 <div>
                   <Label className="text-muted-foreground">Rating</Label>
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                    <Star className="h-4 w-4 text-gold fill-gold" />
                     <span className="font-medium">{selectedDriver.rating?.toFixed(1) || "N/A"}</span>
                   </div>
                 </div>

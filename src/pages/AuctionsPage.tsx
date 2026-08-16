@@ -740,7 +740,7 @@ const AuctionsPage = () => {
               {bids.length > 0 && (
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-yellow-500" />
+                    <Trophy className="h-4 w-4 text-gold" />
                     Bidder Leaderboard
                   </h4>
                   <ScrollArea className="h-48">
@@ -781,11 +781,11 @@ const AuctionsPage = () => {
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 flex items-center justify-center">
                                   {rank === 1 ? (
-                                    <Trophy className="h-5 w-5 text-yellow-500" />
+                                    <Trophy className="h-5 w-5 text-gold" />
                                   ) : rank === 2 ? (
                                     <Medal className="h-5 w-5 text-gray-400" />
                                   ) : rank === 3 ? (
-                                    <Award className="h-5 w-5 text-amber-600" />
+                                    <Award className="h-5 w-5 text-gold" />
                                   ) : (
                                     <span className="text-sm font-medium text-muted-foreground">
                                       #{rank}

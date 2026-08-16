@@ -278,14 +278,14 @@ const CustomerDeliveryTracking: React.FC<CustomerDeliveryTrackingProps> = ({
 
           {/* Delivery OTP */}
           {delivery.status === "in_transit" && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
-              <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+            <div className="bg-gold/10 dark:bg-gold/15 rounded-lg p-4 text-center">
+              <p className="text-sm text-gold dark:text-gold mb-2">
                 Your delivery OTP
               </p>
-              <div className="text-3xl font-mono font-bold tracking-widest text-amber-600">
+              <div className="text-3xl font-mono font-bold tracking-widest text-gold">
                 {deliveryOtp}
               </div>
-              <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+              <p className="text-xs text-gold dark:text-gold mt-2">
                 Share this with your driver to confirm delivery
               </p>
             </div>
@@ -307,7 +307,7 @@ const CustomerDeliveryTracking: React.FC<CustomerDeliveryTrackingProps> = ({
               <div className="flex-1">
                 <h3 className="font-semibold">{delivery.driver.name}</h3>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <Star className="h-4 w-4 fill-gold text-gold" />
                   <span>{delivery.driver.rating?.toFixed(1) || "5.0"}</span>
                   <span>•</span>
                   <span className="capitalize">{delivery.driver.vehicle_type || "Car"}</span>

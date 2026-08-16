@@ -55,8 +55,8 @@ const AdminRiskMonitoring = () => {
 
   const statCards = [
     { label: "High Risk Users", value: highRiskUsers.length, icon: ShieldAlert, color: "text-destructive", bg: "bg-destructive/10" },
-    { label: "Defaulted Contracts", value: defaultedContracts.length, icon: TrendingDown, color: "text-amber-500", bg: "bg-amber-500/10" },
-    { label: "Overdue Amount", value: `R${overdueAmount.toLocaleString()}`, icon: Shield, color: "text-amber-600", bg: "bg-amber-500/10" },
+    { label: "Defaulted Contracts", value: defaultedContracts.length, icon: TrendingDown, color: "text-gold", bg: "bg-gold/10" },
+    { label: "Overdue Amount", value: `R${overdueAmount.toLocaleString()}`, icon: Shield, color: "text-gold", bg: "bg-gold/10" },
     { label: "Late Payment Users", value: latePaymentUsers.length, icon: Users, color: "text-blue-600", bg: "bg-blue-500/10" },
   ];
 

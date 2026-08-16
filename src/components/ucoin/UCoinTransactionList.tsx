@@ -39,7 +39,7 @@ export function UCoinTransactionList({ transactions, isLoading }: UCoinTransacti
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
+            <Coins className="h-5 w-5 text-gold" />
             Transaction History
           </CardTitle>
         </CardHeader>
@@ -68,7 +68,7 @@ export function UCoinTransactionList({ transactions, isLoading }: UCoinTransacti
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
+            <Coins className="h-5 w-5 text-gold" />
             Transaction History
           </CardTitle>
         </CardHeader>
@@ -87,7 +87,7 @@ export function UCoinTransactionList({ transactions, isLoading }: UCoinTransacti
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Coins className="h-5 w-5 text-amber-500" />
+          <Coins className="h-5 w-5 text-gold" />
           Transaction History
         </CardTitle>
       </CardHeader>

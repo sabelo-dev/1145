@@ -76,7 +76,7 @@ export function GoldPriceDisplay({
         <TooltipTrigger asChild>
           <span className={cn(
             sizeClasses[size], 
-            'font-semibold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1',
+            'font-semibold text-gold dark:text-gold inline-flex items-center gap-1',
             className
           )}>
             <Coins className={cn(

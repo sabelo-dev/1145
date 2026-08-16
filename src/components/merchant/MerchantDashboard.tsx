@@ -74,6 +74,9 @@ import {
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
+import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
+import type { SubscriptionTier } from "@/services/subscription";
+import { normalizeTier } from "@/utils/subscriptionTier";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
@@ -151,32 +154,45 @@ const VendorDashboard = () => {
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
 
-  const handleUpgrade = async (plan: 'standard' | 'premium') => {
-    if (!vendorData?.id) return;
-    
-    const { error } = await supabase
-      .from('vendors')
-      .update({ subscription_tier: plan })
-      .eq('id', vendorData.id);
-    
-    if (error) {
-      toast.error('Failed to update subscription');
-      throw error;
-    }
-    
-    // Refresh vendor data
+  const refreshVendorData = async () => {
+    if (!user?.id) return;
     const { data: updated } = await supabase
       .from('vendors')
       .select('*')
-      .eq('id', vendorData.id)
-      .single();
-    
-    if (updated) {
-      setVendorData(updated);
-    }
-    
-    toast.success(plan === 'premium' ? 'Welcome to Premium!' : 'Plan updated successfully');
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (updated) setVendorData(updated);
   };
+
+  const { changePlan, cancelPlan } = useSubscriptionActions({
+    currentTier: normalizeTier(vendorData?.subscription_tier) as SubscriptionTier,
+    onChanged: refreshVendorData,
+  });
+
+  const handleUpgrade = async (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => {
+    const result = await changePlan(tier, billing);
+    if (!result?.redirected) setShowUpgradeModal(false);
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!window.confirm('Cancel your subscription? You keep access until the current period ends.')) return;
+    await cancelPlan().catch(() => undefined);
+  };
+
+  // Handle return from PayFast checkout
+  useEffect(() => {
+    const status = searchParams.get('subscription');
+    if (!status) return;
+    if (status === 'success') {
+      toast.success('Payment received — your new plan activates within a minute.');
+      setActiveTab('subscription');
+      setTimeout(() => { refreshVendorData(); }, 4000);
+    } else if (status === 'cancelled') {
+      toast.info('Subscription checkout cancelled.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
 
   return (
     <ProtectedRoute requireAuth requireMerchant>
@@ -192,6 +208,7 @@ const VendorDashboard = () => {
           showUpgradeModal={showUpgradeModal}
           setShowUpgradeModal={setShowUpgradeModal}
           onUpgrade={handleUpgrade}
+          onCancelSubscription={handleCancelSubscription}
         />
       </SidebarProvider>
     </ProtectedRoute>
@@ -214,7 +231,8 @@ interface VendorDashboardContentProps {
   vendorData: any;
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
-  onUpgrade: (plan: 'standard' | 'premium') => Promise<void>;
+  onUpgrade: (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => Promise<void>;
+  onCancelSubscription: () => Promise<void>;
 }
 
 const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
@@ -228,6 +246,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
   showUpgradeModal,
   setShowUpgradeModal,
   onUpgrade,
+  onCancelSubscription,
 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -265,7 +284,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
         </SidebarContent>
       </Sidebar>
       
-      <SidebarInset className="flex-1">
+      <SidebarInset className="flex-1 min-w-0 overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
@@ -304,7 +323,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
           </DropdownMenu>
         </header>
         
-        <main className="flex-1 p-6 bg-background">
+        <main className="flex-1 min-w-0 overflow-x-hidden p-4 md:p-6 bg-background">
           {isTrialExpired && (
             <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
               <h3 className="font-semibold text-destructive mb-2">Trial Expired</h3>
@@ -322,6 +341,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <SubscriptionStatusCard
               vendorId={vendorData.id}
               onUpgrade={() => setShowUpgradeModal(true)}
+              onCancel={onCancelSubscription}
               className="mb-6"
             />
           )}
@@ -329,12 +349,8 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
           <SubscriptionUpgradeModal
             isOpen={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
-            currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
-            onUpgrade={async (tier, billing) => {
-              console.log('Upgrading to:', tier, billing);
-              // TODO: Implement actual upgrade logic
-              setShowUpgradeModal(false);
-            }}
+            currentTier={normalizeTier(vendorData?.subscription_tier)}
+            onUpgrade={onUpgrade}
           />
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
@@ -352,8 +368,14 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <TabsContent value="subscription" className="mt-0">
               <VendorSubscriptionPage 
                 vendorId={vendorData?.id}
-                currentTier={(vendorData?.subscription_tier as 'starter' | 'bronze' | 'silver' | 'gold') || 'starter'}
-                onUpgrade={() => setShowUpgradeModal(true)}
+                currentTier={normalizeTier(vendorData?.subscription_tier)}
+                onUpgrade={(tier, billing) => {
+                  if (tier && billing) {
+                    void handleUpgrade(tier, billing);
+                  } else {
+                    setShowUpgradeModal(true);
+                  }
+                }}
               />
             </TabsContent>
             <TabsContent value="billing" className="mt-0">

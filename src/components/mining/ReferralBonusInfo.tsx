@@ -194,8 +194,8 @@ export function ReferralBonusInfo() {
                       <p className="text-lg font-bold text-green-600">{stats.signupsCompleted}</p>
                       <p className="text-xs text-muted-foreground">Signups</p>
                     </div>
-                    <div className="p-2 rounded-lg bg-amber-500/10 text-center">
-                      <p className="text-lg font-bold text-amber-600">{stats.totalEarned}</p>
+                    <div className="p-2 rounded-lg bg-gold/10 text-center">
+                      <p className="text-lg font-bold text-gold">{stats.totalEarned}</p>
                       <p className="text-xs text-muted-foreground">UCoin Earned</p>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ export function ReferralBonusInfo() {
         {/* Rewards Info */}
         <div className="p-3 rounded-lg border border-dashed bg-muted/30">
           <p className="text-xs text-muted-foreground">
-            <strong className="text-foreground">Rewards:</strong> Earn <span className="text-green-600 font-medium">50 UCoin</span> per signup + <span className="text-amber-600 font-medium">25 UCoin</span> on their first purchase!
+            <strong className="text-foreground">Rewards:</strong> Earn <span className="text-green-600 font-medium">50 UCoin</span> per signup + <span className="text-gold font-medium">25 UCoin</span> on their first purchase!
           </p>
         </div>
       </CardContent>

@@ -41,8 +41,8 @@ export function UnifiedPortfolioCard({
       value: goldValueZar,
       display: `${currencySymbol}${goldValueZar.toFixed(2)}`,
       icon: Scale,
-      color: 'text-amber-500',
-      bg: 'bg-amber-500/10',
+      color: 'text-gold',
+      bg: 'bg-gold/10',
       percent: totalPortfolio > 0 ? (goldValueZar / totalPortfolio) * 100 : 0,
     },
     {
@@ -118,7 +118,7 @@ export function UnifiedPortfolioCard({
                     initial={{ width: 0 }}
                     animate={{ width: `${asset.percent}%` }}
                     transition={{ duration: 0.8, delay: 0.2 + i * 0.1 }}
-                    className={`${i === 0 ? 'bg-sky-400' : i === 1 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                    className={`${i === 0 ? 'bg-sky-400' : i === 1 ? 'bg-gold' : 'bg-emerald-400'}`}
                   />
                 ))}
               </div>
@@ -146,7 +146,7 @@ export function UnifiedPortfolioCard({
                   {showBalance ? asset.display : '•••'}
                 </p>
                 {showBalance && (
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{asset.sublabel}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{asset.sublabel}</p>
                 )}
               </motion.div>
             );

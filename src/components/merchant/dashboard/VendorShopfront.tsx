@@ -20,6 +20,7 @@ import LockedFeatureCard from "./storefront/LockedFeatureCard";
 import ContentSectionsEditor from "./storefront/ContentSectionsEditor";
 import ThemeLayoutEditor from "./storefront/ThemeLayoutEditor";
 import SectionBuilder from "./storefront/SectionBuilder";
+import { normalizeTier } from "@/utils/subscriptionTier";
 
 const tierIcons: Record<StorefrontTier, React.ReactNode> = {
   starter: <Star className="h-4 w-4" />,
@@ -101,7 +102,7 @@ const VendorShopfront = () => {
         .maybeSingle();
       if (vendorError) throw vendorError;
       setVendorData(vendor);
-      setTier((vendor.subscription_tier as StorefrontTier) || 'starter');
+      setTier(normalizeTier(vendor.subscription_tier) as StorefrontTier);
 
       const { data: store, error: storeError } = await supabase
         .from('stores')
@@ -375,7 +376,7 @@ const VendorShopfront = () => {
       )}
 
       <Tabs defaultValue="basics" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-4">
           <TabsTrigger value="basics">Basics</TabsTrigger>
           <TabsTrigger value="design" disabled={tier === 'starter'}>
             Design {tier === 'starter' && <Lock className="h-3 w-3 ml-1" />}

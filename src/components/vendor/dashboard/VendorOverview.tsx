@@ -282,7 +282,7 @@ const VendorOverview: React.FC<VendorOverviewProps> = ({ onNavigate }) => {
         </div>
         <div className="text-right space-y-1">
           <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <Star className="h-4 w-4 fill-gold text-gold" />
             <span className="font-medium">{stats.rating}</span>
             <span className="text-sm text-muted-foreground">({stats.reviewCount} reviews)</span>
           </div>

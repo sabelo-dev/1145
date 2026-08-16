@@ -39,7 +39,13 @@ export async function registerServiceWorker() {
   try {
     const { registerSW } = await import('virtual:pwa-register');
     registerSW({
-      immediate: true,
+      immediate: false,
+      onNeedRefresh() {
+        console.info('[pwa] new app version available — refresh is required, but it will not reload automatically');
+      },
+      onOfflineReady() {
+        console.info('[pwa] app is ready to work offline');
+      },
       onRegisterError(error) {
         console.warn('[pwa] SW register error', error);
       },
