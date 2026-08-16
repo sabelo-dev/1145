@@ -11,6 +11,25 @@ interface PlacesAutocompleteProps {
   icon?: React.ReactNode;
 }
 
+const isPrecisePlace = (place: google.maps.places.PlaceResult): boolean => {
+  const types = new Set(place.types ?? []);
+  const broadTypes = new Set([
+    "locality",
+    "administrative_area_level_1",
+    "administrative_area_level_2",
+    "country",
+    "postal_code",
+    "postal_town",
+    "sublocality",
+    "neighborhood",
+    "route",
+    "political",
+  ]);
+
+  if (types.size === 0) return false;
+  return [...types].every((type) => !broadTypes.has(type));
+};
+
 const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>(({ 
   value,
   onChange,
@@ -48,23 +67,35 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
     try {
       const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
         componentRestrictions: { country: "za" },
-        fields: ["formatted_address", "geometry", "name"],
+        fields: ["formatted_address", "geometry", "name", "types", "place_id"],
+        strictBounds: false,
+        types: ["address", "establishment"],
       });
 
       const listener = autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
-        const address = place.formatted_address || place.name || inputRef.current?.value || "";
         const location = place.geometry?.location;
+        const rawAddress = place.formatted_address || place.name || inputRef.current?.value || "";
 
-        onChange(address);
-
-        if (location) {
-          onPlaceSelect({
-            address,
-            lat: location.lat(),
-            lng: location.lng(),
-          });
+        if (!location || !rawAddress) {
+          return;
         }
+
+        const isPrecise = isPrecisePlace(place);
+        const finalAddress = isPrecise ? rawAddress : place.name || rawAddress;
+
+        if (!isPrecise && (place.types ?? []).some((type) => ["locality", "administrative_area_level_1", "country", "postal_code"].includes(type))) {
+          console.warn("Google Places rejected non-address result for precise location:", place.formatted_address, place.types);
+          onChange(inputRef.current?.value || rawAddress);
+          return;
+        }
+
+        onChange(finalAddress);
+        onPlaceSelect({
+          address: finalAddress,
+          lat: location.lat(),
+          lng: location.lng(),
+        });
       });
 
       autocompleteRef.current = autocomplete;
