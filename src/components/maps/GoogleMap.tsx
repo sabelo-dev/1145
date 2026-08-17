@@ -10,6 +10,10 @@ const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
 let googleMapsPromise: Promise<void> | null = null;
 let librariesImported = false;
 
+const shouldUseGoogleMaps = (): boolean => {
+  return typeof window !== "undefined" && !!window.google?.maps;
+};
+
 declare global {
   interface Window {
     google?: typeof google;
@@ -19,21 +23,27 @@ declare global {
 
 const waitForGoogleMaps = (): Promise<void> => {
   return new Promise((resolve, reject) => {
-    if (window.google?.maps?.importLibrary) {
+    if (shouldUseGoogleMaps() && window.google?.maps?.importLibrary) {
       resolve();
       return;
     }
+
     let attempts = 0;
-    const maxAttempts = 100; // 10 seconds
+    const maxAttempts = 120;
     const check = () => {
-      if (window.google?.maps?.importLibrary) {
+      if (shouldUseGoogleMaps() && window.google?.maps?.importLibrary) {
         resolve();
-      } else if (++attempts > maxAttempts) {
-        reject(new Error("Google Maps failed to load"));
-      } else {
-        setTimeout(check, 100);
+        return;
       }
+
+      if (++attempts > maxAttempts) {
+        reject(new Error("Google Maps failed to load"));
+        return;
+      }
+
+      setTimeout(check, 100);
     };
+
     check();
   });
 };
@@ -43,24 +53,33 @@ export function loadGoogleMaps(): Promise<void> {
     return Promise.reject(new Error("Google Maps can only be loaded in the browser"));
   }
 
-  if (window.google?.maps?.importLibrary && librariesImported) return Promise.resolve();
+  if (window.google?.maps?.importLibrary && librariesImported) {
+    return Promise.resolve();
+  }
+
   if (!GOOGLE_MAPS_API_KEY) {
     return Promise.reject(new Error("Missing Google Maps API key"));
   }
-  if (googleMapsPromise) return googleMapsPromise;
+
+  if (googleMapsPromise) {
+    return googleMapsPromise;
+  }
+
+  const scriptElement = document.getElementById(GOOGLE_MAPS_SCRIPT_ID);
+  if (scriptElement && scriptElement.getAttribute("data-api-key") !== GOOGLE_MAPS_API_KEY) {
+    scriptElement.remove();
+  }
 
   googleMapsPromise = (async () => {
-    // Inject the script if not already present
     if (!document.getElementById(GOOGLE_MAPS_SCRIPT_ID)) {
-      // Remove any existing Google Maps scripts to prevent conflicts
       document
         .querySelectorAll(`script[src*="maps.googleapis.com"]`)
-        .forEach((s) => s.remove());
+        .forEach((node) => node.remove());
 
       await new Promise<void>((resolve, reject) => {
         const script = document.createElement("script");
         script.id = GOOGLE_MAPS_SCRIPT_ID;
-        // Use loading=async and no callback — importLibrary() handles readiness.
+        script.setAttribute("data-api-key", GOOGLE_MAPS_API_KEY);
         script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=weekly&libraries=places,geometry,marker&loading=async`;
         script.async = true;
         script.defer = true;
@@ -70,24 +89,30 @@ export function loadGoogleMaps(): Promise<void> {
       });
     }
 
-    // Wait for importLibrary to become available
     await waitForGoogleMaps();
 
-    // Import required libraries
     const libs = ["maps", "places", "marker"] as const;
     for (const lib of libs) {
       await window.google!.maps.importLibrary(lib);
     }
 
-    // Optional libraries — best effort
-    try { await window.google!.maps.importLibrary("geometry"); } catch { /* optional */ }
-    try { await window.google!.maps.importLibrary("routes"); } catch { /* optional */ }
+    try {
+      await window.google!.maps.importLibrary("geometry");
+    } catch {
+      // optional library
+    }
+
+    try {
+      await window.google!.maps.importLibrary("routes");
+    } catch {
+      // optional library
+    }
 
     librariesImported = true;
-  })().catch((err) => {
+  })().catch((error) => {
     googleMapsPromise = null;
     librariesImported = false;
-    throw err;
+    throw error;
   });
 
   return googleMapsPromise;
