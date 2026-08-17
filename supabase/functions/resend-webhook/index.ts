@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Accepted domains for inbound emails
-const ACCEPTED_DOMAINS = ["1145.io", "1145.io"];
+const ACCEPTED_DOMAINS = ["1145.io"];
 
 interface ResendEmailEvent {
   type: string;
@@ -30,6 +30,24 @@ interface ResendEmailEvent {
     recipients?: string[];
   };
 }
+
+const normalizeInboundEmailDetails = (eventData: ResendEmailEvent["data"]) => {
+  const sender = eventData.from ?? eventData.sender ?? "unknown@1145.io";
+  const recipients = eventData.to && eventData.to.length > 0 ? eventData.to : eventData.recipients ?? [];
+  const subject = eventData.subject ?? "(No Subject)";
+  const text = eventData.text ?? null;
+  const html = eventData.html ?? null;
+  const attachments = Array.isArray(eventData.attachments) ? eventData.attachments : [];
+
+  return {
+    sender,
+    recipients,
+    subject,
+    text,
+    html,
+    attachments,
+  };
+};
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("Resend webhook received");
@@ -54,21 +72,30 @@ const handler = async (req: Request): Promise<Response> => {
     // Handle different event types
     switch (event.type) {
       case "email.received": {
-        // Inbound email received
-        const { sender, recipients, subject, text, html, attachments } = event.data;
-        
+        // Inbound email received.
+        // Resend sends the webhook payload using `from` and `to` for inbound emails.
+        const { sender, recipients, subject, text, html, attachments } = normalizeInboundEmailDetails(event.data);
+
         console.log(`Inbound email from: ${sender}`);
-        console.log(`To: ${recipients?.join(", ")}`);
+        console.log(`To: ${recipients.join(", ")}`);
         console.log(`Subject: ${subject}`);
 
+        if (!recipients.length) {
+          console.log("Email has no recipients; ignoring.");
+          return new Response(
+            JSON.stringify({ success: true, message: "Email ignored - missing recipients" }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+
         // Verify the email is addressed to our domain
-        const isValidRecipient = recipients?.some((r: string) => {
-          const recipientLower = r.toLowerCase();
-          return ACCEPTED_DOMAINS.some(domain => recipientLower.endsWith(`@${domain}`));
+        const isValidRecipient = recipients.some((recipient: string) => {
+          const recipientLower = recipient.toLowerCase();
+          return ACCEPTED_DOMAINS.some((domain) => recipientLower.endsWith(`@${domain}`));
         });
 
         if (!isValidRecipient) {
-          console.log(`Email not addressed to accepted domains, ignoring. Recipients: ${recipients?.join(", ")}`);
+          console.log(`Email not addressed to accepted domains, ignoring. Recipients: ${recipients.join(", ")}`);
           return new Response(
             JSON.stringify({ success: true, message: "Email ignored - wrong domain" }),
             { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -81,11 +108,11 @@ const handler = async (req: Request): Promise<Response> => {
           .insert({
             from_address: sender,
             to_addresses: recipients,
-            subject: subject || "(No Subject)",
+            subject,
             body_text: text,
             body_html: html,
-            has_attachments: attachments && attachments.length > 0,
-            attachment_count: attachments?.length || 0,
+            has_attachments: attachments.length > 0,
+            attachment_count: attachments.length,
             raw_payload: event.data,
             received_at: event.created_at,
           })

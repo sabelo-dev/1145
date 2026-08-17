@@ -202,7 +202,10 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
                     Upgrade now and unlock more features to boost your sales.
                   </p>
                 </div>
-                <Button onClick={onUpgrade} className="gap-1">
+                <Button
+                  onClick={() => onUpgrade(nextTier, 'monthly')}
+                  className="gap-1"
+                >
                   {React.createElement(tierBenefits[nextTier].icon, { className: "h-4 w-4" })}
                   Upgrade to {nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}
                   <ArrowRight className="h-4 w-4" />

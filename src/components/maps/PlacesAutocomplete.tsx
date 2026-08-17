@@ -30,6 +30,18 @@ const isPrecisePlace = (place: google.maps.places.PlaceResult): boolean => {
   return [...types].every((type) => !broadTypes.has(type));
 };
 
+const invalidPreciseTypes = new Set([
+  "locality",
+  "administrative_area_level_1",
+  "administrative_area_level_2",
+  "country",
+  "postal_code",
+  "postal_town",
+  "sublocality",
+  "neighborhood",
+  "political",
+]);
+
 const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>(({ 
   value,
   onChange,
@@ -44,15 +56,25 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     loadGoogleMaps()
       .then(() => {
-        setReady(true);
-        setLoadError(false);
+        if (!cancelled) {
+          setReady(true);
+          setLoadError(false);
+        }
       })
       .catch((error) => {
         console.error("Google Places loading error:", error);
-        setLoadError(true);
+        if (!cancelled) {
+          setLoadError(true);
+        }
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -81,14 +103,16 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
           return;
         }
 
-        const isPrecise = isPrecisePlace(place);
-        const finalAddress = isPrecise ? rawAddress : place.name || rawAddress;
+        const placeTypes = new Set(place.types ?? []);
+        const hasBroadType = [...placeTypes].some((type) => invalidPreciseTypes.has(type));
 
-        if (!isPrecise && (place.types ?? []).some((type) => ["locality", "administrative_area_level_1", "country", "postal_code"].includes(type))) {
-          console.warn("Google Places rejected non-address result for precise location:", place.formatted_address, place.types);
+        if (hasBroadType) {
+          console.warn("Google Places rejected non-address result for precise location:", place.formatted_address, [...placeTypes]);
           onChange(inputRef.current?.value || rawAddress);
           return;
         }
+
+        const finalAddress = isPrecisePlace(place) ? rawAddress : place.name || rawAddress;
 
         onChange(finalAddress);
         onPlaceSelect({

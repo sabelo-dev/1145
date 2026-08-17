@@ -371,7 +371,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
                 currentTier={normalizeTier(vendorData?.subscription_tier)}
                 onUpgrade={(tier, billing) => {
                   if (tier && billing) {
-                    void handleUpgrade(tier, billing);
+                    void onUpgrade(tier, billing);
                   } else {
                     setShowUpgradeModal(true);
                   }
