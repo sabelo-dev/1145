@@ -59,6 +59,7 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
 }, ref) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const selectedAddressRef = useRef<string | null>(null);
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -150,6 +151,12 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
   // public geocoder. The debounce also keeps requests within its public usage
   // guidance and avoids returning stale results while the user is typing.
   useEffect(() => {
+    if (selectedAddressRef.current === value) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
     if (!loadError || value.trim().length < 3) {
       setSuggestions([]);
       setIsSearching(false);
@@ -202,6 +209,7 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
   }, [loadError, value]);
 
   const selectSuggestion = (suggestion: AddressSuggestion) => {
+    selectedAddressRef.current = suggestion.address;
     onChange(suggestion.address);
     onPlaceSelect(suggestion);
     setSuggestions([]);
@@ -224,7 +232,10 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          selectedAddressRef.current = null;
+          onChange(e.target.value);
+        }}
         placeholder={placeholder}
         autoComplete="off"
         className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${icon ? "pl-10" : ""}`}
@@ -250,7 +261,7 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
               ))}
             </ul>
           )}
-          {!isSearching && value.trim().length >= 3 && suggestions.length === 0 && (
+          {!isSearching && selectedAddressRef.current !== value && value.trim().length >= 3 && suggestions.length === 0 && (
             <button
               type="button"
               className="mt-1 text-xs font-medium text-primary underline underline-offset-2"
