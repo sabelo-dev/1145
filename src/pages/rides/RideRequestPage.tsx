@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet,
   Locate, Loader2, ChevronRight, Shield, Zap, Route, Star, Sparkles,
@@ -43,11 +43,14 @@ const PAYMENT_METHODS = [
 
 const RideRequestPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const requestedPickup = searchParams.get("pickup")?.trim() || "";
+  const requestedDropoff = searchParams.get("destination")?.trim() || "";
 
-  const [pickup, setPickup] = useState("");
-  const [dropoff, setDropoff] = useState("");
+  const [pickup, setPickup] = useState(() => requestedPickup);
+  const [dropoff, setDropoff] = useState(() => requestedDropoff);
   const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [vehicleTypes, setVehicleTypes] = useState<VehicleOption[]>([]);
@@ -104,7 +107,7 @@ const RideRequestPage: React.FC = () => {
   }, [toast]);
 
   useEffect(() => {
-    if ("geolocation" in navigator && !pickupCoords) detectAndSetPickup();
+    if (!requestedPickup && "geolocation" in navigator && !pickupCoords) detectAndSetPickup();
   }, []);
 
   useEffect(() => {
@@ -171,6 +174,34 @@ const RideRequestPage: React.FC = () => {
 
     return null;
   };
+
+  // The home-page “See prices” form forwards its locations in the URL. Resolve
+  // them here so the vehicle prices are calculated for that exact route.
+  useEffect(() => {
+    if (!requestedPickup || !requestedDropoff) return;
+    let cancelled = false;
+
+    const resolveRequestedRoute = async () => {
+      const [resolvedPickup, resolvedDropoff] = await Promise.all([
+        geocodeAddress(requestedPickup),
+        geocodeAddress(requestedDropoff),
+      ]);
+
+      if (cancelled) return;
+      if (resolvedPickup) setPickupCoords(resolvedPickup);
+      if (resolvedDropoff) setDropoffCoords(resolvedDropoff);
+      if (!resolvedPickup || !resolvedDropoff) {
+        toast({
+          variant: "destructive",
+          title: "We couldn't locate both addresses",
+          description: "Update the pickup or drop-off location to see route-based prices.",
+        });
+      }
+    };
+
+    void resolveRequestedRoute();
+    return () => { cancelled = true; };
+  }, [requestedPickup, requestedDropoff]);
 
   const handleSearchRides = async () => {
     let pCoords = pickupCoords;
