@@ -288,7 +288,6 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                 </CardContent>
               </Card>
             )}
-          </div>
         </div>
       </DialogContent>
     </Dialog>

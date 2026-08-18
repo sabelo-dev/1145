@@ -47,6 +47,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>1145 uses your location to show nearby stores, rides and deliveries.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to your camera to take profile photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

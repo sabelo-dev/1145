@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, MapPin, Navigation, Car, Crown, Users, Clock, Wallet,
   Locate, Loader2, ChevronRight, Shield, Zap, Route, Star, Sparkles,
@@ -43,11 +43,14 @@ const PAYMENT_METHODS = [
 
 const RideRequestPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const requestedPickup = searchParams.get("pickup")?.trim() || "";
+  const requestedDropoff = searchParams.get("destination")?.trim() || "";
 
-  const [pickup, setPickup] = useState("");
-  const [dropoff, setDropoff] = useState("");
+  const [pickup, setPickup] = useState(() => requestedPickup);
+  const [dropoff, setDropoff] = useState(() => requestedDropoff);
   const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [vehicleTypes, setVehicleTypes] = useState<VehicleOption[]>([]);
@@ -104,7 +107,7 @@ const RideRequestPage: React.FC = () => {
   }, [toast]);
 
   useEffect(() => {
-    if ("geolocation" in navigator && !pickupCoords) detectAndSetPickup();
+    if (!requestedPickup && "geolocation" in navigator && !pickupCoords) detectAndSetPickup();
   }, []);
 
   useEffect(() => {
@@ -126,6 +129,17 @@ const RideRequestPage: React.FC = () => {
   };
 
   const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+    // Google Maps lets users copy a dropped pin as "latitude, longitude".
+    // Accept that manual fallback directly, without another geocoding request.
+    const coordinateMatch = address.match(/(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (coordinateMatch) {
+      const lat = Number(coordinateMatch[1]);
+      const lng = Number(coordinateMatch[2]);
+      if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+        return { lat, lng };
+      }
+    }
+
     try {
       await loadGoogleMaps();
       const geocoder = new google.maps.Geocoder();
@@ -133,8 +147,61 @@ const RideRequestPage: React.FC = () => {
       const loc = result.results?.[0]?.geometry?.location;
       if (loc) return { lat: loc.lat(), lng: loc.lng() };
     } catch {}
+
+    // Google geocoding is unavailable when the optional Maps key is not
+    // configured. Use the same South Africa-scoped geocoder as the address
+    // fields so a destination that was typed (rather than tapped) still works.
+    try {
+      const params = new URLSearchParams({
+        q: address.trim(),
+        format: "jsonv2",
+        limit: "1",
+        countrycodes: "za",
+      });
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) return null;
+
+      const results: Array<{ lat: string; lon: string }> = await response.json();
+      const result = results[0];
+      if (result) {
+        const lat = Number(result.lat);
+        const lng = Number(result.lon);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      }
+    } catch {}
+
     return null;
   };
+
+  // The home-page “See prices” form forwards its locations in the URL. Resolve
+  // them here so the vehicle prices are calculated for that exact route.
+  useEffect(() => {
+    if (!requestedPickup || !requestedDropoff) return;
+    let cancelled = false;
+
+    const resolveRequestedRoute = async () => {
+      const [resolvedPickup, resolvedDropoff] = await Promise.all([
+        geocodeAddress(requestedPickup),
+        geocodeAddress(requestedDropoff),
+      ]);
+
+      if (cancelled) return;
+      if (resolvedPickup) setPickupCoords(resolvedPickup);
+      if (resolvedDropoff) setDropoffCoords(resolvedDropoff);
+      if (!resolvedPickup || !resolvedDropoff) {
+        toast({
+          variant: "destructive",
+          title: "We couldn't locate both addresses",
+          description: "Update the pickup or drop-off location to see route-based prices.",
+        });
+      }
+    };
+
+    void resolveRequestedRoute();
+    return () => { cancelled = true; };
+  }, [requestedPickup, requestedDropoff]);
 
   const handleSearchRides = async () => {
     let pCoords = pickupCoords;
@@ -142,7 +209,11 @@ const RideRequestPage: React.FC = () => {
     if (!pCoords && pickup) { pCoords = await geocodeAddress(pickup); if (pCoords) setPickupCoords(pCoords); }
     if (!dCoords && dropoff) { dCoords = await geocodeAddress(dropoff); if (dCoords) setDropoffCoords(dCoords); }
     if (!pCoords || !dCoords) {
-      toast({ variant: "destructive", title: "Please select both locations from the suggestions" });
+      toast({
+        variant: "destructive",
+        title: "We couldn't find one of those locations",
+        description: "Choose an address suggestion or enter a more specific location.",
+      });
       return;
     }
     setIsSearching(true);

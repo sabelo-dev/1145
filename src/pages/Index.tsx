@@ -15,6 +15,8 @@ import SEO from "@/components/SEO";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { Product } from "@/types";
 import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals, fetchFeaturedBrands, FeaturedBrand } from "@/services/products";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const services = [
   { name: "Shop", desc: "Marketplace", icon: ShoppingBag, href: "/shop", tag: "Popular" },
@@ -30,13 +32,18 @@ const services = [
 
 const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
+  const [senderAddress, setSenderAddress] = useState("");
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [shopSearch, setShopSearch] = useState("");
   const [when, setWhen] = useState("now");
   const [featured, setFeatured] = useState<Product[]>([]);
   const [trending, setTrending] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [featuredBrands, setFeaturedBrands] = useState<FeaturedBrand[]>([]);
+  const [activeRide, setActiveRide] = useState<{ id: string; pickup_address: string; dropoff_address: string; status: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -57,12 +64,58 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
     })();
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setActiveRide(null);
+      return;
+    }
+
+    const activeStatuses = ["requested", "searching", "accepted", "arriving", "in_progress"];
+    const loadActiveRide = async () => {
+      const { data } = await supabase
+        .from("rides")
+        .select("id, pickup_address, dropoff_address, status")
+        .eq("passenger_id", user.id)
+        .in("status", activeStatuses)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setActiveRide(data);
+    };
+
+    void loadActiveRide();
+    const channel = supabase
+      .channel(`home-active-ride-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "rides", filter: `passenger_id=eq.${user.id}` }, () => {
+        void loadActiveRide();
+      })
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [user]);
+
   const handleRequest = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (pickup) params.set("pickup", pickup);
     if (destination) params.set("destination", destination);
     navigate(`/rides/request?${params.toString()}`);
+  };
+
+  const handlePackageQuote = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams({
+      mode: "package",
+      pickup: senderAddress.trim(),
+      destination: recipientAddress.trim(),
+    });
+    navigate(`/rides/request?${params.toString()}`);
+  };
+
+  const handleShopSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = shopSearch.trim();
+    navigate(query ? `/shop?search=${encodeURIComponent(query)}` : "/shop");
   };
 
   return (
@@ -136,27 +189,27 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
               </TabsContent>
 
               <TabsContent value="package" className="mt-5">
-                <div className="space-y-2.5">
+                <form onSubmit={handlePackageQuote} className="space-y-2.5">
                   <div className="relative group">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
-                    <Input placeholder="Sender address" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
+                    <Input value={senderAddress} onChange={(e) => setSenderAddress(e.target.value)} placeholder="Sender address" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </div>
                   <div className="relative group">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
-                    <Input placeholder="Recipient address" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
+                    <Input value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} placeholder="Recipient address" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </div>
-                  <Button className="h-11 px-6 font-medium" onClick={() => navigate("/rides/request")}>Get a quote</Button>
-                </div>
+                  <Button type="submit" disabled={!senderAddress.trim() || !recipientAddress.trim()} className="h-11 px-6 font-medium">Get a quote</Button>
+                </form>
               </TabsContent>
 
               <TabsContent value="shop" className="mt-5">
-                <div className="space-y-2.5">
+                <form onSubmit={handleShopSearch} className="space-y-2.5">
                   <div className="relative group">
                     <ShoppingBag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary transition-colors group-hover:text-brand group-focus-within:text-brand" />
-                    <Input placeholder="Search products, brands, categories" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" onKeyDown={(e) => { if (e.key === "Enter") navigate(`/shop?search=${encodeURIComponent((e.target as HTMLInputElement).value)}`); }} />
+                    <Input value={shopSearch} onChange={(e) => setShopSearch(e.target.value)} placeholder="Search products, brands, categories" className="pl-11 h-12 text-sm bg-surface-input border border-transparent rounded-md text-foreground placeholder:text-text-secondary hover:bg-surface-hover focus:bg-background focus:border-brand focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </div>
-                  <Button className="h-11 px-6 font-medium" onClick={() => navigate("/shop")}>Browse marketplace</Button>
-                </div>
+                  <Button type="submit" className="h-11 px-6 font-medium">{shopSearch.trim() ? "Search marketplace" : "Browse marketplace"}</Button>
+                </form>
               </TabsContent>
             </Tabs>
           </div>
@@ -170,24 +223,33 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
               <circle cx="110" cy="170" r="6" fill="hsl(var(--primary))" />
               <circle cx="290" cy="120" r="6" fill="hsl(var(--foreground))" />
             </svg>
-            <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur rounded-xl p-3 shadow-lg">
+            <button
+              type="button"
+              onClick={() => navigate(activeRide ? `/rides/track/${activeRide.id}` : user ? "/rides" : "/login")}
+              className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur rounded-xl p-3 text-left shadow-lg transition hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={activeRide ? "View your current ride" : "View ride activity"}
+            >
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                   <Car className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-semibold">Rides on demand</p>
-                  <p className="text-[11px] text-muted-foreground">Tap "See prices" to get matched with a nearby driver.</p>
+                  <p className="text-xs font-semibold">{activeRide ? "Current ride activity" : "Rides on demand"}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {activeRide
+                      ? `${activeRide.status.replace("_", " ")} · ${activeRide.pickup_address} → ${activeRide.dropoff_address}`
+                      : user ? "View your ride activity or request a ride." : "Tap “See prices” to get matched with a nearby driver."}
+                  </p>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </section>
 
       {/* ALL SERVICES */}
-      <section className="border-b border-border">
+      <section className="hidden border-b border-border md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-end justify-between mb-6">
             <div>

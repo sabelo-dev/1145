@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ProductGrid from "@/components/shop/ProductGrid";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ import { Product, Category } from "@/types";
 import { fetchAllProducts, fetchCategories } from "@/services/products";
 
 const ShopPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +42,15 @@ const ShopPage: React.FC = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search")?.trim() || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search")?.trim() || "");
+  }, [searchParams]);
 
   const handleClearAll = () => {
     setSearchQuery("");

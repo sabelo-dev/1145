@@ -20,6 +20,7 @@ import LockedFeatureCard from "./storefront/LockedFeatureCard";
 import ContentSectionsEditor from "./storefront/ContentSectionsEditor";
 import ThemeLayoutEditor from "./storefront/ThemeLayoutEditor";
 import SectionBuilder from "./storefront/SectionBuilder";
+import NewsletterSubscribers from "./NewsletterSubscribers";
 import { normalizeTier } from "@/utils/subscriptionTier";
 
 const tierIcons: Record<StorefrontTier, React.ReactNode> = {
@@ -609,6 +610,8 @@ const VendorShopfront = () => {
           </CardContent>
         </Card>
       )}
+
+      {storeData && <NewsletterSubscribers storeId={storeData.id} />}
     </div>
   );
 };
