@@ -6,8 +6,6 @@ import {
   DialogTitle,
   DialogDescription 
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import SubscriptionComparisonTable from './SubscriptionComparisonTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -120,7 +118,6 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
   onUpgrade,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'simple' | 'detailed'>('simple');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
   const [pendingDowngrade, setPendingDowngrade] = useState<TierType | null>(null);
@@ -164,13 +161,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'simple' | 'detailed')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="simple">Quick View</TabsTrigger>
-            <TabsTrigger value="detailed">Full Comparison</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="simple" className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6">
             {/* Billing Toggle */}
             <div className="flex items-center justify-center gap-3 p-4 bg-muted/30 rounded-lg">
               <Label className={cn("text-sm", billingPeriod === 'monthly' && 'font-semibold')}>Monthly</Label>
@@ -297,15 +288,8 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-          
-          <TabsContent value="detailed" className="mt-6">
-            <SubscriptionComparisonTable
-              currentTier={currentTier}
-              onSelectPlan={handleSelectPlan}
-            />
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
 
