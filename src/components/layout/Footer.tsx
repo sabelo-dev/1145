@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import { subscribeToNewsletter } from "@/services/newsletterService";
+import { toast } from "sonner";
 import {
   Accordion,
   AccordionContent,
@@ -63,6 +65,30 @@ const ContactList: React.FC = () => (
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const submitNewsletter = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const email = newsletterEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      await subscribeToNewsletter(email);
+      setNewsletterEmail("");
+      setIsSubscribed(true);
+      toast.success("You’re subscribed to our newsletter.");
+    } catch {
+      toast.error("We couldn’t subscribe you right now. Please try again.");
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <footer className="bg-wwe-navy text-white pt-10 md:pt-12 pb-6 pb-nav md:pb-6">
@@ -148,19 +174,25 @@ const Footer: React.FC = () => {
                 Get the latest news, updates and special offers in your inbox.
               </p>
             </div>
-            <div className="flex w-full md:w-auto">
+            <form className="flex w-full md:w-auto" onSubmit={submitNewsletter}>
               <input
                 type="email"
                 inputMode="email"
                 autoComplete="email"
                 placeholder="Your Email Address"
                 aria-label="Email address"
+                value={newsletterEmail}
+                onChange={(event) => {
+                  setNewsletterEmail(event.target.value);
+                  setIsSubscribed(false);
+                }}
+                disabled={isSubscribing || isSubscribed}
                 className="h-11 px-4 rounded-l-xl w-full md:w-auto bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-wwe-gold text-white text-base"
               />
-              <button className="h-11 shrink-0 px-4 bg-wwe-gold text-wwe-navy font-medium rounded-r-xl hover:bg-opacity-90">
-                Subscribe
+              <button type="submit" disabled={isSubscribing || isSubscribed} className={`h-11 shrink-0 px-4 font-medium rounded-r-xl disabled:opacity-100 ${isSubscribed ? "bg-emerald-600 text-white" : "bg-wwe-gold text-wwe-navy hover:bg-opacity-90"}`}>
+                {isSubscribed ? "Subscribed" : isSubscribing ? "Subscribing…" : "Subscribe"}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 

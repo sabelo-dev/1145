@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Mail, ArrowRight, Check, AlertCircle, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { subscribeToNewsletter } from "@/services/newsletterService";
 import { toast } from "sonner";
 
 interface StorefrontNewsletterProps {
@@ -51,28 +51,7 @@ const StorefrontNewsletter: React.FC<StorefrontNewsletterProps> = ({
     setIsLoading(true);
 
     try {
-      const { error: insertError } = await supabase
-        .from("newsletter_subscribers")
-        .upsert(
-          {
-            email: email.trim().toLowerCase(),
-            store_id: storeId,
-            status: "active",
-            subscribed_at: new Date().toISOString(),
-          },
-          { onConflict: "email,store_id" }
-        );
-
-      if (insertError) {
-        if (insertError.code === "23505") {
-          // Duplicate key error
-          setError("This email is already subscribed");
-        } else {
-          setError("Failed to subscribe. Please try again.");
-        }
-        setIsLoading(false);
-        return;
-      }
+      await subscribeToNewsletter(email, storeId);
 
       toast.success("Successfully subscribed to our newsletter!");
       setSubmitted(true);

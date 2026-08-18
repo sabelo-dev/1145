@@ -80,7 +80,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           </Button>
         </div>
 
-        <div className="px-4 py-4 space-y-6">
+        <div className="px-4 pt-4 pb-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+1rem)] space-y-6">
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

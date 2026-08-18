@@ -126,6 +126,17 @@ const RideRequestPage: React.FC = () => {
   };
 
   const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+    // Google Maps lets users copy a dropped pin as "latitude, longitude".
+    // Accept that manual fallback directly, without another geocoding request.
+    const coordinateMatch = address.match(/(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (coordinateMatch) {
+      const lat = Number(coordinateMatch[1]);
+      const lng = Number(coordinateMatch[2]);
+      if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+        return { lat, lng };
+      }
+    }
+
     try {
       await loadGoogleMaps();
       const geocoder = new google.maps.Geocoder();
@@ -133,6 +144,31 @@ const RideRequestPage: React.FC = () => {
       const loc = result.results?.[0]?.geometry?.location;
       if (loc) return { lat: loc.lat(), lng: loc.lng() };
     } catch {}
+
+    // Google geocoding is unavailable when the optional Maps key is not
+    // configured. Use the same South Africa-scoped geocoder as the address
+    // fields so a destination that was typed (rather than tapped) still works.
+    try {
+      const params = new URLSearchParams({
+        q: address.trim(),
+        format: "jsonv2",
+        limit: "1",
+        countrycodes: "za",
+      });
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) return null;
+
+      const results: Array<{ lat: string; lon: string }> = await response.json();
+      const result = results[0];
+      if (result) {
+        const lat = Number(result.lat);
+        const lng = Number(result.lon);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      }
+    } catch {}
+
     return null;
   };
 
@@ -142,7 +178,11 @@ const RideRequestPage: React.FC = () => {
     if (!pCoords && pickup) { pCoords = await geocodeAddress(pickup); if (pCoords) setPickupCoords(pCoords); }
     if (!dCoords && dropoff) { dCoords = await geocodeAddress(dropoff); if (dCoords) setDropoffCoords(dCoords); }
     if (!pCoords || !dCoords) {
-      toast({ variant: "destructive", title: "Please select both locations from the suggestions" });
+      toast({
+        variant: "destructive",
+        title: "We couldn't find one of those locations",
+        description: "Choose an address suggestion or enter a more specific location.",
+      });
       return;
     }
     setIsSearching(true);
