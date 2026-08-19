@@ -188,7 +188,7 @@ const DriverLiveTracking: React.FC<DriverLiveTrackingProps> = ({ driver }) => {
       {/* Current Location */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="header-row">
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
               Current Location

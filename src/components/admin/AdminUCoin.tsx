@@ -287,7 +287,7 @@ export default function AdminUCoin() {
         <TabsContent value="earning" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="header-row">
                 <div>
                   <CardTitle>Earning Rules</CardTitle>
                   <CardDescription>Configure how users earn UCoin</CardDescription>
@@ -355,7 +355,7 @@ export default function AdminUCoin() {
         <TabsContent value="spending" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="header-row">
                 <div>
                   <CardTitle>Spending Options</CardTitle>
                   <CardDescription>Configure rewards users can redeem</CardDescription>

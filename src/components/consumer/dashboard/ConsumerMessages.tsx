@@ -190,7 +190,7 @@ const ConsumerMessages: React.FC = () => {
             {selectedConversation ? (
               <>
                 <CardHeader className="border-b py-4">
-                  <div className="flex items-center justify-between">
+                  <div className="header-row">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarFallback>

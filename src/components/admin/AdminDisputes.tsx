@@ -353,7 +353,7 @@ const AdminDisputes: React.FC = () => {
             {selectedTicket ? (
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="header-row">
                     <CardTitle className="text-lg">{selectedTicket.subject}</CardTitle>
                     <div className="flex gap-2">
                       <Badge variant={getPriorityColor(selectedTicket.priority)}>{selectedTicket.priority}</Badge>

@@ -157,7 +157,7 @@ const ConsumerReviews: React.FC = () => {
         {reviews.map(review => (
           <Card key={review.id}>
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="header-row">
                 <div className="flex gap-4">
                   <img src={review.productImage} alt={review.productName} className="w-16 h-16 object-cover rounded" />
                   <div>
