@@ -415,8 +415,21 @@
   }
   .toolbar > * { min-width: 0; }
 
+  /* Card / section header: stacked on mobile, row from sm up.
+     Content column shrinks; the action group never squeezes the title. */
+  .header-row {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4;
+  }
+  .header-row > .header-content,
+  .header-row > *:first-child { min-width: 0; }
+  .header-actions {
+    @apply flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end;
+  }
+  .header-actions > * { @apply min-h-[44px] flex-1 sm:flex-none; }
+
   /* Truncate safely inside flex rows */
   .min-w-0-all > * { min-width: 0; }
+
   .truncate-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
