@@ -564,7 +564,7 @@ const AccountPage: React.FC = () => {
               <TabsContent value="addresses" className="mt-6">
                 <Card>
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="header-row">
                       <div>
                         <CardTitle>Shipping Addresses</CardTitle>
                         <CardDescription>

@@ -95,7 +95,7 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
       {/* Overall Status Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="header-row">
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
               Verification Status

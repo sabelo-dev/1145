@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { getNewsletterSubscribers, setNewsletterSubscriberStatus, type NewsletterSubscriber } from "@/services/newsletterService";
 
-const csvValue = (value: string) => `"${value.replaceAll('"', '""')}"`;
+const csvValue = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
 export default function NewsletterSubscribers({ storeId }: { storeId: string }) {
   const { toast } = useToast();

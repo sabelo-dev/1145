@@ -126,24 +126,22 @@ export const InfluencerAccountsTab: React.FC = () => {
 
   return (
     <>
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h2 className="text-2xl font-bold">My Social Accounts</h2>
-          <p className="text-muted-foreground">
-            Connect and manage your social media accounts for content publishing
-          </p>
-        </div>
+      <div className="mb-4 min-w-0">
+        <h2 className="text-xl sm:text-2xl font-bold">My Social Accounts</h2>
+        <p className="text-sm text-muted-foreground">
+          Connect and manage your social media accounts for content publishing
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList>
+        <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="oauth" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            API Connect
+            <Zap className="h-4 w-4 shrink-0" />
+            <span className="truncate">API Connect</span>
           </TabsTrigger>
           <TabsTrigger value="manual" className="flex items-center gap-2">
-            <Key className="h-4 w-4" />
-            Manual Accounts
+            <Key className="h-4 w-4 shrink-0" />
+            <span className="truncate">Manual</span>
           </TabsTrigger>
         </TabsList>
 
@@ -154,22 +152,25 @@ export const InfluencerAccountsTab: React.FC = () => {
         <TabsContent value="manual">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Link2 className="h-5 w-5" />
-                    Manual Account Linking
+              <div className="header-row">
+                <div className="header-content">
+                  <CardTitle className="flex items-start gap-2 text-base sm:text-lg">
+                    <Link2 className="h-5 w-5 shrink-0 mt-0.5" />
+                    <span>Manual Account Linking</span>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="mt-1">
                     Add accounts manually for verification (no API access)
                   </CardDescription>
                 </div>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Account
-                </Button>
+                <div className="header-actions">
+                  <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4 shrink-0" />
+                    <span>Add Account</span>
+                  </Button>
+                </div>
               </div>
             </CardHeader>
+
             <CardContent>
               {accounts.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">

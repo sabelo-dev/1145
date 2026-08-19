@@ -471,7 +471,7 @@ const VendorPromotions = () => {
           {filteredPromotions.map((promo) => (
             <Card key={promo.id}>
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="header-row">
                   <div className="space-y-1">
                     <CardTitle className="flex items-center gap-2">
                       {promo.name}
