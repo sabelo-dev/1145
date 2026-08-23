@@ -199,18 +199,17 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
                               Picked up at {format(new Date(job.pickup_time), "p")}
                             </p>
                           )}
-                          {job.status === "accepted" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="mt-2 text-green-600 border-green-300 hover:bg-green-100"
-                              onClick={() => openGoogleMaps(job.pickup_address)}
-                            >
-                              <Navigation className="h-3 w-3 mr-1" />
-                              Get Directions
-                              <ExternalLink className="h-3 w-3 ml-1" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-2 min-h-[44px] text-green-600 border-green-300 hover:bg-green-100"
+                            onClick={() => openGoogleMaps(job.pickup_address)}
+                          >
+                            <Navigation className="h-3 w-3 mr-1" />
+                            Navigate to pickup
+                            <ExternalLink className="h-3 w-3 ml-1" />
+                          </Button>
+
                         </div>
                       </div>
 
