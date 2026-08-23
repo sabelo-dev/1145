@@ -16,6 +16,8 @@ import GoogleMap from "@/components/maps/GoogleMap";
 import PlacesAutocomplete from "@/components/maps/PlacesAutocomplete";
 import { loadGoogleMaps } from "@/components/maps/GoogleMap";
 import { rideDispatchService } from "@/services/rideDispatchService";
+import { useFrequentDestinations } from "@/hooks/useFrequentDestinations";
+
 
 interface VehicleOption {
   id: string;
@@ -65,6 +67,8 @@ const RideRequestPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card" | "cash">("wallet");
   const [surgeMultiplier, setSurgeMultiplier] = useState(1.0);
   const [demandLevel, setDemandLevel] = useState<string>("low");
+  const { destinations: frequentDestinations } = useFrequentDestinations(6);
+
 
   const handlePickupChange = useCallback((value: string) => {
     setPickup(value);
@@ -403,8 +407,46 @@ const RideRequestPage: React.FC = () => {
                   onPlaceSelect={(p) => { setDropoff(p.address); setDropoffCoords({ lat: p.lat, lng: p.lng }); }}
                   placeholder="Where to?"
                 />
+
+                {step === "location" && frequentDestinations.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Your usual destinations
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {frequentDestinations.map((destination) => (
+                        <button
+                          key={destination.address}
+                          type="button"
+                          onClick={() => {
+                            setDropoff(destination.address);
+                            setDropoffCoords(
+                              destination.lat != null && destination.lng != null
+                                ? { lat: destination.lat, lng: destination.lng }
+                                : null,
+                            );
+                          }}
+                          className="flex max-w-full items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-2 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5"
+                        >
+                          <Star className="h-3 w-3 shrink-0 text-gold" />
+                          <span className="truncate">{destination.address}</span>
+                          {destination.count > 1 && (
+                            <span className="shrink-0 text-[10px] text-muted-foreground">
+                              ×{destination.count}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-muted-foreground">
+                  No suggestion? Type the address, a place name, or paste “latitude, longitude” — we’ll locate it.
+                </p>
               </div>
             </div>
+
 
             {step === "location" && (
               <div className="pt-4">
