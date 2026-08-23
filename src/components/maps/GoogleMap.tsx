@@ -94,20 +94,18 @@ export function loadGoogleMaps(): Promise<void> {
     return Promise.resolve();
   }
 
-  if (!GOOGLE_MAPS_API_KEY) {
-    return Promise.reject(new Error("Missing Google Maps API key"));
-  }
-
   if (googleMapsPromise) {
     return googleMapsPromise;
   }
 
-  const scriptElement = document.getElementById(GOOGLE_MAPS_SCRIPT_ID);
-  if (scriptElement && scriptElement.getAttribute("data-api-key") !== GOOGLE_MAPS_API_KEY) {
-    scriptElement.remove();
-  }
-
   googleMapsPromise = (async () => {
+    const apiKey = await resolveApiKey();
+
+    const scriptElement = document.getElementById(GOOGLE_MAPS_SCRIPT_ID);
+    if (scriptElement && scriptElement.getAttribute("data-api-key") !== apiKey) {
+      scriptElement.remove();
+    }
+
     if (!document.getElementById(GOOGLE_MAPS_SCRIPT_ID)) {
       document
         .querySelectorAll(`script[src*="maps.googleapis.com"]`)
@@ -116,8 +114,9 @@ export function loadGoogleMaps(): Promise<void> {
       await new Promise<void>((resolve, reject) => {
         const script = document.createElement("script");
         script.id = GOOGLE_MAPS_SCRIPT_ID;
-        script.setAttribute("data-api-key", GOOGLE_MAPS_API_KEY);
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=weekly&libraries=places,geometry,marker&loading=async`;
+        script.setAttribute("data-api-key", apiKey);
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly&libraries=places,geometry,marker&loading=async`;
+
         script.async = true;
         script.defer = true;
         script.onload = () => resolve();
