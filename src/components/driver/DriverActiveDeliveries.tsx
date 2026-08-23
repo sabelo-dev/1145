@@ -15,36 +15,19 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
+import { extractCoords, formatAddress as formatAddressLine, openDirections } from "@/lib/navigation";
 
-// Helper function to build Google Maps directions URL
-const buildGoogleMapsUrl = (address: any, isDirections: boolean = true): string => {
-  let addressString = "";
-  if (!address) return "";
-  if (typeof address === "string") {
-    addressString = address;
-  } else {
-    addressString = [
-      address.street,
-      address.city,
-      address.province,
-      address.postal_code,
-      address.country || "South Africa"
-    ].filter(Boolean).join(", ");
-  }
-  
-  const encoded = encodeURIComponent(addressString);
-  if (isDirections) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
-  }
-  return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
-};
-
+// Navigate to the exact drop pin when coordinates are stored on the job,
+// otherwise fall back to the formatted address string.
 const openGoogleMaps = (address: any) => {
-  const url = buildGoogleMapsUrl(address, true);
-  if (url) {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
+  const coords = extractCoords(address);
+  openDirections({
+    lat: coords?.lat ?? null,
+    lng: coords?.lng ?? null,
+    address: formatAddressLine(address),
+  });
 };
+
 
 interface Driver {
   id: string;
