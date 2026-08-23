@@ -2,10 +2,47 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
-const GOOGLE_MAPS_API_KEY =
+const BUILD_TIME_KEY =
   (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() || "";
 
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() || "";
+const SUPABASE_ANON_KEY =
+  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined)?.trim() || "";
+
+let resolvedApiKey: string | null = BUILD_TIME_KEY || null;
+let apiKeyPromise: Promise<string> | null = null;
+
+/**
+ * Resolve the Maps browser key. Prefers the build-time env var; falls back to
+ * the `maps-config` edge function so native (Capacitor) and preview builds work
+ * without re-building with a VITE_ variable.
+ */
+async function resolveApiKey(): Promise<string> {
+  if (resolvedApiKey) return resolvedApiKey;
+  if (apiKeyPromise) return apiKeyPromise;
+
+  apiKeyPromise = (async () => {
+    if (!SUPABASE_URL) throw new Error("Missing Google Maps API key");
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/maps-config`, {
+      headers: SUPABASE_ANON_KEY
+        ? { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+        : undefined,
+    });
+    if (!response.ok) throw new Error("Missing Google Maps API key");
+    const data = (await response.json()) as { apiKey?: string };
+    if (!data.apiKey) throw new Error("Missing Google Maps API key");
+    resolvedApiKey = data.apiKey;
+    return data.apiKey;
+  })().catch((error) => {
+    apiKeyPromise = null;
+    throw error;
+  });
+
+  return apiKeyPromise;
+}
+
 const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
+
 
 let googleMapsPromise: Promise<void> | null = null;
 let librariesImported = false;
