@@ -67,6 +67,8 @@ const RideRequestPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card" | "cash">("wallet");
   const [surgeMultiplier, setSurgeMultiplier] = useState(1.0);
   const [demandLevel, setDemandLevel] = useState<string>("low");
+  const { destinations: frequentDestinations } = useFrequentDestinations(6);
+
 
   const handlePickupChange = useCallback((value: string) => {
     setPickup(value);
