@@ -16,6 +16,8 @@ import GoogleMap from "@/components/maps/GoogleMap";
 import PlacesAutocomplete from "@/components/maps/PlacesAutocomplete";
 import { loadGoogleMaps } from "@/components/maps/GoogleMap";
 import { rideDispatchService } from "@/services/rideDispatchService";
+import { useFrequentDestinations } from "@/hooks/useFrequentDestinations";
+
 
 interface VehicleOption {
   id: string;
