@@ -223,18 +223,17 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
                               ETA: {format(new Date(job.estimated_delivery_time), "p")}
                             </p>
                           )}
-                          {(job.status === "picked_up" || job.status === "in_transit") && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="mt-2 text-blue-600 border-blue-300 hover:bg-blue-100"
-                              onClick={() => openGoogleMaps(job.delivery_address)}
-                            >
-                              <Navigation className="h-3 w-3 mr-1" />
-                              Get Directions
-                              <ExternalLink className="h-3 w-3 ml-1" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-2 min-h-[44px] text-blue-600 border-blue-300 hover:bg-blue-100"
+                            onClick={() => openGoogleMaps(job.delivery_address)}
+                          >
+                            <Navigation className="h-3 w-3 mr-1" />
+                            Navigate to drop-off
+                            <ExternalLink className="h-3 w-3 ml-1" />
+                          </Button>
+
                         </div>
                       </div>
                     </div>
