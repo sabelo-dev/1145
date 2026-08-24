@@ -35,6 +35,48 @@ export function extractCoords(address: unknown): { lat: number; lng: number } | 
 }
 
 /**
+ * Geocode an address (string or jsonb object) to coordinates using the Maps JS
+ * Geocoder. Returns null when Maps is unavailable or nothing matches, so
+ * callers can fall back to address-string navigation.
+ */
+export async function geocodeAddress(
+  address: unknown
+): Promise<{ lat: number; lng: number } | null> {
+  const existing = extractCoords(address);
+  if (existing) return existing;
+
+  const line = formatAddress(address);
+  if (!line) return null;
+
+  try {
+    const { loadGoogleMaps } = await import("@/components/maps/GoogleMap");
+    await loadGoogleMaps();
+    const geocoder = new google.maps.Geocoder();
+    const { results } = await geocoder.geocode({
+      address: line,
+      componentRestrictions: { country: "ZA" },
+    });
+    const loc = results?.[0]?.geometry?.location;
+    if (!loc) return null;
+    return { lat: loc.lat(), lng: loc.lng() };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Attach lat/lng to a jsonb address so drivers get pin-precise routing later.
+ * Falls back to the original value when geocoding is unavailable.
+ */
+export async function withCoords<T>(address: T): Promise<T | (Record<string, unknown> & T)> {
+  const coords = await geocodeAddress(address);
+  if (!coords) return address;
+  const base =
+    typeof address === "string" ? { street: address } : { ...(address as Record<string, unknown>) };
+  return { ...base, lat: coords.lat, lng: coords.lng } as Record<string, unknown> & T;
+}
+
+/**
  * Turn-by-turn directions URL. Coordinates are always preferred so the driver
  * is routed to the exact drop pin instead of a fuzzy address match.
  */
