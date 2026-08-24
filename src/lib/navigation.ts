@@ -68,12 +68,14 @@ export async function geocodeAddress(
  * Attach lat/lng to a jsonb address so drivers get pin-precise routing later.
  * Falls back to the original value when geocoding is unavailable.
  */
-export async function withCoords<T>(address: T): Promise<T | (Record<string, unknown> & T)> {
+export async function withCoords(address: unknown): Promise<Record<string, any>> {
+  const base: Record<string, any> =
+    typeof address === "string"
+      ? { street: address }
+      : { ...((address as Record<string, any>) || {}) };
   const coords = await geocodeAddress(address);
-  if (!coords) return address;
-  const base =
-    typeof address === "string" ? { street: address } : { ...(address as Record<string, unknown>) };
-  return { ...base, lat: coords.lat, lng: coords.lng } as Record<string, unknown> & T;
+  if (!coords) return base;
+  return { ...base, lat: coords.lat, lng: coords.lng };
 }
 
 /**
