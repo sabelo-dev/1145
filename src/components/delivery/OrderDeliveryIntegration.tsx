@@ -11,6 +11,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { withCoords } from "@/lib/navigation";
 
 interface RequestDeliveryButtonProps {
   orderId: string;
