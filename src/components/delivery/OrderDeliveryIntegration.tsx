@@ -56,10 +56,16 @@ export const RequestDeliveryButton: React.FC<RequestDeliveryButtonProps> = ({
         ? { street: shippingAddress }
         : shippingAddress || { street: "Customer address" };
 
+      // Resolve coordinates up-front so driver navigation routes to the exact pin.
+      const [pickupWithCoords, deliveryWithCoords] = await Promise.all([
+        withCoords(pickupAddress),
+        withCoords(deliveryAddress),
+      ]);
+
       const { error } = await supabase.from("delivery_jobs").insert({
         order_id: orderId,
-        pickup_address: pickupAddress,
-        delivery_address: deliveryAddress,
+        pickup_address: pickupWithCoords,
+        delivery_address: deliveryWithCoords,
         status: "pending",
       });
 
