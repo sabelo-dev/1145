@@ -46,6 +46,19 @@ const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js";
 
 let googleMapsPromise: Promise<void> | null = null;
 let librariesImported = false;
+let googleMapsAuthFailed = false;
+
+const suppressGoogleMapsErrorUi = () => {
+  document.querySelectorAll<HTMLElement>(".gm-err-container, .gm-err-autocomplete").forEach((node) => {
+    node.style.display = "none";
+  });
+
+  document.querySelectorAll<HTMLElement>("[role='dialog']").forEach((node) => {
+    if (node.textContent?.includes("This page can't load Google Maps correctly")) {
+      node.style.display = "none";
+    }
+  });
+};
 
 const shouldUseGoogleMaps = (): boolean => {
   return typeof window !== "undefined" && !!window.google?.maps;
@@ -55,6 +68,7 @@ declare global {
   interface Window {
     google?: typeof google;
     __gmapsResolve?: () => void;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -99,6 +113,13 @@ export function loadGoogleMaps(): Promise<void> {
   }
 
   googleMapsPromise = (async () => {
+    googleMapsAuthFailed = false;
+    window.gm_authFailure = () => {
+      googleMapsAuthFailed = true;
+      suppressGoogleMapsErrorUi();
+      window.dispatchEvent(new Event("google-maps-auth-failure"));
+    };
+
     const apiKey = await resolveApiKey();
 
     const scriptElement = document.getElementById(GOOGLE_MAPS_SCRIPT_ID);
@@ -126,6 +147,7 @@ export function loadGoogleMaps(): Promise<void> {
     }
 
     await waitForGoogleMaps();
+    if (googleMapsAuthFailed) throw new Error("Google Maps authorization failed");
 
     const libs = ["maps", "places", "marker"] as const;
     for (const lib of libs) {
@@ -194,6 +216,13 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   useEffect(() => {
     let isMounted = true;
 
+    const handleAuthFailure = () => {
+      if (!isMounted) return;
+      suppressGoogleMapsErrorUi();
+      setMapError("Map preview unavailable");
+    };
+    window.addEventListener("google-maps-auth-failure", handleAuthFailure);
+
     loadGoogleMaps()
       .then(() => {
         if (!isMounted) return;
@@ -208,6 +237,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
     return () => {
       isMounted = false;
+      window.removeEventListener("google-maps-auth-failure", handleAuthFailure);
     };
   }, []);
 
