@@ -1,6 +1,5 @@
 /// <reference types="google.maps" />
 import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { loadGoogleMaps } from "./GoogleMap";
 
 interface AddressSuggestion {
   id: string;
@@ -18,37 +17,6 @@ interface PlacesAutocompleteProps {
   icon?: React.ReactNode;
 }
 
-const isPrecisePlace = (place: google.maps.places.PlaceResult): boolean => {
-  const types = new Set(place.types ?? []);
-  const broadTypes = new Set([
-    "locality",
-    "administrative_area_level_1",
-    "administrative_area_level_2",
-    "country",
-    "postal_code",
-    "postal_town",
-    "sublocality",
-    "neighborhood",
-    "route",
-    "political",
-  ]);
-
-  if (types.size === 0) return false;
-  return [...types].every((type) => !broadTypes.has(type));
-};
-
-const invalidPreciseTypes = new Set([
-  "locality",
-  "administrative_area_level_1",
-  "administrative_area_level_2",
-  "country",
-  "postal_code",
-  "postal_town",
-  "sublocality",
-  "neighborhood",
-  "political",
-]);
-
 const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>(({ 
   value,
   onChange,
@@ -58,34 +26,9 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
   icon,
 }, ref) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const selectedAddressRef = useRef<string | null>(null);
-  const [ready, setReady] = useState(false);
-  const [loadError, setLoadError] = useState(false);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    loadGoogleMaps()
-      .then(() => {
-        if (!cancelled) {
-          setReady(true);
-          setLoadError(false);
-        }
-      })
-      .catch((error) => {
-        console.error("Google Places loading error:", error);
-        if (!cancelled) {
-          setLoadError(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (inputRef.current && inputRef.current.value !== value) {
@@ -93,63 +36,9 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
     }
   }, [value]);
 
-  useEffect(() => {
-    if (!ready || loadError || !inputRef.current || autocompleteRef.current) return;
-
-    try {
-      const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-        componentRestrictions: { country: "za" },
-        fields: ["formatted_address", "geometry", "name", "types", "place_id"],
-        strictBounds: false,
-        types: ["address", "establishment"],
-      });
-
-      const listener = autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        const location = place.geometry?.location;
-        const rawAddress = place.formatted_address || place.name || inputRef.current?.value || "";
-
-        if (!location || !rawAddress) {
-          return;
-        }
-
-        const placeTypes = new Set(place.types ?? []);
-        const hasBroadType = [...placeTypes].some((type) => invalidPreciseTypes.has(type));
-
-        if (hasBroadType) {
-          console.warn("Google Places rejected non-address result for precise location:", place.formatted_address, [...placeTypes]);
-          onChange(inputRef.current?.value || rawAddress);
-          return;
-        }
-
-        const finalAddress = isPrecisePlace(place) ? rawAddress : place.name || rawAddress;
-
-        onChange(finalAddress);
-        onPlaceSelect({
-          address: finalAddress,
-          lat: location.lat(),
-          lng: location.lng(),
-        });
-      });
-
-      autocompleteRef.current = autocomplete;
-
-      return () => {
-        listener.remove();
-        if (autocompleteRef.current === autocomplete) {
-          autocompleteRef.current = null;
-        }
-      };
-    } catch {
-      console.warn("Google Autocomplete unavailable, falling back to manual input");
-      setLoadError(true);
-    }
-  }, [ready, loadError, onChange, onPlaceSelect]);
-
-  // Google Places needs a configured, billing-enabled API key. Keep address
-  // search useful when it is unavailable by falling back to OpenStreetMap's
-  // public geocoder. The debounce also keeps requests within its public usage
-  // guidance and avoids returning stale results while the user is typing.
+  // Keep destination entry independent of the embedded Google widget. Provider
+  // authorization errors otherwise render Google's own blocking dialog over
+  // the ride form. Manual entry remains available if search is unavailable.
   useEffect(() => {
     if (selectedAddressRef.current === value) {
       setSuggestions([]);
@@ -157,7 +46,7 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
       return;
     }
 
-    if (!loadError || value.trim().length < 3) {
+    if (value.trim().length < 3) {
       setSuggestions([]);
       setIsSearching(false);
       return;
@@ -206,7 +95,7 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [loadError, value]);
+  }, [value]);
 
   const selectSuggestion = (suggestion: AddressSuggestion) => {
     selectedAddressRef.current = suggestion.address;
@@ -240,10 +129,10 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
         autoComplete="off"
         className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${icon ? "pl-10" : ""}`}
       />
-      {loadError && (
+      {(
         <>
           <p className="mt-1 text-xs text-muted-foreground">
-            {isSearching ? "Searching addresses..." : "Address suggestions powered by OpenStreetMap."}
+            {isSearching ? "Searching addresses..." : "Enter an address or choose a suggestion."}
           </p>
           {suggestions.length > 0 && (
             <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-input bg-popover py-1 text-sm text-popover-foreground shadow-lg">
