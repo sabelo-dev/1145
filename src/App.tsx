@@ -190,9 +190,9 @@ function AppRouter() {
               <AssetOwnerDashboard />
             </ProtectedRoute>
           } />
+          <Route path="services" element={<ServiceHubPage />} />
         </Route>
         
-        <Route path="services" element={<ServiceHubPage />} />
         <Route path="package/send" element={<PackageSendPage />} />
         <Route path="stays" element={<Layout />}>
           <Route index element={<StaysPage />} />
