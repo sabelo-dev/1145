@@ -1,9 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, TrendingUp, Shield, Zap, Megaphone, Building2 } from "lucide-react";
-import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
 
 const services = [
   {
@@ -115,7 +113,6 @@ const highlights = [
 
 const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   return (
     <div ref={ref} className="min-h-screen bg-background pt-4">
