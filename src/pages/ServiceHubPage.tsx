@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Sparkles, TrendingUp, Shield, Zap, ChevronLeft, ChevronRight, Megaphone, Building2 } from "lucide-react";
+import { ShoppingBag, Car, Package, Wallet, Briefcase, ArrowRight, KeyRound, Sparkles, TrendingUp, Shield, Zap, Megaphone, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSlideshow from "@/components/home/HeroSlideshow";
-import Header from "@/components/layout/Header";
 
 const services = [
   {
@@ -122,9 +121,6 @@ const ServiceHubPage = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <div ref={ref} className="min-h-screen bg-background">
-      
-      <Header />
-
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Animated background */}
