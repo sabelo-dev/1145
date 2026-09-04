@@ -3194,6 +3194,7 @@ export type Database = {
       dropship_listings: {
         Row: {
           auto_price_update: boolean
+          auto_unpublished_out_of_stock: boolean
           created_at: string
           dropship_product_id: string
           id: string
@@ -3210,6 +3211,7 @@ export type Database = {
         }
         Insert: {
           auto_price_update?: boolean
+          auto_unpublished_out_of_stock?: boolean
           created_at?: string
           dropship_product_id: string
           id?: string
@@ -3226,6 +3228,7 @@ export type Database = {
         }
         Update: {
           auto_price_update?: boolean
+          auto_unpublished_out_of_stock?: boolean
           created_at?: string
           dropship_product_id?: string
           id?: string
