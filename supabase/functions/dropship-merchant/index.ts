@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
             status: "active",
             external_source: "dropship",
             external_id: listing.id,
-            product_type: "physical",
+            product_type: "simple",
           }).select().single();
           if (error) throw error;
           productId = created.id;
