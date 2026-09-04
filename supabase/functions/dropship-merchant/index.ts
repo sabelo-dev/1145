@@ -267,6 +267,20 @@ Deno.serve(async (req) => {
         });
       }
 
+      case "fx.rate": {
+        const rate = await getFxRate(db, String(body.from || "USD"), "ZAR");
+        const { data: row } = await db
+          .from("currency_rates").select("updated_at").eq("currency_code", "ZAR").maybeSingle();
+        return json({ from: body.from || "USD", to: "ZAR", rate, updated_at: row?.updated_at ?? null });
+      }
+
+      case "store.info": {
+        if (!store) return json({ store: null });
+        const { data: full } = await db
+          .from("stores").select("id, name, slug, logo_url, description").eq("id", store.id).maybeSingle();
+        return json({ store: full, vendor: { id: vendor.id, name: vendor.business_name } });
+      }
+
       default:
         return json({ error: `Unknown action "${action}"` }, 400);
     }
