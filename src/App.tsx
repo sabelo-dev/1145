@@ -40,6 +40,7 @@ const FAQPage = lazy(() => import("@/pages/FAQPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const StorefrontPage = lazy(() => import("@/pages/StorefrontPage"));
 const TrackOrderPage = lazy(() => import("@/pages/TrackOrderPage"));
+const OrderTrackingPage = lazy(() => import("@/pages/OrderTrackingPage"));
 
 // Admin
 const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
@@ -155,6 +156,7 @@ function AppRouter() {
           <Route path="cj/product/:productId" element={<DropshipProductPage />} />
           <Route path="dropship/product/:productId" element={<DropshipProductPage />} />
           <Route path="marketplace" element={<MarketplacePage />} />
+          <Route path="orders/:orderId/tracking" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
 
 
           <Route path="categories" element={<CategoriesPage />} />
