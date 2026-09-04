@@ -30,7 +30,16 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const auth = req.headers.get("Authorization") || "";
   const cronSecret = req.headers.get("x-cron-secret");
-  const authorized = auth === `Bearer ${serviceKey}` || (cronSecret && cronSecret === Deno.env.get("CRON_SECRET"));
+  let authorized = auth === `Bearer ${serviceKey}` || (cronSecret && cronSecret === Deno.env.get("CRON_SECRET"));
+
+  // Also allow a signed-in platform administrator to trigger a sync manually.
+  if (!authorized && auth.startsWith("Bearer ")) {
+    const { data: { user } } = await db.auth.getUser(auth.slice(7));
+    if (user) {
+      const { data: isAdmin } = await db.rpc("is_admin", { _user_id: user.id });
+      authorized = isAdmin === true;
+    }
+  }
   if (!authorized) return json({ error: "Forbidden" }, 403);
 
   const body = await req.json().catch(() => ({}));
