@@ -73,6 +73,7 @@ const MarketplacePage = React.forwardRef<HTMLDivElement>((_props, ref) => {
     const term = search.trim().toLowerCase();
     const list = items.filter(
       (i) =>
+        Number(i.stock) > 0 &&
         (category === "all" || i.category === category) &&
         (!term || i.name.toLowerCase().includes(term)),
     );
@@ -159,11 +160,7 @@ const MarketplacePage = React.forwardRef<HTMLDivElement>((_props, ref) => {
                 </h2>
                 <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                   <span className="font-bold text-sm">{formatCurrency(Number(item.price_zar))}</span>
-                  {item.stock > 0 ? (
-                    <Badge variant="secondary" className="text-[10px]">In stock</Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-[10px]">Sold out</Badge>
-                  )}
+                  <Badge variant="secondary" className="text-[10px]">In stock</Badge>
                 </div>
               </div>
             </Link>
@@ -172,7 +169,7 @@ const MarketplacePage = React.forwardRef<HTMLDivElement>((_props, ref) => {
       ) : (
         <div className="rounded-xl border border-dashed p-10 text-center space-y-3">
           <ShoppingBag className="h-8 w-8 mx-auto text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">No marketplace products are live yet. Check back soon.</p>
+          <p className="text-sm text-muted-foreground">No in-stock marketplace products right now. Check back soon.</p>
           <Button asChild variant="outline"><Link to="/shop">Browse the shop</Link></Button>
         </div>
       )}
