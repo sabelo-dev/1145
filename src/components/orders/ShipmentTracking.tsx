@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, Truck, MapPin, CheckCircle2, Clock } from "lucide-react";
+import { Package, Truck, MapPin, CheckCircle2, Clock, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 interface Props {
@@ -22,6 +23,33 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: "Cancelled",
   supplier_failure: "Delayed — we are on it",
 };
+
+const STAGES = [
+  { key: "picked_up", label: "Picked up", icon: Package },
+  { key: "on_the_way", label: "On the way", icon: Truck },
+  { key: "dropped_off", label: "Dropped off", icon: CheckCircle2 },
+];
+
+/** Turns supplier + driver status into the three stages a shopper cares about. */
+function stageIndex(status?: string | null, jobStatus?: string | null): number {
+  if (status === "delivered" || jobStatus === "delivered") return 2;
+  if (["shipped", "in_transit", "out_for_delivery"].includes(String(status)) ||
+      ["in_transit", "picked_up", "out_for_delivery"].includes(String(jobStatus))) return 1;
+  if (["submitted", "processing", "awaiting_supplier_action"].includes(String(status))) return 0;
+  return -1;
+}
+
+/** Public parcel lookup for the carrier, or CJ's own tracking page as a fallback. */
+function trackingUrl(carrier?: string | null, tracking?: string | null): string | null {
+  if (!tracking) return null;
+  const c = (carrier || "").toLowerCase();
+  if (c.includes("ups")) return `https://www.ups.com/track?tracknum=${tracking}`;
+  if (c.includes("dhl")) return `https://www.dhl.com/za-en/home/tracking.html?tracking-id=${tracking}`;
+  if (c.includes("fedex")) return `https://www.fedex.com/fedextrack/?trknbr=${tracking}`;
+  if (c.includes("postnet") || c.includes("sapo") || c.includes("post office"))
+    return `https://www.postoffice.co.za/tools/trackandtrace.html?id=${tracking}`;
+  return `https://www.17track.net/en/track?nums=${tracking}`;
+}
 
 const prettify = (v?: string | null) =>
   v ? STATUS_LABEL[v] || v.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) : "Preparing your order";
@@ -90,6 +118,29 @@ const ShipmentTracking: React.FC<Props> = ({ orderId }) => {
                   </span>
                 )}
               </div>
+
+              {/* Pickup -> on the way -> drop-off */}
+              <div className="grid grid-cols-3 gap-2">
+                {STAGES.map((stage, i) => {
+                  const reached = i <= stageIndex(s.status, job?.status);
+                  const Icon = stage.icon;
+                  return (
+                    <div key={stage.key}
+                      className={`rounded-lg border p-2 text-center min-w-0 ${reached ? "border-primary/60 bg-primary/5" : "opacity-60"}`}>
+                      <Icon className={`h-4 w-4 mx-auto ${reached ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className="text-[11px] mt-1 truncate">{stage.label}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {trackingUrl(s.carrier, s.tracking_number) && (
+                <Button asChild size="sm" variant="outline">
+                  <a href={trackingUrl(s.carrier, s.tracking_number)!} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />Track the parcel
+                  </a>
+                </Button>
+              )}
 
               {list.length > 0 && (
                 <ol className="space-y-3 border-l pl-4">
