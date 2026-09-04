@@ -35,3 +35,20 @@ export function calculateStarRating(rating: number): {
     emptyStars,
   };
 }
+
+/** Convert supplier HTML descriptions into readable plain text. */
+export function stripHtml(input?: string | null): string {
+  if (!input) return "";
+  return input
+    .replace(/<\s*(br|\/p|\/div|\/li)\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
