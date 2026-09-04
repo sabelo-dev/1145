@@ -214,6 +214,29 @@ export function useDropshipAdmin() {
 
 /* --------------------------------------------------------------- MERCHANT */
 
+export interface MerchantSettings {
+  fx_mode: "live" | "manual";
+  manual_fx_rate: number | null;
+  fx_margin_pct: number;
+  auto_fulfill: boolean;
+}
+
+export interface MerchantEarningRow {
+  listing_id: string;
+  product_id: string | null;
+  name: string;
+  image: string | null;
+  status: string;
+  selling_price: number;
+  unit_cost: number;
+  units_sold: number;
+  revenue_zar: number;
+  cost_zar: number;
+  profit_zar: number;
+  orders: number;
+  stock: number;
+}
+
 export function useDropshipMerchant() {
   const { toast } = useToast();
   const [catalogue, setCatalogue] = useState<DropshipProduct[]>([]);
@@ -221,7 +244,12 @@ export function useDropshipMerchant() {
   const [fulfillments, setFulfillments] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [store, setStore] = useState<any>(null);
-  const [fx, setFx] = useState<{ rate: number; updated_at: string | null } | null>(null);
+  const [fx, setFx] = useState<{ rate: number; live_rate?: number; updated_at: string | null } | null>(null);
+  const [settings, setSettings] = useState<MerchantSettings>({
+    fx_mode: "live", manual_fx_rate: null, fx_margin_pct: 0, auto_fulfill: true,
+  });
+  const [earnings, setEarnings] = useState<{ products: MerchantEarningRow[]; totals: any } | null>(null);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -238,9 +266,14 @@ export function useDropshipMerchant() {
     try { setSummary(await callMerchant("summary")); } catch { setSummary(null); }
     try { setStore(((await callMerchant<any>("store.info")) || {}).store ?? null); } catch { setStore(null); }
     try {
-      const r = await callMerchant<{ rate: number; updated_at: string | null }>("fx.rate", { from: "USD" });
-      setFx(r ? { rate: r.rate, updated_at: r.updated_at } : null);
+      const r = await callMerchant<{ rate: number; live_rate: number; settings: MerchantSettings; updated_at: string | null }>(
+        "fx.rate", { from: "USD" },
+      );
+      setFx(r ? { rate: r.rate, live_rate: r.live_rate, updated_at: r.updated_at } : null);
+      if (r?.settings) setSettings(r.settings);
     } catch { setFx(null); }
+    try { setEarnings(await callMerchant("earnings")); } catch { setEarnings(null); }
+    try { setOrders(((await callMerchant<any>("orders.list")) || {}).orders || []); } catch { setOrders([]); }
     setLoading(false);
   }, []);
 
@@ -262,7 +295,8 @@ export function useDropshipMerchant() {
   };
 
   return {
-    catalogue, listings, fulfillments, summary, store, fx, loading, busy, reload: load,
+    catalogue, listings, fulfillments, summary, store, fx, settings, earnings, orders,
+    loading, busy, reload: load,
     addToStore: (dropship_product_id: string, selling_price?: number) =>
       wrap(() => callMerchant("listing.create", { dropship_product_id, selling_price }), "Added to your store"),
     addAndPublish: (dropship_product_id: string, selling_price?: number) =>
@@ -278,6 +312,12 @@ export function useDropshipMerchant() {
     publish: (listing_id: string) => wrap(() => callMerchant("listing.publish", { listing_id }), "Product published"),
     unpublish: (listing_id: string) => wrap(() => callMerchant("listing.unpublish", { listing_id }), "Product unpublished"),
     remove: (listing_id: string) => wrap(() => callMerchant("listing.delete", { listing_id }), "Product removed"),
+    saveSettings: (patch: Partial<MerchantSettings>) =>
+      wrap(() => callMerchant("settings.save", { ...settings, ...patch }), "Settings saved"),
+    submitToSupplier: (order_id: string) =>
+      wrap(() => callMerchant("fulfillment.submit", { order_id }), "Order sent to the supplier"),
+    trackShipment: (fulfillment_id: string) =>
+      wrap(() => callMerchant("fulfillment.track", { fulfillment_id }), "Shipment status refreshed"),
   };
 }
 
