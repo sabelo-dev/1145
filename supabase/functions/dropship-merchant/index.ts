@@ -4,6 +4,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { adminClient, audit, getCaller, getFxRate, getSupplier, rateLimit } from "../_shared/dropship/core.ts";
 import { calculatePrice } from "../_shared/dropship/pricing.ts";
+import { syncFulfillment } from "../_shared/dropship/tracking.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -15,25 +16,72 @@ function slugify(name: string, suffix: string) {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60)}-${suffix}`;
 }
 
+export interface MerchantFxSettings {
+  fx_mode: "live" | "manual";
+  manual_fx_rate: number | null;
+  fx_margin_pct: number;
+  auto_fulfill: boolean;
+}
+
+const DEFAULT_SETTINGS: MerchantFxSettings = {
+  fx_mode: "live",
+  manual_fx_rate: null,
+  fx_margin_pct: 0,
+  auto_fulfill: true,
+};
+
+async function getSettings(db: ReturnType<typeof adminClient>, vendorId: string): Promise<MerchantFxSettings> {
+  const { data } = await db
+    .from("dropship_merchant_settings")
+    .select("fx_mode, manual_fx_rate, fx_margin_pct, auto_fulfill")
+    .eq("vendor_id", vendorId)
+    .maybeSingle();
+  if (!data) return { ...DEFAULT_SETTINGS };
+  return {
+    fx_mode: (data.fx_mode as "live" | "manual") || "live",
+    manual_fx_rate: data.manual_fx_rate === null ? null : Number(data.manual_fx_rate),
+    fx_margin_pct: Number(data.fx_margin_pct || 0),
+    auto_fulfill: !!data.auto_fulfill,
+  };
+}
+
+/** The rate this merchant prices with: live feed or their own rate, plus margin. */
+function applySettings(liveRate: number, s: MerchantFxSettings): number {
+  const base = s.fx_mode === "manual" && Number(s.manual_fx_rate) > 0 ? Number(s.manual_fx_rate) : liveRate;
+  return Math.round(base * (1 + Number(s.fx_margin_pct || 0) / 100) * 10000) / 10000;
+}
+
+function isDefaultFx(s: MerchantFxSettings) {
+  return s.fx_mode === "live" && Number(s.fx_margin_pct || 0) === 0;
+}
+
 /**
- * Converts the supplier's own currency (USD for CJ) into ZAR at the latest
- * rate and refreshes the stored landed cost / recommended price before the
- * product is imported or published by a merchant.
+ * Converts the supplier's own currency (USD for CJ) into ZAR at the merchant's
+ * effective rate and refreshes the stored landed cost / recommended price
+ * before the product is imported or published.
  */
-async function repriceToZar(db: ReturnType<typeof adminClient>, product: Record<string, any>) {
+async function repriceToZar(
+  db: ReturnType<typeof adminClient>,
+  product: Record<string, any>,
+  settings: MerchantFxSettings = DEFAULT_SETTINGS,
+) {
   try {
     const supplier = await getSupplier(db, product.supplier_id);
     const currency = product.supplier_currency || supplier.base_currency || "USD";
-    const fx = await getFxRate(db, currency, "ZAR");
+    const live = await getFxRate(db, currency, "ZAR");
+    const fx = applySettings(live, settings);
     const breakdown = calculatePrice(
       Number(product.supplier_cost || 0),
       Number(product.supplier_shipping_cost || 0),
       fx,
       supplier.pricing_rule as never,
     );
+    // Only the shared platform rate is written back to the catalogue row; a
+    // merchant's own rate stays private to their listings.
     if (
-      breakdown.landedCostZar !== Number(product.landed_cost_zar) ||
-      breakdown.recommendedPriceZar !== Number(product.recommended_price_zar)
+      isDefaultFx(settings) &&
+      (breakdown.landedCostZar !== Number(product.landed_cost_zar) ||
+        breakdown.recommendedPriceZar !== Number(product.recommended_price_zar))
     ) {
       await db.from("dropship_products").update({
         landed_cost_zar: breakdown.landedCostZar,
@@ -45,12 +93,14 @@ async function repriceToZar(db: ReturnType<typeof adminClient>, product: Record<
       landed_cost_zar: breakdown.landedCostZar,
       recommended_price_zar: breakdown.recommendedPriceZar,
       fx_rate: fx,
+      live_fx_rate: live,
       fx_currency: currency,
     };
   } catch (_err) {
     return { ...product, fx_rate: null, fx_currency: product.supplier_currency || "USD" };
   }
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
