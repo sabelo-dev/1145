@@ -42,6 +42,7 @@ export function stripHtml(input?: string | null): string {
   return input
     .replace(/<\s*(br|\/p|\/div|\/li)\s*\/?>/gi, "\n")
     .replace(/<[^>]*>/g, " ")
+    .replace(/https?:\/\/\S+\.(?:jpg|jpeg|png|webp|gif)(?:\?\S*)?/gi, "")
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&lt;/gi, "<")
