@@ -60,14 +60,54 @@ export async function getSupplier(db: SupabaseClient, idOrCode: string): Promise
   return data as SupplierRow;
 }
 
-/** USD -> ZAR using the platform currency table, with a safe fallback. */
+const FX_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+/** Pulls live USD-based rates from a public FX feed and caches them locally. */
+export async function refreshFxRates(db: SupabaseClient, codes: string[] = ["ZAR"]): Promise<void> {
+  try {
+    const res = await fetch("https://open.er-api.com/v6/latest/USD");
+    if (!res.ok) return;
+    const payload = await res.json();
+    const rates = payload?.rates || {};
+    const rows = codes
+      .filter((c) => Number(rates[c]) > 0)
+      .map((c) => ({
+        currency_code: c,
+        rate_to_usd: Number(rates[c]),
+        updated_at: new Date().toISOString(),
+      }));
+    if (rows.length) await db.from("currency_rates").upsert(rows, { onConflict: "currency_code" });
+  } catch (_err) {
+    // Never block pricing on an FX feed outage — cached/fallback rates are used.
+  }
+}
+
+/** USD -> ZAR using the platform currency table, auto-refreshed when stale. */
 export async function getFxRate(db: SupabaseClient, from = "USD", to = "ZAR"): Promise<number> {
   if (from === to) return 1;
-  const { data } = await db
-    .from("currency_rates")
-    .select("currency_code, rate_to_usd")
-    .in("currency_code", [from, to]);
-  const rate = (code: string) => Number(data?.find((r) => r.currency_code === code)?.rate_to_usd ?? 0);
+  const codes = [from, to].filter((c) => c !== "USD");
+
+  const read = async () => {
+    const { data } = await db
+      .from("currency_rates")
+      .select("currency_code, rate_to_usd, updated_at")
+      .in("currency_code", [from, to]);
+    return data || [];
+  };
+
+  let data = await read();
+  const stale = codes.some((code) => {
+    const row = data.find((r) => r.currency_code === code);
+    if (!row || !Number(row.rate_to_usd)) return true;
+    const age = Date.now() - new Date(row.updated_at as string).getTime();
+    return !(age < FX_MAX_AGE_MS);
+  });
+  if (stale) {
+    await refreshFxRates(db, codes);
+    data = await read();
+  }
+
+  const rate = (code: string) => Number(data.find((r) => r.currency_code === code)?.rate_to_usd ?? 0);
   const fromRate = from === "USD" ? 1 : rate(from);
   const toRate = to === "USD" ? 1 : rate(to);
   if (!fromRate || !toRate) return to === "ZAR" ? 18.5 : 1;

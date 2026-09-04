@@ -2,7 +2,8 @@
 // details and raw supplier costs beyond the merchant's own cost view are never
 // returned here.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { adminClient, audit, getCaller, rateLimit } from "../_shared/dropship/core.ts";
+import { adminClient, audit, getCaller, getFxRate, getSupplier, rateLimit } from "../_shared/dropship/core.ts";
+import { calculatePrice } from "../_shared/dropship/pricing.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -12,6 +13,43 @@ const json = (body: unknown, status = 200) =>
 
 function slugify(name: string, suffix: string) {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60)}-${suffix}`;
+}
+
+/**
+ * Converts the supplier's own currency (USD for CJ) into ZAR at the latest
+ * rate and refreshes the stored landed cost / recommended price before the
+ * product is imported or published by a merchant.
+ */
+async function repriceToZar(db: ReturnType<typeof adminClient>, product: Record<string, any>) {
+  try {
+    const supplier = await getSupplier(db, product.supplier_id);
+    const currency = product.supplier_currency || supplier.base_currency || "USD";
+    const fx = await getFxRate(db, currency, "ZAR");
+    const breakdown = calculatePrice(
+      Number(product.supplier_cost || 0),
+      Number(product.supplier_shipping_cost || 0),
+      fx,
+      supplier.pricing_rule as never,
+    );
+    if (
+      breakdown.landedCostZar !== Number(product.landed_cost_zar) ||
+      breakdown.recommendedPriceZar !== Number(product.recommended_price_zar)
+    ) {
+      await db.from("dropship_products").update({
+        landed_cost_zar: breakdown.landedCostZar,
+        recommended_price_zar: breakdown.recommendedPriceZar,
+      }).eq("id", product.id);
+    }
+    return {
+      ...product,
+      landed_cost_zar: breakdown.landedCostZar,
+      recommended_price_zar: breakdown.recommendedPriceZar,
+      fx_rate: fx,
+      fx_currency: currency,
+    };
+  } catch (_err) {
+    return { ...product, fx_rate: null, fx_currency: product.supplier_currency || "USD" };
+  }
 }
 
 Deno.serve(async (req) => {
@@ -54,7 +92,9 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (existing) return json({ error: "You have already imported this product", listing_id: existing.id }, 409);
 
-        const price = Number(body.selling_price || product.recommended_price_zar);
+        // Always convert the supplier's currency to ZAR at the latest rate first.
+        const priced = await repriceToZar(db, product);
+        const price = Number(body.selling_price || priced.recommended_price_zar);
         const { data: listing, error } = await db.from("dropship_listings").insert({
           vendor_id: vendor.id,
           store_id: store.id,
@@ -116,11 +156,20 @@ Deno.serve(async (req) => {
           .eq("vendor_id", vendor.id)
           .maybeSingle();
         if (!listing) return json({ error: "Listing not found" }, 404);
-        const dp: any = listing.dropship_products;
+        let dp: any = listing.dropship_products;
         if (!dp || !["approved", "published"].includes(dp.status)) {
           return json({ error: "This product is not approved for the marketplace" }, 400);
         }
         if (!store) return json({ error: "Create your store first" }, 400);
+
+        // Refresh the ZAR conversion right before the product goes live.
+        dp = await repriceToZar(db, dp);
+        if (Number(listing.selling_price) < Number(dp.landed_cost_zar || 0)) {
+          listing.selling_price = Number(dp.recommended_price_zar);
+          await db.from("dropship_listings")
+            .update({ selling_price: listing.selling_price, price_change_flag: false })
+            .eq("id", listing.id);
+        }
 
         let productId = listing.product_id;
         const images: string[] = Array.isArray(dp.images) ? dp.images : [];
@@ -216,6 +265,20 @@ Deno.serve(async (req) => {
             delivered: f.filter((x) => x.status === "delivered").length,
           },
         });
+      }
+
+      case "fx.rate": {
+        const rate = await getFxRate(db, String(body.from || "USD"), "ZAR");
+        const { data: row } = await db
+          .from("currency_rates").select("updated_at").eq("currency_code", "ZAR").maybeSingle();
+        return json({ from: body.from || "USD", to: "ZAR", rate, updated_at: row?.updated_at ?? null });
+      }
+
+      case "store.info": {
+        if (!store) return json({ store: null });
+        const { data: full } = await db
+          .from("stores").select("id, name, slug, logo_url, description").eq("id", store.id).maybeSingle();
+        return json({ store: full, vendor: { id: vendor.id, name: vendor.business_name } });
       }
 
       default:

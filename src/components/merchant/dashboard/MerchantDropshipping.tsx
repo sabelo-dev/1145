@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDropshipMerchant } from "@/hooks/useDropshipping";
-import { Boxes, RefreshCw, Search, Store, Truck, TrendingUp } from "lucide-react";
+import { stripHtml } from "@/lib/utils";
+import { Boxes, ExternalLink, RefreshCw, Search, Store, Truck, TrendingUp } from "lucide-react";
 
 const money = (v: number | null | undefined) =>
   `R${Number(v ?? 0).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -33,7 +35,10 @@ const MerchantDropshipping: React.FC = () => {
   );
 
   const catalogue = useMemo(
-    () => m.catalogue.filter((p) => !search || p.name.toLowerCase().includes(search.toLowerCase())),
+    () =>
+      m.catalogue
+        .filter((p) => Number(p.stock ?? 0) > 0)
+        .filter((p) => !search || p.name.toLowerCase().includes(search.toLowerCase())),
     [m.catalogue, search],
   );
 
@@ -43,12 +48,20 @@ const MerchantDropshipping: React.FC = () => {
     <div className="space-y-4 min-w-0">
       <div className="header-row">
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold truncate">Dropshipping</h2>
+          <h2 className="text-xl font-semibold truncate">My storefront products</h2>
           <p className="text-sm text-muted-foreground truncate">
-            Sell approved products without holding stock
+            Browse approved products and publish them to your own store
           </p>
         </div>
         <div className="header-actions">
+          {m.store?.slug && (
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/store/${m.store.slug}`} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                <span className="hidden sm:inline sm:ml-2">View my store</span>
+              </Link>
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={m.reload} disabled={m.busy}>
             <RefreshCw className={`h-4 w-4 ${m.busy ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline sm:ml-2">Refresh</span>
@@ -56,11 +69,23 @@ const MerchantDropshipping: React.FC = () => {
         </div>
       </div>
 
+      {m.fx?.rate ? (
+        <p className="text-xs text-muted-foreground">
+          Supplier prices are in US dollars and are converted to rand automatically at
+          {" "}<span className="font-medium text-foreground">R{m.fx.rate.toFixed(2)} per $1</span>
+          {" "}before anything is published.
+        </p>
+      ) : null}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat label="Products in your store" value={m.summary?.listings ?? m.listings.length} icon={Store} />
-        <Stat label="Published" value={m.summary?.published ?? m.listings.filter((l: any) => l.status === "published").length} icon={Boxes} />
-        <Stat label="Orders" value={m.summary?.orders ?? m.fulfillments.length} icon={Truck} />
-        <Stat label="Profit earned" value={money(m.summary?.profit)} icon={TrendingUp} />
+        <Stat label="Products in your store" value={m.summary?.products?.total ?? m.listings.length} icon={Store} />
+        <Stat
+          label="Published"
+          value={m.summary?.products?.published ?? m.listings.filter((l: any) => l.status === "published").length}
+          icon={Boxes}
+        />
+        <Stat label="Orders" value={m.summary?.orders?.total ?? m.fulfillments.length} icon={Truck} />
+        <Stat label="Profit earned" value={money(m.summary?.sales?.profit)} icon={TrendingUp} />
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
@@ -80,6 +105,8 @@ const MerchantDropshipping: React.FC = () => {
             {catalogue.map((p) => {
               const images = Array.isArray(p.images) ? (p.images as string[]) : [];
               const added = listedIds.has(p.id);
+              const typed = prices[p.id] ? Number(prices[p.id]) : Number(p.recommended_price_zar || 0);
+              const profit = typed - Number(p.landed_cost_zar || 0);
               return (
                 <Card key={p.id}>
                   <CardContent className="p-3 space-y-2 min-w-0">
@@ -87,23 +114,42 @@ const MerchantDropshipping: React.FC = () => {
                       <img src={images[0]} alt={p.name} loading="lazy"
                         className="w-full h-32 object-cover rounded-md bg-muted" />
                     )}
-                    <p className="text-sm font-medium line-clamp-2">{p.name}</p>
+                    <p className="text-sm font-medium line-clamp-2">{stripHtml(p.name)}</p>
                     <div className="text-xs space-y-1">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">Your cost</span>
+                        <span className="font-medium">{money(p.landed_cost_zar)}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
                         <span className="text-muted-foreground">Recommended price</span>
                         <span className="font-medium">{money(p.recommended_price_zar)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Stock</span>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">Your profit</span>
+                        <span className={profit > 0 ? "text-primary font-medium" : "text-destructive font-medium"}>
+                          {money(profit)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">In stock</span>
                         <span>{p.stock}</span>
                       </div>
                     </div>
-                    <Input type="number" placeholder={`Your price (${money(p.recommended_price_zar)})`}
+                    <Input type="number" inputMode="decimal"
+                      placeholder={`Your price (${money(p.recommended_price_zar)})`}
                       value={prices[p.id] ?? ""} onChange={(e) => setPrices({ ...prices, [p.id]: e.target.value })} />
-                    <Button size="sm" className="w-full" disabled={added || m.busy}
-                      onClick={() => m.addToStore(p.id, prices[p.id] ? Number(prices[p.id]) : undefined)}>
-                      {added ? "Already in your store" : "Add to my store"}
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button size="sm" className="w-full" disabled={added || m.busy}
+                        onClick={() => m.addAndPublish(p.id, prices[p.id] ? Number(prices[p.id]) : undefined)}>
+                        {added ? "Already in your store" : "Publish to my store"}
+                      </Button>
+                      {!added && (
+                        <Button size="sm" variant="outline" className="w-full" disabled={m.busy}
+                          onClick={() => m.addToStore(p.id, prices[p.id] ? Number(prices[p.id]) : undefined)}>
+                          Save as draft
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -111,7 +157,7 @@ const MerchantDropshipping: React.FC = () => {
             {!catalogue.length && (
               <Card className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
                 <CardContent className="p-6 text-sm text-muted-foreground">
-                  No approved products are available yet. Check back once 1145 approves new stock.
+                  No in-stock approved products are available yet. Check back once 1145 approves new stock.
                 </CardContent>
               </Card>
             )}
