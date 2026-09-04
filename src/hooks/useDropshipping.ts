@@ -211,6 +211,8 @@ export function useDropshipMerchant() {
   const [listings, setListings] = useState<any[]>([]);
   const [fulfillments, setFulfillments] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
+  const [store, setStore] = useState<any>(null);
+  const [fx, setFx] = useState<{ rate: number; updated_at: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -225,6 +227,11 @@ export function useDropshipMerchant() {
     setListings((lst.data as any) || []);
     setFulfillments((ful.data as any) || []);
     try { setSummary(await callMerchant("summary")); } catch { setSummary(null); }
+    try { setStore(((await callMerchant<any>("store.info")) || {}).store ?? null); } catch { setStore(null); }
+    try {
+      const r = await callMerchant<{ rate: number; updated_at: string | null }>("fx.rate", { from: "USD" });
+      setFx(r ? { rate: r.rate, updated_at: r.updated_at } : null);
+    } catch { setFx(null); }
     setLoading(false);
   }, []);
 
@@ -246,9 +253,17 @@ export function useDropshipMerchant() {
   };
 
   return {
-    catalogue, listings, fulfillments, summary, loading, busy, reload: load,
+    catalogue, listings, fulfillments, summary, store, fx, loading, busy, reload: load,
     addToStore: (dropship_product_id: string, selling_price?: number) =>
       wrap(() => callMerchant("listing.create", { dropship_product_id, selling_price }), "Added to your store"),
+    addAndPublish: (dropship_product_id: string, selling_price?: number) =>
+      wrap(async () => {
+        const created = await callMerchant<{ listing: { id: string } }>("listing.create", {
+          dropship_product_id, selling_price,
+        });
+        if (created?.listing?.id) await callMerchant("listing.publish", { listing_id: created.listing.id });
+        return created;
+      }, "Product published to your store"),
     updateListing: (listing_id: string, patch: Record<string, unknown>) =>
       wrap(() => callMerchant("listing.update", { listing_id, ...patch }), "Listing updated"),
     publish: (listing_id: string) => wrap(() => callMerchant("listing.publish", { listing_id }), "Product published"),
