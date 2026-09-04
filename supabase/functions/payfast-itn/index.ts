@@ -317,6 +317,24 @@ serve(async (req) => {
           console.error("Failed to update order:", orderError);
         } else {
           console.log(`Order ${orderId} payment confirmed`);
+
+          // Payment confirmed -> hand any dropshipping items to their suppliers.
+          try {
+            const fulfillRes = await fetch(
+              `${Deno.env.get("SUPABASE_URL")}/functions/v1/dropship-fulfill`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                },
+                body: JSON.stringify({ order_id: orderId }),
+              },
+            );
+            console.log("Dropship fulfilment result:", await fulfillRes.text());
+          } catch (dropErr) {
+            console.error("Dropship fulfilment dispatch failed:", dropErr);
+          }
         }
       } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
         const { error: cancelError } = await supabaseAdmin

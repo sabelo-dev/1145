@@ -216,7 +216,6 @@ Deno.serve(async (req) => {
         // Merchant sales counters
         for (const l of group.lines) {
           const profit = (Number(l.item.price) - Number(l.dp.supplier_cost || 0) * fx) * Number(l.item.quantity || 1);
-          await db.rpc("noop").then(() => {}, () => {});
           await db.from("dropship_listings").update({
             units_sold: (l.listing.units_sold || 0) + Number(l.item.quantity || 1),
             revenue_zar: Number(l.listing.revenue_zar || 0) + Number(l.item.price) * Number(l.item.quantity || 1),
