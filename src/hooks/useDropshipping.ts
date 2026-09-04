@@ -189,6 +189,13 @@ export function useDropshipAdmin() {
       }, "Synchronisation finished"),
     retryFulfillment: (fulfillment_id: string) =>
       wrap(() => callAdmin("fulfillment.retry", { fulfillment_id }), "Retry submitted"),
+    fulfillmentQueue: () => callAdmin<{ orders: any[] }>("fulfillment.queue"),
+    submitFulfillment: (order_id: string) =>
+      wrap(() => callAdmin("fulfillment.submit", { order_id }), "Order sent to the supplier"),
+    trackFulfillment: (fulfillment_id: string) =>
+      wrap(() => callAdmin("fulfillment.track", { fulfillment_id }), "Shipment status refreshed"),
+    dispatchDelivery: (fulfillment_id: string) =>
+      wrap(() => callAdmin("delivery.dispatch", { fulfillment_id }), "Driver job created"),
     decideReturn: (return_id: string, decision: string, resolution?: string, refund_amount?: number) =>
       wrap(() => callAdmin("return.decide", { return_id, decision, resolution, refund_amount }), "Return updated"),
     processRefund: (order_id: string, amount: number, return_id?: string) =>
