@@ -24,6 +24,9 @@ const Index = lazy(() => import("@/pages/Index"));
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const ShopPage = lazy(() => import("@/pages/ShopPage"));
 const ProductPage = lazy(() => import("@/pages/ProductPage"));
+const DropshipProductPage = lazy(() => import("@/pages/DropshipProductPage"));
+const MarketplacePage = lazy(() => import("@/pages/MarketplacePage"));
+
 const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
 const CategoriesPage = lazy(() => import("@/pages/CategoriesPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
@@ -149,6 +152,11 @@ function AppRouter() {
         <Route path="/" element={<Layout />}>
           <Route path="shop" element={<ShopPage />} />
           <Route path="product/:slug" element={<ProductPage />} />
+          <Route path="cj/product/:productId" element={<DropshipProductPage />} />
+          <Route path="dropship/product/:productId" element={<DropshipProductPage />} />
+          <Route path="marketplace" element={<MarketplacePage />} />
+
+
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="category/:categorySlug/:subcategorySlug" element={<SubcategoryPage />} />
           <Route path="category/:slug" element={<CategoryPage />} />

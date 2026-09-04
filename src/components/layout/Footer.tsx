@@ -12,6 +12,7 @@ import {
 
 const quickLinks = [
   { to: "/shop", label: "Shop" },
+  { to: "/marketplace", label: "Marketplace" },
   { to: "/categories", label: "Categories" },
   { to: "/deals", label: "Deals & Promotions" },
   { to: "/new-arrivals", label: "New Arrivals" },
