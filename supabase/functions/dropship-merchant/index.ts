@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
         if (!store) return json({ error: "Create your store first" }, 400);
 
         // Refresh the ZAR conversion right before the product goes live.
-        dp = await repriceToZar(db, dp);
+        dp = await repriceToZar(db, dp, settings);
         if (Number(listing.selling_price) < Number(dp.landed_cost_zar || 0)) {
           listing.selling_price = Number(dp.recommended_price_zar);
           await db.from("dropship_listings")
