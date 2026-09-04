@@ -105,9 +105,11 @@ const DropshipProductPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
   const stock = selectedVariant ? selectedVariant.stock : product?.stock ?? 0;
   const inStock = stock > 0;
 
+  const purchasable = !!product?.store_product_id;
+
   const handleBuy = () => {
-    if (!product) return;
-    const cartProductId = product.store_product_id ?? product.id;
+    if (!product?.store_product_id) return;
+    const cartProductId = product.store_product_id;
     for (let i = 0; i < quantity; i++) {
       addToCart({
         productId: cartProductId,
@@ -253,9 +255,22 @@ const DropshipProductPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
             </div>
           </div>
 
-          <Button className="w-full min-h-[48px] text-base" disabled={!inStock} onClick={handleBuy}>
-            {inStock ? `Buy now — ${formatCurrency(price * quantity)}` : "Out of stock"}
+          <Button
+            className="w-full min-h-[48px] text-base"
+            disabled={!inStock || !purchasable}
+            onClick={handleBuy}
+          >
+            {!purchasable
+              ? "Coming soon"
+              : inStock
+                ? `Buy now — ${formatCurrency(price * quantity)}`
+                : "Out of stock"}
           </Button>
+          {!purchasable && (
+            <p className="text-xs text-muted-foreground">
+              This item is not on sale yet. It will be available in the marketplace shortly.
+            </p>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
             <span className="flex items-center gap-2"><Truck className="h-4 w-4" /> Tracked delivery</span>

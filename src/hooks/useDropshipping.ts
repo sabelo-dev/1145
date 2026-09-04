@@ -160,6 +160,19 @@ export function useDropshipAdmin() {
         await callAdmin("product.decide", { product_ids, decision, reason });
         await loadProducts();
       }, "Catalogue updated"),
+    publishToMarketplace: (product_ids: string[]) =>
+      wrap(async () => {
+        const res = await callAdmin("marketplace.publish", { product_ids });
+        await loadProducts();
+        return res;
+      }, "Live on the marketplace"),
+    unpublishFromMarketplace: (product_ids: string[]) =>
+      wrap(async () => {
+        const res = await callAdmin("marketplace.unpublish", { product_ids });
+        await loadProducts();
+        return res;
+      }, "Removed from the marketplace"),
+
     reprice: (supplier_id: string) =>
       wrap(async () => {
         const res = await callAdmin("product.reprice", { supplier_id });
