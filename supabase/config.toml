@@ -75,3 +75,6 @@ verify_jwt = true
 
 [functions.maps-config]
 verify_jwt = false
+
+[functions.dropship-seed]
+verify_jwt = false
