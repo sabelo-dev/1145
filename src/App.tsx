@@ -24,6 +24,7 @@ const Index = lazy(() => import("@/pages/Index"));
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const ShopPage = lazy(() => import("@/pages/ShopPage"));
 const ProductPage = lazy(() => import("@/pages/ProductPage"));
+const DropshipProductPage = lazy(() => import("@/pages/DropshipProductPage"));
 const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
 const CategoriesPage = lazy(() => import("@/pages/CategoriesPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
