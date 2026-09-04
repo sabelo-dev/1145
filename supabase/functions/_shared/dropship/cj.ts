@@ -112,13 +112,14 @@ export class CJAdapter implements SupplierAdapter {
       const started = Date.now();
       let status = 0;
       try {
+        const accessToken = await this.token();
         // CJ enforces 1 request per second per account — every call is queued.
         const res = await cjThrottle(() =>
           fetch(url.toString(), {
             method,
             headers: {
               "Content-Type": "application/json",
-              "CJ-Access-Token": await this.token(),
+              "CJ-Access-Token": accessToken,
             },
             body: method === "POST" ? JSON.stringify(opts.body ?? {}) : undefined,
           })
