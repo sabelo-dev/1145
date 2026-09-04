@@ -10944,33 +10944,18 @@ export type Database = {
           price_zar: number | null
           status: string | null
           stock: number | null
+          store_product_id: string | null
           updated_at: string | null
         }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          images?: Json | null
-          name?: string | null
-          price_zar?: number | null
-          status?: string | null
-          stock?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          images?: Json | null
-          name?: string | null
-          price_zar?: number | null
-          status?: string | null
-          stock?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dropship_listings_product_id_fkey"
+            columns: ["store_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dropship_public_variants: {
         Row: {
