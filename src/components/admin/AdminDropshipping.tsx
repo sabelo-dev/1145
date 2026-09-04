@@ -387,6 +387,16 @@ const Catalogue: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ a
                   <div className="flex justify-between"><span className="text-muted-foreground">Stock</span><span>{p.stock}</span></div>
                 </div>
                 {p.rejection_reason && <p className="text-xs text-destructive">{p.rejection_reason}</p>}
+                {(p.status === "approved" || p.status === "published") && (
+                  <a
+                    href={`/cj/product/${p.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block text-xs font-medium text-primary underline underline-offset-2"
+                  >
+                    View product page
+                  </a>
+                )}
               </CardContent>
             </Card>
           );
