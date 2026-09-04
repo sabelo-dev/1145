@@ -2,7 +2,8 @@
 // details and raw supplier costs beyond the merchant's own cost view are never
 // returned here.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { adminClient, audit, getCaller, rateLimit } from "../_shared/dropship/core.ts";
+import { adminClient, audit, getCaller, getFxRate, getSupplier, rateLimit } from "../_shared/dropship/core.ts";
+import { calculatePrice } from "../_shared/dropship/pricing.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -12,6 +13,43 @@ const json = (body: unknown, status = 200) =>
 
 function slugify(name: string, suffix: string) {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60)}-${suffix}`;
+}
+
+/**
+ * Converts the supplier's own currency (USD for CJ) into ZAR at the latest
+ * rate and refreshes the stored landed cost / recommended price before the
+ * product is imported or published by a merchant.
+ */
+async function repriceToZar(db: ReturnType<typeof adminClient>, product: Record<string, any>) {
+  try {
+    const supplier = await getSupplier(db, product.supplier_id);
+    const currency = product.supplier_currency || supplier.base_currency || "USD";
+    const fx = await getFxRate(db, currency, "ZAR");
+    const breakdown = calculatePrice(
+      Number(product.supplier_cost || 0),
+      Number(product.supplier_shipping_cost || 0),
+      fx,
+      supplier.pricing_rule as never,
+    );
+    if (
+      breakdown.landedCostZar !== Number(product.landed_cost_zar) ||
+      breakdown.recommendedPriceZar !== Number(product.recommended_price_zar)
+    ) {
+      await db.from("dropship_products").update({
+        landed_cost_zar: breakdown.landedCostZar,
+        recommended_price_zar: breakdown.recommendedPriceZar,
+      }).eq("id", product.id);
+    }
+    return {
+      ...product,
+      landed_cost_zar: breakdown.landedCostZar,
+      recommended_price_zar: breakdown.recommendedPriceZar,
+      fx_rate: fx,
+      fx_currency: currency,
+    };
+  } catch (_err) {
+    return { ...product, fx_rate: null, fx_currency: product.supplier_currency || "USD" };
+  }
 }
 
 Deno.serve(async (req) => {
