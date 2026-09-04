@@ -474,16 +474,17 @@ const Inventory: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ a
 /* ---------------------------------------------------------------- ORDERS */
 const Orders: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admin }) => {
   const [rows, setRows] = useState<any[]>([]);
+  const [queue, setQueue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("dropship_fulfillments")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const [{ data }, q] = await Promise.all([
+      supabase.from("dropship_fulfillments").select("*").order("created_at", { ascending: false }).limit(100),
+      admin.fulfillmentQueue().catch(() => ({ orders: [] as any[] })),
+    ]);
     setRows(data || []);
+    setQueue(((q as any)?.orders || []).filter((o: any) => !o.fulfillments?.length));
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
@@ -491,34 +492,77 @@ const Orders: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admi
   if (loading) return <Skeleton className="h-64 w-full" />;
 
   return (
-    <div className="space-y-3">
-      {rows.map((f) => (
-        <Card key={f.id}>
-          <CardContent className="p-4 space-y-2">
-            <div className="header-row">
-              <div className="min-w-0">
-                <p className="font-medium truncate">1145-{String(f.order_id).slice(0, 8).toUpperCase()}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  Supplier reference {f.supplier_order_number || "not created yet"}
-                  {f.tracking_number ? ` · ${f.carrier || "carrier"} ${f.tracking_number}` : ""}
-                </p>
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold">Paid orders waiting to be sent ({queue.length})</h3>
+        {queue.map((row) => (
+          <Card key={row.order.id}>
+            <CardContent className="p-4 space-y-2">
+              <div className="header-row">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{row.order.order_number || `1145-${String(row.order.id).slice(0, 8).toUpperCase()}`}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {row.lines.map((l: any) => `${l.quantity} × ${l.name}`).join(", ")}
+                  </p>
+                </div>
+                <div className="header-actions">
+                  <span className="text-sm font-medium">{money(row.order.total)}</span>
+                  <Button size="sm" disabled={admin.busy}
+                    onClick={async () => { await admin.submitFulfillment(row.order.id); load(); }}>
+                    Send to supplier
+                  </Button>
+                </div>
               </div>
-              <div className="header-actions">
-                <Badge variant="outline">{String(f.status).replace(/_/g, " ")}</Badge>
-                <span className="text-sm font-medium">{money(f.cost_total_zar)}</span>
+            </CardContent>
+          </Card>
+        ))}
+        {!queue.length && <Card><CardContent className="p-6 text-sm text-muted-foreground">Every paid order has been sent to its supplier.</CardContent></Card>}
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold">Supplier shipments</h3>
+        {rows.map((f) => (
+          <Card key={f.id}>
+            <CardContent className="p-4 space-y-2">
+              <div className="header-row">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">1145-{String(f.order_id).slice(0, 8).toUpperCase()}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    Supplier reference {f.supplier_order_number || "not created yet"}
+                    {f.tracking_number ? ` · ${f.carrier || "carrier"} ${f.tracking_number}` : ""}
+                  </p>
+                </div>
+                <div className="header-actions">
+                  <Badge variant="outline">{String(f.status).replace(/_/g, " ")}</Badge>
+                  <span className="text-sm font-medium">{money(f.cost_total_zar)}</span>
+                </div>
               </div>
-            </div>
-            {f.last_error && <p className="text-xs text-destructive break-words">{f.last_error}</p>}
-            {["awaiting_supplier_action", "supplier_failure"].includes(f.status) && (
-              <Button size="sm" variant="outline" disabled={admin.busy}
-                onClick={async () => { await admin.retryFulfillment(f.id); load(); }}>
-                <RefreshCw className="h-4 w-4 mr-2" />Retry safely
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-      {!rows.length && <Card><CardContent className="p-6 text-sm text-muted-foreground">No dropshipping orders yet.</CardContent></Card>}
+              {f.last_error && <p className="text-xs text-destructive break-words">{f.last_error}</p>}
+              <div className="flex flex-wrap gap-2">
+                {["awaiting_supplier_action", "supplier_failure"].includes(f.status) && (
+                  <Button size="sm" variant="outline" disabled={admin.busy}
+                    onClick={async () => { await admin.retryFulfillment(f.id); load(); }}>
+                    <RefreshCw className="h-4 w-4 mr-2" />Retry safely
+                  </Button>
+                )}
+                {f.supplier_order_number && (
+                  <Button size="sm" variant="outline" disabled={admin.busy}
+                    onClick={async () => { await admin.trackFulfillment(f.id); load(); }}>
+                    <RefreshCw className="h-4 w-4 mr-2" />Refresh status
+                  </Button>
+                )}
+                {["shipped", "in_transit", "out_for_delivery"].includes(f.status) && (
+                  <Button size="sm" variant="outline" disabled={admin.busy}
+                    onClick={async () => { await admin.dispatchDelivery(f.id); load(); }}>
+                    Send to a driver
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {!rows.length && <Card><CardContent className="p-6 text-sm text-muted-foreground">No dropshipping orders yet.</CardContent></Card>}
+      </div>
     </div>
   );
 };
