@@ -3,6 +3,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { adminClient, audit, getAdapter, getSupplier, notifyAdmins } from "../_shared/dropship/core.ts";
 import { normalizeSupplierStatus } from "../_shared/dropship/types.ts";
+import { ensureDeliveryJob } from "../_shared/dropship/lastmile.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -82,6 +83,10 @@ Deno.serve(async (req) => {
         if (status === "shipped" && !f.shipped_at) update.shipped_at = new Date().toISOString();
         if (status === "delivered" && !f.delivered_at) update.delivered_at = new Date().toISOString();
         await db.from("dropship_fulfillments").update(update).eq("id", f.id);
+
+        if (["shipped", "in_transit", "out_for_delivery", "delivered"].includes(status)) {
+          await ensureDeliveryJob(db, { ...f, ...update } as never);
+        }
 
         if (trackingNumber) {
           await db.from("dropship_tracking_events").upsert({

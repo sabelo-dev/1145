@@ -12,6 +12,7 @@ import {
   type SupplierRow,
 } from "../_shared/dropship/core.ts";
 import { calculatePrice } from "../_shared/dropship/pricing.ts";
+import { ensureDeliveryJob } from "../_shared/dropship/lastmile.ts";
 import { normalizeSupplierStatus } from "../_shared/dropship/types.ts";
 
 const json = (body: unknown, status = 200) =>
@@ -194,6 +195,11 @@ Deno.serve(async (req) => {
             if (status === "shipped" && !f.shipped_at) update.shipped_at = new Date().toISOString();
             if (status === "delivered" && !f.delivered_at) update.delivered_at = new Date().toISOString();
             await db.from("dropship_fulfillments").update(update).eq("id", f.id);
+
+            // Local last-mile: a shipped parcel becomes a driver job.
+            if (["shipped", "in_transit", "out_for_delivery", "delivered"].includes(status)) {
+              await ensureDeliveryJob(db, { ...f, ...update } as never);
+            }
 
             const trackingNumber = remote.trackingNumber || f.tracking_number;
             if (trackingNumber) {
