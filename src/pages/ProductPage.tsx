@@ -13,7 +13,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, stripHtml } from "@/lib/utils";
 import StarRating from "@/components/ui/star-rating";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import SEO from "@/components/SEO";
@@ -200,7 +200,7 @@ const ProductPage: React.FC = () => {
     <div className="bg-white">
       <SEO
         title={`${product.name} - ${product.category}`}
-        description={product.description?.substring(0, 160) || `Buy ${product.name} from ${product.vendorName}. High quality products at great prices.`}
+        description={stripHtml(product.description).substring(0, 160) || `Buy ${product.name} from ${product.vendorName}. High quality products at great prices.`}
         keywords={`${product.name}, ${product.category}, ${product.vendorName}, buy online, shop`}
         image={product.images?.[0]}
         type="product"
@@ -347,7 +347,7 @@ const ProductPage: React.FC = () => {
             </div>
 
             {/* Short Description */}
-            <p className="text-gray-700 mt-2">{product.description}</p>
+            <p className="text-gray-700 mt-2 whitespace-pre-line">{stripHtml(product.description)}</p>
 
             {/* Vendor Info */}
             <div className="mt-2">
@@ -505,7 +505,7 @@ const ProductPage: React.FC = () => {
             </TabsList>
             <TabsContent value="details" className="py-6">
               <div className="prose max-w-none">
-                <p className="mb-4">{product.description}</p>
+                <p className="mb-4 whitespace-pre-line">{stripHtml(product.description)}</p>
               </div>
             </TabsContent>
             <TabsContent value="specs" className="py-6">
@@ -556,35 +556,11 @@ const ProductPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Sample Reviews */}
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, idx) => (
-                    <div key={idx} className="border-b pb-4">
-                      <div className="flex justify-between mb-1">
-                        <div className="font-semibold">John D.</div>
-                        <div className="text-gray-500 text-sm">3 days ago</div>
-                      </div>
-                      <div className="flex mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < 4 ? "text-wwe-gold fill-wwe-gold" : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm">
-                        Great product! It exceeded my expectations in terms of quality and
-                        functionality. Would definitely recommend to others.
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <Button variant="outline" className="w-full">
-                  Load More Reviews
-                </Button>
+                {product.reviewCount === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No reviews yet. Be the first to review this product.
+                  </p>
+                )}
               </div>
             </TabsContent>
           </Tabs>

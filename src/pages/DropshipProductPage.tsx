@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, stripHtml } from "@/lib/utils";
 import SEO from "@/components/SEO";
 import { Truck, ShieldCheck, PackageCheck, Minus, Plus, ChevronLeft } from "lucide-react";
 
@@ -153,7 +153,7 @@ const DropshipProductPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
     <div ref={ref} className="container mx-auto px-4 py-4 sm:py-8">
       <SEO
         title={`${product.name} | 1145 Lifestyle`}
-        description={(product.description || product.name).slice(0, 155)}
+        description={(stripHtml(product.description) || product.name).slice(0, 155)}
       />
 
       <Button variant="ghost" size="sm" className="mb-3 -ml-2" onClick={() => navigate(-1)}>
@@ -284,7 +284,7 @@ const DropshipProductPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
               <div className="space-y-2">
                 <h2 className="text-base font-semibold">Description</h2>
                 <div className="prose prose-sm max-w-none text-sm text-muted-foreground whitespace-pre-line break-words">
-                  {product.description.replace(/<[^>]+>/g, " ").trim()}
+                  {stripHtml(product.description)}
                 </div>
               </div>
             </>
