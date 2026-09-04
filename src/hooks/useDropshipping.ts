@@ -200,6 +200,15 @@ export function useDropshipAdmin() {
       wrap(() => callAdmin("return.decide", { return_id, decision, resolution, refund_amount }), "Return updated"),
     processRefund: (order_id: string, amount: number, return_id?: string) =>
       wrap(() => callAdmin("refund.process", { order_id, amount, return_id }), "Refund processed"),
+    fxStatus: (refresh?: boolean) =>
+      callAdmin<{ rate: number; updated_at: string | null; suppliers: any[] }>("fx.status", { refresh }),
+    fxRepriceAll: () =>
+      wrap(async () => {
+        const res = await callAdmin<{ rate: number; updated: number }>("fx.reprice_all");
+        await loadProducts();
+        return res;
+      }, "Prices updated at today's rand rate"),
+
   };
 }
 
