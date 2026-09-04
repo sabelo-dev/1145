@@ -15,6 +15,7 @@ import {
 } from "../_shared/dropship/core.ts";
 import { ensureDeliveryJob } from "../_shared/dropship/lastmile.ts";
 import { calculatePrice } from "../_shared/dropship/pricing.ts";
+import { normalizeSupplierStatus } from "../_shared/dropship/types.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
