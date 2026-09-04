@@ -85,7 +85,23 @@ Deno.serve(async (req) => {
       const { data: supplierRow } = await db.from("dropship_suppliers").select("*").eq("id", supplierId).maybeSingle();
       if (!supplierRow) continue;
       const supplier = supplierRow as SupplierRow;
+
+      /* Merchants who send their own orders manually are skipped here unless
+         the submission was triggered on purpose (admin or merchant action). */
+      if (group.vendorId && !body.force) {
+        const { data: merchantSettings } = await db
+          .from("dropship_merchant_settings")
+          .select("auto_fulfill")
+          .eq("vendor_id", group.vendorId)
+          .maybeSingle();
+        if (merchantSettings && merchantSettings.auto_fulfill === false) {
+          results.push({ supplier: supplier.code, skipped: "merchant sends this order manually" });
+          continue;
+        }
+      }
+
       const idempotencyKey = `1145-${orderId}-${supplier.code}`;
+
 
       /* 3. Duplicate protection — one fulfilment row per order+supplier. */
       const { data: existing } = await db

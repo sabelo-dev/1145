@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { useDropshipMerchant } from "@/hooks/useDropshipping";
 import { stripHtml } from "@/lib/utils";
 import { Boxes, ExternalLink, RefreshCw, Search, Store, Truck, TrendingUp } from "lucide-react";
@@ -28,6 +32,18 @@ const MerchantDropshipping: React.FC = () => {
   const [tab, setTab] = useState("catalogue");
   const [search, setSearch] = useState("");
   const [prices, setPrices] = useState<Record<string, string>>({});
+  const [confirmOrder, setConfirmOrder] = useState<any | null>(null);
+  const [fxMode, setFxMode] = useState<"live" | "manual">("live");
+  const [manualRate, setManualRate] = useState("");
+  const [margin, setMargin] = useState("0");
+  const [autoFulfill, setAutoFulfill] = useState(true);
+
+  useEffect(() => {
+    setFxMode(m.settings.fx_mode);
+    setManualRate(m.settings.manual_fx_rate ? String(m.settings.manual_fx_rate) : "");
+    setMargin(String(m.settings.fx_margin_pct ?? 0));
+    setAutoFulfill(m.settings.auto_fulfill);
+  }, [m.settings]);
 
   const listedIds = useMemo(
     () => new Set(m.listings.map((l: any) => l.dropship_product_id)),
@@ -93,6 +109,7 @@ const MerchantDropshipping: React.FC = () => {
           <TabsTrigger value="catalogue">Find products</TabsTrigger>
           <TabsTrigger value="listings">My products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="pricing">Pricing &amp; rate</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalogue" className="mt-4 space-y-3">
@@ -200,26 +217,148 @@ const MerchantDropshipping: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="orders" className="mt-4 space-y-3">
-          {m.fulfillments.map((f: any) => (
-            <Card key={f.id}>
-              <CardContent className="p-4">
-                <div className="header-row">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">1145-{String(f.order_id).slice(0, 8).toUpperCase()}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {f.tracking_number ? `${f.carrier || "Courier"} · ${f.tracking_number}` : "Awaiting dispatch"}
-                    </p>
+          <p className="text-xs text-muted-foreground">
+            {m.settings.auto_fulfill
+              ? "Paid orders are sent to the supplier automatically. You can also send one now."
+              : "You send paid orders to the supplier yourself from here."}
+          </p>
+          {m.orders.map((row: any) => {
+            const f = row.fulfillment;
+            const sent = !!f?.supplier_order_number;
+            return (
+              <Card key={row.order.id}>
+                <CardContent className="p-4 space-y-3">
+                  <div className="header-row">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
+                        {row.order.order_number || `1145-${String(row.order.id).slice(0, 8).toUpperCase()}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {row.lines.map((l: any) => `${l.quantity} × ${stripHtml(l.name)}`).join(", ")}
+                      </p>
+                    </div>
+                    <div className="header-actions">
+                      <Badge variant="outline">
+                        {f ? String(f.status).replace(/_/g, " ") : "waiting to be sent"}
+                      </Badge>
+                      <span className="text-sm font-medium">{money(row.merchant_total)}</span>
+                    </div>
                   </div>
-                  <Badge variant="outline">{String(f.status).replace(/_/g, " ")}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {!m.fulfillments.length && (
-            <Card><CardContent className="p-6 text-sm text-muted-foreground">No dropshipping orders yet.</CardContent></Card>
+                  {f?.tracking_number && (
+                    <p className="text-xs text-muted-foreground break-all">
+                      {f.carrier || "Courier"} · {f.tracking_number}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {!sent && (
+                      <Button size="sm" disabled={m.busy} onClick={() => setConfirmOrder(row)}>
+                        Send to supplier
+                      </Button>
+                    )}
+                    {sent && (
+                      <Button size="sm" variant="outline" disabled={m.busy}
+                        onClick={() => m.trackShipment(f.id)}>
+                        <RefreshCw className="h-4 w-4 mr-2" />Refresh status
+                      </Button>
+                    )}
+                    <Button asChild size="sm" variant="outline">
+                      <Link to={`/orders/${row.order.id}/tracking`}>Delivery status</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+          {!m.orders.length && (
+            <Card><CardContent className="p-6 text-sm text-muted-foreground">No orders for your products yet.</CardContent></Card>
           )}
         </TabsContent>
+
+        <TabsContent value="pricing" className="mt-4 space-y-4">
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div>
+                <p className="font-medium">Dollar to rand rate</p>
+                <p className="text-xs text-muted-foreground">
+                  Today's live rate is R{Number(m.fx?.live_rate ?? m.fx?.rate ?? 0).toFixed(2)} per $1.
+                  Your products are priced at R{Number(m.fx?.rate ?? 0).toFixed(2)} per $1.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button size="sm" variant={fxMode === "live" ? "default" : "outline"}
+                  onClick={() => setFxMode("live")}>Use the live rate</Button>
+                <Button size="sm" variant={fxMode === "manual" ? "default" : "outline"}
+                  onClick={() => setFxMode("manual")}>Set my own rate</Button>
+              </div>
+              {fxMode === "manual" && (
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Rand per $1</label>
+                  <Input type="number" inputMode="decimal" value={manualRate}
+                    placeholder={String(m.fx?.live_rate ?? "18.50")}
+                    onChange={(e) => setManualRate(e.target.value)} className="sm:max-w-40" />
+                </div>
+              )}
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Extra safety margin (%)</label>
+                <Input type="number" inputMode="decimal" value={margin}
+                  onChange={(e) => setMargin(e.target.value)} className="sm:max-w-40" />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Send paid orders automatically</p>
+                  <p className="text-xs text-muted-foreground">
+                    Turn this off to send each order to the supplier yourself.
+                  </p>
+                </div>
+                <Switch checked={autoFulfill} onCheckedChange={setAutoFulfill} />
+              </div>
+              <Button size="sm" disabled={m.busy}
+                onClick={() => m.saveSettings({
+                  fx_mode: fxMode,
+                  manual_fx_rate: fxMode === "manual" ? Number(manualRate) : null,
+                  fx_margin_pct: Number(margin || 0),
+                  auto_fulfill: autoFulfill,
+                })}>
+                Save
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      <Dialog open={!!confirmOrder} onOpenChange={(open) => !open && setConfirmOrder(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send this order to the supplier?</DialogTitle>
+            <DialogDescription>
+              The supplier will pack and ship it. This cannot be undone from here.
+            </DialogDescription>
+          </DialogHeader>
+          {confirmOrder && (
+            <div className="text-sm space-y-1">
+              <p className="font-medium">
+                {confirmOrder.order.order_number || `1145-${String(confirmOrder.order.id).slice(0, 8).toUpperCase()}`}
+              </p>
+              <p className="text-muted-foreground">
+                {confirmOrder.lines.map((l: any) => `${l.quantity} × ${stripHtml(l.name)}`).join(", ")}
+              </p>
+              <p className="font-medium">{money(confirmOrder.merchant_total)}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOrder(null)}>Cancel</Button>
+            <Button disabled={m.busy}
+              onClick={async () => {
+                const row = confirmOrder;
+                setConfirmOrder(null);
+                if (row) await m.submitToSupplier(row.order.id);
+              }}>
+              Yes, send it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };

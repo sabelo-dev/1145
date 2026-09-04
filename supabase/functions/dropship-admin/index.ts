@@ -12,6 +12,8 @@ import {
   notifyAdmins,
   rateLimit,
   recordHealth,
+  refreshFxRates,
+
 } from "../_shared/dropship/core.ts";
 import { ensureDeliveryJob } from "../_shared/dropship/lastmile.ts";
 import { calculatePrice } from "../_shared/dropship/pricing.ts";
@@ -334,6 +336,55 @@ Deno.serve(async (req) => {
         });
       }
 
+      /* Live dollar-to-rand rate behind every catalogue price. */
+      case "fx.status": {
+        if (body.refresh) await refreshFxRates(db, ["ZAR"]);
+        const rate = await getFxRate(db, "USD", "ZAR");
+        const { data: row } = await db
+          .from("currency_rates").select("updated_at").eq("currency_code", "ZAR").maybeSingle();
+        const { data: suppliers } = await db
+          .from("dropship_suppliers").select("id, code, name, base_currency, auto_price_update");
+        return json({ rate, updated_at: row?.updated_at ?? null, suppliers: suppliers || [] });
+      }
+
+      /* Refresh the rate and re-price every supplier's catalogue with it. */
+      case "fx.reprice_all": {
+        await refreshFxRates(db, ["ZAR"]);
+        const rate = await getFxRate(db, "USD", "ZAR");
+        const { data: suppliers } = await db.from("dropship_suppliers").select("*");
+        let updated = 0;
+        for (const s of suppliers || []) {
+          const fx = await getFxRate(db, s.base_currency || "USD", "ZAR");
+          const { data: products } = await db
+            .from("dropship_products")
+            .select("id, supplier_cost, supplier_shipping_cost, recommended_price_zar")
+            .eq("supplier_id", s.id);
+          for (const p of products || []) {
+            const pricing = calculatePrice(p.supplier_cost, p.supplier_shipping_cost, fx, s.pricing_rule);
+            if (pricing.recommendedPriceZar === Number(p.recommended_price_zar)) continue;
+            await db.from("dropship_products").update({
+              landed_cost_zar: pricing.landedCostZar,
+              recommended_price_zar: pricing.recommendedPriceZar,
+              fx_rate: fx,
+            }).eq("id", p.id);
+            await db.from("dropship_price_history").insert({
+              dropship_product_id: p.id,
+              old_recommended_price: p.recommended_price_zar,
+              new_recommended_price: pricing.recommendedPriceZar,
+              source: "fx_refresh",
+            });
+            updated++;
+          }
+        }
+        await audit(db, {
+          actor_id: caller.id, actor_role: "admin", action: "pricing.fx_refreshed",
+          entity_type: "platform", entity_id: null, new_state: { rate, updated },
+        });
+        return json({ rate, updated });
+      }
+
+
+
       /* ---------------- FULFILMENT ---------------- */
       case "fulfillment.retry": {
         const { data: f } = await db.from("dropship_fulfillments").select("*").eq("id", body.fulfillment_id).maybeSingle();
@@ -344,7 +395,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
           },
-          body: JSON.stringify({ order_id: f.order_id, internal_key: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") }),
+          body: JSON.stringify({ order_id: f.order_id, force: true }),
         });
         const out = await res.json().catch(() => ({}));
         await audit(db, {
@@ -408,7 +459,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
           },
-          body: JSON.stringify({ order_id: orderId }),
+          body: JSON.stringify({ order_id: orderId, force: true }),
         });
         const out = await res.json().catch(() => ({}));
         await audit(db, {
