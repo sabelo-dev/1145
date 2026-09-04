@@ -156,11 +156,20 @@ Deno.serve(async (req) => {
           .eq("vendor_id", vendor.id)
           .maybeSingle();
         if (!listing) return json({ error: "Listing not found" }, 404);
-        const dp: any = listing.dropship_products;
+        let dp: any = listing.dropship_products;
         if (!dp || !["approved", "published"].includes(dp.status)) {
           return json({ error: "This product is not approved for the marketplace" }, 400);
         }
         if (!store) return json({ error: "Create your store first" }, 400);
+
+        // Refresh the ZAR conversion right before the product goes live.
+        dp = await repriceToZar(db, dp);
+        if (Number(listing.selling_price) < Number(dp.landed_cost_zar || 0)) {
+          listing.selling_price = Number(dp.recommended_price_zar);
+          await db.from("dropship_listings")
+            .update({ selling_price: listing.selling_price, price_change_flag: false })
+            .eq("id", listing.id);
+        }
 
         let productId = listing.product_id;
         const images: string[] = Array.isArray(dp.images) ? dp.images : [];
