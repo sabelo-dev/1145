@@ -455,7 +455,126 @@ Deno.serve(async (req) => {
         });
       }
 
+      /* ------------- PUBLIC MARKETPLACE ------------- */
+      case "marketplace.publish": {
+        const ids: string[] = Array.isArray(body.product_ids) ? body.product_ids.map(String) : [];
+        if (!ids.length) return json({ error: "product_ids is required" }, 400);
+
+        const store = await ensurePlatformStore(db, caller.id);
+        const published: Record<string, string> = {};
+
+        for (const dropshipProductId of ids) {
+          const { data: dp } = await db
+            .from("dropship_products")
+            .select("*")
+            .eq("id", dropshipProductId)
+            .maybeSingle();
+          if (!dp) continue;
+          if (!["approved", "published"].includes(String(dp.status))) continue;
+
+          const sellingPrice = Number(dp.recommended_price_zar || 0);
+          const quantity = Math.max(0, Number(dp.stock || 0) - Number(dp.safety_stock || 0));
+          const images: string[] = Array.isArray(dp.images) ? dp.images.filter((i: unknown) => typeof i === "string") : [];
+
+          let { data: listing } = await db
+            .from("dropship_listings")
+            .select("*")
+            .eq("dropship_product_id", dropshipProductId)
+            .eq("vendor_id", store.vendor_id)
+            .maybeSingle();
+
+          if (!listing) {
+            const { data: createdListing, error: listingError } = await db
+              .from("dropship_listings")
+              .insert({
+                vendor_id: store.vendor_id,
+                store_id: store.id,
+                dropship_product_id: dropshipProductId,
+                selling_price: sellingPrice,
+                status: "draft",
+              })
+              .select()
+              .single();
+            if (listingError) throw listingError;
+            listing = createdListing;
+          }
+
+          let productId: string | null = listing.product_id;
+          if (productId) {
+            await db.from("products").update({
+              status: "approved",
+              name: dp.name,
+              description: dp.description,
+              price: sellingPrice,
+              quantity,
+            }).eq("id", productId);
+          } else {
+            const { data: createdProduct, error: productError } = await db.from("products").insert({
+              store_id: store.id,
+              name: dp.name,
+              slug: slugify(String(dp.name || "product"), String(listing.id).slice(0, 8)),
+              description: dp.description,
+              price: sellingPrice,
+              quantity,
+              category: dp.category || "general",
+              sku: dp.supplier_sku || null,
+              status: "approved",
+              external_source: "dropship",
+              external_id: listing.id,
+              product_type: "physical",
+            }).select("id").single();
+            if (productError) throw productError;
+            productId = createdProduct.id;
+            if (images.length) {
+              await db.from("product_images").insert(
+                images.slice(0, 8).map((url, position) => ({ product_id: productId, image_url: url, position })),
+              );
+            }
+          }
+
+          await db.from("dropship_listings").update({
+            status: "published",
+            product_id: productId,
+            selling_price: sellingPrice,
+            store_id: store.id,
+          }).eq("id", listing.id);
+
+          await db.from("dropship_products").update({ status: "published" }).eq("id", dropshipProductId);
+
+          await audit(db, {
+            actor_id: caller.id, actor_role: "admin", action: "marketplace.published",
+            entity_type: "dropship_product", entity_id: dropshipProductId,
+            new_state: { product_id: productId, listing_id: listing.id },
+          });
+          published[dropshipProductId] = productId as string;
+        }
+
+        return json({ success: true, published, store_slug: "1145-marketplace" });
+      }
+
+      case "marketplace.unpublish": {
+        const ids: string[] = Array.isArray(body.product_ids) ? body.product_ids.map(String) : [];
+        if (!ids.length) return json({ error: "product_ids is required" }, 400);
+
+        const { data: listings } = await db
+          .from("dropship_listings")
+          .select("id, product_id, dropship_product_id")
+          .in("dropship_product_id", ids);
+
+        for (const l of listings || []) {
+          if (l.product_id) await db.from("products").update({ status: "inactive" }).eq("id", l.product_id);
+          await db.from("dropship_listings").update({ status: "unpublished" }).eq("id", l.id);
+          await audit(db, {
+            actor_id: caller.id, actor_role: "admin", action: "marketplace.unpublished",
+            entity_type: "dropship_product", entity_id: l.dropship_product_id,
+          });
+        }
+        await db.from("dropship_products").update({ status: "approved" }).in("id", ids);
+        return json({ success: true, updated: (listings || []).length });
+      }
+
       case "sync.run": {
+
         const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/dropship-sync`, {
           method: "POST",
           headers: {
