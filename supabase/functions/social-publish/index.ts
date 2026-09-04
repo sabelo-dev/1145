@@ -207,6 +207,11 @@ async function getActiveToken(
     .eq("user_id", userId)
     .eq("platform", platform)
     .eq("is_active", true)
+    // Prefer a connection that already has a Page attached.
+    .order("page_id", {
+      ascending: false,
+      nullsFirst: false,
+    })
     .order("updated_at", {
       ascending: false,
     })
