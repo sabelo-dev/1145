@@ -119,9 +119,11 @@ Deno.serve(async (req) => {
     if (!vendor || vendor.status !== "approved") return json({ error: "Approved merchant account required" }, 403);
 
     const { data: store } = await db.from("stores").select("id, name").eq("vendor_id", vendor.id).maybeSingle();
+    const settings = await getSettings(db, vendor.id);
 
     const body = await req.json().catch(() => ({}));
     const action = String(body.action || "");
+
 
     switch (action) {
       case "listing.create": {
