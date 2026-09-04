@@ -323,7 +323,212 @@ Deno.serve(async (req) => {
         const rate = await getFxRate(db, String(body.from || "USD"), "ZAR");
         const { data: row } = await db
           .from("currency_rates").select("updated_at").eq("currency_code", "ZAR").maybeSingle();
-        return json({ from: body.from || "USD", to: "ZAR", rate, updated_at: row?.updated_at ?? null });
+        return json({
+          from: body.from || "USD",
+          to: "ZAR",
+          rate: applySettings(rate, settings),
+          live_rate: rate,
+          settings,
+          updated_at: row?.updated_at ?? null,
+        });
+      }
+
+      case "settings.get": {
+        const rate = await getFxRate(db, "USD", "ZAR");
+        return json({ settings, live_rate: rate, effective_rate: applySettings(rate, settings) });
+      }
+
+      case "settings.save": {
+        const mode = body.fx_mode === "manual" ? "manual" : "live";
+        const manual = body.manual_fx_rate === null || body.manual_fx_rate === undefined || body.manual_fx_rate === ""
+          ? null
+          : Number(body.manual_fx_rate);
+        if (mode === "manual" && (!manual || manual <= 0)) {
+          return json({ error: "Enter a rand amount per $1 that is greater than zero" }, 400);
+        }
+        const margin = Number(body.fx_margin_pct ?? settings.fx_margin_pct ?? 0);
+        if (!Number.isFinite(margin) || margin < 0 || margin > 50) {
+          return json({ error: "The safety margin must be between 0% and 50%" }, 400);
+        }
+        const { error } = await db.from("dropship_merchant_settings").upsert({
+          vendor_id: vendor.id,
+          fx_mode: mode,
+          manual_fx_rate: manual,
+          fx_margin_pct: margin,
+          auto_fulfill: body.auto_fulfill === undefined ? settings.auto_fulfill : !!body.auto_fulfill,
+        }, { onConflict: "vendor_id" });
+        if (error) throw error;
+        await audit(db, {
+          actor_id: caller.id, actor_role: "merchant", action: "merchant.settings.updated",
+          entity_type: "vendor", entity_id: vendor.id,
+          previous_state: settings, new_state: { fx_mode: mode, manual_fx_rate: manual, fx_margin_pct: margin },
+        });
+        const next = await getSettings(db, vendor.id);
+        const rate = await getFxRate(db, "USD", "ZAR");
+        return json({ settings: next, live_rate: rate, effective_rate: applySettings(rate, next) });
+      }
+
+      /* Sales, cost and profit for every product this merchant sells. */
+      case "earnings": {
+        const { data: listings } = await db
+          .from("dropship_listings")
+          .select("id, product_id, selling_price, status, units_sold, revenue_zar, profit_zar, dropship_products(id, name, images, landed_cost_zar, stock)")
+          .eq("vendor_id", vendor.id);
+
+        const productIds = (listings || []).map((l: any) => l.product_id).filter(Boolean);
+        let itemRows: any[] = [];
+        if (productIds.length) {
+          const { data: items } = await db
+            .from("order_items")
+            .select("order_id, product_id, quantity, price, orders(id, payment_status, status, created_at)")
+            .in("product_id", productIds)
+            .limit(2000);
+          itemRows = (items || []).filter((i: any) => i.orders?.payment_status === "paid");
+        }
+
+        const { data: fulfillments } = await db
+          .from("dropship_fulfillments")
+          .select("order_id, cost_total_zar, status")
+          .eq("vendor_id", vendor.id);
+
+        const products = (listings || []).map((l: any) => {
+          const lines = itemRows.filter((i) => i.product_id === l.product_id);
+          const units = lines.reduce((s, i) => s + Number(i.quantity || 0), 0);
+          const revenue = lines.reduce((s, i) => s + Number(i.price || 0) * Number(i.quantity || 0), 0);
+          const unitCost = Number(l.dropship_products?.landed_cost_zar || 0);
+          const cost = unitCost * units;
+          const images = Array.isArray(l.dropship_products?.images) ? l.dropship_products.images : [];
+          return {
+            listing_id: l.id,
+            product_id: l.product_id,
+            name: l.dropship_products?.name || "Product",
+            image: images[0] || null,
+            status: l.status,
+            selling_price: Number(l.selling_price || 0),
+            unit_cost: unitCost,
+            units_sold: units,
+            revenue_zar: Math.round(revenue * 100) / 100,
+            cost_zar: Math.round(cost * 100) / 100,
+            profit_zar: Math.round((revenue - cost) * 100) / 100,
+            orders: new Set(lines.map((i) => i.order_id)).size,
+            stock: Number(l.dropship_products?.stock || 0),
+          };
+        }).sort((a, b) => b.revenue_zar - a.revenue_zar);
+
+        const totals = products.reduce(
+          (acc, p) => ({
+            units: acc.units + p.units_sold,
+            revenue: Math.round((acc.revenue + p.revenue_zar) * 100) / 100,
+            cost: Math.round((acc.cost + p.cost_zar) * 100) / 100,
+            profit: Math.round((acc.profit + p.profit_zar) * 100) / 100,
+          }),
+          { units: 0, revenue: 0, cost: 0, profit: 0 },
+        );
+
+        return json({
+          products,
+          totals: {
+            ...totals,
+            margin_pct: totals.revenue > 0 ? Math.round((totals.profit / totals.revenue) * 1000) / 10 : 0,
+            orders_in_progress: (fulfillments || []).filter(
+              (f: any) => !["delivered", "cancelled", "refunded"].includes(f.status),
+            ).length,
+          },
+        });
+      }
+
+      /* Paid orders for this merchant's products: sent and still to send. */
+      case "orders.list": {
+        const { data: listings } = await db
+          .from("dropship_listings")
+          .select("product_id, dropship_products(name)")
+          .eq("vendor_id", vendor.id);
+        const productIds = (listings || []).map((l: any) => l.product_id).filter(Boolean);
+        if (!productIds.length) return json({ orders: [] });
+
+        const { data: items } = await db
+          .from("order_items")
+          .select("order_id, product_id, quantity, price, orders(id, order_number, total, status, payment_status, created_at)")
+          .in("product_id", productIds)
+          .limit(500);
+
+        const paid = (items || []).filter((i: any) => i.orders?.payment_status === "paid");
+        const orderIds = [...new Set(paid.map((i: any) => i.order_id))];
+        const { data: fulfillments } = orderIds.length
+          ? await db.from("dropship_fulfillments")
+            .select("id, order_id, status, supplier_status, carrier, tracking_number, supplier_order_number, cost_total_zar, created_at")
+            .eq("vendor_id", vendor.id).in("order_id", orderIds)
+          : { data: [] as any[] };
+
+        const rows = orderIds.map((id) => {
+          const lines = paid.filter((i: any) => i.order_id === id);
+          const order = lines[0]?.orders;
+          return {
+            order: {
+              id,
+              order_number: order?.order_number || null,
+              total: Number(order?.total || 0),
+              status: order?.status || "processing",
+              created_at: order?.created_at || null,
+            },
+            lines: lines.map((l: any) => ({
+              quantity: l.quantity,
+              price: Number(l.price || 0),
+              name: (listings || []).find((x: any) => x.product_id === l.product_id)?.dropship_products?.name || "Product",
+            })),
+            merchant_total: lines.reduce((s: number, l: any) => s + Number(l.price || 0) * Number(l.quantity || 0), 0),
+            fulfillment: (fulfillments || []).find((f: any) => f.order_id === id) || null,
+          };
+        }).sort((a, b) => String(b.order.created_at).localeCompare(String(a.order.created_at)));
+
+        return json({ orders: rows, auto_fulfill: settings.auto_fulfill });
+      }
+
+      /* Merchant sends one of their own paid orders to the supplier. */
+      case "fulfillment.submit": {
+        const orderId = String(body.order_id || "");
+        if (!orderId) return json({ error: "order_id is required" }, 400);
+
+        // Ownership check — the order must contain one of this merchant's products.
+        const { data: mine } = await db
+          .from("dropship_listings").select("product_id").eq("vendor_id", vendor.id);
+        const productIds = (mine || []).map((l: any) => l.product_id).filter(Boolean);
+        const { data: lines } = productIds.length
+          ? await db.from("order_items").select("id").eq("order_id", orderId).in("product_id", productIds)
+          : { data: [] as any[] };
+        if (!lines?.length) return json({ error: "This order does not belong to your store" }, 403);
+
+        const { data: order } = await db
+          .from("orders").select("payment_status").eq("id", orderId).maybeSingle();
+        if (order?.payment_status !== "paid") {
+          return json({ error: "This order has not been paid yet" }, 400);
+        }
+
+        const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/dropship-fulfill`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ order_id: orderId }),
+        });
+        const out = await res.json().catch(() => ({}));
+        await audit(db, {
+          actor_id: caller.id, actor_role: "merchant", action: "fulfillment.submitted",
+          entity_type: "order", entity_id: orderId, new_state: { by: "merchant" },
+        });
+        return json(out, res.status);
+      }
+
+      /* Refresh the supplier status of one of this merchant's shipments. */
+      case "fulfillment.track": {
+        const { data: f } = await db
+          .from("dropship_fulfillments").select("id").eq("id", body.fulfillment_id)
+          .eq("vendor_id", vendor.id).maybeSingle();
+        if (!f) return json({ error: "Shipment not found" }, 404);
+        const out = await syncFulfillment(db, f.id);
+        if (!out.success) return json({ error: out.reason || "Could not refresh this shipment" }, 400);
+        return json(out);
       }
 
       case "store.info": {
@@ -332,6 +537,7 @@ Deno.serve(async (req) => {
           .from("stores").select("id, name, slug, logo_url, description").eq("id", store.id).maybeSingle();
         return json({ store: full, vendor: { id: vendor.id, name: vendor.business_name } });
       }
+
 
       default:
         return json({ error: `Unknown action "${action}"` }, 400);
