@@ -357,9 +357,13 @@ const Catalogue: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ a
           <Button size="sm" onClick={async () => { await admin.decide(Array.from(selected), "approve"); setSelected(new Set()); }}>
             <CheckCircle2 className="h-4 w-4 mr-2" />Approve
           </Button>
-          <Button size="sm" variant="secondary" onClick={async () => { await admin.decide(Array.from(selected), "publish"); setSelected(new Set()); }}>
-            Publish
+          <Button size="sm" variant="secondary" onClick={async () => { await admin.publishToMarketplace(Array.from(selected)); setSelected(new Set()); }}>
+            Publish to marketplace
           </Button>
+          <Button size="sm" variant="outline" onClick={async () => { await admin.unpublishFromMarketplace(Array.from(selected)); setSelected(new Set()); }}>
+            Remove from marketplace
+          </Button>
+
           <Button size="sm" variant="outline" onClick={() => setRejectFor(Array.from(selected))}>
             <XCircle className="h-4 w-4 mr-2" />Reject
           </Button>
