@@ -70,11 +70,13 @@ export class CJAdapter implements SupplierAdapter {
   private async token(): Promise<string> {
     if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) return tokenCache.accessToken;
     const started = Date.now();
-    const res = await fetch(`${BASE}/authentication/getAccessToken`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: this.email, password: this.apiKey }),
-    });
+    const res = await cjThrottle(() =>
+      fetch(`${BASE}/authentication/getAccessToken`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: this.email, password: this.apiKey }),
+      })
+    );
     const json = await res.json().catch(() => ({}));
     const ok = res.ok && json?.result === true && json?.data?.accessToken;
     this.log({
