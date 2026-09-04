@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { useDropshipMerchant } from "@/hooks/useDropshipping";
 import { stripHtml } from "@/lib/utils";
 import { Boxes, ExternalLink, RefreshCw, Search, Store, Truck, TrendingUp } from "lucide-react";
@@ -28,6 +32,18 @@ const MerchantDropshipping: React.FC = () => {
   const [tab, setTab] = useState("catalogue");
   const [search, setSearch] = useState("");
   const [prices, setPrices] = useState<Record<string, string>>({});
+  const [confirmOrder, setConfirmOrder] = useState<any | null>(null);
+  const [fxMode, setFxMode] = useState<"live" | "manual">("live");
+  const [manualRate, setManualRate] = useState("");
+  const [margin, setMargin] = useState("0");
+  const [autoFulfill, setAutoFulfill] = useState(true);
+
+  useEffect(() => {
+    setFxMode(m.settings.fx_mode);
+    setManualRate(m.settings.manual_fx_rate ? String(m.settings.manual_fx_rate) : "");
+    setMargin(String(m.settings.fx_margin_pct ?? 0));
+    setAutoFulfill(m.settings.auto_fulfill);
+  }, [m.settings]);
 
   const listedIds = useMemo(
     () => new Set(m.listings.map((l: any) => l.dropship_product_id)),
@@ -93,6 +109,7 @@ const MerchantDropshipping: React.FC = () => {
           <TabsTrigger value="catalogue">Find products</TabsTrigger>
           <TabsTrigger value="listings">My products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="pricing">Pricing &amp; rate</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalogue" className="mt-4 space-y-3">
