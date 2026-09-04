@@ -22,6 +22,28 @@ interface TokenCache {
 // Module-scoped token cache (CJ rate-limits token creation to once per 5 min).
 let tokenCache: TokenCache | null = null;
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// CJ allows 1 request per second per account. Every outbound call goes through
+// this serial queue so concurrent syncs can never trip the QPS limit.
+const CJ_MIN_INTERVAL_MS = 1200;
+let cjQueue: Promise<unknown> = Promise.resolve();
+let cjLastCallAt = 0;
+
+function cjThrottle<T>(fn: () => Promise<T>): Promise<T> {
+  const run = cjQueue.then(async () => {
+    const wait = CJ_MIN_INTERVAL_MS - (Date.now() - cjLastCallAt);
+    if (wait > 0) await sleep(wait);
+    try {
+      return await fn();
+    } finally {
+      cjLastCallAt = Date.now();
+    }
+  });
+  cjQueue = run.catch(() => {});
+  return run as Promise<T>;
+}
+
 type Logger = (entry: {
   endpoint: string;
   method: string;
