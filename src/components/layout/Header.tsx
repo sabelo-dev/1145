@@ -21,6 +21,7 @@ import {
 const menuItems = [
   { label: "Home", path: "/", icon: Home },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
+  { label: "Marketplace", path: "/marketplace", icon: Store },
   { label: "Categories", path: "/categories", icon: Grid3X3 },
   { label: "Services", path: "/services", icon: Truck },
   { label: "Best Sellers", path: "/best-sellers", icon: TrendingUp },
