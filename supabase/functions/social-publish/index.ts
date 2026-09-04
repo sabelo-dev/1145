@@ -207,6 +207,11 @@ async function getActiveToken(
     .eq("user_id", userId)
     .eq("platform", platform)
     .eq("is_active", true)
+    // Prefer a connection that already has a Page attached.
+    .order("page_id", {
+      ascending: false,
+      nullsFirst: false,
+    })
     .order("updated_at", {
       ascending: false,
     })
@@ -250,6 +255,66 @@ async function updateTokenLastUsed(
 /* -------------------------------------------------------------------------- */
 /* Facebook                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/*
+ * Older connections were saved before a Page was chosen (or before the Page
+ * permissions were granted). Rather than failing the post, look the Page up
+ * again with the stored user token and repair the saved connection.
+ */
+async function ensureFacebookPage(
+  supabase: any,
+  tokenData: OAuthToken,
+): Promise<OAuthToken> {
+  if (tokenData.page_id && tokenData.page_access_token) {
+    return tokenData;
+  }
+
+  const userToken = await decryptIfNecessary(
+    tokenData.access_token,
+  );
+
+  const response = await fetch(
+    `https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?fields=id,name,access_token&access_token=${
+      encodeURIComponent(userToken)
+    }`,
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message ||
+        "Could not read the Facebook Pages for this account",
+    );
+  }
+
+  const page = (data?.data || [])[0];
+
+  if (!page?.id || !page?.access_token) {
+    throw new Error(
+      "No Facebook Page found for this account. Create or select a Page you manage, then reconnect Facebook and allow the Page permissions.",
+    );
+  }
+
+  await supabase
+    .from("social_oauth_tokens")
+    .update({
+      account_id: page.id,
+      account_handle: page.name,
+      page_id: page.id,
+      page_name: page.name,
+      page_access_token: page.access_token,
+      is_active: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", tokenData.id);
+
+  return {
+    ...tokenData,
+    page_id: page.id,
+    page_access_token: page.access_token,
+  };
+}
 
 async function publishToFacebook(
   post: SocialPost,
@@ -885,18 +950,23 @@ async function publishPlatform(
   platform: string,
   post: SocialPost,
   tokenData: OAuthToken,
+  supabase?: any,
 ): Promise<PlatformResult> {
   switch (platform) {
     case "facebook":
       return await publishToFacebook(
         post,
-        tokenData,
+        supabase
+          ? await ensureFacebookPage(supabase, tokenData)
+          : tokenData,
       );
 
     case "instagram":
       return await publishToInstagram(
         post,
-        tokenData,
+        supabase
+          ? await ensureFacebookPage(supabase, tokenData)
+          : tokenData,
       );
 
     case "twitter":
@@ -1240,6 +1310,7 @@ Deno.serve(async (req) => {
             platform,
             socialPost,
             tokenData,
+            supabase,
           );
 
         results.push(result);

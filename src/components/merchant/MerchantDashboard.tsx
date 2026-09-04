@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import MerchantDropshipping from "@/components/merchant/dashboard/MerchantDropshipping";
+import MerchantDropshipEarnings from "@/components/merchant/dashboard/MerchantDropshipEarnings";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -137,6 +138,7 @@ const VendorDashboard = () => {
     { id: "shopfront", title: "Shopfront", icon: Store },
     { id: "products", title: "Products", icon: Package },
     { id: "dropshipping", title: "Dropshipping", icon: Truck },
+    { id: "dropship-earnings", title: "Dropship earnings", icon: TrendingUp },
     { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "auction-analytics", title: "Auction Analytics", icon: TrendingUp },
     { id: "orders", title: "Orders", icon: ShoppingCart },
@@ -395,6 +397,10 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             <TabsContent value="auction-analytics" className="mt-0">
               <VendorAuctionAnalytics />
             </TabsContent>
+            <TabsContent value="dropship-earnings" className="mt-0">
+              <MerchantDropshipEarnings />
+            </TabsContent>
+
             <TabsContent value="dropshipping" className="mt-0">
               <MerchantDropshipping />
             </TabsContent>

@@ -12,6 +12,7 @@ import {
   type SupplierRow,
 } from "../_shared/dropship/core.ts";
 import { calculatePrice } from "../_shared/dropship/pricing.ts";
+import { ensureDeliveryJob } from "../_shared/dropship/lastmile.ts";
 import { normalizeSupplierStatus } from "../_shared/dropship/types.ts";
 
 const json = (body: unknown, status = 200) =>
@@ -29,7 +30,16 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const auth = req.headers.get("Authorization") || "";
   const cronSecret = req.headers.get("x-cron-secret");
-  const authorized = auth === `Bearer ${serviceKey}` || (cronSecret && cronSecret === Deno.env.get("CRON_SECRET"));
+  let authorized = auth === `Bearer ${serviceKey}` || (cronSecret && cronSecret === Deno.env.get("CRON_SECRET"));
+
+  // Also allow a signed-in platform administrator to trigger a sync manually.
+  if (!authorized && auth.startsWith("Bearer ")) {
+    const { data: { user } } = await db.auth.getUser(auth.slice(7));
+    if (user) {
+      const { data: isAdmin } = await db.rpc("is_admin", { _user_id: user.id });
+      authorized = isAdmin === true;
+    }
+  }
   if (!authorized) return json({ error: "Forbidden" }, 403);
 
   const body = await req.json().catch(() => ({}));
@@ -194,6 +204,11 @@ Deno.serve(async (req) => {
             if (status === "shipped" && !f.shipped_at) update.shipped_at = new Date().toISOString();
             if (status === "delivered" && !f.delivered_at) update.delivered_at = new Date().toISOString();
             await db.from("dropship_fulfillments").update(update).eq("id", f.id);
+
+            // Local last-mile: a shipped parcel becomes a driver job.
+            if (["shipped", "in_transit", "out_for_delivery", "delivered"].includes(status)) {
+              await ensureDeliveryJob(db, { ...f, ...update } as never);
+            }
 
             const trackingNumber = remote.trackingNumber || f.tracking_number;
             if (trackingNumber) {

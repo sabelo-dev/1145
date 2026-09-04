@@ -12,8 +12,12 @@ import {
   notifyAdmins,
   rateLimit,
   recordHealth,
+  refreshFxRates,
+
 } from "../_shared/dropship/core.ts";
+import { ensureDeliveryJob } from "../_shared/dropship/lastmile.ts";
 import { calculatePrice } from "../_shared/dropship/pricing.ts";
+import { normalizeSupplierStatus } from "../_shared/dropship/types.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -332,6 +336,55 @@ Deno.serve(async (req) => {
         });
       }
 
+      /* Live dollar-to-rand rate behind every catalogue price. */
+      case "fx.status": {
+        if (body.refresh) await refreshFxRates(db, ["ZAR"]);
+        const rate = await getFxRate(db, "USD", "ZAR");
+        const { data: row } = await db
+          .from("currency_rates").select("updated_at").eq("currency_code", "ZAR").maybeSingle();
+        const { data: suppliers } = await db
+          .from("dropship_suppliers").select("id, code, name, base_currency, auto_price_update");
+        return json({ rate, updated_at: row?.updated_at ?? null, suppliers: suppliers || [] });
+      }
+
+      /* Refresh the rate and re-price every supplier's catalogue with it. */
+      case "fx.reprice_all": {
+        await refreshFxRates(db, ["ZAR"]);
+        const rate = await getFxRate(db, "USD", "ZAR");
+        const { data: suppliers } = await db.from("dropship_suppliers").select("*");
+        let updated = 0;
+        for (const s of suppliers || []) {
+          const fx = await getFxRate(db, s.base_currency || "USD", "ZAR");
+          const { data: products } = await db
+            .from("dropship_products")
+            .select("id, supplier_cost, supplier_shipping_cost, recommended_price_zar")
+            .eq("supplier_id", s.id);
+          for (const p of products || []) {
+            const pricing = calculatePrice(p.supplier_cost, p.supplier_shipping_cost, fx, s.pricing_rule);
+            if (pricing.recommendedPriceZar === Number(p.recommended_price_zar)) continue;
+            await db.from("dropship_products").update({
+              landed_cost_zar: pricing.landedCostZar,
+              recommended_price_zar: pricing.recommendedPriceZar,
+              fx_rate: fx,
+            }).eq("id", p.id);
+            await db.from("dropship_price_history").insert({
+              dropship_product_id: p.id,
+              old_recommended_price: p.recommended_price_zar,
+              new_recommended_price: pricing.recommendedPriceZar,
+              source: "fx_refresh",
+            });
+            updated++;
+          }
+        }
+        await audit(db, {
+          actor_id: caller.id, actor_role: "admin", action: "pricing.fx_refreshed",
+          entity_type: "platform", entity_id: null, new_state: { rate, updated },
+        });
+        return json({ rate, updated });
+      }
+
+
+
       /* ---------------- FULFILMENT ---------------- */
       case "fulfillment.retry": {
         const { data: f } = await db.from("dropship_fulfillments").select("*").eq("id", body.fulfillment_id).maybeSingle();
@@ -342,7 +395,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
           },
-          body: JSON.stringify({ order_id: f.order_id, internal_key: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") }),
+          body: JSON.stringify({ order_id: f.order_id, force: true }),
         });
         const out = await res.json().catch(() => ({}));
         await audit(db, {
@@ -350,6 +403,134 @@ Deno.serve(async (req) => {
           entity_type: "fulfillment", entity_id: f.id, new_state: out,
         });
         return json(out, res.status);
+      }
+
+      /* Paid marketplace orders that still need to be sent to a supplier. */
+      case "fulfillment.queue": {
+        const { data: orders } = await db
+          .from("orders")
+          .select("id, order_number, user_id, total, status, payment_status, created_at, shipping_address")
+          .eq("payment_status", "paid")
+          .order("created_at", { ascending: false })
+          .limit(100);
+
+        const orderIds = (orders || []).map((o: any) => o.id);
+        if (!orderIds.length) return json({ orders: [] });
+
+        const [{ data: items }, { data: fulfillments }, { data: jobs }] = await Promise.all([
+          db.from("order_items").select("order_id, product_id, quantity, price").in("order_id", orderIds),
+          db.from("dropship_fulfillments").select("*").in("order_id", orderIds),
+          db.from("delivery_jobs").select("id, order_id, status, driver_id").in("order_id", orderIds),
+        ]);
+
+        const productIds = [...new Set((items || []).map((i: any) => i.product_id).filter(Boolean))];
+        const { data: listings } = productIds.length
+          ? await db.from("dropship_listings").select("product_id, dropship_product_id, dropship_products(name, supplier_id)").in("product_id", productIds)
+          : { data: [] as any[] };
+
+        const rows = (orders || []).map((o: any) => {
+          const lines = (items || []).filter((i: any) => i.order_id === o.id)
+            .map((i: any) => ({ ...i, listing: (listings || []).find((l: any) => l.product_id === i.product_id) }))
+            .filter((i: any) => !!i.listing);
+          if (!lines.length) return null;
+          return {
+            order: o,
+            lines: lines.map((l: any) => ({
+              product_id: l.product_id,
+              quantity: l.quantity,
+              price: l.price,
+              name: l.listing?.dropship_products?.name || "Product",
+            })),
+            fulfillments: (fulfillments || []).filter((f: any) => f.order_id === o.id),
+            delivery_job: (jobs || []).find((j: any) => j.order_id === o.id) || null,
+          };
+        }).filter(Boolean);
+
+        return json({ orders: rows });
+      }
+
+      /* Send a paid order to its supplier(s) now. */
+      case "fulfillment.submit": {
+        const orderId = String(body.order_id || "");
+        if (!orderId) return json({ error: "order_id is required" }, 400);
+        const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/dropship-fulfill`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ order_id: orderId, force: true }),
+        });
+        const out = await res.json().catch(() => ({}));
+        await audit(db, {
+          actor_id: caller.id, actor_role: "admin", action: "fulfillment.submitted",
+          entity_type: "order", entity_id: orderId, new_state: out,
+        });
+        return json(out, res.status);
+      }
+
+      /* Refresh a single supplier order's status + tracking on demand. */
+      case "fulfillment.track": {
+        const { data: f } = await db.from("dropship_fulfillments").select("*").eq("id", body.fulfillment_id).maybeSingle();
+        if (!f) return json({ error: "Fulfilment not found" }, 404);
+        if (!f.supplier_order_number) return json({ error: "This order has not been sent to the supplier yet" }, 400);
+        const supplier = await getSupplier(db, f.supplier_id);
+        const adapter = getAdapter(db, supplier);
+        const remote = await adapter.getOrder(f.supplier_order_number);
+        if (!remote) return json({ error: "Supplier has no record of this order yet" }, 404);
+        const status = normalizeSupplierStatus(remote.status);
+        const update: Record<string, unknown> = {
+          status,
+          supplier_status: remote.status,
+          carrier: remote.carrier ?? f.carrier,
+          tracking_number: remote.trackingNumber ?? f.tracking_number,
+        };
+        if (status === "shipped" && !f.shipped_at) update.shipped_at = new Date().toISOString();
+        if (status === "delivered" && !f.delivered_at) update.delivered_at = new Date().toISOString();
+        await db.from("dropship_fulfillments").update(update).eq("id", f.id);
+
+        const trackingNumber = (update.tracking_number as string) || null;
+        if (trackingNumber) {
+          const tracking = await adapter.getTracking(trackingNumber);
+          for (const e of tracking?.events || []) {
+            await db.from("dropship_tracking_events").upsert({
+              fulfillment_id: f.id,
+              status: e.status,
+              description: e.description ?? null,
+              location: e.location ?? null,
+              occurred_at: new Date(e.occurredAt).toISOString(),
+            }, { onConflict: "fulfillment_id,status,occurred_at" });
+          }
+        }
+
+        await db.from("orders").update({
+          tracking_number: trackingNumber,
+          courier_company: (update.carrier as string) ?? null,
+          ...(status === "delivered"
+            ? { status: "delivered" }
+            : ["shipped", "in_transit", "out_for_delivery"].includes(status)
+              ? { status: "shipped" }
+              : {}),
+        }).eq("id", f.order_id);
+
+        if (["shipped", "in_transit", "out_for_delivery", "delivered"].includes(status)) {
+          await ensureDeliveryJob(db, { ...f, ...update } as never);
+        }
+
+        return json({ success: true, status, tracking_number: trackingNumber, carrier: update.carrier });
+      }
+
+      /* Manually hand a shipment to the 1145 driver network. */
+      case "delivery.dispatch": {
+        const { data: f } = await db.from("dropship_fulfillments").select("*").eq("id", body.fulfillment_id).maybeSingle();
+        if (!f) return json({ error: "Fulfilment not found" }, 404);
+        const out = await ensureDeliveryJob(db, f as never);
+        if (!out.job_id) return json({ error: out.reason || "Could not create a driver job" }, 400);
+        await audit(db, {
+          actor_id: caller.id, actor_role: "admin", action: "delivery.dispatched",
+          entity_type: "fulfillment", entity_id: f.id, new_state: out,
+        });
+        return json({ success: true, ...out });
       }
 
       case "fulfillment.update_status": {
@@ -572,7 +753,7 @@ Deno.serve(async (req) => {
               status: "approved",
               external_source: "dropship",
               external_id: listing.id,
-              product_type: "physical",
+              product_type: "simple",
             }).select("id").single();
             if (productError) throw productError;
             productId = createdProduct.id;

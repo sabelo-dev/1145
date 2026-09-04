@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropshipAdmin, type DiscoveredProduct } from "@/hooks/useDropshipping";
 import {
@@ -154,6 +154,7 @@ const Overview: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ ad
 /* ------------------------------------------------------------- SUPPLIERS */
 const Suppliers: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admin }) => (
   <div className="space-y-4">
+    <FxCard admin={admin} />
     {admin.suppliers.map((s) => (
       <Card key={s.id}>
         <CardHeader className="pb-3">
@@ -219,6 +220,42 @@ const Suppliers: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ a
     ))}
   </div>
 );
+
+const FxCard: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admin }) => {
+  const [fx, setFx] = useState<{ rate: number; updated_at: string | null } | null>(null);
+  const load = async () => { try { setFx(await admin.fxStatus()); } catch { setFx(null); } };
+  useEffect(() => { load(); }, []);
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="header-row">
+          <div className="min-w-0">
+            <CardTitle className="text-base truncate">Dollar to rand rate</CardTitle>
+            <CardDescription className="truncate">
+              {fx ? `R${Number(fx.rate).toFixed(2)} per $1` : "Loading the latest rate…"}
+              {fx?.updated_at ? ` · updated ${new Date(fx.updated_at).toLocaleString()}` : ""}
+            </CardDescription>
+          </div>
+          <div className="header-actions">
+            <Button size="sm" variant="outline" disabled={admin.busy}
+              onClick={async () => { setFx(await admin.fxStatus(true)); }}>
+              <RefreshCw className="h-4 w-4" /><span className="hidden sm:inline sm:ml-2">Get today's rate</span>
+            </Button>
+            <Button size="sm" disabled={admin.busy}
+              onClick={async () => { await admin.fxRepriceAll(); load(); }}>
+              Re-price catalogue
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-xs text-muted-foreground">
+          Suppliers with automatic price updates switched on follow this rate every time stock is synced.
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 const SupplierNumber: React.FC<{ label: string; value: number; onSave: (v: number) => void }> = ({ label, value, onSave }) => {
   const [local, setLocal] = useState(String(value));
@@ -474,16 +511,18 @@ const Inventory: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ a
 /* ---------------------------------------------------------------- ORDERS */
 const Orders: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admin }) => {
   const [rows, setRows] = useState<any[]>([]);
+  const [queue, setQueue] = useState<any[]>([]);
+  const [confirm, setConfirm] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("dropship_fulfillments")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const [{ data }, q] = await Promise.all([
+      supabase.from("dropship_fulfillments").select("*").order("created_at", { ascending: false }).limit(100),
+      admin.fulfillmentQueue().catch(() => ({ orders: [] as any[] })),
+    ]);
     setRows(data || []);
+    setQueue(((q as any)?.orders || []).filter((o: any) => !o.fulfillments?.length));
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
@@ -491,34 +530,100 @@ const Orders: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admi
   if (loading) return <Skeleton className="h-64 w-full" />;
 
   return (
-    <div className="space-y-3">
-      {rows.map((f) => (
-        <Card key={f.id}>
-          <CardContent className="p-4 space-y-2">
-            <div className="header-row">
-              <div className="min-w-0">
-                <p className="font-medium truncate">1145-{String(f.order_id).slice(0, 8).toUpperCase()}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  Supplier reference {f.supplier_order_number || "not created yet"}
-                  {f.tracking_number ? ` · ${f.carrier || "carrier"} ${f.tracking_number}` : ""}
-                </p>
-              </div>
-              <div className="header-actions">
-                <Badge variant="outline">{String(f.status).replace(/_/g, " ")}</Badge>
-                <span className="text-sm font-medium">{money(f.cost_total_zar)}</span>
-              </div>
+    <div className="space-y-6">
+      <Dialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send this order to the supplier?</DialogTitle>
+            <DialogDescription>The supplier will pack and ship it straight to the customer.</DialogDescription>
+          </DialogHeader>
+          {confirm && (
+            <div className="text-sm space-y-1">
+              <p className="font-medium">{confirm.order.order_number || `1145-${String(confirm.order.id).slice(0, 8).toUpperCase()}`}</p>
+              <p className="text-muted-foreground">{confirm.lines.map((l: any) => `${l.quantity} × ${l.name}`).join(", ")}</p>
+              <p className="font-medium">{money(confirm.order.total)}</p>
             </div>
-            {f.last_error && <p className="text-xs text-destructive break-words">{f.last_error}</p>}
-            {["awaiting_supplier_action", "supplier_failure"].includes(f.status) && (
-              <Button size="sm" variant="outline" disabled={admin.busy}
-                onClick={async () => { await admin.retryFulfillment(f.id); load(); }}>
-                <RefreshCw className="h-4 w-4 mr-2" />Retry safely
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-      {!rows.length && <Card><CardContent className="p-6 text-sm text-muted-foreground">No dropshipping orders yet.</CardContent></Card>}
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirm(null)}>Cancel</Button>
+            <Button disabled={admin.busy} onClick={async () => {
+              const row = confirm; setConfirm(null);
+              if (row) { await admin.submitFulfillment(row.order.id); load(); }
+            }}>Yes, send it</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold">Paid orders waiting to be sent ({queue.length})</h3>
+        {queue.map((row) => (
+          <Card key={row.order.id}>
+            <CardContent className="p-4 space-y-2">
+              <div className="header-row">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{row.order.order_number || `1145-${String(row.order.id).slice(0, 8).toUpperCase()}`}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {row.lines.map((l: any) => `${l.quantity} × ${l.name}`).join(", ")}
+                  </p>
+                </div>
+                <div className="header-actions">
+                  <Badge variant="outline">{String(row.order.status || "paid").replace(/_/g, " ")}</Badge>
+                  <span className="text-sm font-medium">{money(row.order.total)}</span>
+                  <Button size="sm" disabled={admin.busy} onClick={() => setConfirm(row)}>
+                    Send to supplier
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {!queue.length && <Card><CardContent className="p-6 text-sm text-muted-foreground">Every paid order has been sent to its supplier.</CardContent></Card>}
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold">Supplier shipments</h3>
+        {rows.map((f) => (
+          <Card key={f.id}>
+            <CardContent className="p-4 space-y-2">
+              <div className="header-row">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">1145-{String(f.order_id).slice(0, 8).toUpperCase()}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    Supplier reference {f.supplier_order_number || "not created yet"}
+                    {f.tracking_number ? ` · ${f.carrier || "carrier"} ${f.tracking_number}` : ""}
+                  </p>
+                </div>
+                <div className="header-actions">
+                  <Badge variant="outline">{String(f.status).replace(/_/g, " ")}</Badge>
+                  <span className="text-sm font-medium">{money(f.cost_total_zar)}</span>
+                </div>
+              </div>
+              {f.last_error && <p className="text-xs text-destructive break-words">{f.last_error}</p>}
+              <div className="flex flex-wrap gap-2">
+                {["awaiting_supplier_action", "supplier_failure"].includes(f.status) && (
+                  <Button size="sm" variant="outline" disabled={admin.busy}
+                    onClick={async () => { await admin.retryFulfillment(f.id); load(); }}>
+                    <RefreshCw className="h-4 w-4 mr-2" />Retry safely
+                  </Button>
+                )}
+                {f.supplier_order_number && (
+                  <Button size="sm" variant="outline" disabled={admin.busy}
+                    onClick={async () => { await admin.trackFulfillment(f.id); load(); }}>
+                    <RefreshCw className="h-4 w-4 mr-2" />Refresh status
+                  </Button>
+                )}
+                {["shipped", "in_transit", "out_for_delivery"].includes(f.status) && (
+                  <Button size="sm" variant="outline" disabled={admin.busy}
+                    onClick={async () => { await admin.dispatchDelivery(f.id); load(); }}>
+                    Send to a driver
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {!rows.length && <Card><CardContent className="p-6 text-sm text-muted-foreground">No dropshipping orders yet.</CardContent></Card>}
+      </div>
     </div>
   );
 };

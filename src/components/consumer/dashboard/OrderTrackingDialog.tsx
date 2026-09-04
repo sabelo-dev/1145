@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
+import ShipmentTracking from "@/components/orders/ShipmentTracking";
 import {
   Package,
   Truck,
@@ -250,6 +251,8 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
               </div>
             </div>
           </div>
+
+          <ShipmentTracking orderId={order.id} />
         </div>
       </DialogContent>
     </Dialog>

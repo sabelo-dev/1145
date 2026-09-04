@@ -1702,6 +1702,7 @@ export type Database = {
           driver_id: string | null
           earnings: number | null
           estimated_delivery_time: string | null
+          fulfillment_id: string | null
           id: string
           notes: string | null
           order_id: string | null
@@ -1718,6 +1719,7 @@ export type Database = {
           driver_id?: string | null
           earnings?: number | null
           estimated_delivery_time?: string | null
+          fulfillment_id?: string | null
           id?: string
           notes?: string | null
           order_id?: string | null
@@ -1734,6 +1736,7 @@ export type Database = {
           driver_id?: string | null
           earnings?: number | null
           estimated_delivery_time?: string | null
+          fulfillment_id?: string | null
           id?: string
           notes?: string | null
           order_id?: string | null
@@ -1748,6 +1751,13 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_jobs_fulfillment_id_fkey"
+            columns: ["fulfillment_id"]
+            isOneToOne: false
+            referencedRelation: "dropship_fulfillments"
             referencedColumns: ["id"]
           },
           {
@@ -3184,6 +3194,7 @@ export type Database = {
       dropship_listings: {
         Row: {
           auto_price_update: boolean
+          auto_unpublished_out_of_stock: boolean
           created_at: string
           dropship_product_id: string
           id: string
@@ -3200,6 +3211,7 @@ export type Database = {
         }
         Insert: {
           auto_price_update?: boolean
+          auto_unpublished_out_of_stock?: boolean
           created_at?: string
           dropship_product_id: string
           id?: string
@@ -3216,6 +3228,7 @@ export type Database = {
         }
         Update: {
           auto_price_update?: boolean
+          auto_unpublished_out_of_stock?: boolean
           created_at?: string
           dropship_product_id?: string
           id?: string
@@ -3263,6 +3276,47 @@ export type Database = {
             foreignKeyName: "dropship_listings_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dropship_merchant_settings: {
+        Row: {
+          auto_fulfill: boolean
+          created_at: string
+          fx_margin_pct: number
+          fx_mode: string
+          id: string
+          manual_fx_rate: number | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          auto_fulfill?: boolean
+          created_at?: string
+          fx_margin_pct?: number
+          fx_mode?: string
+          id?: string
+          manual_fx_rate?: number | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          auto_fulfill?: boolean
+          created_at?: string
+          fx_margin_pct?: number
+          fx_mode?: string
+          id?: string
+          manual_fx_rate?: number | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dropship_merchant_settings_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: true
             referencedRelation: "vendors"
             referencedColumns: ["id"]
           },

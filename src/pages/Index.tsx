@@ -311,15 +311,8 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {featuredBrands.map((b, i) => (
                 <motion.div key={b.id} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}>
-                  <Link to={`/shop?brand=${encodeURIComponent(b.name)}`} className="group relative aspect-square rounded-xl bg-background border border-border flex flex-col items-center justify-center p-4 hover:border-foreground transition overflow-hidden">
-                    {b.logoUrl ? (
-                      <img src={b.logoUrl} alt={b.name} className="max-h-16 max-w-[80%] object-contain mb-2" loading="lazy" />
-                    ) : null}
+                  <Link to={`/shop?brand=${encodeURIComponent(b.name)}`} className="group relative aspect-square rounded-xl bg-background border border-border flex items-center justify-center p-4 hover:border-foreground transition overflow-hidden">
                     <span className="text-lg font-bold tracking-tight text-center">{b.name}</span>
-                    {b.businessType && (
-                      <span className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1">{b.businessType}</span>
-                    )}
-                    <ArrowRight className="absolute bottom-3 right-3 h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
                   </Link>
                 </motion.div>
               ))}
