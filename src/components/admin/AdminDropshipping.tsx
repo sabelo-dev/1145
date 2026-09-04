@@ -154,6 +154,7 @@ const Overview: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ ad
 /* ------------------------------------------------------------- SUPPLIERS */
 const Suppliers: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admin }) => (
   <div className="space-y-4">
+    <FxCard admin={admin} />
     {admin.suppliers.map((s) => (
       <Card key={s.id}>
         <CardHeader className="pb-3">
@@ -219,6 +220,42 @@ const Suppliers: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ a
     ))}
   </div>
 );
+
+const FxCard: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admin }) => {
+  const [fx, setFx] = useState<{ rate: number; updated_at: string | null } | null>(null);
+  const load = async () => { try { setFx(await admin.fxStatus()); } catch { setFx(null); } };
+  useEffect(() => { load(); }, []);
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="header-row">
+          <div className="min-w-0">
+            <CardTitle className="text-base truncate">Dollar to rand rate</CardTitle>
+            <CardDescription className="truncate">
+              {fx ? `R${Number(fx.rate).toFixed(2)} per $1` : "Loading the latest rate…"}
+              {fx?.updated_at ? ` · updated ${new Date(fx.updated_at).toLocaleString()}` : ""}
+            </CardDescription>
+          </div>
+          <div className="header-actions">
+            <Button size="sm" variant="outline" disabled={admin.busy}
+              onClick={async () => { setFx(await admin.fxStatus(true)); }}>
+              <RefreshCw className="h-4 w-4" /><span className="hidden sm:inline sm:ml-2">Get today's rate</span>
+            </Button>
+            <Button size="sm" disabled={admin.busy}
+              onClick={async () => { await admin.fxRepriceAll(); load(); }}>
+              Re-price catalogue
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-xs text-muted-foreground">
+          Suppliers with automatic price updates switched on follow this rate every time stock is synced.
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 const SupplierNumber: React.FC<{ label: string; value: number; onSave: (v: number) => void }> = ({ label, value, onSave }) => {
   const [local, setLocal] = useState(String(value));
@@ -475,6 +512,7 @@ const Inventory: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ a
 const Orders: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admin }) => {
   const [rows, setRows] = useState<any[]>([]);
   const [queue, setQueue] = useState<any[]>([]);
+  const [confirm, setConfirm] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -493,6 +531,29 @@ const Orders: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admi
 
   return (
     <div className="space-y-6">
+      <Dialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send this order to the supplier?</DialogTitle>
+            <DialogDescription>The supplier will pack and ship it straight to the customer.</DialogDescription>
+          </DialogHeader>
+          {confirm && (
+            <div className="text-sm space-y-1">
+              <p className="font-medium">{confirm.order.order_number || `1145-${String(confirm.order.id).slice(0, 8).toUpperCase()}`}</p>
+              <p className="text-muted-foreground">{confirm.lines.map((l: any) => `${l.quantity} × ${l.name}`).join(", ")}</p>
+              <p className="font-medium">{money(confirm.order.total)}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirm(null)}>Cancel</Button>
+            <Button disabled={admin.busy} onClick={async () => {
+              const row = confirm; setConfirm(null);
+              if (row) { await admin.submitFulfillment(row.order.id); load(); }
+            }}>Yes, send it</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">Paid orders waiting to be sent ({queue.length})</h3>
         {queue.map((row) => (
@@ -506,9 +567,9 @@ const Orders: React.FC<{ admin: ReturnType<typeof useDropshipAdmin> }> = ({ admi
                   </p>
                 </div>
                 <div className="header-actions">
+                  <Badge variant="outline">{String(row.order.status || "paid").replace(/_/g, " ")}</Badge>
                   <span className="text-sm font-medium">{money(row.order.total)}</span>
-                  <Button size="sm" disabled={admin.busy}
-                    onClick={async () => { await admin.submitFulfillment(row.order.id); load(); }}>
+                  <Button size="sm" disabled={admin.busy} onClick={() => setConfirm(row)}>
                     Send to supplier
                   </Button>
                 </div>
