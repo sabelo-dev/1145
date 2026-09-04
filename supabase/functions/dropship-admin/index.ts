@@ -21,6 +21,57 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+
+function slugify(name: string, suffix: string) {
+  return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60)}-${suffix}`;
+}
+
+/** The official 1145 store that fronts admin-curated dropshipping products. */
+async function ensurePlatformStore(db: any, callerId: string): Promise<{ id: string; vendor_id: string }> {
+  const { data: store } = await db
+    .from("stores")
+    .select("id, vendor_id")
+    .eq("slug", "1145-marketplace")
+    .maybeSingle();
+  if (store) return store;
+
+  let { data: vendor } = await db
+    .from("vendors")
+    .select("id")
+    .eq("business_name", "1145 Marketplace")
+    .maybeSingle();
+
+  if (!vendor) {
+    const { data: createdVendor, error: vendorError } = await db
+      .from("vendors")
+      .insert({
+        user_id: callerId,
+        business_name: "1145 Marketplace",
+        legal_business_name: "1145 Lifestyle",
+        description: "Official 1145 Lifestyle marketplace store",
+        status: "approved",
+        onboarding_status: "active",
+      })
+      .select("id")
+      .single();
+    if (vendorError) throw vendorError;
+    vendor = createdVendor;
+  }
+
+  const { data: createdStore, error: storeError } = await db
+    .from("stores")
+    .insert({
+      vendor_id: vendor.id,
+      name: "1145 Marketplace",
+      slug: "1145-marketplace",
+      description: "Curated products sourced and fulfilled through 1145 Lifestyle",
+    })
+    .select("id, vendor_id")
+    .single();
+  if (storeError) throw storeError;
+  return createdStore;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -473,7 +524,7 @@ Deno.serve(async (req) => {
           if (!["approved", "published"].includes(String(dp.status))) continue;
 
           const sellingPrice = Number(dp.recommended_price_zar || 0);
-          const quantity = Math.max(0, Number(dp.stock || 0) - Number(dp.safety_stock || 0));
+          const quantity = Math.max(0, Number(dp.stock || 0) - 2);
           const images: string[] = Array.isArray(dp.images) ? dp.images.filter((i: unknown) => typeof i === "string") : [];
 
           let { data: listing } = await db
