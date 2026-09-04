@@ -3281,6 +3281,47 @@ export type Database = {
           },
         ]
       }
+      dropship_merchant_settings: {
+        Row: {
+          auto_fulfill: boolean
+          created_at: string
+          fx_margin_pct: number
+          fx_mode: string
+          id: string
+          manual_fx_rate: number | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          auto_fulfill?: boolean
+          created_at?: string
+          fx_margin_pct?: number
+          fx_mode?: string
+          id?: string
+          manual_fx_rate?: number | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          auto_fulfill?: boolean
+          created_at?: string
+          fx_margin_pct?: number
+          fx_mode?: string
+          id?: string
+          manual_fx_rate?: number | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dropship_merchant_settings_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: true
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dropship_price_history: {
         Row: {
           change_pct: number | null
