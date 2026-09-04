@@ -22,6 +22,28 @@ interface TokenCache {
 // Module-scoped token cache (CJ rate-limits token creation to once per 5 min).
 let tokenCache: TokenCache | null = null;
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// CJ allows 1 request per second per account. Every outbound call goes through
+// this serial queue so concurrent syncs can never trip the QPS limit.
+const CJ_MIN_INTERVAL_MS = 1200;
+let cjQueue: Promise<unknown> = Promise.resolve();
+let cjLastCallAt = 0;
+
+function cjThrottle<T>(fn: () => Promise<T>): Promise<T> {
+  const run = cjQueue.then(async () => {
+    const wait = CJ_MIN_INTERVAL_MS - (Date.now() - cjLastCallAt);
+    if (wait > 0) await sleep(wait);
+    try {
+      return await fn();
+    } finally {
+      cjLastCallAt = Date.now();
+    }
+  });
+  cjQueue = run.catch(() => {});
+  return run as Promise<T>;
+}
+
 type Logger = (entry: {
   endpoint: string;
   method: string;
@@ -48,11 +70,13 @@ export class CJAdapter implements SupplierAdapter {
   private async token(): Promise<string> {
     if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) return tokenCache.accessToken;
     const started = Date.now();
-    const res = await fetch(`${BASE}/authentication/getAccessToken`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: this.email, password: this.apiKey }),
-    });
+    const res = await cjThrottle(() =>
+      fetch(`${BASE}/authentication/getAccessToken`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: this.email, password: this.apiKey }),
+      })
+    );
     const json = await res.json().catch(() => ({}));
     const ok = res.ok && json?.result === true && json?.data?.accessToken;
     this.log({
@@ -82,44 +106,70 @@ export class CJAdapter implements SupplierAdapter {
     for (const [k, v] of Object.entries(opts.query || {})) {
       if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
     }
-    const started = Date.now();
-    let status = 0;
-    try {
-      const res = await fetch(url.toString(), {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          "CJ-Access-Token": await this.token(),
-        },
-        body: method === "POST" ? JSON.stringify(opts.body ?? {}) : undefined,
-      });
-      status = res.status;
-      const json = await res.json().catch(() => ({}));
-      const success = res.ok && json?.result !== false;
-      this.log({
-        endpoint: path,
-        method,
-        status_code: status,
-        duration_ms: Date.now() - started,
-        success,
-        error_type: success ? undefined : "api",
-        error_message: success ? undefined : (json?.message || `HTTP ${status}`),
-      });
-      if (!success) throw new Error(json?.message || `CJ request failed (${status})`);
-      return json.data as T;
-    } catch (err) {
-      if (status === 0) {
+
+    const maxAttempts = 4;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const started = Date.now();
+      let status = 0;
+      try {
+        const accessToken = await this.token();
+        // CJ enforces 1 request per second per account — every call is queued.
+        const res = await cjThrottle(() =>
+          fetch(url.toString(), {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              "CJ-Access-Token": accessToken,
+            },
+            body: method === "POST" ? JSON.stringify(opts.body ?? {}) : undefined,
+          })
+        );
+        status = res.status;
+        const json = await res.json().catch(() => ({}));
+        const success = res.ok && json?.result !== false;
+        const message = json?.message || `HTTP ${status}`;
+        const rateLimited = status === 429 || /too many requests|qps limit|frequen/i.test(String(message));
+
+        if (!success && rateLimited && attempt < maxAttempts) {
+          lastError = new Error(message);
+          await sleep(attempt * 1500);
+          continue;
+        }
+
         this.log({
           endpoint: path,
           method,
+          status_code: status,
           duration_ms: Date.now() - started,
-          success: false,
-          error_type: "network",
-          error_message: err instanceof Error ? err.message : String(err),
+          success,
+          error_type: success ? undefined : (rateLimited ? "rate_limit" : "api"),
+          error_message: success ? undefined : message,
         });
+        if (!success) throw new Error(message);
+        return json.data as T;
+      } catch (err) {
+        if (status === 0) {
+          if (attempt < maxAttempts) {
+            lastError = err instanceof Error ? err : new Error(String(err));
+            await sleep(attempt * 1000);
+            continue;
+          }
+          this.log({
+            endpoint: path,
+            method,
+            duration_ms: Date.now() - started,
+            success: false,
+            error_type: "network",
+            error_message: err instanceof Error ? err.message : String(err),
+          });
+        }
+        throw err;
       }
-      throw err;
     }
+
+    throw lastError ?? new Error("CJ request failed");
   }
 
   async health() {
