@@ -1702,6 +1702,7 @@ export type Database = {
           driver_id: string | null
           earnings: number | null
           estimated_delivery_time: string | null
+          fulfillment_id: string | null
           id: string
           notes: string | null
           order_id: string | null
@@ -1718,6 +1719,7 @@ export type Database = {
           driver_id?: string | null
           earnings?: number | null
           estimated_delivery_time?: string | null
+          fulfillment_id?: string | null
           id?: string
           notes?: string | null
           order_id?: string | null
@@ -1734,6 +1736,7 @@ export type Database = {
           driver_id?: string | null
           earnings?: number | null
           estimated_delivery_time?: string | null
+          fulfillment_id?: string | null
           id?: string
           notes?: string | null
           order_id?: string | null
@@ -1748,6 +1751,13 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_jobs_fulfillment_id_fkey"
+            columns: ["fulfillment_id"]
+            isOneToOne: false
+            referencedRelation: "dropship_fulfillments"
             referencedColumns: ["id"]
           },
           {
