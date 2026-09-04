@@ -92,7 +92,9 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (existing) return json({ error: "You have already imported this product", listing_id: existing.id }, 409);
 
-        const price = Number(body.selling_price || product.recommended_price_zar);
+        // Always convert the supplier's currency to ZAR at the latest rate first.
+        const priced = await repriceToZar(db, product);
+        const price = Number(body.selling_price || priced.recommended_price_zar);
         const { data: listing, error } = await db.from("dropship_listings").insert({
           vendor_id: vendor.id,
           store_id: store.id,
