@@ -38,6 +38,30 @@ Deno.serve(async (req) => {
         })),
       });
     }
+    if (body.mode === "inventory") {
+      const { data: prod } = await db
+        .from("dropship_products")
+        .select("id, supplier_id")
+        .eq("id", String(body.product_id))
+        .maybeSingle();
+      if (!prod) return json({ error: "Product not found" }, 404);
+      const { data: variants } = await db
+        .from("dropship_variants")
+        .select("id, supplier_variant_id")
+        .eq("dropship_product_id", prod.id);
+      const ids = (variants || []).map((v) => v.supplier_variant_id);
+      const stocks = await adapter.getStock(ids);
+      let total = 0;
+      for (const s of stocks) {
+        const v = (variants || []).find((x) => x.supplier_variant_id === s.supplierVariantId);
+        if (!v) continue;
+        total += s.stock;
+        await db.from("dropship_variants").update({ stock: s.stock }).eq("id", v.id);
+      }
+      await db.from("dropship_products").update({ stock: total }).eq("id", prod.id);
+      return json({ ok: true, total, variants: stocks.length });
+    }
+
 
     const ids: string[] = body.supplier_product_ids || [];
     const results: unknown[] = [];
