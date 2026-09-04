@@ -43,6 +43,7 @@ import AdminUCoin from "@/components/admin/AdminUCoin";
 import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import AdminInbox from "@/components/admin/AdminInbox";
+import AdminDropshipping from "@/components/admin/AdminDropshipping";
 import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
 import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
 import AdminRideAnalytics from "@/components/admin/AdminRideAnalytics";
@@ -104,6 +105,7 @@ const AdminDashboard = () => {
     { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
     { id: "products", title: "Products (All)", icon: Package },
+    { id: "dropshipping", title: "Dropshipping", icon: Package },
     { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "auction-analytics", title: "Auction Analytics", icon: TrendingUp },
     { id: "gold-pricing", title: "Gold Pricing", icon: Coins },
@@ -261,6 +263,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="products" className="mt-0">
               <AdminProducts />
+            </TabsContent>
+            <TabsContent value="dropshipping" className="mt-0">
+              <AdminDropshipping />
             </TabsContent>
             <TabsContent value="auctions" className="mt-0">
               <AdminAuctions />
