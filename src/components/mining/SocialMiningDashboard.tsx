@@ -98,13 +98,11 @@ export function SocialMiningDashboard() {
       </div>
 
       {/* Mining rules */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <MiningRules
-          tiers={affiliateTiers}
-          tasks={miningTasks}
-          affiliateStatus={affiliateStatus}
-        />
-      </div>
+      <MiningRules
+        tiers={affiliateTiers}
+        tasks={miningTasks}
+        affiliateStatus={affiliateStatus}
+      />
     </div>
   );
 }
