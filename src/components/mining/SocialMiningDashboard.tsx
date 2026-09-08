@@ -18,6 +18,7 @@ export function SocialMiningDashboard() {
     isLoading,
     socialAccounts,
     affiliateStatus,
+    affiliateTiers,
     miningTasks,
     completions,
     dailyLimit,
@@ -94,6 +95,15 @@ export function SocialMiningDashboard() {
           <ReferralBonusInfo />
           <MiningHistory completions={completions} />
         </div>
+      </div>
+
+      {/* Mining rules */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <MiningRules
+          tiers={affiliateTiers}
+          tasks={miningTasks}
+          affiliateStatus={affiliateStatus}
+        />
       </div>
     </div>
   );
