@@ -7,6 +7,7 @@ import { SocialAccountConnector } from './SocialAccountConnector';
 import { MiningTaskList } from './MiningTaskList';
 import { MiningHistory } from './MiningHistory';
 import { ReferralBonusInfo } from './ReferralBonusInfo';
+import { MiningRules } from './MiningRules';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -17,6 +18,7 @@ export function SocialMiningDashboard() {
     isLoading,
     socialAccounts,
     affiliateStatus,
+    affiliateTiers,
     miningTasks,
     completions,
     dailyLimit,
@@ -94,6 +96,13 @@ export function SocialMiningDashboard() {
           <MiningHistory completions={completions} />
         </div>
       </div>
+
+      {/* Mining rules */}
+      <MiningRules
+        tiers={affiliateTiers}
+        tasks={miningTasks}
+        affiliateStatus={affiliateStatus}
+      />
     </div>
   );
 }
