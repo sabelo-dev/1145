@@ -11267,6 +11267,18 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: boolean
       }
+      mining_direct_credit: {
+        Args: {
+          p_activity_code: string
+          p_idempotency_key: string
+          p_metadata?: Json
+          p_reference_id?: string
+          p_reference_type?: string
+          p_reward_mg: number
+          p_user_id: string
+        }
+        Returns: string
+      }
       mining_emit_action: {
         Args: {
           p_activity_code: string
