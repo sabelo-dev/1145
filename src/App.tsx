@@ -99,6 +99,10 @@ const RideHistoryPage = lazy(() => import("@/pages/rides/RideHistoryPage"));
 const WalletPage = lazy(() => import("@/pages/wallet/WalletPage"));
 const FintechPage = lazy(() => import("@/pages/wallet/FintechPage"));
 const AdminFintechPage = lazy(() => import("@/pages/admin/AdminFintechPage"));
+const AdminOrderMonitoringPage = lazy(() => import("@/pages/admin/AdminOrderMonitoringPage"));
+const UCoinMarketPage = lazy(() => import("@/pages/UCoinMarketPage"));
+const UCoinWalletPage = lazy(() => import("@/pages/UCoinWalletPage"));
+
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
 const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
@@ -156,6 +160,9 @@ function AppRouter() {
           <Route path="cj/product/:productId" element={<DropshipProductPage />} />
           <Route path="dropship/product/:productId" element={<DropshipProductPage />} />
           <Route path="marketplace" element={<MarketplacePage />} />
+          <Route path="ucoin-market" element={<UCoinMarketPage />} />
+          <Route path="ucoin-wallet" element={<UCoinWalletPage />} />
+
           <Route path="orders/:orderId/tracking" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
 
 
@@ -256,6 +263,11 @@ function AppRouter() {
         <Route path="admin/dashboard" element={
           <ProtectedRoute requireAuth requireAdmin>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/order-monitoring" element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminOrderMonitoringPage />
           </ProtectedRoute>
         } />
         <Route path="admin/ucoin/mining" element={
