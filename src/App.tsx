@@ -99,6 +99,8 @@ const RideHistoryPage = lazy(() => import("@/pages/rides/RideHistoryPage"));
 const WalletPage = lazy(() => import("@/pages/wallet/WalletPage"));
 const FintechPage = lazy(() => import("@/pages/wallet/FintechPage"));
 const AdminFintechPage = lazy(() => import("@/pages/admin/AdminFintechPage"));
+const AdminOrderMonitoringPage = lazy(() => import("@/pages/admin/AdminOrderMonitoringPage"));
+const UCoinMarketPage = lazy(() => import("@/pages/UCoinMarketPage"));
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
 const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
