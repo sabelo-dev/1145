@@ -116,7 +116,16 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
           </div>
         </div>
 
+        <Tabs defaultValue="shop">
+        <TabsList className="w-full overflow-x-auto justify-start">
+          <TabsTrigger value="shop">Shop items</TabsTrigger>
+          <TabsTrigger value="community">Member items</TabsTrigger>
+          <TabsTrigger value="mine">My items</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="shop" className="mt-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
+
           <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
