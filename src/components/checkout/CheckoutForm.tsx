@@ -22,6 +22,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import UCoinPayPanel from "./UCoinPayPanel";
+import { UCOIN_RAND_VALUE } from "@/types/ucoin";
+import { useNavigate } from "react-router-dom";
 
 const checkoutSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -67,6 +70,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const [loadingShipping, setLoadingShipping] = useState(true);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
+  const [ucoinToApply, setUcoinToApply] = useState<number>(0);
+  const navigate = useNavigate();
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -196,6 +201,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
             customerFirstName: values.firstName,
             customerLastName: values.lastName,
             paymentMethod: values.paymentMethod,
+            ucoinToApply,
             shippingAddress: {
               name: `${values.firstName} ${values.lastName}`,
               street: values.address,
@@ -218,6 +224,20 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
         if (!paymentData) {
           throw new Error("No response from payment gateway");
+        }
+
+        if (paymentData?.success && paymentData?.paidWithUcoin) {
+          clearCart();
+          toast({
+            title: "Order paid with UCoin",
+            description: "Your UCoin covered this order in full. We are preparing it now.",
+          });
+          navigate("/checkout/success");
+          return;
+        }
+
+        if (paymentData?.error) {
+          throw new Error(paymentData.error);
         }
 
         if (paymentData?.success && paymentData?.formData) {
@@ -285,6 +305,14 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         </div>
 
         <div>
+          <UCoinPayPanel
+            total={(cart?.subtotal || 0) * 1.15 + shippingCost}
+            ucoinToApply={ucoinToApply}
+            onChange={setUcoinToApply}
+          />
+        </div>
+
+        <div>
           <h2 className="text-lg font-medium text-foreground mb-4">Payment Method</h2>
           <PaymentMethodSelector control={form.control} />
         </div>
@@ -310,7 +338,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
               const shipping = shippingCost;
               const tax = subtotal * 0.15;
               const total = subtotal + shipping + tax;
-              return total.toFixed(2);
+              return Math.max(total - ucoinToApply * UCOIN_RAND_VALUE, 0).toFixed(2);
             })()}`
           )}
         </Button>
