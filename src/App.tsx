@@ -101,6 +101,8 @@ const FintechPage = lazy(() => import("@/pages/wallet/FintechPage"));
 const AdminFintechPage = lazy(() => import("@/pages/admin/AdminFintechPage"));
 const AdminOrderMonitoringPage = lazy(() => import("@/pages/admin/AdminOrderMonitoringPage"));
 const UCoinMarketPage = lazy(() => import("@/pages/UCoinMarketPage"));
+const UCoinWalletPage = lazy(() => import("@/pages/UCoinWalletPage"));
+
 const InstallPage = lazy(() => import("@/pages/InstallPage"));
 const LeaseApplyPage = lazy(() => import("@/pages/LeaseApplyPage"));
 const LeaseMarketplacePage = lazy(() => import("@/pages/LeaseMarketplacePage"));
@@ -159,6 +161,8 @@ function AppRouter() {
           <Route path="dropship/product/:productId" element={<DropshipProductPage />} />
           <Route path="marketplace" element={<MarketplacePage />} />
           <Route path="ucoin-market" element={<UCoinMarketPage />} />
+          <Route path="ucoin-wallet" element={<UCoinWalletPage />} />
+
           <Route path="orders/:orderId/tracking" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
 
 

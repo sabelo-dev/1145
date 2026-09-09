@@ -7,11 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coins, Search, Wallet } from "lucide-react";
 import { useUCoin } from "@/hooks/useUCoin";
 import { useAuth } from "@/contexts/AuthContext";
 import { UCOIN_RAND_VALUE } from "@/types/ucoin";
 import { stripHtml } from "@/lib/utils";
+import { useUCoinListings } from "@/hooks/useUCoinListings";
+import UCoinListingCard from "@/components/ucoin/UCoinListingCard";
+import SellItemDialog from "@/components/ucoin/SellItemDialog";
+
 
 interface MarketItem {
   id: string;
@@ -47,6 +52,30 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
   const [affordableOnly, setAffordableOnly] = useState(false);
 
   const balance = wallet?.balance ?? 0;
+  const {
+    listings,
+    myListings,
+    myPurchases,
+    bidsByListing,
+    loading: listingsLoading,
+    busy,
+    uploadImages,
+    createListing,
+    cancelListing,
+    buyListing,
+    placeBid,
+    acceptBid,
+  } = useUCoinListings();
+
+  const filteredListings = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return listings.filter((l) => {
+      if (term && !l.title.toLowerCase().includes(term)) return false;
+      if (affordableOnly && l.price_ucoin > balance) return false;
+      return true;
+    });
+  }, [listings, search, affordableOnly, balance]);
+
 
   useEffect(() => {
     let active = true;
@@ -107,11 +136,24 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
                   </div>
                 </CardContent>
               </Card>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/ucoin-wallet">My wallet</Link>
+              </Button>
+
             </div>
           </div>
         </div>
 
+        <Tabs defaultValue="shop">
+        <TabsList className="w-full overflow-x-auto justify-start">
+          <TabsTrigger value="shop">Shop items</TabsTrigger>
+          <TabsTrigger value="community">Member items</TabsTrigger>
+          <TabsTrigger value="mine">My items</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="shop" className="mt-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
+
           <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -181,6 +223,122 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
             })}
           </div>
         )}
+        </TabsContent>
+
+        <TabsContent value="community" className="mt-4 space-y-4">
+          <div className="header-row">
+            <p className="text-sm text-muted-foreground min-w-0">
+              Items listed by other members. Pay the seller directly in UCoin.
+            </p>
+            <div className="header-actions">
+              {user ? (
+                <SellItemDialog busy={busy} onUpload={uploadImages} onCreate={createListing} />
+              ) : (
+                <Button asChild size="sm"><Link to="/login">Sign in to sell</Link></Button>
+              )}
+            </div>
+          </div>
+
+          {listingsLoading ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-72" />)}
+            </div>
+          ) : filteredListings.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center text-sm text-muted-foreground">
+                No member items yet. Be the first to list something for UCoin.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {filteredListings.map((listing) => (
+                <UCoinListingCard
+                  key={listing.id}
+                  listing={listing}
+                  balance={balance}
+                  isOwner={listing.seller_id === user?.id}
+                  signedIn={!!user}
+                  busy={busy}
+                  onBuy={buyListing}
+                  onBid={placeBid}
+                  onCancel={cancelListing}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="mine" className="mt-4 space-y-6">
+          <div>
+            <h2 className="text-sm font-semibold mb-3">Items I'm selling</h2>
+            {myListings.length === 0 ? (
+              <p className="text-sm text-muted-foreground">You haven't listed anything yet.</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {myListings.map((listing) => (
+                    <UCoinListingCard
+                      key={listing.id}
+                      listing={listing}
+                      balance={balance}
+                      isOwner
+                      signedIn={!!user}
+                      busy={busy}
+                      onBuy={buyListing}
+                      onBid={placeBid}
+                      onCancel={cancelListing}
+                    />
+                  ))}
+                </div>
+
+                {myListings.some((l) => (bidsByListing[l.id] || []).some((b) => b.status === "active")) && (
+                  <Card>
+                    <CardContent className="p-4 space-y-3">
+                      <h3 className="text-sm font-semibold">Offers waiting for you</h3>
+                      {myListings.flatMap((l) =>
+                        (bidsByListing[l.id] || [])
+                          .filter((b) => b.status === "active")
+                          .map((b) => (
+                            <div key={b.id} className="flex items-center justify-between gap-3 border-b last:border-0 pb-2">
+                              <div className="min-w-0">
+                                <p className="text-sm truncate">{l.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {b.amount_ucoin.toLocaleString()} UCoin offered
+                                </p>
+                              </div>
+                              <Button size="sm" disabled={busy} onClick={() => acceptBid(b.id)}>
+                                Accept
+                              </Button>
+                            </div>
+                          )),
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h2 className="text-sm font-semibold mb-3">Items I've bought</h2>
+            {myPurchases.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nothing bought with UCoin yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {myPurchases.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between gap-3 border-b last:border-0 pb-2">
+                    <p className="text-sm truncate min-w-0">{p.title}</p>
+                    <Badge variant="secondary" className="shrink-0 text-[11px]">
+                      {(p.sold_price_ucoin || p.price_ucoin).toLocaleString()} UCoin
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        </Tabs>
+
       </div>
     </div>
   );

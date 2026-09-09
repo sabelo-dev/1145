@@ -11639,6 +11639,10 @@ export type Database = {
         Args: { p_destination?: string; p_ucoin: number }
         Returns: Json
       }
+      request_ucoin_cashout_to_bank: {
+        Args: { p_bank_account_id: string; p_ucoin: number }
+        Returns: Json
+      }
       reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
       resolve_custom_domain: {
         Args: { p_domain: string }
