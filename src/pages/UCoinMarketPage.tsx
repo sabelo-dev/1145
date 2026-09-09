@@ -136,6 +136,10 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
                   </div>
                 </CardContent>
               </Card>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/ucoin-wallet">My wallet</Link>
+              </Button>
+
             </div>
           </div>
         </div>
