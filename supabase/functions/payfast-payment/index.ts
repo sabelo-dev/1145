@@ -254,7 +254,7 @@ serve(async (req) => {
       name_last: paymentData.customerLastName || "",
       email_address: paymentData.customerEmail,
       m_payment_id: mPaymentId,
-      amount: paymentData.amount.toFixed(2),
+      amount: amountDue.toFixed(2),
       item_name: paymentData.itemName,
       item_description: paymentData.itemName,
     };
