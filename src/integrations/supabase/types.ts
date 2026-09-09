@@ -9466,6 +9466,7 @@ export type Database = {
       ucoin_cashouts: {
         Row: {
           admin_note: string | null
+          bank_account_id: string | null
           created_at: string
           destination: string | null
           id: string
@@ -9478,6 +9479,7 @@ export type Database = {
         }
         Insert: {
           admin_note?: string | null
+          bank_account_id?: string | null
           created_at?: string
           destination?: string | null
           id?: string
@@ -9490,6 +9492,7 @@ export type Database = {
         }
         Update: {
           admin_note?: string | null
+          bank_account_id?: string | null
           created_at?: string
           destination?: string | null
           id?: string
@@ -9575,6 +9578,110 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ucoin_listing_bids: {
+        Row: {
+          amount_ucoin: number
+          bidder_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ucoin: number
+          bidder_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ucoin?: number
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ucoin_listing_bids_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "ucoin_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ucoin_listings: {
+        Row: {
+          allow_bids: boolean
+          buyer_id: string | null
+          category: string | null
+          condition: string
+          created_at: string
+          description: string | null
+          highest_bid_ucoin: number | null
+          highest_bidder_id: string | null
+          id: string
+          images: Json
+          location: string | null
+          price_ucoin: number
+          seller_id: string
+          sold_at: string | null
+          sold_price_ucoin: number | null
+          starting_bid_ucoin: number | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          allow_bids?: boolean
+          buyer_id?: string | null
+          category?: string | null
+          condition?: string
+          created_at?: string
+          description?: string | null
+          highest_bid_ucoin?: number | null
+          highest_bidder_id?: string | null
+          id?: string
+          images?: Json
+          location?: string | null
+          price_ucoin: number
+          seller_id: string
+          sold_at?: string | null
+          sold_price_ucoin?: number | null
+          starting_bid_ucoin?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          allow_bids?: boolean
+          buyer_id?: string | null
+          category?: string | null
+          condition?: string
+          created_at?: string
+          description?: string | null
+          highest_bid_ucoin?: number | null
+          highest_bidder_id?: string | null
+          id?: string
+          images?: Json
+          location?: string | null
+          price_ucoin?: number
+          seller_id?: string
+          sold_at?: string | null
+          sold_price_ucoin?: number | null
+          starting_bid_ucoin?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       ucoin_spending_options: {
         Row: {
@@ -11248,6 +11355,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_ucoin_bid: { Args: { p_bid_id: string }; Returns: Json }
       apply_zone_fine: { Args: { p_violation_id: string }; Returns: number }
       award_ucoin: {
         Args: {
@@ -11259,6 +11367,7 @@ export type Database = {
         Returns: boolean
       }
       award_user_badges: { Args: { p_user_id: string }; Returns: number }
+      buy_ucoin_listing: { Args: { p_listing_id: string }; Returns: Json }
       calculate_delivery_earnings: {
         Args: {
           p_delivery_job_id: string
@@ -11502,6 +11611,10 @@ export type Database = {
         Args: { p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      place_ucoin_bid: {
+        Args: { p_amount: number; p_listing_id: string }
+        Returns: Json
+      }
       process_referral_mining_bonus: {
         Args: { p_completion_id: string; p_miner_id: string; p_reward: number }
         Returns: undefined
@@ -11543,6 +11656,10 @@ export type Database = {
           p_pickup_lng: number
         }
         Returns: number
+      }
+      settle_ucoin_listing: {
+        Args: { p_amount: number; p_buyer_id: string; p_listing_id: string }
+        Returns: Json
       }
       transfer_ucoin: {
         Args: {
