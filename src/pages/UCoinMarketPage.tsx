@@ -7,11 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coins, Search, Wallet } from "lucide-react";
 import { useUCoin } from "@/hooks/useUCoin";
 import { useAuth } from "@/contexts/AuthContext";
 import { UCOIN_RAND_VALUE } from "@/types/ucoin";
 import { stripHtml } from "@/lib/utils";
+import { useUCoinListings } from "@/hooks/useUCoinListings";
+import UCoinListingCard from "@/components/ucoin/UCoinListingCard";
+import SellItemDialog from "@/components/ucoin/SellItemDialog";
+
 
 interface MarketItem {
   id: string;
