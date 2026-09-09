@@ -175,8 +175,74 @@ serve(async (req) => {
       }
     }
 
+    // Apply UCoin exactly once per order, then charge only the remaining Rand amount
+    let ucoinDiscount = Number(existingOrder?.ucoin_value_zar || 0);
+    const requestedUcoin = Math.max(0, Math.floor(Number(paymentData.ucoinToApply || 0)));
+    const alreadyRedeemed = Number(existingOrder?.ucoin_spent || 0);
+
+    if (requestedUcoin > 0 && alreadyRedeemed <= 0) {
+      const { data: redeemResult, error: redeemError } = await supabaseClient.rpc(
+        "redeem_ucoin_for_order",
+        { p_order_id: orderId, p_ucoin: requestedUcoin },
+      );
+      const redeem = redeemResult as any;
+      if (redeemError || !redeem?.success) {
+        console.error("UCoin redemption failed:", redeemError, redeem);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: redeem?.error || redeemError?.message || "Could not use your UCoin for this order",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      ucoinDiscount = Number(redeem.zar_amount ?? redeem.ucoin_value_zar ?? requestedUcoin * 0.1);
+      console.log(`Applied ${requestedUcoin} UCoin (R${ucoinDiscount}) to order ${orderId}`);
+    }
+
+    const amountDue = Math.max(Number((paymentData.amount - ucoinDiscount).toFixed(2)), 0);
+
+    // Fully covered by UCoin — no gateway redirect needed
+    if (amountDue <= 0) {
+      await supabaseAdmin.from("orders").update({
+        payment_status: "paid",
+        status: "processing",
+        payment_method: "ucoin",
+        payment_gateway: "ucoin",
+        updated_at: new Date().toISOString(),
+      }).eq("id", orderId);
+
+      await supabaseAdmin.from("order_payment_attempts").insert({
+        order_id: orderId,
+        user_id: user.id,
+        gateway: "ucoin",
+        method: "ucoin",
+        amount: ucoinDiscount,
+        status: "paid",
+        reference: `ORDER-${orderId}`,
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, paidWithUcoin: true, orderId, ucoinDiscount }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Use order ID as payment reference so ITN can match it
     const mPaymentId = `ORDER-${orderId}`;
+
+    await supabaseAdmin.from("order_payment_attempts").insert({
+      order_id: orderId,
+      user_id: user.id,
+      gateway: "payfast",
+      method: paymentData.paymentMethod || null,
+      amount: amountDue,
+      status: "initiated",
+      reference: mPaymentId,
+      metadata: { ucoin_discount: ucoinDiscount },
+    });
+
+    await supabaseAdmin.from("orders").update({ payment_gateway: "payfast" }).eq("id", orderId);
 
     const formData: Record<string, any> = {
       merchant_id: merchantId,
