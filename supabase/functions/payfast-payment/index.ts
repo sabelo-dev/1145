@@ -114,7 +114,7 @@ serve(async (req) => {
     let orderId: string | null = null;
     const { data: existingOrder } = await supabaseAdmin
       .from("orders")
-      .select("id")
+      .select("id, ucoin_spent, ucoin_value_zar")
       .eq("user_id", user.id)
       .eq("payment_status", "pending")
       .eq("status", "pending")
