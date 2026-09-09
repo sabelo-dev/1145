@@ -52,6 +52,30 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
   const [affordableOnly, setAffordableOnly] = useState(false);
 
   const balance = wallet?.balance ?? 0;
+  const {
+    listings,
+    myListings,
+    myPurchases,
+    bidsByListing,
+    loading: listingsLoading,
+    busy,
+    uploadImages,
+    createListing,
+    cancelListing,
+    buyListing,
+    placeBid,
+    acceptBid,
+  } = useUCoinListings();
+
+  const filteredListings = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return listings.filter((l) => {
+      if (term && !l.title.toLowerCase().includes(term)) return false;
+      if (affordableOnly && l.price_ucoin > balance) return false;
+      return true;
+    });
+  }, [listings, search, affordableOnly, balance]);
+
 
   useEffect(() => {
     let active = true;
