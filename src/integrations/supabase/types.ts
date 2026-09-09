@@ -6714,6 +6714,109 @@ export type Database = {
           },
         ]
       }
+      notification_log: {
+        Row: {
+          body: string | null
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          order_id: string | null
+          provider: string
+          provider_message_id: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          template: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          order_id?: string | null
+          provider?: string
+          provider_message_id?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          template?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          order_id?: string | null
+          provider?: string
+          provider_message_id?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          template?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_events: {
+        Row: {
+          actor: string
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          location: Json | null
+          metadata: Json
+          order_id: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          actor?: string
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          location?: Json | null
+          metadata?: Json
+          order_id: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          location?: Json | null
+          metadata?: Json
+          order_id?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_history: {
         Row: {
           action: string
@@ -6873,6 +6976,62 @@ export type Database = {
           },
         ]
       }
+      order_payment_attempts: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          error: string | null
+          gateway: string
+          id: string
+          metadata: Json
+          method: string | null
+          order_id: string | null
+          reference: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          error?: string | null
+          gateway: string
+          id?: string
+          metadata?: Json
+          method?: string | null
+          order_id?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          error?: string | null
+          gateway?: string
+          id?: string
+          metadata?: Json
+          method?: string | null
+          order_id?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payment_attempts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           courier_company: string | null
@@ -6883,6 +7042,7 @@ export type Database = {
           gold_rate_at_checkout: number | null
           id: string
           notes: string | null
+          payment_gateway: string | null
           payment_method: string | null
           payment_status: string
           refund_amount: number | null
@@ -6897,6 +7057,8 @@ export type Database = {
           total_mg_gold: number | null
           tracking_number: string | null
           tracking_url: string | null
+          ucoin_spent: number
+          ucoin_value_zar: number
           updated_at: string
           user_id: string
         }
@@ -6909,6 +7071,7 @@ export type Database = {
           gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
+          payment_gateway?: string | null
           payment_method?: string | null
           payment_status?: string
           refund_amount?: number | null
@@ -6923,6 +7086,8 @@ export type Database = {
           total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
+          ucoin_spent?: number
+          ucoin_value_zar?: number
           updated_at?: string
           user_id: string
         }
@@ -6935,6 +7100,7 @@ export type Database = {
           gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
+          payment_gateway?: string | null
           payment_method?: string | null
           payment_status?: string
           refund_amount?: number | null
@@ -6949,6 +7115,8 @@ export type Database = {
           total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
+          ucoin_spent?: number
+          ucoin_value_zar?: number
           updated_at?: string
           user_id?: string
         }
@@ -9295,6 +9463,45 @@ export type Database = {
           },
         ]
       }
+      ucoin_cashouts: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          destination: string | null
+          id: string
+          processed_at: string | null
+          status: string
+          ucoin_amount: number
+          updated_at: string
+          user_id: string
+          zar_amount: number
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          destination?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          ucoin_amount: number
+          updated_at?: string
+          user_id: string
+          zar_amount: number
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          destination?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          ucoin_amount?: number
+          updated_at?: string
+          user_id?: string
+          zar_amount?: number
+        }
+        Relationships: []
+      }
       ucoin_earning_rules: {
         Row: {
           amount: number
@@ -11310,6 +11517,14 @@ export type Database = {
       process_referral_signup: {
         Args: { p_referral_code: string; p_referred_id: string }
         Returns: boolean
+      }
+      redeem_ucoin_for_order: {
+        Args: { p_order_id: string; p_ucoin: number }
+        Returns: Json
+      }
+      request_ucoin_cashout: {
+        Args: { p_destination?: string; p_ucoin: number }
+        Returns: Json
       }
       reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
       resolve_custom_domain: {

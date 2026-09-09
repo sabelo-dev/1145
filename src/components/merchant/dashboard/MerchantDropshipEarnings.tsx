@@ -1,3 +1,4 @@
+import MerchantUCoinEarnings from "./MerchantUCoinEarnings";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,9 @@ const MerchantDropshipEarnings: React.FC = () => {
   const rows = m.earnings?.products || [];
 
   return (
-    <div className="space-y-4 min-w-0">
+    <div className="space-y-6 min-w-0">
+      <MerchantUCoinEarnings />
+
       <div className="header-row">
         <div className="min-w-0">
           <h2 className="text-xl font-semibold truncate">Dropshipping earnings</h2>
