@@ -20,6 +20,7 @@ interface PayFastPaymentData {
   paymentMethod?: string;
   shippingAddress?: Record<string, any>;
   cartItems?: Array<{ productId: string; quantity: number; price: number; storeId?: string }>;
+  ucoinToApply?: number;
 }
 
 async function md5Hash(input: string): Promise<string> {
