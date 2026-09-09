@@ -158,6 +158,7 @@ function AppRouter() {
           <Route path="cj/product/:productId" element={<DropshipProductPage />} />
           <Route path="dropship/product/:productId" element={<DropshipProductPage />} />
           <Route path="marketplace" element={<MarketplacePage />} />
+          <Route path="ucoin-market" element={<UCoinMarketPage />} />
           <Route path="orders/:orderId/tracking" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
 
 
