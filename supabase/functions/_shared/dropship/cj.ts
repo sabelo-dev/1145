@@ -248,19 +248,69 @@ export class CJAdapter implements SupplierAdapter {
   async getProduct(supplierProductId: string) {
     const data = await this.call<any>("/product/query", { query: { pid: supplierProductId } });
     const variants: SupplierVariantDTO[] = (data?.variants || []).map((v: any) => this.mapVariant(v));
+
+    // CJ's product detail response does not carry warehouse inventory — the
+    // only authoritative stock figures come from the stock endpoint. Without
+    // this every imported product would look permanently out of stock.
+    if (variants.length) {
+      const levels = await this.getStock(variants.map((v) => v.supplierVariantId).filter(Boolean));
+      const byVid = new Map(levels.map((l) => [l.supplierVariantId, l.stock]));
+      for (const v of variants) {
+        const live = byVid.get(v.supplierVariantId);
+        if (live !== undefined) v.stock = live;
+      }
+    }
+
     return this.mapProduct(data || {}, variants);
   }
 
+  /** Warehouse stock per variant. CJ accepts several ids in one call, which
+   *  keeps us well inside the 1-request-per-second limit. */
   async getStock(supplierVariantIds: string[]) {
     const out: SupplierStockDTO[] = [];
-    for (const vid of supplierVariantIds) {
+    const ids = supplierVariantIds.filter(Boolean);
+    const BATCH = 20;
+
+    const totalOf = (rows: any[]) =>
+      rows.reduce(
+        (sum, r) =>
+          sum +
+          Number(
+            r.storageNum ?? r.totalInventoryNum ?? r.inventoryNum ?? r.quantity ?? r.cnStock ?? 0,
+          ),
+        0,
+      );
+
+    for (let i = 0; i < ids.length; i += BATCH) {
+      const batch = ids.slice(i, i + BATCH);
+      let handled = false;
       try {
-        const data = await this.call<any>("/product/stock/queryByVid", { query: { vid } });
+        const data = await this.call<any>("/product/stock/queryByVid", { query: { vid: batch.join(",") } });
         const rows: any[] = Array.isArray(data) ? data : data?.list || [];
-        const stock = rows.reduce((sum, r) => sum + Number(r.storageNum ?? r.totalInventoryNum ?? 0), 0);
-        out.push({ supplierVariantId: vid, stock });
+        const totals = new Map<string, number>();
+        for (const r of rows) {
+          const vid = String(r.vid ?? r.variantId ?? r.variantVid ?? (batch.length === 1 ? batch[0] : ""));
+          if (!vid) continue;
+          totals.set(vid, (totals.get(vid) || 0) + totalOf([r]));
+        }
+        if (totals.size) {
+          for (const [supplierVariantId, stock] of totals) out.push({ supplierVariantId, stock });
+          handled = true;
+        }
       } catch {
-        // A single variant failure must not blank out the whole catalogue.
+        // Fall through to the per-variant lookup below.
+      }
+
+      if (handled) continue;
+
+      for (const vid of batch) {
+        try {
+          const data = await this.call<any>("/product/stock/queryByVid", { query: { vid } });
+          const rows: any[] = Array.isArray(data) ? data : data?.list || [];
+          out.push({ supplierVariantId: vid, stock: totalOf(rows) });
+        } catch {
+          // A single variant failure must not blank out the whole catalogue.
+        }
       }
     }
     return out;
