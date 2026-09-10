@@ -1,39 +1,30 @@
-// One-off maintenance run: refresh real CJ stock for every imported product.
-import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// One-off maintenance run: read real CJ stock for the imported catalogue and
+// print it so it can be written back to the platform database.
 import { CJAdapter } from "../_shared/dropship/cj.ts";
 
-Deno.test("backfill CJ stock", async () => {
-  const url = Deno.env.get("SUPABASE_URL");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  assert(url && key, "service credentials unavailable");
-  const db = createClient(url!, key!, { auth: { persistSession: false } });
+const PIDS = [
+  "2609070847031624000","2609070848441632500","2609070850091636700","2609070854131612700",
+  "2609070915571620800","2609070918271619300","2609070922361628400","2609070927331612400",
+  "2609070927461613600","2609070933571630500","2609070942041638900","2609070950211612200",
+  "2609071007351635300","2609071008451607500","2609071029291631900","2609071044161631300",
+  "2609071131291619600","2609071219441629800","2609071228231606400","2609071322371632000",
+  "2609071343121630000","2609071403041612700","2609040938031625500","2609041147221629700",
+  "2609040951381616200","2609041106391621800","2609031522591614400",
+];
+
+Deno.test("read CJ stock for catalogue", async () => {
   const cj = new CJAdapter(Deno.env.get("CJ_EMAIL")!, Deno.env.get("CJ_API_KEY")!);
-
-  const { data: products } = await db
-    .from("dropship_products")
-    .select("id, supplier_product_id, name, stock")
-    .in("status", ["pending_approval", "approved", "published"])
-    .limit(25);
-
-  for (const p of products || []) {
+  const product: string[] = [];
+  const variant: string[] = [];
+  for (const pid of PIDS) {
     try {
-      const fresh = await cj.getProduct(p.supplier_product_id);
-      await db.from("dropship_products").update({
-        stock: fresh.stock,
-        sync_status: "ok",
-        sync_error: null,
-        last_synced_at: new Date().toISOString(),
-      }).eq("id", p.id);
-      for (const v of fresh.variants) {
-        await db.from("dropship_variants")
-          .update({ stock: v.stock })
-          .eq("dropship_product_id", p.id)
-          .eq("supplier_variant_id", v.supplierVariantId);
-      }
-      console.log(`${p.name?.slice(0, 40)}: ${p.stock} -> ${fresh.stock}`);
+      const fresh = await cj.getProduct(pid);
+      product.push(`('${pid}',${fresh.stock})`);
+      for (const v of fresh.variants) variant.push(`('${v.supplierVariantId}',${v.stock})`);
     } catch (err) {
-      console.log(`FAILED ${p.supplier_product_id}: ${err instanceof Error ? err.message : err}`);
+      console.log(`FAILED ${pid}: ${err instanceof Error ? err.message : err}`);
     }
   }
+  console.log("PRODUCTS::" + product.join(","));
+  console.log("VARIANTS::" + variant.join(","));
 });
