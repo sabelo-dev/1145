@@ -91,15 +91,17 @@ const VendorOrders = () => {
       setStoreName(stores[0]?.name || vendor.business_name);
       const storeIds = stores.map(store => store.id);
 
-      // Get order items from vendor's stores with order details
+      // Paid orders only: a checkout becomes an order once payment succeeds
+      // (unpaid/abandoned checkouts are not the merchant's to fulfil).
       const { data, error } = await supabase
         .from('order_items')
         .select(`
           *,
-          orders(*),
+          orders!inner(*),
           products(name)
         `)
         .in('store_id', storeIds)
+        .eq('orders.payment_status', 'paid')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -141,7 +143,8 @@ const VendorOrders = () => {
         acc[orderId].products.push({
           name: item.products?.name || 'Product',
           quantity: item.quantity,
-          price: parseFloat(item.price?.toString() || '0')
+          price: parseFloat(item.price?.toString() || '0'),
+          isPreorder: !!item.is_preorder,
         });
         return acc;
       }, {}) || {};
@@ -510,7 +513,14 @@ const VendorOrders = () => {
                   <div className="space-y-2">
                     {order.products.map((product, index) => (
                       <div key={index} className="flex justify-between text-sm">
-                        <span>{product.name} × {product.quantity}</span>
+                        <span>
+                          {product.name} × {product.quantity}
+                          {product.isPreorder && (
+                            <span className="ml-2 rounded bg-navy-900 px-1.5 py-0.5 text-[10px] font-bold text-gold">
+                              PRE-ORDER · ship when restocked
+                            </span>
+                          )}
+                        </span>
                         <span>R{(product.price * product.quantity).toFixed(2)}</span>
                       </div>
                     ))}

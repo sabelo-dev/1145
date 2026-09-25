@@ -310,6 +310,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           <PaymentMethodSelector control={form.control} />
         </div>
 
+        {cart.items.some((i) => i.preorder) && (
+          <p className="rounded-lg border border-border bg-surface-muted p-3 text-sm text-text-secondary">
+            Your cart includes pre-order items. They're paid in full now and your order is only placed once payment
+            succeeds. Pre-order items ship as soon as they're restocked.
+          </p>
+        )}
+
         <Button
           type="submit"
           className="w-full bg-wwe-navy hover:bg-wwe-navy/90"
