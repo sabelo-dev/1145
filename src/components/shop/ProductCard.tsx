@@ -19,6 +19,8 @@ const SWATCHES: Record<string, string> = {
   black: "#111111", white: "#FFFFFF", navy: "#1E2A4A", red: "#B3202A", stone: "#D6CCBE",
   grey: "#8A8F98", gray: "#8A8F98", beige: "#E3D5B8", green: "#2F6B3F", blue: "#2457A8",
   brown: "#6B4A33", pink: "#E7A3B8", cream: "#F2EAD8", khaki: "#B8A77A", olive: "#6B6B3A",
+  sand: "#D8C6AC", taupe: "#C2B3A1", slate: "#7E7D7A", "stone grey": "#A8A29A",
+  ivory: "#EFE9DD", oatmeal: "#DDD3C4", smoke: "#8F8B86", sage: "#9A9A88",
 };
 const COLOUR_KEYS = ["color", "colour"];
 
@@ -54,6 +56,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
 
   const isColour = !!primaryAttr && COLOUR_KEYS.includes(primaryAttr.toLowerCase());
 
+  // Out of stock (the chosen option, or the whole product): pre-order if allowed, else sold out.
+  const outOfStock = selected ? (selected.quantity ?? 0) <= 0 : !product.inStock;
+  const preorder = outOfStock && !!product.allowPreorder;
+  const unavailable = outOfStock && !preorder;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     addToCart({
@@ -63,6 +70,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
       image: selected?.imageUrl || product.images[0],
       variationId: selected?.id,
       variationAttributes: selected?.attributes,
+      preorder,
     });
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1200);
@@ -89,7 +97,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
         />
 
         <div className="pointer-events-none absolute left-2.5 top-2.5 flex flex-col gap-1.5">
-          {!product.inStock ? (
+          {preorder ? (
+            <span className="rounded-md bg-navy-900 px-2 py-0.5 text-[11px] font-bold text-gold">Pre-order</span>
+          ) : unavailable ? (
             <span className="rounded-md bg-foreground px-2 py-0.5 text-[11px] font-bold text-background">Sold out</span>
           ) : isOnSale ? (
             <span className="rounded-md bg-destructive px-2 py-0.5 text-[11px] font-bold text-destructive-foreground">-{discountPercent}%</span>
@@ -117,8 +127,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
         <button
           type="button"
           onClick={handleAddToCart}
-          disabled={!product.inStock}
-          aria-label={product.inStock ? `Add ${product.name} to cart` : "Sold out"}
+          disabled={unavailable}
+          aria-label={unavailable ? "Sold out" : `${preorder ? "Pre-order" : "Add"} ${product.name}`}
           className={cn(
             "absolute bottom-2.5 right-2.5 z-10 flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold shadow-elevated transition-all disabled:hidden",
             justAdded ? "bg-success text-success-foreground" : "bg-background text-foreground hover:bg-cta hover:text-cta-foreground",
@@ -126,7 +136,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           )}
         >
           {justAdded ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          <span className="hidden sm:inline">{justAdded ? "Added" : "Add"}</span>
+          <span className="hidden sm:inline">{justAdded ? "Added" : preorder ? "Pre-order" : "Add"}</span>
         </button>
       </div>
 
@@ -163,7 +173,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
         </div>
 
         {options.length > 1 && (
-          <div className="relative z-10 flex flex-wrap items-center gap-1.5 pt-1" role="group" aria-label={primaryAttr ?? "Options"}>
+          <div className="relative z-10 flex flex-wrap items-center gap-1 pt-1 sm:gap-1.5" role="group" aria-label={primaryAttr ?? "Options"}>
             {options.slice(0, 5).map(({ value, variation }) => {
               const isSelected = selectedVariation === variation.id;
               const swatch = isColour ? SWATCHES[value.toLowerCase()] : undefined;
@@ -176,7 +186,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                   aria-pressed={isSelected}
                   onClick={(e) => { e.preventDefault(); setSelectedVariation(isSelected ? null : variation.id); }}
                   className={cn(
-                    "h-6 w-6 rounded-full border border-black/15 ring-offset-2 ring-offset-card transition-shadow",
+                    "h-5 min-h-0 w-5 rounded-full border border-black/15 ring-offset-2 ring-offset-card transition-shadow sm:h-6 sm:w-6",
                     isSelected ? "ring-2 ring-foreground" : "hover:ring-2 hover:ring-foreground/30",
                   )}
                   style={{ backgroundColor: swatch }}
@@ -188,7 +198,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
                   aria-pressed={isSelected}
                   onClick={(e) => { e.preventDefault(); setSelectedVariation(isSelected ? null : variation.id); }}
                   className={cn(
-                    "h-7 rounded-md border px-2 text-xs font-medium transition-colors",
+                    "h-6 min-h-0 rounded-md border px-1.5 text-[11px] font-medium transition-colors sm:h-7 sm:px-2 sm:text-xs",
                     isSelected ? "border-foreground bg-foreground text-background" : "border-border text-text-secondary hover:border-foreground/40",
                   )}
                 >

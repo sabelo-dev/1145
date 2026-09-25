@@ -36,10 +36,13 @@ interface PayFastPaymentData {
 
 interface PricedLine {
   productId: string;
+  variationId: string | null;
   storeId: string | null;
   quantity: number;
   unitPrice: number;
   downloadable: boolean;
+  /** Bought while out of stock from a store that allows pre-orders. */
+  preorder: boolean;
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -76,14 +79,12 @@ async function priceCart(
   }
 
   const productIds = [...new Set(items.map((i) => i.productId))];
-  const variationIds = [...new Set(items.map((i) => i.variationId).filter(Boolean))] as string[];
   const now = new Date().toISOString();
 
   const [productsRes, variationsRes, flashRes] = await Promise.all([
-    db.from("products").select("id, price, store_id, status, product_type").in("id", productIds),
-    variationIds.length
-      ? db.from("product_variations").select("id, product_id, price").in("id", variationIds)
-      : Promise.resolve({ data: [], error: null }),
+    db.from("products").select("id, name, brand, price, quantity, store_id, status, product_type, stores(allow_preorders)").in("id", productIds),
+    // All options of these products: needed for stock, not just the selected ones.
+    db.from("product_variations").select("id, product_id, price, quantity").in("product_id", productIds),
     db.from("flash_deals").select("product_id, flash_price, discount_value")
       .in("product_id", productIds).eq("is_active", true).lte("start_time", now).gt("end_time", now),
   ]);
@@ -97,6 +98,10 @@ async function priceCart(
   const products = new Map((productsRes.data ?? []).map((p: any) => [p.id, p]));
   const variations = new Map((variationsRes.data ?? []).map((v: any) => [v.id, v]));
   const flashDeals = new Map((flashRes.data ?? []).map((d: any) => [d.product_id, d]));
+
+  // Units requested per stock bucket (a variation, or the product as a whole),
+  // so two cart lines for the same item can't each claim the last unit.
+  const demand = new Map<string, number>();
 
   const lines: PricedLine[] = [];
   for (const item of items) {
@@ -122,12 +127,39 @@ async function priceCart(
       return { error: "An item in your cart has no valid price." };
     }
 
+    // Stock: the chosen option's stock, or (no option chosen) the product's own
+    // stock plus all its options — the same rule the storefront uses for "In stock".
+    const downloadable = product.product_type === "downloadable";
+    const selectedVariation = variation && variation.product_id === product.id ? variation : undefined;
+    const bucket = selectedVariation ? `v:${selectedVariation.id}` : `p:${product.id}`;
+    const available = selectedVariation
+      ? Number(selectedVariation.quantity ?? 0)
+      : Number(product.quantity ?? 0) + [...variations.values()]
+          .filter((v: any) => v.product_id === product.id)
+          .reduce((sum: number, v: any) => sum + Number(v.quantity ?? 0), 0);
+    const wanted = (demand.get(bucket) ?? 0) + Number(item.quantity);
+    demand.set(bucket, wanted);
+
+    let preorder = false;
+    if (!downloadable && wanted > available) {
+      // Pre-orders are strictly for XIXLV products on stores an admin enabled (the Marketplace).
+      if (product.stores?.allow_preorders && String(product.brand ?? "").toUpperCase() === "XIXLV") {
+        preorder = true; // paid now, shipped when restocked
+      } else if (available <= 0) {
+        return { error: `${product.name} is out of stock.` };
+      } else {
+        return { error: `Only ${available} of ${product.name} left in stock.` };
+      }
+    }
+
     lines.push({
       productId: product.id,
+      variationId: selectedVariation?.id ?? null,
       storeId: product.store_id ?? null,
       quantity: Number(item.quantity),
       unitPrice,
-      downloadable: product.product_type === "downloadable",
+      downloadable,
+      preorder,
     });
   }
 
@@ -283,6 +315,8 @@ serve(async (req) => {
         priced.lines.map((line) => ({
           order_id: orderId,
           product_id: line.productId,
+          variation_id: line.variationId,
+          is_preorder: line.preorder,
           quantity: line.quantity,
           price: line.unitPrice,
           store_id: line.storeId,
@@ -330,6 +364,7 @@ serve(async (req) => {
           payment_gateway: "ucoin",
           updated_at: new Date().toISOString(),
         }).eq("id", orderId);
+        await supabaseAdmin.rpc("apply_paid_order_stock", { p_order_id: orderId });
 
         await supabaseAdmin.from("order_payment_attempts").insert({
           order_id: orderId,

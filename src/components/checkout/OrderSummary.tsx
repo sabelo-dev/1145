@@ -44,7 +44,7 @@ const OrderSummary: React.FC = () => {
       
       <div className="space-y-4">
         {cart.items.map((item) => (
-          <div key={item.productId} className="flex items-center space-x-4">
+          <div key={`${item.productId}:${item.variationId ?? ""}`} className="flex items-center space-x-4">
             <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
               <img
                 src={item.image}
@@ -54,6 +54,12 @@ const OrderSummary: React.FC = () => {
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
+              {item.variationAttributes && Object.keys(item.variationAttributes).length > 0 && (
+                <p className="text-xs text-text-secondary">{Object.values(item.variationAttributes).join(" · ")}</p>
+              )}
+              {item.preorder && (
+                <span className="mt-1 inline-block rounded bg-navy-900 px-1.5 py-0.5 text-[10px] font-bold text-gold">PRE-ORDER · ships when restocked</span>
+              )}
               <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
             </div>
             <p className="text-sm font-medium text-gray-900">

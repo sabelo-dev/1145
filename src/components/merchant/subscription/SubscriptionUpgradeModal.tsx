@@ -150,7 +150,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             <Crown className="h-6 w-6 text-primary" />
@@ -176,7 +176,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
             </div>
 
             {/* Plans Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid gap-4 pt-3 sm:grid-cols-2 lg:grid-cols-4">
               {tiers.map((tier, index) => {
                 const config = tierConfig[tier] ?? tierConfig.starter;
                 const Icon = config.icon;
@@ -189,15 +189,15 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                   <Card 
                     key={tier}
                     className={cn(
-                      'relative',
+                      'relative flex flex-col overflow-visible',
                       isCurrentTier && 'ring-2 ring-primary',
                       isRecommended && 'border-primary',
                       tier === 'gold' && 'border-gold/50'
                     )}
                   >
                     {isRecommended && (
-                      <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary border-0 text-xs">
-                        Popular
+                      <Badge className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap border-0 bg-primary px-3 text-xs text-primary-foreground">
+                        Most popular
                       </Badge>
                     )}
                     <CardHeader className="text-center pb-2">
@@ -208,25 +208,25 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                       {isCurrentTier && (
                         <Badge variant="outline" className="mx-auto text-xs">Current</Badge>
                       )}
-                      <div className="text-2xl font-bold mt-2">
+                      <div className="mt-2 whitespace-nowrap text-3xl font-bold">
                         {price === 0 ? (
                           'Free'
                         ) : (
                           <>
                             R{price}
-                            <span className="text-xs font-normal text-muted-foreground">
+                            <span className="ml-0.5 text-sm font-normal text-muted-foreground">
                               /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
                             </span>
                           </>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{config.description}</p>
+                      <p className="text-sm text-muted-foreground">{config.description}</p>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <ul className="space-y-1">
+                    <CardContent className="flex flex-1 flex-col gap-4">
+                      <ul className="flex-1 space-y-2">
                         {config.features.slice(0, 5).map((feature, i) => (
-                          <li key={i} className="flex items-start gap-1.5 text-xs">
-                            <Check className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                          <li key={i} className="flex items-start gap-2 text-sm">
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                             {feature.toLowerCase().includes('unlimited') ? (
                               <span className="flex items-center gap-1">
                                 <Infinity className="h-3 w-3 text-primary" />
@@ -246,10 +246,9 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                       <Button
                         size="sm"
                         className={cn(
-                          "w-full text-xs",
-                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600'
+                          "w-full",
                         )}
-                        variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
+                        variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : tier === 'gold' ? 'premium' : 'default'}
                         disabled={isCurrentTier || loading}
                         onClick={() => handleSelectPlan(tier, billingPeriod)}
                       >
