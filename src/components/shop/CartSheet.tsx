@@ -31,7 +31,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, setIsOpen }) => {
             <div className="flex-1 overflow-y-auto py-4">
               <ul className="space-y-4">
                 {cart.items.map((item) => (
-                  <li key={item.productId} className="flex items-center py-2 border-b">
+                  <li key={`${item.productId}:${item.variationId ?? ""}`} className="flex items-center py-2 border-b">
                     <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
                       <img
                         src={item.image}
@@ -41,20 +41,26 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, setIsOpen }) => {
                     </div>
                     <div className="ml-4 flex-1">
                       <h3 className="text-sm font-medium">{item.name}</h3>
+                      {item.variationAttributes && Object.keys(item.variationAttributes).length > 0 && (
+                        <p className="text-xs text-text-secondary">{Object.values(item.variationAttributes).join(" · ")}</p>
+                      )}
+                      {item.preorder && (
+                        <span className="mt-1 inline-block rounded bg-navy-900 px-1.5 py-0.5 text-[10px] font-bold text-gold">PRE-ORDER · ships when restocked</span>
+                      )}
                       <div className="text-sm font-semibold mt-1">
                         <GoldPriceDisplay price={item.price} size="sm" />
                       </div>
                       
                       <div className="flex items-center mt-2">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variationId)}
                           className="p-1 rounded-full bg-gray-100 hover:bg-gray-200"
                         >
                           <Minus size={12} />
                         </button>
                         <span className="mx-2 text-sm">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variationId)}
                           className="p-1 rounded-full bg-gray-100 hover:bg-gray-200"
                         >
                           <Plus size={12} />
@@ -62,7 +68,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, setIsOpen }) => {
                       </div>
                     </div>
                     <button
-                      onClick={() => removeFromCart(item.productId)}
+                      onClick={() => removeFromCart(item.productId, item.variationId)}
                       className="ml-2 p-1 text-gray-400 hover:text-gray-700"
                     >
                       <X size={18} />

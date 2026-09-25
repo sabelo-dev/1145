@@ -255,6 +255,9 @@ serve(async (req) => {
         if (!updated?.length) return ok();
 
         console.log(`Order ${orderId} payment confirmed`);
+        // Paid → take the units out of stock (pre-order lines don't consume stock).
+        const { error: stockError } = await supabaseAdmin.rpc("apply_paid_order_stock", { p_order_id: orderId });
+        if (stockError) console.error(`Stock update failed for order ${orderId}:`, stockError);
       } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
         const { error: cancelError } = await supabaseAdmin
           .from("orders")

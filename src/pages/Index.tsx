@@ -16,6 +16,11 @@ import { fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals, fetchFea
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import LiveRideMap from "@/components/home/LiveRideMap";
+import HomePromoCard from "@/components/home/HomePromoCard";
+import { DEFAULT_CENTER, etaFromKm, useNearbySupply, useUserLocation, type LatLng } from "@/hooks/useNearbySupply";
+import { haversineDistance } from "@/services/dispatch/geoUtils";
+import { LocateFixed } from "lucide-react";
 
 /** Same names and order as the Services page. */
 const services = [
@@ -110,7 +115,14 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [trending, setTrending] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [featuredBrands, setFeaturedBrands] = useState<FeaturedBrand[]>([]);
-  const [activeRide, setActiveRide] = useState<{ id: string; pickup_address: string; dropoff_address: string; status: string } | null>(null);
+  const [activeRide, setActiveRide] = useState<{
+    id: string; pickup_address: string; dropoff_address: string; status: string; driver_id: string | null;
+    pickup_latitude: number | null; pickup_longitude: number | null; dropoff_latitude: number | null; dropoff_longitude: number | null;
+  } | null>(null);
+  const [driverLocation, setDriverLocation] = useState<LatLng | null>(null);
+  const { location: userLocation, locating, denied: locationDenied, locate } = useUserLocation();
+  const supplyCenter = userLocation ?? DEFAULT_CENTER;
+  const { data: supply, error: supplyError, loading: supplyLoading } = useNearbySupply(supplyCenter);
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const secondFieldRef = useRef<HTMLInputElement>(null);
 
@@ -139,17 +151,18 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
       return;
     }
 
-    const activeStatuses = ["requested", "searching", "accepted", "arriving", "in_progress"];
+    // Every in-progress spelling used by the rides table and the app.
+    const activeStatuses = ["requested", "searching", "accepted", "driver_assigned", "driver_arriving", "arriving", "arrived", "started", "in_progress"];
     const loadActiveRide = async () => {
       const { data } = await supabase
         .from("rides")
-        .select("id, pickup_address, dropoff_address, status")
+        .select("id, pickup_address, dropoff_address, status, driver_id, pickup_latitude, pickup_longitude, dropoff_latitude, dropoff_longitude")
         .eq("passenger_id", user.id)
         .in("status", activeStatuses)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      setActiveRide(data);
+      setActiveRide(data as typeof activeRide);
     };
 
     void loadActiveRide();
@@ -162,6 +175,53 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
 
     return () => { void supabase.removeChannel(channel); };
   }, [user]);
+
+  // Stream the assigned driver's position during an active trip.
+  const tripDriverId = activeRide?.driver_id ?? null;
+  useEffect(() => {
+    setDriverLocation(null);
+    if (!tripDriverId) return;
+    const apply = (row: { latitude: number; longitude: number } | null) =>
+      row && setDriverLocation({ lat: Number(row.latitude), lng: Number(row.longitude) });
+    void supabase.from("driver_locations").select("latitude, longitude").eq("driver_id", tripDriverId).maybeSingle()
+      .then(({ data }) => apply(data));
+    const channel = supabase
+      .channel(`home-trip-driver-${tripDriverId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "driver_locations", filter: `driver_id=eq.${tripDriverId}` },
+        (payload) => apply(payload.new as { latitude: number; longitude: number }))
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [tripDriverId]);
+
+  const toPoint = (lat: number | null | undefined, lng: number | null | undefined): LatLng | null =>
+    lat != null && lng != null ? { lat: Number(lat), lng: Number(lng) } : null;
+  const trip = activeRide
+    ? { pickup: toPoint(activeRide.pickup_latitude, activeRide.pickup_longitude), dropoff: toPoint(activeRide.dropoff_latitude, activeRide.dropoff_longitude), driver: driverLocation }
+    : null;
+  const tripEta = trip?.driver && trip.pickup ? etaFromKm(haversineDistance(trip.driver, trip.pickup)) : null;
+  const areaLabel = userLocation ? "near you" : "in Johannesburg";
+  const asOf = supply?.asOf?.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+  /** One live summary, used by the desktop map card and the mobile strip. */
+  const live = (() => {
+    if (activeRide) {
+      return {
+        title: tripEta ? `Your driver is ~${tripEta} min away` : `Ride ${activeRide.status.replace(/_/g, " ")}`,
+        detail: `${activeRide.pickup_address} → ${activeRide.dropoff_address}`,
+        badge: tripEta ? `${tripEta} min` : null,
+      };
+    }
+    if (supplyLoading && !supply) return { title: `Checking drivers ${areaLabel}…`, detail: "Live availability", badge: null };
+    if (supplyError || !supply) return { title: "Live availability unavailable", detail: "Request a ride to be matched with the next driver.", badge: null };
+    if (supply.available === 0) {
+      return { title: `No drivers online ${areaLabel} right now`, detail: `Try again shortly or schedule a ride · updated ${asOf}`, badge: null };
+    }
+    return {
+      title: `${supply.available} driver${supply.available === 1 ? "" : "s"} available ${areaLabel}`,
+      detail: `Nearest about ${supply.etaMin} min away · updated ${asOf}`,
+      badge: `${supply.etaMin} min`,
+    };
+  })();
 
   /** Never a dead button: if a field is missing, take the user straight to it. */
   const requireFields = (first: string, second: string) => {
@@ -314,35 +374,66 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </p>
               ) : null}
             </div>
+
+            {/* Live availability (phones/tablets — the map is desktop only) */}
+            {!activeRide && (
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 lg:hidden" aria-live="polite">
+                <span className="relative flex h-2.5 w-2.5 shrink-0"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan opacity-60" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan" /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-white">{live.title}</p>
+                  <p className="truncate text-xs text-white/60">{live.detail}</p>
+                </div>
+                {!userLocation && (
+                  <button type="button" onClick={locate} disabled={locating} aria-label="Use my location"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-60">
+                    <LocateFixed className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Visual */}
+          {/* Live map (desktop) */}
           <div className="relative hidden lg:block">
             <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-white/10 bg-navy-800 shadow-float">
-              <RouteMap />
-              <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl bg-background/95 p-4 text-foreground shadow-elevated backdrop-blur">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-900 text-cyan"><Car className="h-5 w-5" /></span>
+              <LiveRideMap center={supplyCenter} cars={supply?.cars ?? []} userLocation={userLocation} trip={trip} fallback={<RouteMap />} />
+
+              <div className="absolute left-5 top-5 flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-900/85 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                  <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-cyan" /></span>
+                  Live
+                </span>
+                {!activeRide && !userLocation && (
+                  <button type="button" onClick={locate} disabled={locating}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-background/95 px-3 py-1 text-xs font-semibold text-foreground shadow-soft transition hover:bg-background disabled:opacity-70">
+                    <LocateFixed className="h-3.5 w-3.5" /> {locating ? "Locating…" : locationDenied ? "Location blocked" : "Use my location"}
+                  </button>
+                )}
+              </div>
+
+              <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl bg-background/95 p-4 text-foreground shadow-elevated backdrop-blur" aria-live="polite">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-900 text-cyan"><Car className="h-5 w-5" /></span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold">Driver matched in seconds</p>
-                  <p className="truncate text-xs text-text-secondary">PIN-verified trips · live tracking · panic button</p>
+                  <p className="truncate text-sm font-semibold">{live.title}</p>
+                  <p className="truncate text-xs text-text-secondary">{live.detail}</p>
                 </div>
-                <span className="rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">4 min</span>
+                {live.badge && <span className="shrink-0 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">{live.badge}</span>}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SERVICES */}
-      <section className="border-b border-border">
+      {/* SERVICES (tablet/desktop only — phones use the bottom nav's Services tab) */}
+      <section className="hidden border-b border-border md:block">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
           <SectionHead title="Everything 1145" to="/services" cta="All services" />
-          <div className="bleed-x snap-rail md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0 lg:grid-cols-8">
+          <div className="grid grid-cols-4 gap-3 lg:grid-cols-8">
             {services.map((s) => (
               <Link
                 key={s.name}
                 to={s.href}
-                className="group relative flex w-[7.5rem] flex-col rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-elevated md:w-auto"
+                className="group relative flex flex-col rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-elevated"
               >
                 {s.tag && (
                   <span className="absolute right-2.5 top-2.5 rounded-full bg-navy-900 px-2 py-0.5 text-[11px] font-semibold text-white">{s.tag}</span>
@@ -450,30 +541,8 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
           </div>
 
-          {/* Dashboard preview */}
-          <div className="relative mx-auto w-full max-w-md">
-            <div aria-hidden className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-cyan/20 via-transparent to-gold/20 blur-2xl" />
-            <div className="relative space-y-4 rounded-3xl bg-navy-900 p-5 text-white shadow-float">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Store overview</p>
-                <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs">This week</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {[["Sales", "R24.8k"], ["Orders", "186"], ["Payout", "Fri"]].map(([k, v]) => (
-                  <div key={k} className="rounded-2xl bg-white/5 p-3">
-                    <p className="text-[11px] text-white/60">{k}</p>
-                    <p className="mt-1 text-lg font-bold">{v}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="flex h-24 items-end gap-1.5 rounded-2xl bg-white/5 p-3">
-                {[35, 52, 40, 68, 58, 82, 96].map((h, i) => (
-                  <span key={i} className={cn("flex-1 rounded-md", i === 6 ? "bg-gold" : "bg-cyan/70")} style={{ height: `${h}%` }} />
-                ))}
-              </div>
-              <p className="text-xs text-white/60">Illustrative preview</p>
-            </div>
-          </div>
+          {/* Adverts when live, otherwise a Marketplace product slideshow */}
+          <HomePromoCard />
         </div>
       </section>
 

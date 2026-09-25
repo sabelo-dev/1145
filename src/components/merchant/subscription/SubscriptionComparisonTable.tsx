@@ -188,10 +188,9 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                 <Button
                   size="sm"
                   className={cn(
-                    "w-full mt-2 text-xs h-7",
-                    tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600'
+                    "w-full mt-2 text-xs h-9",
                   )}
-                  variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
+                  variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : tier === 'gold' ? 'premium' : 'default'}
                   disabled={isCurrentTier}
                   onClick={() => onSelectPlan(tier, billingPeriod)}
                 >

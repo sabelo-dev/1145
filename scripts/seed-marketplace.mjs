@@ -1,21 +1,26 @@
 #!/usr/bin/env node
-// Seeds the "Marketplace" merchant store with the 1145 DROP 001 products.
+// Seeds the "Marketplace" merchant store with the DROP 001 products (1145 and
+// XIXLV branded).
 //
 // Creates (or updates, if they already exist):
 //   * auth user marketplace@1145.io with the vendor role
 //   * an approved, active vendor + store named "Marketplace" (slug: marketplace)
-//   * one product per garment (status "pending" = hidden until an admin
-//     approves it), with a colour variation per manifest row
+//   * one product per garment and brand, with a colour variation per manifest
+//     row, priced from the manifest (price_zar)
 //   * product images converted to WebP and uploaded to the product-images bucket
 //
-// Products stay "pending" with price 0 and no stock, as the manifest has no
-// price/stock yet and the image pack says to confirm samples first. Set price,
-// stock and status (approved) in the merchant/admin dashboard to go live.
+// New products start "pending" (hidden until an admin approves them) unless
+// --approve is passed. Re-running updates names, descriptions, prices and
+// images but never resets stock or un-approves a live product. Out-of-stock
+// XIXLV products can be pre-ordered (see migration 20260925140000).
+//
+// Requires migration 20260925140000_preorders_and_stock.sql (products.brand).
 //
 // Usage (PowerShell):
 //   $env:SUPABASE_SERVICE_ROLE_KEY = "<service role key>"
 //   $env:MARKETPLACE_PASSWORD = "<password>"
-//   node scripts/seed-marketplace.mjs            # seed
+//   node scripts/seed-marketplace.mjs            # seed (new products pending)
+//   node scripts/seed-marketplace.mjs --approve  # seed and publish
 //   node scripts/seed-marketplace.mjs --dry-run  # validate files, no network
 
 import { readFileSync, existsSync } from "node:fs";
@@ -29,7 +34,7 @@ export const MARKETPLACE = {
   email: "marketplace@1145.io",
   name: "Marketplace",
   storeSlug: "marketplace",
-  description: "Official 1145 merchandise — DROP 001.",
+  description: "Official 1145 and XIXLV merchandise — DROP 001.",
 };
 
 // Manifest garment code -> catalogue placement (products.category = categories.name)
@@ -40,6 +45,8 @@ const GARMENTS = {
   tracksuit: { code: "TS", category: "Clothing", subcategory: "Mens Clothing, Womens Clothing" },
   cap: { code: "CP", category: "Clothing", subcategory: "Accessories" },
 };
+
+const BRANDS = ["1145", "XIXLV"];
 
 const BUCKET = "product-images";
 const STORAGE_PREFIX = "marketplace/drop-001";
@@ -76,12 +83,15 @@ export function buildCatalogue(rows) {
   for (const row of rows) {
     const garment = GARMENTS[row.category];
     if (!garment) throw new Error(`Unknown manifest category "${row.category}" (sku ${row.sku})`);
-    if (!row.sku.startsWith(`1145-D001-${garment.code}-`)) throw new Error(`SKU ${row.sku} does not match category ${row.category}`);
+    const brand = (row.brand || "1145").toUpperCase();
+    if (!BRANDS.includes(brand)) throw new Error(`Unknown brand "${row.brand}" (sku ${row.sku})`);
+    if (!row.sku.startsWith(`${brand}-D001-${garment.code}-`)) throw new Error(`SKU ${row.sku} does not match ${brand} ${row.category}`);
     if (!products.has(row.product_name)) {
       products.set(row.product_name, {
         name: row.product_name,
         slug: slugify(row.product_name),
-        sku: `1145-D001-${garment.code}`,
+        sku: `${brand}-D001-${garment.code}`,
+        brand,
         description: row.description,
         category: garment.category,
         subcategory: garment.subcategory,
@@ -162,7 +172,7 @@ async function findUserByEmail(db, email) {
   }
 }
 
-export async function seed(db, { password, dropDir = DROP_DIR, convert = toWebp, log = console.log } = {}) {
+export async function seed(db, { password, approve = false, dropDir = DROP_DIR, convert = toWebp, log = console.log } = {}) {
   const { catalogue } = loadDrop(dropDir);
 
   // 1. Merchant login (the signup trigger adds profile + vendor role on create).
@@ -226,25 +236,28 @@ export async function seed(db, { password, dropDir = DROP_DIR, convert = toWebp,
   const categoryNames = await ensureCategories(db, catalogue, log);
   const summary = [];
   for (const product of catalogue) {
+    const prices = product.variations.map((v) => v.price).filter((p) => p > 0);
     const productFields = {
       store_id: store.id,
       name: product.name,
       slug: product.slug,
       sku: product.sku,
+      brand: product.brand,
       description: product.description,
       category: categoryNames.get(product.category),
       subcategory: product.subcategory,
       product_type: "variable",
       listing_type: "sale",
-      status: "pending", // products allow pending | approved | rejected
-      price: 0,
-      quantity: product.variations.reduce((sum, v) => sum + v.quantity, 0),
+      price: prices.length ? Math.min(...prices) : 0,
     };
+    // products allow pending | approved | rejected. Re-runs keep the current
+    // status and stock unless --approve is passed.
+    const status = approve ? { status: "approved" } : {};
     let row = must(await db.from("products").select("id").eq("store_id", store.id).eq("sku", product.sku).maybeSingle(), `Read ${product.sku}`);
     if (row) {
-      must(await db.from("products").update(productFields).eq("id", row.id), `Update ${product.sku}`);
+      must(await db.from("products").update({ ...productFields, ...status }).eq("id", row.id), `Update ${product.sku}`);
     } else {
-      row = must(await db.from("products").insert(productFields).select("id").single(), `Create ${product.sku}`);
+      row = must(await db.from("products").insert({ ...productFields, status: "pending", ...status, quantity: 0 }).select("id").single(), `Create ${product.sku}`);
     }
 
     const imageRows = [];
@@ -262,18 +275,18 @@ export async function seed(db, { password, dropDir = DROP_DIR, convert = toWebp,
         sku: v.sku,
         attributes: { Color: v.colour },
         price: v.price,
-        quantity: v.quantity,
         image_url: publicUrl,
       };
+      // Stock is managed in the dashboard; the manifest only sets it on create.
       const existing = must(await db.from("product_variations").select("id").eq("product_id", row.id).eq("sku", v.sku).maybeSingle(), `Read ${v.sku}`);
       if (existing) must(await db.from("product_variations").update(variationFields).eq("id", existing.id), `Update ${v.sku}`);
-      else must(await db.from("product_variations").insert(variationFields), `Create ${v.sku}`);
+      else must(await db.from("product_variations").insert({ ...variationFields, quantity: v.quantity }), `Create ${v.sku}`);
     }
 
     must(await db.from("product_images").delete().eq("product_id", row.id), `Clear images ${product.sku}`);
     must(await db.from("product_images").insert(imageRows), `Save images ${product.sku}`);
     summary.push(`${product.name}: ${product.variations.map((v) => v.colour).join(", ")}`);
-    log(`  ✓ ${product.name} (${product.variations.length} colours)`);
+    log(`  ✓ ${product.name} — R${productFields.price} (${product.variations.length} colours)`);
   }
 
   return { userId: user.id, vendorId: vendor.id, storeId: store.id, products: summary };
@@ -286,7 +299,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const { rows, catalogue } = loadDrop();
     console.log(`Manifest OK: ${rows.length} SKUs, ${catalogue.length} products, all images present.`);
     if (dryRun) {
-      for (const p of catalogue) console.log(`  ${p.sku}  ${p.name}  [${p.category} / ${p.subcategory}]  ${p.variations.map((v) => v.colour).join(", ")}`);
+      for (const p of catalogue) console.log(`  ${p.sku}  ${p.name}  R${Math.min(...p.variations.map((v) => v.price))}  [${p.category} / ${p.subcategory}]  ${p.variations.map((v) => v.colour).join(", ")}`);
       const sample = await toWebp(join(DROP_DIR, "images", rows[0].image_filename));
       console.log(`WebP conversion OK (${rows[0].image_filename}: ${Math.round(sample.length / 1024)} KB)`);
       process.exit(0);
@@ -298,9 +311,10 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const { createClient } = await import("@supabase/supabase-js");
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const result = await seed(db, { password: process.env.MARKETPLACE_PASSWORD });
+    const approve = process.argv.includes("--approve");
+    const result = await seed(db, { password: process.env.MARKETPLACE_PASSWORD, approve });
     const site = (process.env.SITE_URL || "https://1145.io").replace(/\/$/, "");
-    console.log(`\nDone. Storefront: ${site}/store/${MARKETPLACE.storeSlug} (products are pending until an admin approves them)`);
+    console.log(`\nDone. Storefront: ${site}/store/${MARKETPLACE.storeSlug}${approve ? "" : " (new products are pending until an admin approves them)"}`);
     console.log(JSON.stringify(result, null, 2));
   } catch (err) {
     console.error(`\nSeed failed: ${err.message}`);
