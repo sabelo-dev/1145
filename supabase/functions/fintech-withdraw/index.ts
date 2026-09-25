@@ -88,7 +88,7 @@ serve(async (req) => {
       user_id: userId, type: "withdrawal_requested",
       title: "Withdrawal requested",
       message: `Your R${amount.toFixed(2)} withdrawal to ${bank.bank_name} •••• ${bank.account_last4} is pending review.`,
-    }).catch(() => {});
+    });
 
     return j({ success: true, withdrawal: wd });
   } catch (e) {

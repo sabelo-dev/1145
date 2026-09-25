@@ -3,6 +3,7 @@ import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const SITE_URL = Deno.env.get("SITE_URL") || "https://1145.io";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -103,7 +104,7 @@ const generateVendorEmailHtml = (
         </div>
         
         <div style="text-align: center; margin: 25px 0;">
-          <a href="https://hipomusjocacncjsvgfa.lovableproject.com/vendor/dashboard?tab=orders" style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          <a href="${SITE_URL}/vendor/dashboard?tab=orders" style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
             View in Dashboard
           </a>
         </div>
@@ -199,7 +200,7 @@ const generateAdminEmailHtml = (
         </div>
         
         <div style="text-align: center; margin: 25px 0;">
-          <a href="https://hipomusjocacncjsvgfa.lovableproject.com/admin/dashboard?tab=orders" style="display: inline-block; background: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          <a href="${SITE_URL}/admin/dashboard?tab=orders" style="display: inline-block; background: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
             View in Admin Dashboard
           </a>
         </div>

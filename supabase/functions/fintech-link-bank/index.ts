@@ -57,7 +57,7 @@ serve(async (req) => {
       user_id: u.user.id, type: "bank_linked",
       title: "Bank account added",
       message: `Your ${bank_name} account ending ${account_last4} is pending verification.`,
-    }).catch(() => {});
+    });
 
     return j({ success: true, bankAccount: data });
   } catch (e) {

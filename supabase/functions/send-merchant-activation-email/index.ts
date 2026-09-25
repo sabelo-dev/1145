@@ -93,24 +93,22 @@ serve(async (req) => {
       }
     }
 
-    // Optional SMS via GatewayAPI if configured
-    const GATEWAYAPI_API_KEY = Deno.env.get("GATEWAYAPI_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (GATEWAYAPI_API_KEY && LOVABLE_API_KEY && vendor.business_phone) {
+    // Optional SMS via GatewayAPI (direct REST API) if configured
+    const GATEWAYAPI_TOKEN = Deno.env.get("GATEWAYAPI_TOKEN");
+    if (GATEWAYAPI_TOKEN && vendor.business_phone) {
       const digits = String(vendor.business_phone).replace(/\D/g, "");
       if (digits.length >= 10) {
         try {
-          const smsRes = await fetch("https://connector-gateway.lovable.dev/gatewayapi/mobile/single", {
+          const smsRes = await fetch("https://gatewayapi.com/rest/mtsms", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "X-Connection-Api-Key": GATEWAYAPI_API_KEY,
+              Authorization: `Token ${GATEWAYAPI_TOKEN}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
               sender: "1145",
-              recipient: Number(digits),
               message: `${storeName} is now live on 1145. Manage your store: ${dashboardUrl}`,
+              recipients: [{ msisdn: Number(digits) }],
             }),
           });
           if (smsRes.ok) {

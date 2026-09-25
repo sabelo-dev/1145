@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
 
     const shipping = (order.shipping_address || {}) as Record<string, string>;
     const phone = toE164(shipping.phone || profile?.phone || "");
-    const appUrl = payload.appUrl || Deno.env.get("APP_URL") || "https://lifestyle1145.lovable.app";
+    const appUrl = payload.appUrl || Deno.env.get("APP_URL") || Deno.env.get("SITE_URL") || "https://1145.io";
     const text = messageFor(event, order, appUrl);
 
     const results: Array<Record<string, unknown>> = [];

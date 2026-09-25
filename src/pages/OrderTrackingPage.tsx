@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import ShipmentTracking from "@/components/orders/ShipmentTracking";
 import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 
@@ -75,8 +74,6 @@ const OrderTrackingPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
               </div>
             </CardContent>
           </Card>
-
-          <ShipmentTracking orderId={order.id} />
         </>
       )}
     </div>

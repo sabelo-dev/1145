@@ -15,7 +15,7 @@ interface SEOProps {
 const SEO = ({
   title = "1145 – Social Commerce Marketplace | Transact, Move, Stay & Influence in Africa",
   description = "1145 A social commerce platform that enables users to transact, move, stay and influence.",
-  keywords = "1145, 1145 Lifestyle, 1145 Africa, social commerce Africa,shop online Africa, sell online Africa, influencer marketplace,creator economy platform, TikTok shop integration, Instagram shopping,online marketplace Africa, ecommerce Africa, dropshipping Africa,multi-vendor marketplace, digital marketplace, earn online Africa",
+  keywords = "1145, 1145 Lifestyle, 1145 Africa, social commerce Africa,shop online Africa, sell online Africa, influencer marketplace,creator economy platform, TikTok shop integration, Instagram shopping,online marketplace Africa, ecommerce Africa, multi-vendor marketplace, digital marketplace, earn online Africa",
   image = `${getPlatformBaseUrl()}/og-image.png`,
   url,
   type = "website",

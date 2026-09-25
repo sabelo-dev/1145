@@ -183,20 +183,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
     setIsProcessing(true);
 
     try {
-      // Calculate order totals
-      const subtotal = cart.subtotal || 0;
-      const shipping = shippingCost;
-      const tax = subtotal * 0.15; // 15% VAT
-      const total = subtotal + shipping + tax;
-
       if (["cc", "ef", "mp", "mc", "sc", "ss"].includes(values.paymentMethod)) {
         const { data: paymentData, error } = await supabase.functions.invoke('payfast-payment', {
+          // The edge function prices the cart itself; totals here are display-only.
           body: {
-            amount: total,
             itemName: `Order for ${cart.items.length} items`,
             returnUrl: getAppUrl("/checkout/success"),
             cancelUrl: getAppUrl("/checkout/cancel"),
-            notifyUrl: getAppUrl("/api/payfast/notify"),
             customerEmail: values.email,
             customerFirstName: values.firstName,
             customerLastName: values.lastName,
@@ -212,7 +205,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
             cartItems: cart.items.map(item => ({
               productId: item.productId,
               quantity: item.quantity,
-              price: item.price,
+              variationId: item.variationId,
             })),
           },
         });

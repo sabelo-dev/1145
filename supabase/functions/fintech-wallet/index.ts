@@ -22,8 +22,9 @@ serve(async (req) => {
     if (!u?.user) return json({ error: "Unauthorized" }, 401);
     const userId = u.user.id;
 
-    // Ensure wallet exists
-    await supa.rpc("get_or_create_1145_wallet", { p_user_id: userId }).catch(() => {});
+    // Ensure wallet exists (server-only RPC, so use the service role)
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    await admin.rpc("get_or_create_1145_wallet", { p_user_id: userId });
 
     const [summaryRes, ledgerRes, cardsRes, banksRes, wdRes] = await Promise.all([
       supa.rpc("get_wallet_summary", { p_user_id: userId }),

@@ -23,9 +23,6 @@ export const useCustomDomainResolver = () => {
       const platformHosts = [
         "localhost",
         "127.0.0.1",
-        "lovable.app",
-        "lovableproject.com",
-        "lovable.dev",
         "1145.io",
         "www.1145.io",
       ];
