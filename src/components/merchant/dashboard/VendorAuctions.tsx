@@ -642,7 +642,7 @@ const VendorAuctions = () => {
             <p className="text-sm text-muted-foreground mb-4">
               {selectedAuction?.product?.name || "Auction"}
             </p>
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
               <div className="text-center p-3 bg-muted rounded-lg">
                 <p className="text-2xl font-bold">{auctionBids.length}</p>
                 <p className="text-xs text-muted-foreground">Total Bids</p>

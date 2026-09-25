@@ -207,7 +207,12 @@ export async function seed(db, { password, dropDir = DROP_DIR, convert = toWebp,
 
   // 3. Store.
   let store = must(await db.from("stores").select("id, slug").eq("vendor_id", vendor.id).maybeSingle(), "Read store");
-  const storeFields = { name: MARKETPLACE.name, slug: MARKETPLACE.storeSlug, description: MARKETPLACE.description };
+  const storeFields = {
+    name: MARKETPLACE.name,
+    slug: MARKETPLACE.storeSlug,
+    description: MARKETPLACE.description,
+    logo_url: `${(process.env.SITE_URL || "https://1145.io").replace(/\/+$/, "")}/logo.png`,
+  };
   if (store) {
     must(await db.from("stores").update(storeFields).eq("id", store.id), "Update store");
   } else {

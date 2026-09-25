@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useContext, useEffect, useRef } from "react";
 import { User, Profile } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +31,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isDriver, setIsDriver] = useState(false);
   const [isInfluencer, setIsInfluencer] = useState(false);
   const { toast } = useToast();
-  const loadingManager = useLoadingManager();
+  // Starts as "loading" so a page refresh never renders a signed-out frame
+  // (which made ProtectedRoute bounce users to the login page).
+  const loadingManager = useLoadingManager('auth');
+  // Id of the user whose profile is currently loaded; lets us skip refetching
+  // on the SIGNED_IN / TOKEN_REFRESHED events Supabase re-emits on tab focus.
+  const loadedUserIdRef = useRef<string | null>(null);
 
   const getRedirectPathForRole = async (userRole: string, isMerchantApproved: boolean, isDriverUser: boolean, isInfluencerUser: boolean, userId: string, isLogin: boolean = true): Promise<string> => {
     if (userRole === 'admin') return '/admin/dashboard';
@@ -54,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearAuthState = () => {
+    loadedUserIdRef.current = null;
     setUser(null);
     setSession(null);
     setIsMerchant(false);
@@ -139,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailVerified: !!session.user.email_confirmed_at,
         };
         setUser(userData);
+        loadedUserIdRef.current = profile.id;
         
         setIsAdmin(userRoles.includes('admin'));
         setIsInfluencer(userRoles.includes('influencer'));
@@ -156,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailVerified: !!session.user.email_confirmed_at,
         };
         setUser(userData);
+        loadedUserIdRef.current = session.user.id;
         setIsAdmin(false);
         setIsMerchant(false);
         setIsDriver(false);
@@ -184,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Safety timeout to prevent infinite loading
     const safetyTimeout = setTimeout(() => {
-      if (mounted && loadingManager.isLoading) {
+      if (mounted && loadingManager.isBusy()) {
         console.warn('Auth loading safety timeout reached, forcing loading complete');
         loadingManager.stopLoading();
       }
@@ -245,6 +253,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearAuthState();
             loadingManager.stopLoading();
           } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            if (session?.user?.id && session.user.id === loadedUserIdRef.current) return;
             setTimeout(async () => {
               if (mounted && session) {
                 await loadUserProfile(session);

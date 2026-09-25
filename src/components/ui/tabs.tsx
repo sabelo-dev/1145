@@ -12,7 +12,10 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-11 max-w-full items-center justify-center gap-1 overflow-x-auto rounded-full bg-muted p-1 text-muted-foreground no-scrollbar",
+      // "safe center": centred when it fits, start-aligned when it overflows —
+      // plain justify-center pushed the first tabs off-screen where they
+      // could not be scrolled back into view on phones.
+      "inline-flex h-11 max-w-full items-center [justify-content:safe_center] gap-1 overflow-x-auto rounded-full bg-muted p-1 text-muted-foreground no-scrollbar",
       className
     )}
     {...props}

@@ -302,8 +302,8 @@ const InfluencerOnboardingPage: React.FC = () => {
             {step === 2 && (
               <div className="space-y-3">
                 {socials.map((s, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-end">
-                    <div className="col-span-4">
+                  <div key={i} className="grid grid-cols-1 gap-2 rounded-xl border border-border p-3 sm:grid-cols-12 sm:items-end sm:border-0 sm:p-0">
+                    <div className="sm:col-span-4">
                       <Label>Platform</Label>
                       <Select value={s.platform} onValueChange={(v) => setSocials((arr) => arr.map((x, j) => j === i ? { ...x, platform: v } : x))}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
@@ -312,11 +312,11 @@ const InfluencerOnboardingPage: React.FC = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="col-span-3">
+                    <div className="sm:col-span-3">
                       <Label>Handle</Label>
                       <Input value={s.handle} onChange={(e) => setSocials((arr) => arr.map((x, j) => j === i ? { ...x, handle: e.target.value } : x))} placeholder="@handle" />
                     </div>
-                    <div className="col-span-5">
+                    <div className="sm:col-span-5">
                       <Label>Profile URL</Label>
                       <Input value={s.url} onChange={(e) => setSocials((arr) => arr.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} placeholder="https://..." />
                     </div>
