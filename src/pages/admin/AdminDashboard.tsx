@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import {
@@ -53,6 +53,7 @@ import AdminLeaseAnalytics from "@/components/admin/AdminLeaseAnalytics";
 import AdminRiskMonitoring from "@/components/admin/AdminRiskMonitoring";
 import SafetyComplianceDashboard from "@/components/admin/SafetyComplianceDashboard";
 import EmergencyMonitor from "@/components/admin/EmergencyMonitor";
+import { useUrlTab } from "@/hooks/useUrlTab";
 import {
   LayoutDashboard,
   Users,
@@ -82,7 +83,7 @@ import {
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useUrlTab("overview");
 
   const handleLogout = async () => {
     try {

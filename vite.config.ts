@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // UpdatePrompt asks before reloading
       injectRegister: false, // we register manually with iframe/preview guards
       devOptions: { enabled: false },
       includeAssets: ['favicon.ico', 'logo.png', 'pwa-icon-512.png', 'pwa-icon-512.png'],

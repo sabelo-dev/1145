@@ -420,7 +420,7 @@ const VendorAdCredits = () => {
                         <span className="font-medium">{campaign.credits_used} / {campaign.credit_budget} credits</span>
                       </div>
                       <Progress value={budgetUsedPercent} />
-                      <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-3 gap-2 sm:gap-4 text-sm">
                         <div>
                           <p className="text-muted-foreground">Triggers</p>
                           <p className="font-medium">{campaign.trigger_count}</p>

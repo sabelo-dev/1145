@@ -864,7 +864,7 @@ const AdminAuctions = () => {
                   bids={auctionBids} 
                   startingBid={selectedAuction?.starting_bid_price || 0} 
                 />
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 border-t">
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Total Bids</p>
                     <p className="text-xl font-bold">{auctionBids.length}</p>

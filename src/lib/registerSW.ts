@@ -5,6 +5,12 @@
  */
 import { Capacitor } from '@capacitor/core';
 
+export const PWA_UPDATE_EVENT = 'pwa:need-refresh';
+let pendingUpdate: (() => Promise<void>) | null = null;
+
+/** Set once a new version is waiting; call it to activate the update and reload. */
+export const getPendingUpdate = () => pendingUpdate;
+
 export async function registerServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
@@ -35,10 +41,17 @@ export async function registerServiceWorker() {
 
   try {
     const { registerSW } = await import('virtual:pwa-register');
-    registerSW({
+    const updateSW = registerSW({
       immediate: false,
       onNeedRefresh() {
-        console.info('[pwa] new app version available — refresh is required, but it will not reload automatically');
+        // Never reload on our own (it could interrupt a checkout); UpdatePrompt
+        // shows an "Update" toast and calls this when the user is ready.
+        pendingUpdate = () => updateSW(true);
+        window.dispatchEvent(new Event(PWA_UPDATE_EVENT));
+      },
+      onRegisteredSW(_url, registration) {
+        // Tabs left open for days still hear about new releases.
+        if (registration) setInterval(() => registration.update().catch(() => {}), 60 * 60 * 1000);
       },
       onOfflineReady() {
         console.info('[pwa] app is ready to work offline');

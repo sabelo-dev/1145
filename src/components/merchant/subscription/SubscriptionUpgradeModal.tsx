@@ -271,7 +271,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                   <p className="text-sm text-muted-foreground mb-3">
                     If you sell R10,000/month, Bronze pays for itself with commission savings!
                   </p>
-                  <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                     <div>
                       <p className="text-xs text-muted-foreground">Monthly Sales</p>
                       <p className="font-bold">R10,000</p>

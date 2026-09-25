@@ -21,8 +21,8 @@ const buttonVariants = cva(
           `bg-surface-input text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed ${solidDisabled}`,
         ghost: "text-foreground hover:bg-surface-hover hover:text-brand active:bg-surface-pressed disabled:text-disabled-foreground disabled:opacity-100",
         link: "text-foreground underline underline-offset-4 decoration-current hover:text-brand active:text-brand-pressed disabled:text-disabled-foreground",
-        /** Primary CTA — black surface, always white text */
-        cta: `bg-cta text-cta-foreground shadow-soft hover:bg-brand hover:text-brand-foreground active:bg-brand-pressed ${solidDisabled}`,
+        /** Primary CTA — the single brand action colour */
+        cta: `bg-cta text-cta-foreground shadow-soft hover:bg-brand-hover active:bg-brand-pressed ${solidDisabled}`,
         /** 1145 secondary action — brand outline on light surfaces */
         cyanOutline:
           `border border-brand bg-transparent text-brand hover:bg-surface-selected active:bg-surface-pressed ${solidDisabled}`,

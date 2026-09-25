@@ -599,7 +599,7 @@ const VendorShopfront = () => {
             <CardTitle>Analytics Dashboard</CardTitle>
           </CardHeader>
           <CardContent className="min-h-[200px]">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {['Views', 'Sales', 'Conversion'].map(label => (
                 <div key={label} className="bg-muted rounded-lg p-4 text-center">
                   <p className="text-2xl font-bold text-muted-foreground">---</p>

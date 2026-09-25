@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useAuthReady } from "@/hooks/useAuthReady";
 import PanicButton from "@/components/emergency/PanicButton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,7 @@ import DriverRideHistory from "./DriverRideHistory";
 import DriverRideAnalytics from "./DriverRideAnalytics";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import ZoneComplianceIndicator from "./ZoneComplianceIndicator";
+import { useUrlTab } from "@/hooks/useUrlTab";
 import {
   LayoutDashboard,
   Truck,
@@ -95,7 +96,7 @@ const SIDEBAR_ITEMS = [
 const DriverDashboard: React.FC = () => {
   const { user, isReady } = useAuthReady();
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useUrlTab("overview");
 
   const { data: driver, isLoading: driverLoading, refetch } = useQuery({
     queryKey: ["driver-profile", user?.id],
