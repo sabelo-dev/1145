@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <p>Don't let this item slip away! Place a higher bid now to stay in the running.</p>
               
-              <a href="${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovable.app')}/auctions" class="cta-button">
+              <a href="${Deno.env.get("SITE_URL") || "https://1145.io"}/auctions" class="cta-button">
                 Place a New Bid
               </a>
               

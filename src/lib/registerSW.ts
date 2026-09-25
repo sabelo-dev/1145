@@ -1,7 +1,7 @@
 /**
  * Safe service-worker registration for PWA installs.
- * Skips registration in iframes (Lovable preview) and on preview hosts
- * to avoid stale cached shells during development.
+ * Skips registration in iframes and during local development to avoid
+ * stale cached shells.
  */
 import { Capacitor } from '@capacitor/core';
 
@@ -20,10 +20,7 @@ export async function registerServiceWorker() {
   })();
 
   const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes('id-preview--') ||
-    host.includes('lovableproject.com') ||
-    host.includes('lovable.app');
+  const isPreviewHost = host === 'localhost' || host === '127.0.0.1';
 
   if (isInIframe || isPreviewHost) {
     // Aggressively unregister any leftover SW from previous sessions

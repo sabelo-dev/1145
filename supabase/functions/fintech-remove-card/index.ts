@@ -29,7 +29,7 @@ serve(async (req) => {
     await admin.from("user_notifications").insert({
       user_id: u.user.id, type: "card_removed",
       title: "Card removed", message: "A payment card has been removed from your wallet.",
-    }).catch(() => {});
+    });
 
     return j({ success: true });
   } catch (e) {

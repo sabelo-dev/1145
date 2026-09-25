@@ -126,19 +126,16 @@ const AuctionCheckoutPage: React.FC = () => {
     
     setProcessing(true);
     
-    const { auction, registration } = winDetails;
-    const depositAmount = registration.registration_fee_paid;
-    const remainingAmount = auction.winning_bid - depositAmount;
-    
+    const { auction } = winDetails;
+
     try {
       // Invoke PayFast payment
       const { data: paymentData, error } = await supabase.functions.invoke('payfast-payment', {
+        // Amount is computed server-side from the winning bid and paid deposit.
         body: {
-          amount: remainingAmount,
           itemName: `Auction Win: ${auction.product?.name || 'Auction Item'}`,
           returnUrl: getAppUrl(`/auction-checkout/success?auctionId=${auction.id}`),
           cancelUrl: getAppUrl(`/auction-checkout?auctionId=${auction.id}`),
-          notifyUrl: `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/payfast-itn`,
           customerEmail: user.email,
           customStr1: auction.id,
           customStr2: "auction_winner_payment",

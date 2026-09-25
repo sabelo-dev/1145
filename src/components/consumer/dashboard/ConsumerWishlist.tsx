@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, ShoppingCart, Trash2 } from "lucide-react";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCart } from "@/contexts/CartContext";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -85,7 +86,7 @@ const ConsumerWishlist: React.FC = () => {
     addToCart({
       productId: product.id,
       name: product.name,
-      price: product.price,
+      price: applyPlatformMarkup(product.price),
       image: product.images?.[0]?.image_url || "/placeholder.svg",
     });
   };
@@ -177,7 +178,7 @@ const ConsumerWishlist: React.FC = () => {
                     
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-semibold">
-                        R{product.price.toFixed(2)}
+                        R{applyPlatformMarkup(product.price).toFixed(2)}
                       </span>
                       {product.compare_at_price && product.compare_at_price > product.price && (
                         <span className="text-sm text-muted-foreground line-through">

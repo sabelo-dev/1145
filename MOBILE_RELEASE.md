@@ -1,7 +1,7 @@
 # 1145 Lifestyle — Play Store / App Store Release Checklist
 
-This checklist is what to do **on your own machine** after exporting the
-project from Lovable. The Lovable sandbox cannot build native binaries.
+This checklist is what to do **on your own machine** to build and ship the
+native Android and iOS apps.
 
 ---
 
@@ -10,7 +10,7 @@ project from Lovable. The Lovable sandbox cannot build native binaries.
 | Field           | Value                                              |
 | --------------- | -------------------------------------------------- |
 | App name        | `1145 Lifestyle`                                   |
-| App ID          | `app.lovable.d08594899381447fa1862612cdbf9227`     |
+| App ID          | `io.app.d646f6e6c9f5b90d0c952cb2bdf4d7`            |
 | Web dir         | `dist`                                             |
 | Version (web)   | `package.json → version` — bump before every release |
 
@@ -29,7 +29,7 @@ Play Store requires **two** version identifiers. They live in
 ```gradle
 android {
   defaultConfig {
-    applicationId "app.lovable.d08594899381447fa1862612cdbf9227"
+    applicationId "io.app.d646f6e6c9f5b90d0c952cb2bdf4d7"
     versionCode 2       // integer, +1 every upload (Play Store dedupes on this)
     versionName "1.0.1" // human-readable, matches package.json
   }
@@ -127,7 +127,7 @@ For a store build you **must** supply your own key:
 2. Enable: Maps JavaScript API, Places API (New), Geocoding, Routes.
 3. Restrict the key by **Application → Android apps** (package name +
    SHA-1 fingerprint) and **iOS apps** (bundle ID). Add HTTP referrers
-   `https://1145.io/*` and `https://*.lovable.app/*` for web.
+   `https://1145.io/*` and `https://www.1145.io/*` for web.
 4. Add to `.env` before `npm run build`:
    ```
    VITE_GOOGLE_MAPS_API_KEY=AIzaSy...

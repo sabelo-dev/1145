@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "build:dev": "vite build --mode development"
+    "build:dev": "vite build --mode development",
+    "seed:marketplace": "node scripts/seed-marketplace.mjs"
   },
   "overrides": {
     "@opentelemetry/core": "2.8.0",

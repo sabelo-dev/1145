@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => ({
   },
   // Strip console.* and debugger statements from production bundles so no
   // debug output leaks into the Play Store / App Store builds. Development
-  // and Lovable preview builds keep them for troubleshooting.
+  // builds keep them for troubleshooting.
   esbuild: mode === 'production' ? { drop: ['console', 'debugger'] } : {},
   build: {
     target: 'es2020',

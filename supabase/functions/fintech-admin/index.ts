@@ -57,16 +57,16 @@ serve(async (req) => {
             p_user_id: wd.user_id, p_bucket: "withdrawal", p_amount: wd.amount,
             p_type: "withdrawal_completed", p_provider: "manual",
             p_related_type: "withdrawal_request", p_related_id: wdId,
-          }).catch(() => {});
+          });
           await admin.rpc("debit_wallet", {
             p_user_id: wd.user_id, p_bucket: "withdrawal", p_amount: wd.amount,
             p_type: "withdrawal_completed", p_provider: "manual",
             p_related_type: "withdrawal_request", p_related_id: wdId,
-          }).catch(() => {});
+          });
           await admin.from("user_notifications").insert({
             user_id: wd.user_id, type: "withdrawal_completed",
             title: "Withdrawal approved", message: `Your R${Number(wd.amount).toFixed(2)} withdrawal has been paid out.`,
-          }).catch(() => {});
+          });
         } else if (decision === "reject") {
           // Refund
           await admin.rpc("credit_wallet", {
@@ -82,7 +82,7 @@ serve(async (req) => {
           await admin.from("user_notifications").insert({
             user_id: wd.user_id, type: "withdrawal_rejected",
             title: "Withdrawal rejected", message: reason || "Your withdrawal was rejected and funds returned to your wallet.",
-          }).catch(() => {});
+          });
         } else return j({ error: "Invalid decision" }, 400);
 
         await audit({ decision, reason, wd_amount: wd.amount }, "withdrawal_request", wdId);
@@ -107,7 +107,7 @@ serve(async (req) => {
           user_id: targetUserId, type: freeze ? "wallet_frozen" : "wallet_unfrozen",
           title: freeze ? "Wallet frozen" : "Wallet reactivated",
           message: freeze ? "Your 1145 Wallet has been frozen. Contact support." : "Your 1145 Wallet is active again.",
-        }).catch(() => {});
+        });
         await audit({ freeze }, "wallet", targetUserId);
         return j({ success: true });
       }

@@ -5,10 +5,11 @@ import { useEffect } from "react";
  *
  * Auth flows (login, register, password reset, OAuth callbacks, email confirmation)
  * frequently redirect to the configured SITE_URL (e.g. https://1145.io).
- * When the app is rendered inside the Lovable preview iframe (a different origin),
- * the browser blocks that navigation with a `chrome-error://chromewebdata/` failure.
+ * When the app is rendered inside an iframe on a different origin, the browser
+ * blocks that navigation with a `chrome-error://chromewebdata/` failure.
  *
- * Promoting auth pages to the top frame keeps origins consistent so redirects work.
+ * Promoting auth pages to the top frame keeps origins consistent so redirects work,
+ * and stops login forms from being framed by other sites (clickjacking).
  *
  * @param enabled - set to false to opt out (e.g. when intentionally embedded)
  */
@@ -21,15 +22,9 @@ export const useFrameBreakout = (enabled: boolean = true) => {
       const inIframe = window.self !== window.top;
       if (!inIframe) return;
 
-      // Skip breakout in known dev/preview sandboxes so contributors can keep
-      // testing inside the Lovable editor. Only break out on production hosts.
+      // Skip breakout during local development only.
       const host = window.location.hostname;
-      const isPreview =
-        host.endsWith(".lovable.app") ||
-        host.endsWith(".lovableproject.com") ||
-        host.endsWith(".lovable.dev") ||
-        host === "localhost" ||
-        host === "127.0.0.1";
+      const isPreview = host === "localhost" || host === "127.0.0.1";
 
       if (isPreview) return;
 

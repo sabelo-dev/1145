@@ -30,83 +30,24 @@ const AuctionCheckoutSuccessPage: React.FC = () => {
 
   const confirmPayment = async () => {
     try {
-      // Update auction status to completed
-      const { error: auctionError } = await supabase
-        .from("auctions")
-        .update({ status: "completed" })
-        .eq("id", auctionId)
-        .eq("winner_id", user?.id);
-
-      if (auctionError) throw auctionError;
-
-      // Mark deposit as applied
-      const { error: regError } = await supabase
-        .from("auction_registrations")
-        .update({ deposit_applied: true })
-        .eq("auction_id", auctionId)
-        .eq("user_id", user?.id);
-
-      if (regError) throw regError;
-
-      // Create order from auction
-      const { data: auction } = await supabase
-        .from("auctions")
-        .select(`
-          *,
-          product:products(id, name, price, store_id)
-        `)
-        .eq("id", auctionId)
-        .single();
-
-      if (auction) {
-        // Get user's default address
-        const { data: address } = await supabase
-          .from("user_addresses")
-          .select("*")
-          .eq("user_id", user?.id)
-          .eq("is_default", true)
+      // PayFast's ITN (payfast-itn) completes the auction and creates the order
+      // server-side once payment is verified. Wait for that instead of writing
+      // payment state from the browser.
+      let completed = false;
+      for (let attempt = 0; attempt < 10 && !completed; attempt++) {
+        const { data: auction, error } = await supabase
+          .from("auctions")
+          .select("status")
+          .eq("id", auctionId)
+          .eq("winner_id", user?.id)
           .maybeSingle();
 
-        const shippingAddress = address ? {
-          name: address.name,
-          street: address.street,
-          city: address.city,
-          province: address.province,
-          postal_code: address.postal_code,
-          country: address.country,
-          phone: address.phone,
-        } : {};
-
-        // Create the order
-        const { data: order, error: orderError } = await supabase
-          .from("orders")
-          .insert({
-            user_id: user?.id,
-            total: auction.winning_bid,
-            status: "processing",
-            payment_status: "paid",
-            payment_method: "payfast",
-            shipping_address: shippingAddress,
-            notes: `Auction win for ${auction.product?.name}`,
-          })
-          .select()
-          .single();
-
-        if (!orderError && order) {
-          // Create order item
-          await supabase
-            .from("order_items")
-            .insert({
-              order_id: order.id,
-              product_id: auction.product?.id,
-              store_id: auction.product?.store_id,
-              quantity: 1,
-              price: auction.winning_bid,
-              status: "pending",
-              vendor_status: "pending",
-            });
-        }
+        if (error) throw error;
+        completed = auction?.status === "completed";
+        if (!completed) await new Promise((resolve) => setTimeout(resolve, 3000));
       }
+
+      if (!completed) throw new Error("Payment not yet confirmed by PayFast");
 
       setSuccess(true);
       toast({
@@ -174,7 +115,8 @@ const AuctionCheckoutSuccessPage: React.FC = () => {
               <>
                 <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
                 <p className="text-muted-foreground mb-6">
-                  We couldn't confirm your payment. If you were charged, please contact support.
+                  We haven't received payment confirmation from PayFast yet. It can take a few minutes —
+                  check your orders shortly. If you were charged and no order appears, please contact support.
                 </p>
                 <Button onClick={() => navigate("/auctions")} className="w-full">
                   Back to Auctions
