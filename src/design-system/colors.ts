@@ -22,15 +22,15 @@ export const colors = {
   surface: {
     white: "#FFFFFF",
     soft: "#F4F6F9",
-    border: "#E2E7EF",
+    border: "#E4E6EB",
   },
   text: {
     primary: "#202532",
-    secondary: "#667085",
+    secondary: "#66707F",
     inverse: "#FFFFFF",
   },
   status: {
-    success: "#16A34A",
+    success: "#16863F",
     warning: "#F59E0B",
     error: "#DC2626",
     info: "#2563EB",

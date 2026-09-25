@@ -37,6 +37,9 @@ const ShopPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  // Slider ceiling follows the most expensive product (was a fixed R2000,
+  // which hid anything pricier after "Clear all").
+  const [maxPrice, setMaxPrice] = useState(2000);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
   const [sortBy, setSortBy] = useState<string>("featured");
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -55,7 +58,7 @@ const ShopPage: React.FC = () => {
   const handleClearAll = () => {
     setSearchQuery("");
     setSelectedCategory("");
-    setPriceRange([0, 2000]);
+    setPriceRange([0, maxPrice]);
     setInStockOnly(false);
     setSelectedBrands([]);
     setSortBy("featured");
@@ -87,8 +90,9 @@ const ShopPage: React.FC = () => {
         
         // Update max price range based on actual products
         if (productsData.length > 0) {
-          const maxPrice = Math.max(...productsData.map(p => p.price));
-          setPriceRange([0, Math.ceil(maxPrice / 100) * 100]);
+          const ceiling = Math.max(100, Math.ceil(Math.max(...productsData.map(p => p.price)) / 100) * 100);
+          setMaxPrice(ceiling);
+          setPriceRange([0, ceiling]);
         }
       } catch (error) {
         console.error('Error loading shop data:', error);
@@ -174,7 +178,7 @@ const ShopPage: React.FC = () => {
     selectedBrands.length > 0 ||
     sortBy !== "featured" ||
     priceRange[0] > 0 ||
-    priceRange[1] < 2000;
+    priceRange[1] < maxPrice;
 
   if (loading) {
     return (
@@ -435,7 +439,7 @@ const ShopPage: React.FC = () => {
                       <Slider
                         value={priceRange}
                         min={0}
-                        max={2000}
+                        max={maxPrice}
                         step={10}
                         onValueChange={(value) => setPriceRange(value as [number, number])}
                       />
@@ -541,17 +545,30 @@ const ShopPage: React.FC = () => {
             {sortedProducts.length > 0 ? (
               <ProductGrid products={sortedProducts} />
             ) : (
-              <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
-                <h3 className="text-lg font-medium mb-2">No products found</h3>
-                <p className="text-gray-600">
-                  Try adjusting your filters to find what you're looking for.
-                </p>
-                <Button
-                  className="mt-4 bg-wwe-navy hover:bg-wwe-navy/90"
-                  onClick={handleClearAll}
-                >
-                  Clear All Filters
-                </Button>
+              <div className="rounded-2xl border border-dashed border-border bg-surface-muted px-6 py-14 text-center">
+                {products.length === 0 ? (
+                  <>
+                    <h3 className="text-lg font-semibold">New products are on the way</h3>
+                    <p className="mx-auto mt-2 max-w-sm text-sm text-text-secondary">
+                      Merchants are stocking their stores. In the meantime, explore the official 1145 store.
+                    </p>
+                    <Button asChild variant="cta" className="mt-5">
+                      <Link to="/store/marketplace">Visit the 1145 store</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold">No matches</h3>
+                    <p className="mx-auto mt-2 max-w-sm text-sm text-text-secondary">
+                      Nothing fits these filters. Try a different search or widen the price range.
+                    </p>
+                    {hasActiveFilters && (
+                      <Button variant="cta" className="mt-5" onClick={handleClearAll}>
+                        Clear all filters
+                      </Button>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>

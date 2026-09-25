@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useUrlTab } from "@/hooks/useUrlTab";
 import {
   Sidebar,
   SidebarContent,
@@ -72,16 +73,9 @@ const tabToModuleMap: Record<string, string> = {
 
 const ConsumerDashboard: React.FC = () => {
   const { user, isLoading } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [activeModule, setActiveModule] = useState("overview");
-
-  // Handle URL tab parameter
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam && tabToModuleMap[tabParam]) {
-      setActiveModule(tabToModuleMap[tabParam]);
-    }
-  }, [searchParams]);
+  // The active module lives in the URL (?tab=orders) so refreshes keep it.
+  const [tabParam, setActiveModule] = useUrlTab("overview");
+  const activeModule = tabToModuleMap[tabParam] ?? tabParam;
 
   if (isLoading) {
     return (

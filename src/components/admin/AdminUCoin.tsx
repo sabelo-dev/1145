@@ -509,7 +509,7 @@ export default function AdminUCoin() {
                   onChange={(e) => setEditingOption({ ...editingOption, description: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <Label>Cost (UCoin)</Label>
                   <Input
@@ -655,7 +655,7 @@ export default function AdminUCoin() {
                 onChange={(e) => setNewOption({ ...newOption, description: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <Label>Cost (UCoin)</Label>
                 <Input

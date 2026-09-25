@@ -213,7 +213,7 @@ const DriverLiveTracking: React.FC<DriverLiveTrackingProps> = ({ driver }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 border-t">
                 <div className="flex items-center gap-2">
                   {getSignalIcon()}
                   <div>

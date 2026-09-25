@@ -51,7 +51,7 @@ const ContactList: React.FC = () => (
   <ul className="space-y-3 text-sm text-gray-300">
     <li className="flex items-start">
       <MapPin size={18} className="mr-2 mt-0.5 flex-shrink-0" />
-      <span>RSA</span>
+      <span>South Africa</span>
     </li>
     <li className="flex items-center">
       <Phone size={18} className="mr-2 flex-shrink-0" />

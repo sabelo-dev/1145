@@ -251,7 +251,7 @@ const AdminReviews: React.FC = () => {
           <CardTitle>Review Status Distribution</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold">{analytics.approvedCount}</div>
               <Badge variant="default" className="mt-2">Approved</Badge>

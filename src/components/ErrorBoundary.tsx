@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { isChunkLoadError } from "@/lib/lazyWithRetry";
 
 interface Props {
   children: ReactNode;
@@ -30,14 +31,19 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
+      const outdated = isChunkLoadError(this.state.error);
 
       return (
         <div className="min-h-[400px] flex items-center justify-center p-8">
           <div className="text-center max-w-md space-y-4">
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
-            <h2 className="text-xl font-semibold text-foreground">Something went wrong</h2>
+            <h2 className="text-xl font-semibold text-foreground">
+              {outdated ? "A new version of 1145 is ready" : "Something went wrong"}
+            </h2>
             <p className="text-sm text-muted-foreground">
-              {this.state.error?.message || "An unexpected error occurred."}
+              {outdated
+                ? "Reload to get the latest version. Nothing you saved is lost."
+                : this.state.error?.message || "An unexpected error occurred."}
             </p>
             <div className="flex gap-2 justify-center">
               <Button onClick={this.handleReset} variant="outline" size="sm">

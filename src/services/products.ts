@@ -189,13 +189,23 @@ export const fetchStoreBySlug = async (storeSlug: string) => {
 /**
  * Fetches all products from database
  */
+// Several sections (featured, trending, new arrivals…) derive from the same
+// catalogue; share one request for a short window instead of refetching it.
+const CATALOGUE_TTL_MS = 30_000;
+let catalogueCache: { at: number; promise: Promise<Product[]> } | null = null;
+
 export const fetchAllProducts = async (): Promise<Product[]> => {
-  try {
-    return await fetchDatabaseProducts();
-  } catch (error) {
-    console.error('Error fetching all products:', error);
-    return [];
+  // Callers sort in place, so each gets its own copy of the shared list.
+  if (catalogueCache && Date.now() - catalogueCache.at < CATALOGUE_TTL_MS) {
+    return (await catalogueCache.promise).slice();
   }
+  const promise = fetchDatabaseProducts().catch((error) => {
+    console.error('Error fetching all products:', error);
+    catalogueCache = null; // don't cache failures
+    return [] as Product[];
+  });
+  catalogueCache = { at: Date.now(), promise };
+  return (await promise).slice();
 };
 
 /**

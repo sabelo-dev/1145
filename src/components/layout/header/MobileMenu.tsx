@@ -141,7 +141,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Home</p>
                 <div className="space-y-1">
                   <Link to="/category/home-kitchen/appliances" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Appliances</Link>
-                  <Link to="/category/home-kitchen/kitchen" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Electronics</Link>
+                  <Link to="/category/home-kitchen/kitchen" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Kitchen</Link>
                   <Link to="/category/home-kitchen/furniture" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Furniture</Link>
                 </div>
               </div>
