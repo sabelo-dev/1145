@@ -39,7 +39,7 @@ export function AffiliateTierCard({ affiliateStatus, nextTier, tierProgress }: A
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
           <div>
             <p className="text-2xl font-bold">{affiliateStatus?.total_conversions || 0}</p>
             <p className="text-xs text-muted-foreground">Conversions</p>

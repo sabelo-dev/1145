@@ -132,11 +132,13 @@ const handler = async (req: Request): Promise<Response> => {
       trackingNumber,
       courierCompany,
       estimatedDelivery,
-      siteUrl
     }: OrderStatusEmailRequest = await req.json();
 
+    // Links always point at our own site; never trust a caller-supplied URL.
+    const siteUrl = Deno.env.get("SITE_URL") || "https://1145.io";
+
     console.log(`Processing email for order ${orderId} with status ${newStatus}`);
-    console.log(`Site URL: ${siteUrl}, Tracking Number: ${trackingNumber}`);
+    console.log(`Tracking Number: ${trackingNumber}`);
 
     if (!customerEmail) {
       throw new Error("Customer email is required");
@@ -151,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
       trackingNumber,
       courierCompany,
       estimatedDelivery,
-      siteUrl || 'https://hipomusjocacncjsvgfa.lovableproject.com'
+      siteUrl
     );
 
     const emailResponse = await resend.emails.send({

@@ -2,24 +2,67 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, ArrowRight, Check } from "lucide-react";
+import { Mail, ArrowRight, Check, AlertCircle, Loader2 } from "lucide-react";
+import { subscribeToNewsletter } from "@/services/newsletterService";
+import { toast } from "sonner";
 
 interface StorefrontNewsletterProps {
   title?: string;
   accentColor: string;
   storeName: string;
+  storeId?: string;
 }
 
 const StorefrontNewsletter: React.FC<StorefrontNewsletterProps> = ({
   title,
   accentColor,
   storeName,
+  storeId,
 }) => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    if (email) setSubmitted(true);
+  const validateEmail = (emailStr: string): boolean => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(emailStr);
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+
+    // Validate email format
+    if (!email.trim()) {
+      setError("Please enter an email address");
+      return;
+    }
+
+    if (!validateEmail(email.trim())) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!storeId) {
+      setError("Store ID is missing");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await subscribeToNewsletter(email, storeId);
+
+      toast.success("Successfully subscribed to our newsletter!");
+      setSubmitted(true);
+      setEmail("");
+      setError(null);
+    } catch (err) {
+      console.error("Newsletter subscription error:", err);
+      setError("An error occurred. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,22 +109,43 @@ const StorefrontNewsletter: React.FC<StorefrontNewsletterProps> = ({
             You're subscribed!
           </motion.div>
         ) : (
-          <div className="flex gap-2">
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              type="email"
-              className="rounded-full"
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            />
-            <Button
-              onClick={handleSubmit}
-              className="rounded-full px-5 text-white"
-              style={{ backgroundColor: accentColor }}
-            >
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Input
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(null);
+                }}
+                placeholder="Enter your email"
+                type="email"
+                className="rounded-full"
+                disabled={isLoading}
+                onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSubmit()}
+              />
+              <Button
+                onClick={handleSubmit}
+                className="rounded-full px-5 text-white"
+                style={{ backgroundColor: accentColor }}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-2 rounded-lg"
+              >
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{error}</span>
+              </motion.div>
+            )}
           </div>
         )}
       </motion.div>
@@ -90,3 +154,4 @@ const StorefrontNewsletter: React.FC<StorefrontNewsletterProps> = ({
 };
 
 export default StorefrontNewsletter;
+

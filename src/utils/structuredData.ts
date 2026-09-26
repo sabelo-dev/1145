@@ -8,7 +8,7 @@ export const getOrganizationSchema = () => ({
   alternateName: ["1145", "1145lifestyle", "1145 SA", "1145 Shop"],
   url: getPlatformBaseUrl(),
   logo: `${getPlatformBaseUrl()}/uploads/logo.png`,
-  description: "1145 Lifestyle is South Africa's premier online marketplace for quality products from trusted merchants. Shop 1145 for fashion, electronics, home goods and more.",
+  description: "1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.",
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "Customer Service",

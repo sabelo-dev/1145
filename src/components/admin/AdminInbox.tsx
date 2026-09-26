@@ -229,7 +229,7 @@ const AdminInbox = () => {
           {selectedEmail ? (
             <>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
+                <div className="header-row">
                   <Button
                     variant="ghost"
                     size="sm"

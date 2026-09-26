@@ -77,12 +77,12 @@ import { toast } from "sonner";
 import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
 import type { SubscriptionTier } from "@/services/subscription";
 import { normalizeTier } from "@/utils/subscriptionTier";
+import { useUrlTab } from "@/hooks/useUrlTab";
 
 const VendorDashboard = () => {
   const { user, logout } = useAuth();
   const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") || "overview";
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useUrlTab("overview");
   const [vendorData, setVendorData] = useState<any>(null);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -371,7 +371,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
                 currentTier={normalizeTier(vendorData?.subscription_tier)}
                 onUpgrade={(tier, billing) => {
                   if (tier && billing) {
-                    void handleUpgrade(tier, billing);
+                    return onUpgrade(tier, billing);
                   } else {
                     setShowUpgradeModal(true);
                   }

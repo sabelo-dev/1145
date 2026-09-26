@@ -228,7 +228,7 @@ const CustomerDeliveryTracking: React.FC<CustomerDeliveryTrackingProps> = ({
       {/* Status Card */}
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+          <div className="header-row">
             <CardTitle className="text-lg">Delivery Status</CardTitle>
             <Button variant="ghost" size="sm" onClick={fetchDeliveryStatus}>
               <RefreshCw className="h-4 w-4" />

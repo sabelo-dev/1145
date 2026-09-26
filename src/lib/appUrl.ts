@@ -2,9 +2,6 @@ const DEFAULT_PLATFORM_BASE_URL = "https://1145.io";
 const PLATFORM_HOSTS = ["1145.io", "www.1145.io"];
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "::1"];
 const PREVIEW_HOST_SUFFIXES = [
-  ".lovable.app",
-  ".lovableproject.com",
-  ".lovable.dev",
   ".app.github.dev",
   ".github.dev",
   ".githubpreview.dev",

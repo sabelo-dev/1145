@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // UpdatePrompt asks before reloading
       injectRegister: false, // we register manually with iframe/preview guards
       devOptions: { enabled: false },
       includeAssets: ['favicon.ico', 'logo.png', 'pwa-icon-512.png', 'pwa-icon-512.png'],
@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => ({
   },
   // Strip console.* and debugger statements from production bundles so no
   // debug output leaks into the Play Store / App Store builds. Development
-  // and Lovable preview builds keep them for troubleshooting.
+  // builds keep them for troubleshooting.
   esbuild: mode === 'production' ? { drop: ['console', 'debugger'] } : {},
   build: {
     target: 'es2020',

@@ -95,14 +95,15 @@ const VendorOverview: React.FC<VendorOverviewProps> = ({ onNavigate }) => {
           .select('*')
           .in('store_id', storeIds);
 
-        // Fetch orders data
+        // Fetch paid orders only (unpaid checkouts aren't orders yet)
         const { data: orders } = await supabase
           .from('order_items')
           .select(`
             *,
-            orders(*)
+            orders!inner(*)
           `)
           .in('store_id', storeIds)
+          .eq('orders.payment_status', 'paid')
           .order('created_at', { ascending: false });
 
         // Fetch payouts data

@@ -1,6 +1,12 @@
 /// <reference types="google.maps" />
 import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { loadGoogleMaps } from "./GoogleMap";
+
+interface AddressSuggestion {
+  id: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
 
 interface PlacesAutocompleteProps {
   value: string;
@@ -20,21 +26,9 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
   icon,
 }, ref) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [ready, setReady] = useState(false);
-  const [loadError, setLoadError] = useState(false);
-
-  useEffect(() => {
-    loadGoogleMaps()
-      .then(() => {
-        setReady(true);
-        setLoadError(false);
-      })
-      .catch((error) => {
-        console.error("Google Places loading error:", error);
-        setLoadError(true);
-      });
-  }, []);
+  const selectedAddressRef = useRef<string | null>(null);
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (inputRef.current && inputRef.current.value !== value) {
@@ -42,44 +36,83 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
     }
   }, [value]);
 
+  // Keep destination entry independent of the embedded Google widget. Provider
+  // authorization errors otherwise render Google's own blocking dialog over
+  // the ride form. Manual entry remains available if search is unavailable.
   useEffect(() => {
-    if (!ready || loadError || !inputRef.current || autocompleteRef.current) return;
-
-    try {
-      const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-        componentRestrictions: { country: "za" },
-        fields: ["formatted_address", "geometry", "name"],
-      });
-
-      const listener = autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        const address = place.formatted_address || place.name || inputRef.current?.value || "";
-        const location = place.geometry?.location;
-
-        onChange(address);
-
-        if (location) {
-          onPlaceSelect({
-            address,
-            lat: location.lat(),
-            lng: location.lng(),
-          });
-        }
-      });
-
-      autocompleteRef.current = autocomplete;
-
-      return () => {
-        listener.remove();
-        if (autocompleteRef.current === autocomplete) {
-          autocompleteRef.current = null;
-        }
-      };
-    } catch {
-      console.warn("Google Autocomplete unavailable, falling back to manual input");
-      setLoadError(true);
+    if (selectedAddressRef.current === value) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
     }
-  }, [ready, loadError, onChange, onPlaceSelect]);
+
+    if (value.trim().length < 3) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setIsSearching(true);
+
+      try {
+        const params = new URLSearchParams({
+          q: value.trim(),
+          format: "jsonv2",
+          addressdetails: "1",
+          limit: "5",
+          countrycodes: "za",
+        });
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
+
+        if (!response.ok) throw new Error("Address search failed");
+
+        const results: Array<{ place_id: number; display_name: string; lat: string; lon: string }> = await response.json();
+        setSuggestions(
+          results
+            .map((place) => ({
+              id: String(place.place_id),
+              address: place.display_name,
+              lat: Number(place.lat),
+              lng: Number(place.lon),
+            }))
+            .filter((place) => Number.isFinite(place.lat) && Number.isFinite(place.lng)),
+        );
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          setSuggestions([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsSearching(false);
+      }
+    }, 800);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [value]);
+
+  const selectSuggestion = (suggestion: AddressSuggestion) => {
+    selectedAddressRef.current = suggestion.address;
+    onChange(suggestion.address);
+    onPlaceSelect(suggestion);
+    setSuggestions([]);
+  };
+
+  const openGoogleMapsSearch = () => {
+    const query = value.trim();
+    if (!query) return;
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
 
   return (
     <div ref={ref} className={`relative ${className}`}>
@@ -88,13 +121,45 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          selectedAddressRef.current = null;
+          onChange(e.target.value);
+        }}
         placeholder={placeholder}
         autoComplete="off"
         className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${icon ? "pl-10" : ""}`}
       />
-      {loadError && (
-        <p className="mt-1 text-xs text-muted-foreground">Autocomplete unavailable, enter address manually.</p>
+      {(
+        <>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {isSearching ? "Searching addresses..." : "Enter an address or choose a suggestion."}
+          </p>
+          {suggestions.length > 0 && (
+            <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-input bg-popover py-1 text-sm text-popover-foreground shadow-lg">
+              {suggestions.map((suggestion) => (
+                <li key={suggestion.id}>
+                  <button
+                    type="button"
+                    className="w-full px-3 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => selectSuggestion(suggestion)}
+                  >
+                    {suggestion.address}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {!isSearching && selectedAddressRef.current !== value && value.trim().length >= 3 && suggestions.length === 0 && (
+            <button
+              type="button"
+              className="mt-1 text-xs font-medium text-primary underline underline-offset-2"
+              onClick={openGoogleMapsSearch}
+            >
+              Not listed? Find it in Google Maps
+            </button>
+          )}
+        </>
       )}
     </div>
   );

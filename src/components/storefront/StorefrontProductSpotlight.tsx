@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, ShoppingBag, ArrowRight } from "lucide-react";
 import { Product } from "@/types";
 import { useCart } from "@/contexts/CartContext";
+import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 
 interface StorefrontProductSpotlightProps {
   products: Product[];
@@ -28,7 +29,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
     addToCart({
       productId: p.id,
       name: p.name,
-      price: p.price,
+      price: applyPlatformMarkup(p.price),
       image: p.images?.[0] || "",
       productType: p.productType,
     });
@@ -86,7 +87,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                 </div>
                 <span className="text-muted-foreground">·</span>
                 <span className="text-lg font-bold" style={{ color: accentColor }}>
-                  R{hero.price.toFixed(2)}
+                  R{applyPlatformMarkup(hero.price).toFixed(2)}
                 </span>
                 {hero.compareAtPrice && hero.compareAtPrice > hero.price && (
                   <span className="text-sm text-muted-foreground line-through">
@@ -142,7 +143,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                   </div>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="font-bold text-sm" style={{ color: accentColor }}>
-                      R{product.price.toFixed(2)}
+                      R{applyPlatformMarkup(product.price).toFixed(2)}
                     </span>
                     {product.compareAtPrice && product.compareAtPrice > product.price && (
                       <span className="text-xs text-muted-foreground line-through">

@@ -299,7 +299,7 @@ const VendorCustomDomain = () => {
         domains.map((domain) => (
           <Card key={domain.id}>
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="header-row">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(domain.status)}
                   <div>

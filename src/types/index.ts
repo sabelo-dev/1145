@@ -49,6 +49,9 @@ export interface Product {
   vendorId: string;
   vendorName: string;
   vendorSlug?: string;
+  brand?: string;
+  /** Out-of-stock items can be pre-ordered (XIXLV on the official Marketplace only). */
+  allowPreorder?: boolean;
   createdAt: string;
   variations?: ProductVariation[];
   productType?: string;
@@ -66,6 +69,8 @@ export interface Category {
 
 export interface CartItem {
   productId: string;
+  /** Added while out of stock; paid now, shipped when restocked. */
+  preorder?: boolean;
   name: string;
   price: number;
   image: string;

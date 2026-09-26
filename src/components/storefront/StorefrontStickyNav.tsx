@@ -134,15 +134,17 @@ const StorefrontStickyNav: React.FC<StorefrontStickyNavProps> = ({
             {!scrolled && (
               <div className="flex items-center gap-2 md:gap-3 flex-wrap text-xs md:text-sm mt-0.5">
                 {avgRating > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-gold text-gold" />
-                    <span className="font-medium">{avgRating.toFixed(1)}</span>
-                    <span className="text-muted-foreground hidden sm:inline">
-                      ({totalProducts})
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-gold text-gold" />
+                      <span className="font-medium">{avgRating.toFixed(1)}</span>
+                      <span className="text-muted-foreground hidden sm:inline">
+                        ({totalProducts})
+                      </span>
+                    </div>
+                    <span className="text-muted-foreground">·</span>
+                  </>
                 )}
-                <span className="text-muted-foreground">·</span>
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <MapPin className="h-3 w-3" />
                   <span>South Africa</span>

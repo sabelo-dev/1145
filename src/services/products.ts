@@ -40,6 +40,9 @@ const mapDatabaseProduct = (dbProduct: any, images: any[] = [], variations: any[
     vendorId: store.id,
     vendorName: store.name || vendor.business_name || "Store",
     vendorSlug: store.slug,
+    // Pre-orders: XIXLV products from stores an admin has enabled (the Marketplace).
+    allowPreorder: !!store.allow_preorders && String(dbProduct.brand ?? "").toUpperCase() === "XIXLV",
+    brand: dbProduct.brand || undefined,
     createdAt: dbProduct.created_at,
     variations: mappedVariations.length > 0 ? mappedVariations : undefined,
     productType: dbProduct.product_type,
@@ -70,9 +73,7 @@ export const fetchDatabaseProducts = async (): Promise<Product[]> => {
           image_url
         ),
         stores (
-          id,
-          name,
-          slug,
+          *,
           vendors (
             id,
             business_name
@@ -123,9 +124,7 @@ export const fetchProductsByStore = async (storeSlug: string): Promise<Product[]
           image_url
         ),
         stores!inner (
-          id,
-          name,
-          slug,
+          *,
           vendors (
             id,
             business_name
@@ -189,13 +188,23 @@ export const fetchStoreBySlug = async (storeSlug: string) => {
 /**
  * Fetches all products from database
  */
+// Several sections (featured, trending, new arrivals…) derive from the same
+// catalogue; share one request for a short window instead of refetching it.
+const CATALOGUE_TTL_MS = 30_000;
+let catalogueCache: { at: number; promise: Promise<Product[]> } | null = null;
+
 export const fetchAllProducts = async (): Promise<Product[]> => {
-  try {
-    return await fetchDatabaseProducts();
-  } catch (error) {
-    console.error('Error fetching all products:', error);
-    return [];
+  // Callers sort in place, so each gets its own copy of the shared list.
+  if (catalogueCache && Date.now() - catalogueCache.at < CATALOGUE_TTL_MS) {
+    return (await catalogueCache.promise).slice();
   }
+  const promise = fetchDatabaseProducts().catch((error) => {
+    console.error('Error fetching all products:', error);
+    catalogueCache = null; // don't cache failures
+    return [] as Product[];
+  });
+  catalogueCache = { at: Date.now(), promise };
+  return (await promise).slice();
 };
 
 /**
@@ -466,9 +475,7 @@ export const fetchProductBySlug = async (slug: string): Promise<Product | null> 
           image_url
         ),
         stores (
-          id,
-          name,
-          slug,
+          *,
           vendors (
             id,
             business_name

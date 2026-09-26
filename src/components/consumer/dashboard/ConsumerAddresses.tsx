@@ -274,7 +274,7 @@ const ConsumerAddresses: React.FC = () => {
           {addresses.map((address) => (
             <Card key={address.id}>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="header-row">
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-lg">{address.label}</CardTitle>
                     {address.is_default && <Badge variant="default">Default</Badge>}

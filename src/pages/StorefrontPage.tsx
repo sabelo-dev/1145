@@ -356,6 +356,7 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
             title={customization?.email_capture_title}
             accentColor={accentColor}
             storeName={store.name}
+            storeId={store.id}
           />
         )}
 

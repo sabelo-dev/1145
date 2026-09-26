@@ -426,7 +426,7 @@ const VendorMessages = () => {
         {/* Conversations List */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="header-row">
               <CardTitle className="text-lg">Conversations</CardTitle>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -527,7 +527,7 @@ const VendorMessages = () => {
           {selectedConv ? (
             <>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
+                <div className="header-row">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarFallback>

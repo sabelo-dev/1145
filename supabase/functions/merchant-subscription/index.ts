@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPayFastConfig, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,35 +16,6 @@ const PRICING: Record<Tier, { monthly: number; yearly: number }> = {
   silver: { monthly: 249, yearly: 2490 },
   gold: { monthly: 499, yearly: 4990 },
 };
-
-async function md5Hash(input: string): Promise<string> {
-  const crypto = await import("node:crypto");
-  return crypto.createHash("md5").update(input).digest("hex");
-}
-
-function phpUrlencode(str: string): string {
-  return encodeURIComponent(str)
-    .replace(/!/g, "%21")
-    .replace(/'/g, "%27")
-    .replace(/\(/g, "%28")
-    .replace(/\)/g, "%29")
-    .replace(/\*/g, "%2A")
-    .replace(/~/g, "%7E")
-    .replace(/%20/g, "+")
-    .replace(/%[0-9a-f]{2}/gi, (m) => m.toUpperCase());
-}
-
-async function signPayFast(fields: Record<string, string>, passphrase: string): Promise<string> {
-  const paramString = Object.keys(fields)
-    .filter((k) => fields[k] !== "" && fields[k] !== null && fields[k] !== undefined)
-    .sort()
-    .map((k) => `${k}=${phpUrlencode(String(fields[k]).trim())}`)
-    .join("&");
-  const stringToHash = passphrase
-    ? `${paramString}&passphrase=${phpUrlencode(passphrase)}`
-    : paramString;
-  return await md5Hash(stringToHash);
-}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -215,20 +187,18 @@ serve(async (req) => {
       .single();
     if (payError || !payment) return json({ error: payError?.message ?? "Failed to create payment" }, 500);
 
-    const merchantId = Deno.env.get("PAYFAST_MERCHANT_ID") || "10000100";
-    const merchantKey = Deno.env.get("PAYFAST_MERCHANT_KEY") || "46f0cd694581a";
-    const passphrase = Deno.env.get("PAYFAST_PASSPHRASE") || "jt7NOE43FZPn";
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const payfast = getPayFastConfig();
+    if (!payfast) return json({ error: "Payment gateway not configured properly" }, 500);
 
     const billingDate = new Date();
     billingDate.setDate(billingDate.getDate() + (billing === "yearly" ? 365 : 30));
 
     const fields: Record<string, string> = {
-      merchant_id: merchantId,
-      merchant_key: merchantKey,
+      merchant_id: payfast.merchantId,
+      merchant_key: payfast.merchantKey,
       return_url: `${origin}/merchant/dashboard?subscription=success&ref=${reference}`,
       cancel_url: `${origin}/merchant/dashboard?subscription=cancelled`,
-      notify_url: `${supabaseUrl}/functions/v1/payfast-itn`,
+      notify_url: payfast.notifyUrl,
       name_first: (vendor.business_name || "Merchant").slice(0, 100),
       email_address: vendor.email || user.email || "",
       m_payment_id: reference,
@@ -243,14 +213,14 @@ serve(async (req) => {
       cycles: "0",
     };
 
-    const signature = await signPayFast(fields, passphrase);
+    const signature = await signPayFast(fields, payfast.passphrase);
 
     return json({
       requiresPayment: true,
       paymentId: payment.id,
       reference,
       amount,
-      paymentUrl: "https://www.payfast.co.za/eng/process",
+      paymentUrl: payfast.processUrl,
       formData: { ...fields, signature },
     });
   } catch (err) {

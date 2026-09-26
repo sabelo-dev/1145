@@ -287,7 +287,7 @@ export default function AdminUCoin() {
         <TabsContent value="earning" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="header-row">
                 <div>
                   <CardTitle>Earning Rules</CardTitle>
                   <CardDescription>Configure how users earn UCoin</CardDescription>
@@ -355,7 +355,7 @@ export default function AdminUCoin() {
         <TabsContent value="spending" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="header-row">
                 <div>
                   <CardTitle>Spending Options</CardTitle>
                   <CardDescription>Configure rewards users can redeem</CardDescription>
@@ -509,7 +509,7 @@ export default function AdminUCoin() {
                   onChange={(e) => setEditingOption({ ...editingOption, description: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <Label>Cost (UCoin)</Label>
                   <Input
@@ -655,7 +655,7 @@ export default function AdminUCoin() {
                 onChange={(e) => setNewOption({ ...newOption, description: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <Label>Cost (UCoin)</Label>
                 <Input

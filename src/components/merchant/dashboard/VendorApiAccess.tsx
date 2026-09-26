@@ -279,7 +279,7 @@ const VendorApiAccess = () => {
             apiKeys.map((key) => (
               <Card key={key.id}>
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="header-row">
                     <div>
                       <CardTitle className="text-base flex items-center gap-2">
                         {key.name}

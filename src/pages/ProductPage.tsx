@@ -13,9 +13,10 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, stripHtml } from "@/lib/utils";
 import StarRating from "@/components/ui/star-rating";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
+import ProductImageViewer from "@/components/shop/ProductImageViewer";
 import SEO from "@/components/SEO";
 import { Product, ProductVariation } from "@/types";
 import { fetchProductBySlug, fetchRelatedProducts } from "@/services/products";
@@ -176,7 +177,8 @@ const ProductPage: React.FC = () => {
       variationId: selectedVariation?.id,
       variationAttributes: selectedVariation?.attributes,
       productType: product.productType,
-    });
+      preorder: canPreorder,
+    }, quantity);
   };
 
   const incrementQuantity = () => setQuantity(quantity + 1);
@@ -188,6 +190,8 @@ const ProductPage: React.FC = () => {
   const compareAtPriceMarkup = product.compareAtPrice ? applyPlatformMarkup(product.compareAtPrice) : undefined;
   const discountPercent = compareAtPriceMarkup ? Math.round(((compareAtPriceMarkup - currentPrice) / compareAtPriceMarkup) * 100) : 0;
   const isInStock = selectedVariation ? selectedVariation.quantity > 0 : product.inStock;
+  // Out-of-stock XIXLV Marketplace items can be pre-ordered: paid in full now, shipped when restocked.
+  const canPreorder = !isInStock && !!product.allowPreorder;
 
   const breadcrumbItems = [
     { name: 'Home', url: '/shop' },
@@ -200,7 +204,7 @@ const ProductPage: React.FC = () => {
     <div className="bg-white">
       <SEO
         title={`${product.name} - ${product.category}`}
-        description={product.description?.substring(0, 160) || `Buy ${product.name} from ${product.vendorName}. High quality products at great prices.`}
+        description={stripHtml(product.description).substring(0, 160) || `Buy ${product.name} from ${product.vendorName}. High quality products at great prices.`}
         keywords={`${product.name}, ${product.category}, ${product.vendorName}, buy online, shop`}
         image={product.images?.[0]}
         type="product"
@@ -227,13 +231,17 @@ const ProductPage: React.FC = () => {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="relative aspect-square overflow-hidden rounded-lg border bg-gray-100 group">
-              <img
+              <ProductImageViewer
                 src={colorImage || (product.images && product.images.length > 0 ? product.images[selectedImage] : '/placeholder.svg')}
                 alt={product.name}
-                className="h-full w-full object-cover object-center"
-                onError={(e) => {
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
+                onNext={product.images && product.images.length > 1 ? () => {
+                  setColorImage(null);
+                  setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1);
+                } : undefined}
+                onPrev={product.images && product.images.length > 1 ? () => {
+                  setColorImage(null);
+                  setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1);
+                } : undefined}
               />
               {/* Pagination arrows */}
               {product.images && product.images.length > 1 && (
@@ -336,18 +344,24 @@ const ProductPage: React.FC = () => {
 
             {/* Availability */}
             <div>
-              <Badge className={isInStock ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                {isInStock ? "In Stock" : "Out of Stock"}
+              <Badge className={isInStock ? "bg-green-100 text-green-800" : canPreorder ? "bg-navy-900 text-gold" : "bg-red-100 text-red-800"}>
+                {isInStock ? "In Stock" : canPreorder ? "Pre-order" : "Out of Stock"}
               </Badge>
-              {selectedVariation && (
+              {selectedVariation && isInStock && (
                 <span className="text-sm text-gray-600 ml-2">
                   {selectedVariation.quantity} available
                 </span>
               )}
+              {canPreorder && (
+                <p className="mt-2 text-sm text-text-secondary">
+                  Currently out of stock. Pay in full at checkout to reserve yours; your order is only placed once
+                  payment succeeds, and it ships as soon as it's restocked.
+                </p>
+              )}
             </div>
 
             {/* Short Description */}
-            <p className="text-gray-700 mt-2">{product.description}</p>
+            <p className="text-gray-700 mt-2 whitespace-pre-line">{stripHtml(product.description)}</p>
 
             {/* Vendor Info */}
             <div className="mt-2">
@@ -448,9 +462,9 @@ const ProductPage: React.FC = () => {
                     <Button
                       onClick={handleAddToCart}
                       className="flex-1 bg-wwe-navy hover:bg-wwe-navy/90"
-                      disabled={!isInStock}
+                      disabled={!isInStock && !canPreorder}
                     >
-                      {isInStock ? "Add to Cart" : "Out of Stock"}
+                      {isInStock ? "Add to Cart" : canPreorder ? "Pre-order" : "Out of Stock"}
                     </Button>
                     <Button 
                       variant="outline" 
@@ -505,7 +519,7 @@ const ProductPage: React.FC = () => {
             </TabsList>
             <TabsContent value="details" className="py-6">
               <div className="prose max-w-none">
-                <p className="mb-4">{product.description}</p>
+                <p className="mb-4 whitespace-pre-line">{stripHtml(product.description)}</p>
               </div>
             </TabsContent>
             <TabsContent value="specs" className="py-6">
@@ -556,35 +570,11 @@ const ProductPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Sample Reviews */}
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, idx) => (
-                    <div key={idx} className="border-b pb-4">
-                      <div className="flex justify-between mb-1">
-                        <div className="font-semibold">John D.</div>
-                        <div className="text-gray-500 text-sm">3 days ago</div>
-                      </div>
-                      <div className="flex mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < 4 ? "text-wwe-gold fill-wwe-gold" : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm">
-                        Great product! It exceeded my expectations in terms of quality and
-                        functionality. Would definitely recommend to others.
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <Button variant="outline" className="w-full">
-                  Load More Reviews
-                </Button>
+                {product.reviewCount === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No reviews yet. Be the first to review this product.
+                  </p>
+                )}
               </div>
             </TabsContent>
           </Tabs>

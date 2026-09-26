@@ -6,8 +6,6 @@ import {
   DialogTitle,
   DialogDescription 
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import SubscriptionComparisonTable from './SubscriptionComparisonTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -120,7 +118,6 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
   onUpgrade,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'simple' | 'detailed'>('simple');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
   const [pendingDowngrade, setPendingDowngrade] = useState<TierType | null>(null);
@@ -153,7 +150,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             <Crown className="h-6 w-6 text-primary" />
@@ -164,13 +161,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'simple' | 'detailed')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="simple">Quick View</TabsTrigger>
-            <TabsTrigger value="detailed">Full Comparison</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="simple" className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6">
             {/* Billing Toggle */}
             <div className="flex items-center justify-center gap-3 p-4 bg-muted/30 rounded-lg">
               <Label className={cn("text-sm", billingPeriod === 'monthly' && 'font-semibold')}>Monthly</Label>
@@ -185,7 +176,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
             </div>
 
             {/* Plans Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid gap-4 pt-3 sm:grid-cols-2 lg:grid-cols-4">
               {tiers.map((tier, index) => {
                 const config = tierConfig[tier] ?? tierConfig.starter;
                 const Icon = config.icon;
@@ -198,15 +189,15 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                   <Card 
                     key={tier}
                     className={cn(
-                      'relative',
+                      'relative flex flex-col overflow-visible',
                       isCurrentTier && 'ring-2 ring-primary',
                       isRecommended && 'border-primary',
                       tier === 'gold' && 'border-gold/50'
                     )}
                   >
                     {isRecommended && (
-                      <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary border-0 text-xs">
-                        Popular
+                      <Badge className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap border-0 bg-primary px-3 text-xs text-primary-foreground">
+                        Most popular
                       </Badge>
                     )}
                     <CardHeader className="text-center pb-2">
@@ -217,25 +208,25 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                       {isCurrentTier && (
                         <Badge variant="outline" className="mx-auto text-xs">Current</Badge>
                       )}
-                      <div className="text-2xl font-bold mt-2">
+                      <div className="mt-2 whitespace-nowrap text-3xl font-bold">
                         {price === 0 ? (
                           'Free'
                         ) : (
                           <>
                             R{price}
-                            <span className="text-xs font-normal text-muted-foreground">
+                            <span className="ml-0.5 text-sm font-normal text-muted-foreground">
                               /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
                             </span>
                           </>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{config.description}</p>
+                      <p className="text-sm text-muted-foreground">{config.description}</p>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <ul className="space-y-1">
+                    <CardContent className="flex flex-1 flex-col gap-4">
+                      <ul className="flex-1 space-y-2">
                         {config.features.slice(0, 5).map((feature, i) => (
-                          <li key={i} className="flex items-start gap-1.5 text-xs">
-                            <Check className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                          <li key={i} className="flex items-start gap-2 text-sm">
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                             {feature.toLowerCase().includes('unlimited') ? (
                               <span className="flex items-center gap-1">
                                 <Infinity className="h-3 w-3 text-primary" />
@@ -255,10 +246,9 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                       <Button
                         size="sm"
                         className={cn(
-                          "w-full text-xs",
-                          tier === 'gold' && !isCurrentTier && 'bg-gradient-to-r from-gold/10 to-orange-500 hover:from-gold hover:to-orange-600'
+                          "w-full",
                         )}
-                        variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : 'default'}
+                        variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : tier === 'gold' ? 'premium' : 'default'}
                         disabled={isCurrentTier || loading}
                         onClick={() => handleSelectPlan(tier, billingPeriod)}
                       >
@@ -280,7 +270,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                   <p className="text-sm text-muted-foreground mb-3">
                     If you sell R10,000/month, Bronze pays for itself with commission savings!
                   </p>
-                  <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                     <div>
                       <p className="text-xs text-muted-foreground">Monthly Sales</p>
                       <p className="font-bold">R10,000</p>
@@ -297,15 +287,7 @@ const SubscriptionUpgradeModal: React.FC<UpgradeModalProps> = ({
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-          
-          <TabsContent value="detailed" className="mt-6">
-            <SubscriptionComparisonTable
-              currentTier={currentTier}
-              onSelectPlan={handleSelectPlan}
-            />
-          </TabsContent>
-        </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
 

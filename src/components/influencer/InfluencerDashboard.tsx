@@ -21,6 +21,7 @@ import { InfluencerSettingsTab } from './InfluencerSettingsTab';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { NormalizedPost } from '@/hooks/useInfluencerDashboard';
+import { useUrlTab } from "@/hooks/useUrlTab";
 
 const InfluencerDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -28,7 +29,7 @@ const InfluencerDashboard: React.FC = () => {
   const { posts, profile, loading: legacyLoading, deletePost, publishPost, refreshPosts } = useInfluencer();
   const dashboard = useInfluencerDashboard();
 
-  const [activeTab, setActiveTab] = useState('feed');
+  const [activeTab, setActiveTab] = useUrlTab('feed');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<NormalizedPost | null>(null);

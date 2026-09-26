@@ -22,6 +22,15 @@ const UsageMeter: React.FC<UsageMeterProps> = ({
   className,
   onLimitReached,
 }) => {
+  const isAtLimitForEffect = limit !== null && Math.round((current / limit) * 100) >= 100;
+
+  // Must run before the early return below so hook order stays stable.
+  React.useEffect(() => {
+    if (isAtLimitForEffect && onLimitReached) {
+      onLimitReached();
+    }
+  }, [isAtLimitForEffect, onLimitReached]);
+
   // Unlimited
   if (limit === null) {
     return (
@@ -59,12 +68,6 @@ const UsageMeter: React.FC<UsageMeterProps> = ({
     if (isNearLimit) return <AlertTriangle className="h-4 w-4" />;
     return null;
   };
-
-  React.useEffect(() => {
-    if (isAtLimit && onLimitReached) {
-      onLimitReached();
-    }
-  }, [isAtLimit, onLimitReached]);
 
   return (
     <div className={cn('space-y-1', className)}>

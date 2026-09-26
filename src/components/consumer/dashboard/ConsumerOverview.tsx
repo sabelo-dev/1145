@@ -470,7 +470,7 @@ const ConsumerOverview: React.FC<ConsumerOverviewProps> = ({ onNavigate }) => {
         {/* Activity Feed */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="header-row">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="h-5 w-5" />
                 Recent Activity

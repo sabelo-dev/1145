@@ -18,7 +18,8 @@
 
     --cyan: 190 100% 50%;       /* #00D4FF */
     --cyan-soft: 192 100% 95%;  /* #E6FAFF */
-    --gold: 46 65% 52%;         /* #D4AF37 */
+    --gold: 46 65% 52%;         /* #D4AF37 — fills, badges, dark-mode text */
+    --gold-ink: 43 85% 30%;     /* #8E690B — gold TEXT on light surfaces (5:1) */
 
     /* Neutral foundation */
     --background: 0 0% 100%;
@@ -36,8 +37,8 @@
     --brand-pressed: 213 52% 15%;
     --brand-foreground: 0 0% 100%;
 
-    --text-secondary: 217 9% 49%;  /* #737B89 */
-    --text-muted: 217 9% 64%;      /* #9AA1AD */
+    --text-secondary: 217 11% 45%; /* #66707F — 5.0:1 on white, 4.6:1 on muted */
+    --text-muted: 217 10% 47%;     /* #6D7685 — 4.6:1 on white */
 
     --surface-input: 229 33% 97%;  /* #F6F7FB */
     --surface-hover: 220 27% 96%;  /* #F1F3F7 */
@@ -47,8 +48,9 @@
     --disabled-surface: 225 10% 90%;  /* #E2E4E9 */
     --disabled-foreground: 217 9% 64%;/* #9AA1AD */
 
-    --cta: 0 0% 0%;                /* #000000 */
-    --cta-foreground: 0 0% 100%;
+    /* One primary action colour across the app (was black vs navy). */
+    --cta: var(--brand);
+    --cta-foreground: var(--brand-foreground);
 
     /* Level 2 — Brand navy is the principal action color */
     --primary: var(--brand);
@@ -66,19 +68,20 @@
     --destructive: 0 72% 51%;   /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;     /* #16A34A */
+    --success: 142 72% 30%;     /* #16863F — white text 4.7:1 */
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;      /* #F59E0B */
+    --warning: 38 92% 50%;      /* #F59E0B — fills with dark text */
     --warning-foreground: 226 49% 8%;
+    --warning-ink: 32 95% 35%;  /* #B16005 — warning TEXT on light surfaces */
 
     --info: 221 83% 53%;        /* #2563EB */
     --info-foreground: 0 0% 100%;
 
     --disabled: var(--disabled-foreground);
 
-    --border: 220 11% 91%;      /* #E4E6EB */
-    --input: 220 11% 91%;
+    --border: 220 11% 91%;      /* #E4E6EB — decorative dividers */
+    --input: 220 9% 60%;        /* #8E95A1 — form field outlines, 3:1 */
     --ring: var(--brand);
 
 
@@ -87,6 +90,16 @@
     /* Surfaces used by the app shell (bars, sheets, floating nav) */
     --surface: 0 0% 100%;
     --surface-muted: 216 29% 97%;
+
+    /* Dashboard sidebar (was undefined, so it rendered transparent) */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: var(--brand-foreground);
+    --sidebar-accent: var(--surface-selected);
+    --sidebar-accent-foreground: var(--brand);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--navy-900)) 0%, hsl(var(--navy-700)) 55%, hsl(var(--cyan)) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(var(--navy-900)) 0%, hsl(var(--navy-700)) 60%, hsl(var(--gold)) 100%);
@@ -133,8 +146,8 @@
     --disabled-surface: 224 25% 22%;
     --disabled-foreground: 218 12% 55%;
 
-    --cta: 0 0% 100%;
-    --cta-foreground: 226 49% 8%;
+    --cta: var(--brand);
+    --cta-foreground: var(--brand-foreground);
 
     --primary: var(--brand);
     --primary-foreground: 226 49% 8%;
@@ -152,10 +165,13 @@
     --destructive-foreground: 0 0% 100%;
 
     --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
+    --success-foreground: 226 49% 8%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 226 49% 8%;
+    --warning-ink: 38 92% 50%;
+
+    --gold-ink: 46 65% 52%;
 
     --info: 221 83% 53%;
     --info-foreground: 0 0% 100%;
@@ -163,12 +179,18 @@
     --disabled: var(--disabled-foreground);
 
     --border: 222 30% 29%;
-    --input: 222 30% 29%;
+    --input: 222 28% 47%;
     --ring: var(--brand);
 
 
     --surface: 225 45% 12%;
     --surface-muted: 224 41% 16%;
+
+    --sidebar-background: 225 45% 12%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-accent: 224 41% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 30% 29%;
 
     --gradient-sheen: linear-gradient(180deg, hsl(var(--navy-700) / 0.92), hsl(var(--navy-800) / 0.6));
 
@@ -415,8 +437,21 @@
   }
   .toolbar > * { min-width: 0; }
 
+  /* Card / section header: stacked on mobile, row from sm up.
+     Content column shrinks; the action group never squeezes the title. */
+  .header-row {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4;
+  }
+  .header-row > .header-content,
+  .header-row > *:first-child { min-width: 0; }
+  .header-actions {
+    @apply flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end;
+  }
+  .header-actions > * { @apply min-h-[44px] flex-1 sm:flex-none; }
+
   /* Truncate safely inside flex rows */
   .min-w-0-all > * { min-width: 0; }
+
   .truncate-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -486,6 +521,18 @@
   .bleed-x {
     margin-inline: -1rem;
     padding-inline: 1rem;
+  }
+
+  /* Brand accent colours used as TEXT need a darker ink on light surfaces
+     to stay readable (gold on white is only 2.1:1). Fills keep the bright tone. */
+  html .text-gold { color: hsl(var(--gold-ink)); }
+  html .text-warning { color: hsl(var(--warning-ink)); }
+  /* …but keep the bright tone on dark brand surfaces, where it already reads well. */
+  html :is(.bg-primary, .bg-brand, .bg-cta, .bg-foreground, .bg-black, .bg-navy, .bg-navy-900, .bg-navy-800,
+    .bg-navy-700, .bg-wwe-navy, [class*="from-navy"], [class*="from-slate-9"], [class*="from-primary "],
+    [class*="from-primary/9"], [class$="from-primary"]) .text-gold,
+  html .text-gold:is(.bg-primary, .bg-brand, .bg-navy-900, .bg-navy-800, .bg-foreground) {
+    color: hsl(var(--gold));
   }
 
   .gradient-text {

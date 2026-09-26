@@ -80,7 +80,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           </Button>
         </div>
 
-        <div className="px-4 py-4 space-y-6">
+        <div className="px-4 pt-4 pb-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+1rem)] space-y-6">
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -141,7 +141,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Home</p>
                 <div className="space-y-1">
                   <Link to="/category/home-kitchen/appliances" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Appliances</Link>
-                  <Link to="/category/home-kitchen/kitchen" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Electronics</Link>
+                  <Link to="/category/home-kitchen/kitchen" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Kitchen</Link>
                   <Link to="/category/home-kitchen/furniture" className="block px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent active:scale-[0.98] active:bg-accent/80 transition-all duration-150 ease-out" onClick={() => setMobileMenuOpen(false)}>Furniture</Link>
                 </div>
               </div>

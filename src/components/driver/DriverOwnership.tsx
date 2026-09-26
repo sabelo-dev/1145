@@ -162,7 +162,7 @@ const DriverOwnership: React.FC<DriverOwnershipProps> = ({
       {/* Vehicle Fund */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="header-row">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Car className="h-5 w-5" />
@@ -258,7 +258,7 @@ const DriverOwnership: React.FC<DriverOwnershipProps> = ({
       {/* Investments */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="header-row">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />

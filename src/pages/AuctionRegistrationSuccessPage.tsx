@@ -31,14 +31,23 @@ const AuctionRegistrationSuccessPage: React.FC = () => {
 
   const confirmRegistration = async () => {
     try {
-      // Update registration status to paid
-      const { error } = await supabase
-        .from("auction_registrations")
-        .update({ payment_status: "paid" })
-        .eq("id", registrationId)
-        .eq("user_id", user?.id);
+      // payfast-itn marks the registration paid once PayFast verifies payment.
+      // Wait for that instead of writing payment state from the browser.
+      let paid = false;
+      for (let attempt = 0; attempt < 10 && !paid; attempt++) {
+        const { data: registration, error } = await supabase
+          .from("auction_registrations")
+          .select("payment_status")
+          .eq("id", registrationId)
+          .eq("user_id", user?.id)
+          .maybeSingle();
 
-      if (error) throw error;
+        if (error) throw error;
+        paid = registration?.payment_status === "paid";
+        if (!paid) await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+
+      if (!paid) throw new Error("Payment not yet confirmed by PayFast");
 
       setSuccess(true);
       toast({
@@ -106,7 +115,8 @@ const AuctionRegistrationSuccessPage: React.FC = () => {
               <>
                 <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
                 <p className="text-muted-foreground mb-6">
-                  We couldn't confirm your registration. If you were charged, please contact support.
+                  We haven't received payment confirmation from PayFast yet. It can take a few minutes —
+                  refresh the auction shortly. If you were charged and still can't bid, please contact support.
                 </p>
                 <Button onClick={() => navigate("/auctions")} className="w-full">
                   Back to Auctions

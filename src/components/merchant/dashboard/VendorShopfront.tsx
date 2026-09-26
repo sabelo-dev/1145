@@ -20,6 +20,7 @@ import LockedFeatureCard from "./storefront/LockedFeatureCard";
 import ContentSectionsEditor from "./storefront/ContentSectionsEditor";
 import ThemeLayoutEditor from "./storefront/ThemeLayoutEditor";
 import SectionBuilder from "./storefront/SectionBuilder";
+import NewsletterSubscribers from "./NewsletterSubscribers";
 import { normalizeTier } from "@/utils/subscriptionTier";
 
 const tierIcons: Record<StorefrontTier, React.ReactNode> = {
@@ -598,7 +599,7 @@ const VendorShopfront = () => {
             <CardTitle>Analytics Dashboard</CardTitle>
           </CardHeader>
           <CardContent className="min-h-[200px]">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {['Views', 'Sales', 'Conversion'].map(label => (
                 <div key={label} className="bg-muted rounded-lg p-4 text-center">
                   <p className="text-2xl font-bold text-muted-foreground">---</p>
@@ -609,6 +610,8 @@ const VendorShopfront = () => {
           </CardContent>
         </Card>
       )}
+
+      {storeData && <NewsletterSubscribers storeId={storeData.id} />}
     </div>
   );
 };

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, TrendingUp, Package, Percent, Clock, Shield, Zap, Star, Gem, Medal, ArrowRight } from 'lucide-react';
+import { Crown, TrendingUp, Package, Percent, Clock, Shield, Zap, Star, Gem, Medal, ArrowRight, Loader2 } from 'lucide-react';
 import { SubscriptionComparisonTable, SubscriptionStatusCard } from '../subscription';
 import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,7 +12,7 @@ type TierType = 'starter' | 'bronze' | 'silver' | 'gold';
 interface VendorSubscriptionPageProps {
   vendorId?: string;
   currentTier?: TierType;
-  onUpgrade: (tier?: TierType, billing?: 'monthly' | 'yearly') => void;
+  onUpgrade: (tier?: TierType, billing?: 'monthly' | 'yearly') => void | Promise<void>;
 }
 
 const tierOrder: TierType[] = ['starter', 'bronze', 'silver', 'gold'];
@@ -46,6 +46,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
   onUpgrade,
 }) => {
   const { loading, subscription } = useVendorSubscription(vendorId);
+  const [pendingTier, setPendingTier] = useState<TierType | null>(null);
 
   if (loading) {
     return (
@@ -61,8 +62,16 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
   const currentTierIndex = tierOrder.indexOf(currentTier);
   const nextTier = !isTopTier ? tierOrder[currentTierIndex + 1] : null;
 
-  const handleSelectPlan = (tier: TierType, billing: 'monthly' | 'yearly') => {
-    onUpgrade(tier, billing);
+  const handleSelectPlan = async (tier: TierType, billing: 'monthly' | 'yearly') => {
+    if (pendingTier) return;
+    setPendingTier(tier);
+    try {
+      await onUpgrade(tier, billing);
+    } catch {
+      // Error toast is shown by useSubscriptionActions
+    } finally {
+      setPendingTier(null);
+    }
   };
 
   return (
@@ -202,8 +211,14 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
                     Upgrade now and unlock more features to boost your sales.
                   </p>
                 </div>
-                <Button onClick={onUpgrade} className="gap-1">
-                  {React.createElement(tierBenefits[nextTier].icon, { className: "h-4 w-4" })}
+                <Button
+                  onClick={() => handleSelectPlan(nextTier, 'monthly')}
+                  disabled={!!pendingTier}
+                  className="gap-1"
+                >
+                  {pendingTier === nextTier
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : React.createElement(tierBenefits[nextTier].icon, { className: "h-4 w-4" })}
                   Upgrade to {nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -293,6 +308,7 @@ const VendorSubscriptionPage: React.FC<VendorSubscriptionPageProps> = ({
           <SubscriptionComparisonTable
             currentTier={currentTier}
             onSelectPlan={handleSelectPlan}
+            pendingTier={pendingTier}
           />
         </CardContent>
       </Card>

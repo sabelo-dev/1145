@@ -72,3 +72,6 @@ verify_jwt = true
 [functions.merchant-subscription]
 verify_jwt = true
 
+
+[functions.maps-config]
+verify_jwt = false

@@ -33,7 +33,8 @@ serve(async (req) => {
     let auctionsToProcess: any[] = [];
 
     if (auctionId) {
-      // Process specific auction
+      // Process specific auction. Anyone can call this, so only settle
+      // auctions that are still open and have actually passed their end date.
       const { data: auction, error } = await supabaseAdmin
         .from("auctions")
         .select(`
@@ -41,7 +42,9 @@ serve(async (req) => {
           product:products(id, name, store_id, stores(vendor_id, vendors(user_id, business_email)))
         `)
         .eq("id", auctionId)
-        .single();
+        .in("status", ["approved", "active"])
+        .lt("end_date", new Date().toISOString())
+        .maybeSingle();
 
       if (error) throw error;
       if (auction) auctionsToProcess = [auction];

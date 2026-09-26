@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
@@ -11,14 +11,15 @@ import { ArrowLeft, ShieldCheck, Lock, Truck } from "lucide-react";
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { cart } = useCart();
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
 
   if (!user) {
-    navigate("/login");
-    return null;
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
+
 
   if (!cart?.items?.length) {
     return (

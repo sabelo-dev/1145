@@ -75,7 +75,7 @@ const DriverTierCard: React.FC<DriverTierCardProps> = ({
           style={{ backgroundColor: currentTier?.badge_color || '#6B7280' }}
         />
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="header-row">
             <div className="flex items-center gap-3">
               <div className="text-4xl">{getTierIcon(currentTier?.level || 1)}</div>
               <div>

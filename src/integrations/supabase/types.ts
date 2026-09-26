@@ -5645,6 +5645,150 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          status: string
+          store_id: string | null
+          subscribed_at: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          status?: string
+          store_id?: string | null
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          status?: string
+          store_id?: string | null
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_subscribers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_log: {
+        Row: {
+          body: string | null
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          order_id: string | null
+          provider: string
+          provider_message_id: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          template: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          order_id?: string | null
+          provider?: string
+          provider_message_id?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          template?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          order_id?: string | null
+          provider?: string
+          provider_message_id?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          template?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_events: {
+        Row: {
+          actor: string
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          location: Json | null
+          metadata: Json
+          order_id: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          actor?: string
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          location?: Json | null
+          metadata?: Json
+          order_id: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          location?: Json | null
+          metadata?: Json
+          order_id?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_history: {
         Row: {
           action: string
@@ -5804,6 +5948,62 @@ export type Database = {
           },
         ]
       }
+      order_payment_attempts: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          error: string | null
+          gateway: string
+          id: string
+          metadata: Json
+          method: string | null
+          order_id: string | null
+          reference: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          error?: string | null
+          gateway: string
+          id?: string
+          metadata?: Json
+          method?: string | null
+          order_id?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          error?: string | null
+          gateway?: string
+          id?: string
+          metadata?: Json
+          method?: string | null
+          order_id?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payment_attempts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           courier_company: string | null
@@ -5814,6 +6014,7 @@ export type Database = {
           gold_rate_at_checkout: number | null
           id: string
           notes: string | null
+          payment_gateway: string | null
           payment_method: string | null
           payment_status: string
           refund_amount: number | null
@@ -5828,6 +6029,8 @@ export type Database = {
           total_mg_gold: number | null
           tracking_number: string | null
           tracking_url: string | null
+          ucoin_spent: number
+          ucoin_value_zar: number
           updated_at: string
           user_id: string
         }
@@ -5840,6 +6043,7 @@ export type Database = {
           gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
+          payment_gateway?: string | null
           payment_method?: string | null
           payment_status?: string
           refund_amount?: number | null
@@ -5854,6 +6058,8 @@ export type Database = {
           total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
+          ucoin_spent?: number
+          ucoin_value_zar?: number
           updated_at?: string
           user_id: string
         }
@@ -5866,6 +6072,7 @@ export type Database = {
           gold_rate_at_checkout?: number | null
           id?: string
           notes?: string | null
+          payment_gateway?: string | null
           payment_method?: string | null
           payment_status?: string
           refund_amount?: number | null
@@ -5880,6 +6087,8 @@ export type Database = {
           total_mg_gold?: number | null
           tracking_number?: string | null
           tracking_url?: string | null
+          ucoin_spent?: number
+          ucoin_value_zar?: number
           updated_at?: string
           user_id?: string
         }
@@ -8226,6 +8435,48 @@ export type Database = {
           },
         ]
       }
+      ucoin_cashouts: {
+        Row: {
+          admin_note: string | null
+          bank_account_id: string | null
+          created_at: string
+          destination: string | null
+          id: string
+          processed_at: string | null
+          status: string
+          ucoin_amount: number
+          updated_at: string
+          user_id: string
+          zar_amount: number
+        }
+        Insert: {
+          admin_note?: string | null
+          bank_account_id?: string | null
+          created_at?: string
+          destination?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          ucoin_amount: number
+          updated_at?: string
+          user_id: string
+          zar_amount: number
+        }
+        Update: {
+          admin_note?: string | null
+          bank_account_id?: string | null
+          created_at?: string
+          destination?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          ucoin_amount?: number
+          updated_at?: string
+          user_id?: string
+          zar_amount?: number
+        }
+        Relationships: []
+      }
       ucoin_earning_rules: {
         Row: {
           amount: number
@@ -8299,6 +8550,110 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ucoin_listing_bids: {
+        Row: {
+          amount_ucoin: number
+          bidder_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ucoin: number
+          bidder_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ucoin?: number
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ucoin_listing_bids_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "ucoin_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ucoin_listings: {
+        Row: {
+          allow_bids: boolean
+          buyer_id: string | null
+          category: string | null
+          condition: string
+          created_at: string
+          description: string | null
+          highest_bid_ucoin: number | null
+          highest_bidder_id: string | null
+          id: string
+          images: Json
+          location: string | null
+          price_ucoin: number
+          seller_id: string
+          sold_at: string | null
+          sold_price_ucoin: number | null
+          starting_bid_ucoin: number | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          allow_bids?: boolean
+          buyer_id?: string | null
+          category?: string | null
+          condition?: string
+          created_at?: string
+          description?: string | null
+          highest_bid_ucoin?: number | null
+          highest_bidder_id?: string | null
+          id?: string
+          images?: Json
+          location?: string | null
+          price_ucoin: number
+          seller_id: string
+          sold_at?: string | null
+          sold_price_ucoin?: number | null
+          starting_bid_ucoin?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          allow_bids?: boolean
+          buyer_id?: string | null
+          category?: string | null
+          condition?: string
+          created_at?: string
+          description?: string | null
+          highest_bid_ucoin?: number | null
+          highest_bidder_id?: string | null
+          id?: string
+          images?: Json
+          location?: string | null
+          price_ucoin?: number
+          seller_id?: string
+          sold_at?: string | null
+          sold_price_ucoin?: number | null
+          starting_bid_ucoin?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       ucoin_spending_options: {
         Row: {
@@ -9918,9 +10273,9 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
     }
     Functions: {
+      accept_ucoin_bid: { Args: { p_bid_id: string }; Returns: Json }
       apply_zone_fine: { Args: { p_violation_id: string }; Returns: number }
       award_ucoin: {
         Args: {
@@ -9932,6 +10287,7 @@ export type Database = {
         Returns: boolean
       }
       award_user_badges: { Args: { p_user_id: string }; Returns: number }
+      buy_ucoin_listing: { Args: { p_listing_id: string }; Returns: Json }
       calculate_delivery_earnings: {
         Args: {
           p_delivery_job_id: string
@@ -10143,6 +10499,18 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: boolean
       }
+      mining_direct_credit: {
+        Args: {
+          p_activity_code: string
+          p_idempotency_key: string
+          p_metadata?: Json
+          p_reference_id?: string
+          p_reference_type?: string
+          p_reward_mg: number
+          p_user_id: string
+        }
+        Returns: string
+      }
       mining_emit_action: {
         Args: {
           p_activity_code: string
@@ -10159,6 +10527,10 @@ export type Database = {
         Args: { p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      place_ucoin_bid: {
+        Args: { p_amount: number; p_listing_id: string }
+        Returns: Json
+      }
       process_referral_mining_bonus: {
         Args: { p_completion_id: string; p_miner_id: string; p_reward: number }
         Returns: undefined
@@ -10174,6 +10546,18 @@ export type Database = {
       process_referral_signup: {
         Args: { p_referral_code: string; p_referred_id: string }
         Returns: boolean
+      }
+      redeem_ucoin_for_order: {
+        Args: { p_order_id: string; p_ucoin: number }
+        Returns: Json
+      }
+      request_ucoin_cashout: {
+        Args: { p_destination?: string; p_ucoin: number }
+        Returns: Json
+      }
+      request_ucoin_cashout_to_bank: {
+        Args: { p_bank_account_id: string; p_ucoin: number }
+        Returns: Json
       }
       reset_demo_data: { Args: { p_scopes: string[] }; Returns: Json }
       resolve_custom_domain: {
@@ -10192,6 +10576,10 @@ export type Database = {
           p_pickup_lng: number
         }
         Returns: number
+      }
+      settle_ucoin_listing: {
+        Args: { p_amount: number; p_buyer_id: string; p_listing_id: string }
+        Returns: Json
       }
       transfer_ucoin: {
         Args: {
@@ -10269,12 +10657,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -10298,11 +10686,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -10323,11 +10711,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -10348,11 +10736,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -10365,11 +10753,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

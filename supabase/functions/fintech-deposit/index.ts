@@ -2,25 +2,12 @@
 // payfast-itn credits the wallet on COMPLETE.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPayFastConfig, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-async function md5Hash(s: string) { const c = await import("node:crypto"); return c.createHash("md5").update(s).digest("hex"); }
-function phpUrlencode(str: string) {
-  return encodeURIComponent(str)
-    .replace(/!/g, "%21").replace(/'/g, "%27").replace(/\(/g, "%28").replace(/\)/g, "%29")
-    .replace(/\*/g, "%2A").replace(/~/g, "%7E").replace(/%20/g, "+")
-    .replace(/%[0-9a-f]{2}/gi, (m) => m.toUpperCase());
-}
-async function sign(data: Record<string, any>, passphrase: string) {
-  const filtered: Record<string, any> = {};
-  for (const k of Object.keys(data)) { const v = data[k]; if (k !== "signature" && v !== "" && v !== null && v !== undefined) filtered[k] = v; }
-  const p = Object.keys(filtered).sort().map(k => `${k}=${phpUrlencode(String(filtered[k]).trim())}`).join("&");
-  return md5Hash(`${p}&passphrase=${phpUrlencode(passphrase)}`);
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -39,18 +26,17 @@ serve(async (req) => {
     if (!Number.isFinite(amount) || amount < 10 || amount > 100000) return j({ error: "Amount must be between R10 and R100,000" }, 400);
 
     const origin = req.headers.get("origin") || "https://1145.io";
-    const merchantId = Deno.env.get("PAYFAST_MERCHANT_ID") || "10000100";
-    const merchantKey = Deno.env.get("PAYFAST_MERCHANT_KEY") || "46f0cd694581a";
-    const passphrase = Deno.env.get("PAYFAST_PASSPHRASE") || "jt7NOE43FZPn";
+    const payfast = getPayFastConfig();
+    if (!payfast) return j({ error: "Payment gateway not configured properly" }, 500);
 
     const mPaymentId = `DEPOSIT-${user.id}-${Date.now()}`;
 
     const formData: Record<string, any> = {
-      merchant_id: merchantId,
-      merchant_key: merchantKey,
+      merchant_id: payfast.merchantId,
+      merchant_key: payfast.merchantKey,
       return_url: `${origin}/wallet?deposit=success`,
       cancel_url: `${origin}/wallet?deposit=cancelled`,
-      notify_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payfast-itn`,
+      notify_url: payfast.notifyUrl,
       name_first: (user.user_metadata?.first_name as string) || "1145",
       name_last: (user.user_metadata?.last_name as string) || "Member",
       email_address: user.email || "",
@@ -61,9 +47,9 @@ serve(async (req) => {
       custom_str1: "wallet_deposit",
       custom_str2: user.id,
     };
-    const signature = await sign(formData, passphrase);
+    const signature = await signPayFast(formData, payfast.passphrase);
 
-    return j({ success: true, action: "https://www.payfast.co.za/eng/process", formData: { ...formData, signature }, reference: mPaymentId });
+    return j({ success: true, action: payfast.processUrl, formData: { ...formData, signature }, reference: mPaymentId });
   } catch (e) {
     return j({ error: e instanceof Error ? e.message : "Failed" }, 500);
   }
