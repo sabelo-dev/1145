@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeCustomizationProvider } from "@/contexts/ThemeCustomizationContext";
 import { GoldPricingProvider } from "@/contexts/GoldPricingContext";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -360,6 +361,7 @@ function App() {
                       <ScrollToTop />
                       <AppRouter />
                       <Toaster />
+                      <Sonner />
                       <UpdatePrompt />
                     </Router>
                   </CartProvider>

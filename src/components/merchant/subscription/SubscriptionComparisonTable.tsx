@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Crown, Star, Infinity, Gem, Medal } from 'lucide-react';
+import { Check, X, Crown, Star, Infinity, Gem, Medal, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ type TierType = 'starter' | 'bronze' | 'silver' | 'gold';
 interface SubscriptionComparisonTableProps {
   currentTier: TierType;
   onSelectPlan: (tier: TierType, billing: 'monthly' | 'yearly') => void;
+  pendingTier?: TierType | null;
   className?: string;
 }
 
@@ -107,6 +108,7 @@ const renderValue = (value: boolean | string | number) => {
 const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = ({
   currentTier,
   onSelectPlan,
+  pendingTier,
   className,
 }) => {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
@@ -191,10 +193,11 @@ const SubscriptionComparisonTable: React.FC<SubscriptionComparisonTableProps> = 
                     "w-full mt-2 text-xs h-9",
                   )}
                   variant={isCurrentTier ? 'outline' : tier === 'starter' ? 'secondary' : tier === 'gold' ? 'premium' : 'default'}
-                  disabled={isCurrentTier}
+                  disabled={isCurrentTier || !!pendingTier}
                   onClick={() => onSelectPlan(tier, billingPeriod)}
                 >
-                  {isCurrentTier ? 'Current' : tier === 'starter' ? 'Downgrade' : 'Select'}
+                  {pendingTier === tier && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {isCurrentTier ? 'Current' : pendingTier === tier ? 'Processing…' : tier === 'starter' ? 'Downgrade' : 'Select'}
                 </Button>
               </CardContent>
             </Card>
