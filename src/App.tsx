@@ -91,6 +91,7 @@ const PrivacyPage = lazyWithRetry(() => import("@/pages/PrivacyPage"));
 // Auth
 const AuthConfirmPage = lazyWithRetry(() => import("@/pages/AuthConfirmPage"));
 const VerifyEmailPage = lazyWithRetry(() => import("@/pages/VerifyEmailPage"));
+const AuthCallbackPage = lazyWithRetry(() => import("@/pages/AuthCallbackPage"));
 
 // Super App
 const ServiceHubPage = lazyWithRetry(() => import("@/pages/ServiceHubPage"));
@@ -153,6 +154,7 @@ function AppRouter() {
         <Route index element={<Index />} />
         <Route path="home" element={<HomePage />} />
         <Route path="install" element={<InstallPage />} />
+        <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="store/:storeSlug" element={<StorefrontPage />} />
         
         <Route path="/" element={<Layout />}>

@@ -151,7 +151,7 @@ const RegisterPage: React.FC = () => {
       }
     >
       <div className="space-y-6">
-        <OAuthButtons mode="register" />
+        <OAuthButtons mode="register" role={role} />
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
