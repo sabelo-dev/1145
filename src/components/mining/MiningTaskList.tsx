@@ -351,12 +351,17 @@ export function MiningTaskList({
           
           {connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform) ? (
             <div className="space-y-3 py-4 text-sm text-muted-foreground">
-              <p>You'll sign in with Facebook to prove you own this account.</p>
-              <p>
-                {connectingPlatform === 'instagram'
-                  ? 'Instagram must be a Business or Creator account linked to a Facebook Page you manage. When Facebook asks, select that Page.'
-                  : 'When Facebook asks, select the Page you post from.'}
-              </p>
+              {connectingPlatform === 'instagram' ? (
+                <>
+                  <p>You'll log in on Instagram to prove you own this account.</p>
+                  <p>It must be a Business or Creator account (Instagram Settings, then Account type and tools).</p>
+                </>
+              ) : (
+                <>
+                  <p>You'll sign in with Facebook to prove you own this account.</p>
+                  <p>When Facebook asks, select the Page you post from.</p>
+                </>
+              )}
             </div>
           ) : (
           <div className="space-y-4 py-4">
@@ -395,7 +400,7 @@ export function MiningTaskList({
               {isConnecting
                 ? 'Connecting...'
                 : connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform)
-                  ? 'Continue with Facebook'
+                  ? `Continue with ${connectingPlatform === 'instagram' ? 'Instagram' : 'Facebook'}`
                   : 'Connect Account'}
             </Button>
           </DialogFooter>

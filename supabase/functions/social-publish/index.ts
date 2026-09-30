@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptToken } from "../_shared/socialCrypto.ts";
-import { META_GRAPH_VERSION } from "../_shared/meta.ts";
+import { INSTAGRAM_GRAPH, META_GRAPH, META_GRAPH_VERSION } from "../_shared/meta.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -456,10 +456,11 @@ async function fetchPermalink(
   objectId: string,
   field: "permalink" | "permalink_url",
   accessToken: string,
+  graphBase: string = META_GRAPH,
 ): Promise<string | null> {
   try {
     const response = await fetch(
-      `https://graph.facebook.com/${META_GRAPH_VERSION}/${objectId}?` +
+      `${graphBase}/${objectId}?` +
         new URLSearchParams({
           fields: field,
           access_token: accessToken,
@@ -491,10 +492,11 @@ function isVideoUrl(url: string): boolean {
 async function waitForInstagramContainer(
   containerId: string,
   accessToken: string,
+  graphBase: string,
 ): Promise<void> {
   for (let attempt = 0; attempt < INSTAGRAM_MAX_POLLS; attempt++) {
     const response = await fetch(
-      `https://graph.facebook.com/${META_GRAPH_VERSION}/${containerId}?` +
+      `${graphBase}/${containerId}?` +
         new URLSearchParams({
           fields: "status_code,status",
           access_token: accessToken,
@@ -546,8 +548,9 @@ async function createInstagramContainer(
   igAccountId: string,
   accessToken: string,
   mediaUrl: string,
-  caption?: string,
-  carouselItem = false,
+  caption: string | undefined,
+  carouselItem: boolean,
+  graphBase: string,
 ): Promise<string> {
   const video = isVideoUrl(mediaUrl);
 
@@ -557,6 +560,9 @@ async function createInstagramContainer(
 
   if (video) {
     body.video_url = mediaUrl;
+    // Feed "VIDEO" is retired for single posts; videos publish as Reels.
+    // Carousel children still use VIDEO.
+    body.media_type = carouselItem ? "VIDEO" : "REELS";
   } else {
     body.image_url = mediaUrl;
   }
@@ -570,7 +576,7 @@ async function createInstagramContainer(
   }
 
   const response = await fetch(
-    `https://graph.facebook.com/${META_GRAPH_VERSION}/${igAccountId}/media`,
+    `${graphBase}/${igAccountId}/media`,
     {
       method: "POST",
       headers: {
@@ -598,6 +604,7 @@ async function createInstagramContainer(
   await waitForInstagramContainer(
     containerId,
     accessToken,
+    graphBase,
   );
 
   return containerId;
@@ -607,9 +614,10 @@ async function publishInstagramContainer(
   igAccountId: string,
   accessToken: string,
   creationId: string,
+  graphBase: string,
 ): Promise<string> {
   const response = await fetch(
-    `https://graph.facebook.com/${META_GRAPH_VERSION}/${igAccountId}/media_publish`,
+    `${graphBase}/${igAccountId}/media_publish`,
     {
       method: "POST",
       headers: {
@@ -639,9 +647,18 @@ async function publishToInstagram(
   post: SocialPost,
   tokenData: OAuthToken,
 ): Promise<PlatformResult> {
+  /*
+   * Two kinds of Instagram connection:
+   *  - Instagram Login (no Page): user token on graph.instagram.com
+   *  - Facebook Login (linked Page): Page token on graph.facebook.com
+   */
+  const viaInstagramLogin = !tokenData.page_id;
+  const graphBase = viaInstagramLogin ? INSTAGRAM_GRAPH : META_GRAPH;
+
   const accessToken = await decryptIfNecessary(
-    tokenData.page_access_token ||
-      tokenData.access_token,
+    viaInstagramLogin
+      ? tokenData.access_token
+      : tokenData.page_access_token || tokenData.access_token,
   );
 
   const igAccountId = tokenData.account_id;
@@ -681,6 +698,8 @@ async function publishToInstagram(
         accessToken,
         mediaUrls[0],
         post.content?.trim() || undefined,
+        false,
+        graphBase,
       );
 
     const publishedId =
@@ -688,6 +707,7 @@ async function publishToInstagram(
         igAccountId,
         accessToken,
         containerId,
+        graphBase,
       );
 
     return {
@@ -695,7 +715,7 @@ async function publishToInstagram(
       success: true,
       external_post_id: publishedId,
       external_post_url:
-        (await fetchPermalink(publishedId, "permalink", accessToken)) ||
+        (await fetchPermalink(publishedId, "permalink", accessToken, graphBase)) ||
         `https://www.instagram.com/`,
     };
   }
@@ -713,6 +733,7 @@ async function publishToInstagram(
         mediaUrl,
         undefined,
         true,
+        graphBase,
       );
 
     children.push(childId);
@@ -725,7 +746,7 @@ async function publishToInstagram(
   }
 
   const carouselResponse = await fetch(
-    `https://graph.facebook.com/${META_GRAPH_VERSION}/${igAccountId}/media`,
+    `${graphBase}/${igAccountId}/media`,
     {
       method: "POST",
       headers: {
@@ -758,6 +779,7 @@ async function publishToInstagram(
   await waitForInstagramContainer(
     carouselData.id,
     accessToken,
+    graphBase,
   );
 
   const publishedId =
@@ -765,6 +787,7 @@ async function publishToInstagram(
       igAccountId,
       accessToken,
       carouselData.id,
+      graphBase,
     );
 
   return {
@@ -772,7 +795,7 @@ async function publishToInstagram(
     success: true,
     external_post_id: publishedId,
     external_post_url:
-      (await fetchPermalink(publishedId, "permalink", accessToken)) ||
+      (await fetchPermalink(publishedId, "permalink", accessToken, graphBase)) ||
       `https://www.instagram.com/`,
   };
 }

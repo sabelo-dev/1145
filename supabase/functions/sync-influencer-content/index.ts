@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { META_GRAPH } from "../_shared/meta.ts";
+import { INSTAGRAM_GRAPH, META_GRAPH } from "../_shared/meta.ts";
 import { decryptToken } from "../_shared/socialCrypto.ts";
 
 const corsHeaders = {
@@ -40,8 +40,8 @@ interface TokenRow {
   page_access_token: string | null;
 }
 
-async function graphGet(path: string, params: Record<string, string>): Promise<any> {
-  const res = await fetch(`${META_GRAPH}/${path}?${new URLSearchParams(params).toString()}`);
+async function graphGet(path: string, params: Record<string, string>, base: string = META_GRAPH): Promise<any> {
+  const res = await fetch(`${base}/${path}?${new URLSearchParams(params).toString()}`);
   const body = await res.json().catch(() => ({}));
   if (!res.ok || body?.error) {
     throw new Error(body?.error?.message || `Meta request failed (${res.status})`);
@@ -59,7 +59,9 @@ async function tokenValue(value: string | null | undefined): Promise<string> {
 // Instagram professional account via Facebook Login: /{ig-user-id}/media with the Page token.
 async function fetchInstagramPosts(token: TokenRow): Promise<{ posts: NormalizedPost[]; comments: NormalizedComment[] }> {
   if (!token.account_id) throw new Error('Instagram account id is missing. Reconnect Instagram.');
-  const accessToken = await tokenValue(token.page_access_token || token.access_token);
+  // Instagram Login connections have no Page and use graph.instagram.com.
+  const base = token.page_id ? META_GRAPH : INSTAGRAM_GRAPH;
+  const accessToken = await tokenValue(token.page_id ? token.page_access_token || token.access_token : token.access_token);
   const posts: NormalizedPost[] = [];
   const comments: NormalizedComment[] = [];
 
@@ -67,7 +69,7 @@ async function fetchInstagramPosts(token: TokenRow): Promise<{ posts: Normalized
     fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
     limit: '50',
     access_token: accessToken,
-  });
+  }, base);
 
   for (const item of mediaData.data || []) {
     posts.push({
@@ -91,7 +93,7 @@ async function fetchInstagramPosts(token: TokenRow): Promise<{ posts: Normalized
         fields: 'id,text,username,timestamp,like_count',
         limit: '50',
         access_token: accessToken,
-      });
+      }, base);
       for (const c of commentsData.data || []) {
         comments.push({
           platform: 'instagram',

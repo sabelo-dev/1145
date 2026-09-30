@@ -85,7 +85,7 @@ const PLATFORMS: PlatformConfig[] = [
     name: 'Instagram', 
     icon: InstagramIcon, 
     color: '#E4405F',
-    description: 'Connect your Instagram Business account via Facebook'
+    description: 'Log in with Instagram to publish posts (Business or Creator account)'
   },
   { 
     id: 'twitter', 

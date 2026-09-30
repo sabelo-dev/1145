@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { META_GRAPH, META_OAUTH_DIALOG, META_SCOPES, metaAppCredentials, safeAppUrl, safeReturnPath, signState } from '../_shared/meta.ts';
+import { INSTAGRAM_OAUTH_URL, INSTAGRAM_SCOPES, instagramAppCredentials, META_GRAPH, META_OAUTH_DIALOG, META_SCOPES, metaAppCredentials, safeAppUrl, safeReturnPath, signState } from '../_shared/meta.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -98,7 +98,20 @@ Deno.serve(async (req) => {
         let authUrl = '';
         const state = await signState({ userId, platform, appUrl: appBaseUrl, returnPath });
 
-        if (platform === 'facebook' || platform === 'instagram') {
+        if (platform === 'instagram' && instagramAppCredentials().appId) {
+          // Log in on instagram.com directly (Business/Creator account; no
+          // Facebook Page needed).
+          const igState = await signState({ userId, platform, appUrl: appBaseUrl, returnPath, via: 'instagram' });
+          authUrl = `${INSTAGRAM_OAUTH_URL}?` + new URLSearchParams({
+            client_id: instagramAppCredentials().appId,
+            redirect_uri: `${functionsUrl}/social-oauth-callback`,
+            response_type: 'code',
+            scope: INSTAGRAM_SCOPES.join(','),
+            state: igState,
+            // Keep the user on Instagram's own login screen.
+            enable_fb_login: 'false',
+          }).toString();
+        } else if (platform === 'facebook' || platform === 'instagram') {
           const fbConfig = config.facebook;
           if (!fbConfig.clientId) {
             return new Response(
@@ -281,7 +294,18 @@ Deno.serve(async (req) => {
         let newAccessToken = '';
         let newExpiresAt: Date | null = null;
 
-        if (tokenData.platform === 'facebook' || tokenData.platform === 'instagram') {
+        if (tokenData.platform === 'instagram' && !tokenData.page_id) {
+          const refreshResponse = await fetch(
+            'https://graph.instagram.com/refresh_access_token?' +
+            new URLSearchParams({ grant_type: 'ig_refresh_token', access_token: tokenData.access_token }).toString()
+          );
+          const refreshData = await refreshResponse.json();
+
+          if (refreshData.access_token) {
+            newAccessToken = refreshData.access_token;
+            newExpiresAt = new Date(Date.now() + (refreshData.expires_in || 5184000) * 1000);
+          }
+        } else if (tokenData.platform === 'facebook' || tokenData.platform === 'instagram') {
           const fbConfig = config.facebook;
           const refreshResponse = await fetch(
             `${META_GRAPH}/oauth/access_token?` +

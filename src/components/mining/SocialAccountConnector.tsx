@@ -162,12 +162,12 @@ export function SocialAccountConnector({ accounts, onConnect, onDisconnect }: So
           {isOAuth ? (
             <div className="space-y-3 py-4 text-sm text-muted-foreground">
               <p>
-                You'll sign in with Facebook to prove you own this account. Nothing is posted without your action.
+                You'll sign in with {connectingPlatform === 'instagram' ? 'Instagram' : 'Facebook'} to prove you own this
+                account. Nothing is posted without your action.
               </p>
               {connectingPlatform === 'instagram' ? (
                 <p>
-                  Instagram must be a Business or Creator account linked to a Facebook Page you manage. When Facebook
-                  asks, select that Page.
+                  It must be a Business or Creator account (Instagram Settings, then Account type and tools).
                 </p>
               ) : (
                 <p>When Facebook asks, select the Page you post from.</p>
@@ -196,7 +196,9 @@ export function SocialAccountConnector({ accounts, onConnect, onDisconnect }: So
             </Button>
             {isOAuth ? (
               <Button onClick={handleOAuthConnect} disabled={isSubmitting}>
-                {isSubmitting ? 'Redirecting…' : 'Continue with Facebook'}
+                {isSubmitting
+                  ? 'Redirecting…'
+                  : `Continue with ${connectingPlatform === 'instagram' ? 'Instagram' : 'Facebook'}`}
               </Button>
             ) : (
               <Button onClick={handleConnect} disabled={!username.trim() || isSubmitting}>

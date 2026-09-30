@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { META_GRAPH, metaAppCredentials, verifyState } from '../_shared/meta.ts';
+import { INSTAGRAM_GRAPH, instagramAppCredentials, META_GRAPH, metaAppCredentials, verifyState } from '../_shared/meta.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,7 +75,85 @@ Deno.serve(async (req) => {
     let accountInfo: any = null;
     const linked: LinkedAccount[] = [];
 
-    if (platform === 'facebook' || platform === 'instagram') {
+    if (platform === 'instagram' && stateData.via === 'instagram') {
+      // Instagram API with Instagram Login: no Facebook Page involved.
+      const { appId: igAppId, appSecret: igAppSecret } = instagramAppCredentials();
+      if (!igAppId || !igAppSecret) {
+        return Response.redirect(`${redirectUrl}&error=instagram_not_configured`);
+      }
+
+      // Instagram appends "#_" to the code; strip it defensively.
+      const igCode = code.replace(/#_$/, '');
+      const shortRes = await fetch('https://api.instagram.com/oauth/access_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: igAppId,
+          client_secret: igAppSecret,
+          grant_type: 'authorization_code',
+          redirect_uri: `${functionsUrl}/social-oauth-callback`,
+          code: igCode,
+        }),
+      });
+      const shortToken = await shortRes.json().catch(() => ({}));
+      if (!shortRes.ok || !shortToken.access_token) {
+        const message = shortToken.error_message || shortToken.error?.message || 'Instagram sign-in failed';
+        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(message)}`);
+      }
+
+      // 60-day token; fall back to the short-lived one if the exchange fails.
+      const longRes = await fetch('https://graph.instagram.com/access_token?' + new URLSearchParams({
+        grant_type: 'ig_exchange_token',
+        client_secret: igAppSecret,
+        access_token: shortToken.access_token,
+      }).toString());
+      const longToken = await longRes.json().catch(() => ({}));
+      const accessToken = longToken.access_token || shortToken.access_token;
+      const expiresIn = longToken.expires_in || 3600;
+
+      const profileRes = await fetch(`${INSTAGRAM_GRAPH}/me?` + new URLSearchParams({
+        fields: 'user_id,username,account_type,followers_count',
+        access_token: accessToken,
+      }).toString());
+      const profile = await profileRes.json().catch(() => ({}));
+      if (!profileRes.ok || profile.error) {
+        const message = profile.error?.message || 'Could not read your Instagram profile';
+        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(message)}`);
+      }
+
+      // Publishing / insights use the professional account id.
+      const igUserId = String(profile.user_id || profile.id || shortToken.user_id);
+      const handle = profile.username || igUserId;
+
+      const { error: upsertError } = await supabase
+        .from('social_oauth_tokens')
+        .upsert({
+          user_id: userId,
+          platform: 'instagram',
+          account_id: igUserId,
+          account_handle: handle,
+          access_token: accessToken,
+          token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
+          // No Page: tells publish/sync to use graph.instagram.com.
+          page_id: null,
+          page_name: null,
+          page_access_token: null,
+          scope: Array.isArray(shortToken.permissions)
+            ? shortToken.permissions
+            : typeof shortToken.permissions === 'string' ? shortToken.permissions.split(',') : [],
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,platform,account_id' });
+      if (upsertError) throw new Error(`Failed to save connection: ${upsertError.message}`);
+
+      linked.push({
+        platform: 'instagram',
+        id: igUserId,
+        handle,
+        url: profile.username ? `https://instagram.com/${profile.username}` : '',
+        followers: profile.followers_count,
+      });
+    } else if (platform === 'facebook' || platform === 'instagram') {
       const { appId: fbAppId, appSecret: fbAppSecret } = metaAppCredentials();
 
       if (!fbAppId || !fbAppSecret) {

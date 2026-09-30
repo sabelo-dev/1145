@@ -26,6 +26,24 @@ export const META_SCOPES = (Deno.env.get("META_OAUTH_SCOPES") || [
   .map((s) => s.trim())
   .filter(Boolean);
 
+// Instagram API with Instagram Login: the user logs in on instagram.com
+// directly (Business/Creator accounts, no Facebook Page needed). It has its own
+// app ID/secret under App Dashboard > Instagram > API setup with Instagram login.
+export const INSTAGRAM_GRAPH = `https://graph.instagram.com/${META_GRAPH_VERSION}`;
+export const INSTAGRAM_OAUTH_URL = "https://www.instagram.com/oauth/authorize";
+export const INSTAGRAM_SCOPES = [
+  "instagram_business_basic",
+  "instagram_business_content_publish",
+  "instagram_business_manage_comments",
+];
+
+export function instagramAppCredentials(): { appId: string; appSecret: string } {
+  return {
+    appId: Deno.env.get("INSTAGRAM_APP_ID") || "",
+    appSecret: Deno.env.get("INSTAGRAM_APP_SECRET") || "",
+  };
+}
+
 export function metaAppCredentials(): { appId: string; appSecret: string } {
   return {
     appId: Deno.env.get("FACEBOOK_APP_ID") || Deno.env.get("META_APP_ID") || "",
@@ -49,6 +67,8 @@ export interface OAuthState {
   appUrl: string;
   /** In-app path to return to after the provider (defaults to Accounts). */
   returnPath?: string;
+  /** "instagram" when the user logs in on instagram.com instead of Facebook. */
+  via?: "instagram";
   codeVerifier?: string;
   exp?: number;
 }
