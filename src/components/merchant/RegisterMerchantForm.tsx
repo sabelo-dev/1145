@@ -177,43 +177,8 @@ const RegisterVendorForm: React.FC = () => {
 
       console.log('Vendor created successfully:', vendorResult);
 
-      // Update user role to vendor in profiles table AFTER successful vendor creation
-      console.log('Updating user profile role...');
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ role: 'vendor' })
-        .eq('id', currentUser.id);
-
-      if (profileError) {
-        console.error('Profile update error:', profileError);
-        // Don't throw here as vendor was created successfully
-        console.warn('Failed to update profile role, but vendor record created');
-      }
-
-      // Update user_roles table: remove consumer role and add vendor role
-      console.log('Updating user_roles table...');
-      
-      // Delete consumer role
-      const { error: deleteRoleError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', currentUser.id)
-        .eq('role', 'consumer');
-
-      if (deleteRoleError) {
-        console.error('Error deleting consumer role:', deleteRoleError);
-      }
-
-      // Insert vendor role
-      const { error: insertRoleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: currentUser.id, role: 'vendor' })
-        .select()
-        .single();
-
-      if (insertRoleError) {
-        console.error('Error inserting vendor role:', insertRoleError);
-      }
+      // The vendor role (and profiles.role) is granted by the database when the
+      // vendor record is created (20261001080000_role_sync.sql).
 
       // Refresh user profile to update the auth context and wait for completion
       console.log('Refreshing user profile...');
