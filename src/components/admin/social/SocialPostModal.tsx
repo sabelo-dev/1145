@@ -95,11 +95,15 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await supabase
+      // Published products are 'approved' (set by admin review); some older
+      // rows use 'active'. Load the whole live catalogue, not a first page.
+      const { data, error } = await supabase
         .from('products')
         .select('id, name, slug')
-        .eq('status', 'active')
-        .limit(50);
+        .in('status', ['approved', 'active'])
+        .order('name', { ascending: true })
+        .limit(1000);
+      if (error) console.error('Failed to load products:', error);
       setProducts(data || []);
     };
     fetchProducts();
