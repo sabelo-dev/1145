@@ -1,0 +1,112 @@
+{
+  "title": "1145 Rewards Programme",
+  "subtitle": "How to earn, track and use UCoin",
+  "updated": "30 September 2026",
+  "intro": "UCoin is the 1145 Lifestyle reward currency. You earn it for shopping, reviewing, delivering, and sharing 1145 with your followers. This guide explains every way to earn, the limits that keep the programme fair, and where to find your rewards.",
+  "sections": [
+    {
+      "id": "earn",
+      "title": "Ways to earn UCoin",
+      "body": [
+        "Most rewards are added to your wallet as soon as the action is verified. Rewards for purchases, reviews and deliveries are checked first, so they can take longer to appear."
+      ],
+      "table": {
+        "columns": ["Action", "Reward", "How it works"],
+        "rows": [
+          ["Join 1145", "10 UCoin", "Paid once, when you confirm your email address. Accounts created with Google or Facebook qualify straight away."],
+          ["Connect a social account", "10 UCoin", "Connect Facebook or Instagram by logging in to it from 1145. Paid once per social account, up to 5 a day. Typing a username without logging in does not qualify."],
+          ["Publish a post", "5 UCoin", "Publish a post from the Influencer Hub to a connected account. Paid once per post, up to 3 a day."],
+          ["Complete social tasks", "2 to 40 UCoin", "Tasks in the Rewards tab, such as sharing your referral link or posting a short video. Your tier multiplier applies. See Social tasks below."],
+          ["Buy on 1145", "25 UCoin", "Per order, once it has been delivered and the 7-day return window has closed."],
+          ["Review a product", "10 UCoin", "For products you bought. Reviews need at least 20 words and are checked by our team before UCoin is added. Up to 3 a day."],
+          ["Deliver as a driver", "20 UCoin", "Per completed delivery with proof of delivery (the customer's OTP and a photo)."],
+          ["Referral mining bonus", "10% / 3% / 1%", "When people you referred complete social tasks, you earn 10% of their reward. You also earn 3% for their referrals, and 1% for the level after that."]
+        ]
+      }
+    },
+    {
+      "id": "tasks",
+      "title": "Social tasks",
+      "body": [
+        "Open the Rewards tab to see the tasks available to you. Pick a task, do it on your social account, then press Complete Task. The reward is added to your wallet straight away.",
+        "Each task has a cooldown (how long before you can repeat it) and a daily limit. The rewards below are before your tier multiplier."
+      ],
+      "table": {
+        "columns": ["Task", "Reward", "Cooldown", "Per day"],
+        "rows": [
+          ["Share your referral link", "5", "6 hours", "4"],
+          ["Mention 1145 Lifestyle in a post", "8", "12 hours", "2"],
+          ["Share a promo code", "6", "12 hours", "2"],
+          ["Like a 1145 post", "2", "6 hours", "5"],
+          ["Comment on a 1145 post", "4", "6 hours", "3"],
+          ["Repost 1145 content", "6", "8 hours", "3"],
+          ["Share to your Instagram story", "7", "12 hours", "2"],
+          ["Create a short TikTok video", "40", "24 hours", "1"],
+          ["Post a product review", "25", "24 hours", "2"],
+          ["Mention 1145 on a livestream", "30", "24 hours", "1"],
+          ["Upload your own photo with a 1145 product", "15", "12 hours", "2"]
+        ]
+      }
+    },
+    {
+      "id": "tiers",
+      "title": "Tiers and daily limits",
+      "body": [
+        "Your tier sets a multiplier for task rewards and the most task UCoin you can earn in a day. Everyone starts on Starter. Higher tiers are for members whose referrals have become shoppers.",
+        "The daily limit applies to task rewards and resets at midnight (UTC). The other rewards in this guide have their own limits."
+      ],
+      "table": {
+        "columns": ["Tier", "Successful referrals", "Task multiplier", "Daily task limit"],
+        "rows": [
+          ["Starter", "0", "1x", "50 UCoin"],
+          ["Bronze", "5", "1.25x", "120 UCoin"],
+          ["Silver", "20", "1.5x", "250 UCoin"],
+          ["Gold", "50", "2x", "500 UCoin"],
+          ["Diamond", "150", "3x", "1,000 UCoin"]
+        ]
+      },
+      "note": "Example: on the Silver tier, a 40 UCoin task pays 60 UCoin."
+    },
+    {
+      "id": "track",
+      "title": "Where to see your rewards",
+      "list": [
+        "Wallet: your balance, lifetime earnings and every transaction, including which task or action paid it.",
+        "Rewards tab (Influencer Hub): your tier, today's progress towards your daily limit, and your task history.",
+        "Notifications: you get one each time UCoin is added."
+      ],
+      "body": [
+        "If a reward hasn't appeared, check its rules above. Purchase rewards wait for delivery and the return window, review rewards wait for our team's check, and anything over a daily limit is not paid."
+      ]
+    },
+    {
+      "id": "use",
+      "title": "Using your UCoin",
+      "list": [
+        "Send UCoin to another 1145 user from your Wallet. Any fee is shown before you confirm.",
+        "Redeem UCoin in the Rewards shop. Each option shows its cost and what you get before you confirm."
+      ]
+    },
+    {
+      "id": "fair",
+      "title": "Fair play",
+      "list": [
+        "One 1145 account per person.",
+        "Rewards are only for real, verified actions. Each social account and each post can earn only once.",
+        "Rewards earned through fake accounts, fake activity or misuse can be reversed, and the account can be removed from the programme.",
+        "Reward amounts, tasks and limits may change. The latest version of this guide is always available in the app."
+      ]
+    },
+    {
+      "id": "faq",
+      "title": "Questions",
+      "faq": [
+        ["I signed up but didn't get the welcome bonus.", "The bonus is paid when your email address is confirmed. Check your inbox for the confirmation code. If you signed up with Google or Facebook, it is paid straight away."],
+        ["I connected my Instagram but got no reward.", "The reward is paid only when you log in to Instagram or Facebook from 1145, once per social account. Reconnecting an account that already earned doesn't pay again, and you can earn this reward up to 5 times a day."],
+        ["Why does Instagram need a Business or Creator account?", "Instagram only lets apps post for professional accounts. You can switch for free in Instagram: Settings, then Account type and tools."],
+        ["I completed a task but it says cooling down.", "Each task has a cooldown before you can repeat it. The Social tasks table shows how long each one takes."],
+        ["My purchase reward is still missing.", "It is paid after your order is delivered and the 7-day return window closes."]
+      ]
+    }
+  ]
+}

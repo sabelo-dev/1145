@@ -38,6 +38,7 @@ const CheckoutCancelPage = lazyWithRetry(() => import("@/pages/CheckoutCancelPag
 const ConsumerDashboard = lazyWithRetry(() => import("@/pages/ConsumerDashboard"));
 const ContactPage = lazyWithRetry(() => import("@/pages/ContactPage"));
 const FAQPage = lazyWithRetry(() => import("@/pages/FAQPage"));
+const RewardsGuidePage = lazyWithRetry(() => import("@/pages/RewardsGuidePage"));
 const NotFound = lazyWithRetry(() => import("@/pages/NotFound"));
 const StorefrontPage = lazyWithRetry(() => import("@/pages/StorefrontPage"));
 const TrackOrderPage = lazyWithRetry(() => import("@/pages/TrackOrderPage"));
@@ -184,6 +185,7 @@ function AppRouter() {
           } />
           <Route path="contact" element={<ContactPage />} />
           <Route path="faq" element={<FAQPage />} />
+          <Route path="rewards-guide" element={<RewardsGuidePage />} />
           <Route path="best-sellers" element={<BestSellersPage />} />
           <Route path="new-arrivals" element={<NewArrivalsPage />} />
           <Route path="deals" element={<DealsPage />} />

@@ -22,6 +22,7 @@ const quickLinks = [
 const serviceLinks = [
   { to: "/contact", label: "Contact Us" },
   { to: "/faq", label: "FAQ" },
+  { to: "/rewards-guide", label: "Rewards guide" },
   { to: "/shipping", label: "Shipping & Delivery" },
   { to: "/returns", label: "Returns & Refunds" },
   { to: "/terms", label: "Terms & Conditions" },

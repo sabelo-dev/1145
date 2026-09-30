@@ -31,7 +31,10 @@ export const InfluencerRewardsTab: React.FC = () => {
               <Wallet className="h-5 w-5" />
               UCoin wallet
             </CardTitle>
-            <CardDescription>Task rewards are credited here instantly</CardDescription>
+            <CardDescription>
+              Task rewards are credited here instantly.{' '}
+              <Link to="/rewards-guide" className="underline underline-offset-2">How rewards work</Link>
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" asChild>
             <Link to="/wallet">
