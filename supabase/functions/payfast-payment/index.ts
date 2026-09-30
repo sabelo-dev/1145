@@ -222,6 +222,8 @@ serve(async (req) => {
     // m_payment_id prefix so payfast-itn can verify what was paid.
     let amountDue: number;
     let mPaymentId: string;
+    // Paid UCoin tiers bill monthly via PayFast recurring billing.
+    let isTierSubscription = false;
     let itemName = String(paymentData.itemName || "1145 Lifestyle order").slice(0, 100);
 
     if (paymentData.customStr2 === "auction_registration") {
@@ -262,6 +264,60 @@ serve(async (req) => {
       const deposit = registration?.payment_status === "paid" ? Number(registration.registration_fee_paid || 0) : 0;
       amountDue = round2(Number(auction.winning_bid || 0) - deposit);
       mPaymentId = `AUCWIN-${auction.id}`;
+    } else if (paymentData.customStr2 === "tier_subscription") {
+      const tierName = String(paymentData.customStr1 || "").toLowerCase();
+      const { data: tier } = await supabaseAdmin
+        .from("affiliate_tiers")
+        .select("id, name, display_name, level, monthly_price")
+        .eq("name", tierName)
+        .maybeSingle();
+      const price = Number((tier as any)?.monthly_price || 0);
+      if (!tier || !(price > 0)) {
+        return json({ success: false, error: "That tier is not available as a subscription" }, 400);
+      }
+
+      // No second subscription at the same or a higher tier.
+      const { data: current } = await supabaseAdmin
+        .from("uc_tier_subscriptions")
+        .select("id, status, current_period_end, tier:affiliate_tiers(level, display_name)")
+        .eq("user_id", user.id)
+        .in("status", ["active", "cancelled"])
+        .gt("current_period_end", new Date().toISOString());
+      const higher = (current ?? []).find((s: any) => Number(s.tier?.level) >= Number((tier as any).level) && s.status === "active");
+      if (higher) {
+        return json({
+          success: false,
+          error: `You already have the ${(higher as any).tier?.display_name} tier. Cancel it first to change to a lower tier.`,
+        }, 400);
+      }
+
+      // Reuse an unpaid sign-up for the same tier instead of piling up rows.
+      const { data: pending } = await supabaseAdmin
+        .from("uc_tier_subscriptions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("tier_id", (tier as any).id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      let subscriptionId = pending?.id as string | undefined;
+      if (!subscriptionId) {
+        const { data: created, error: createError } = await supabaseAdmin
+          .from("uc_tier_subscriptions")
+          .insert({ user_id: user.id, tier_id: (tier as any).id, amount: price, status: "pending" })
+          .select("id")
+          .single();
+        if (createError || !created) {
+          return json({ success: false, error: "Could not start the subscription" }, 500);
+        }
+        subscriptionId = created.id;
+      }
+
+      amountDue = round2(price);
+      mPaymentId = `TIER-${subscriptionId}`;
+      itemName = `1145 ${(tier as any).display_name} tier (monthly)`;
+      isTierSubscription = true;
     } else {
       // Regular cart checkout.
       const priced = await priceCart(supabaseAdmin, paymentData.cartItems ?? []);
@@ -421,6 +477,15 @@ serve(async (req) => {
 
     if (paymentData.paymentMethod) {
       formData.payment_method = paymentData.paymentMethod;
+    }
+
+    // Recurring billing fields come last in PayFast's field order.
+    if (isTierSubscription) {
+      formData.subscription_type = 1;
+      formData.billing_date = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
+      formData.recurring_amount = amountDue.toFixed(2);
+      formData.frequency = 3; // monthly
+      formData.cycles = 0;    // until cancelled
     }
 
     const signature = await signPayFast(formData, payfast.passphrase);

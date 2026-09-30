@@ -17,6 +17,9 @@ import {
   Pickaxe, Users, TrendingUp, Coins, Plus, Edit, 
   Sprout, Crown, Share2, Heart, Video 
 } from 'lucide-react';
+import { TaskSubmissionsReview } from '@/components/admin/rewards/TaskSubmissionsReview';
+import { GrantRewardForm } from '@/components/admin/rewards/GrantRewardForm';
+import { fetchRewardRules, ucToRand, type RewardRule } from '@/lib/ucRewards';
 
 interface MiningTask {
   id: string;
@@ -32,6 +35,7 @@ interface MiningTask {
   requires_verification: boolean;
   max_daily_completions: number;
   is_active: boolean;
+  reward_rule?: string | null;
 }
 
 interface AffiliateTier {
@@ -43,6 +47,10 @@ interface AffiliateTier {
   mining_multiplier: number;
   daily_mining_cap: number;
   badge_color: string;
+  monthly_price?: number;
+  monthly_mining_cap?: number | null;
+  base_mining?: number;
+  cashback_percent?: number;
 }
 
 interface MiningStats {
@@ -59,6 +67,8 @@ export function AdminSocialMining() {
   const [tiers, setTiers] = useState<AffiliateTier[]>([]);
   const [stats, setStats] = useState<MiningStats | null>(null);
   const [editingTask, setEditingTask] = useState<MiningTask | null>(null);
+  // Admin-run range rules a task can pay under (e.g. Social/content 50-500 UC).
+  const [taskRules, setTaskRules] = useState<RewardRule[]>([]);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTask, setNewTask] = useState<Partial<MiningTask>>({
     category: 'engagement',
@@ -66,11 +76,12 @@ export function AdminSocialMining() {
     title: '',
     description: '',
     platform: 'any',
-    base_reward: 10,
+    base_reward: 50,
+    reward_rule: 'social_content_task',
     reward_tier: 'low',
     min_followers: 0,
     cooldown_hours: 24,
-    requires_verification: false,
+    requires_verification: true,
     max_daily_completions: 1,
     is_active: true
   });
@@ -103,8 +114,8 @@ export function AdminSocialMining() {
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending');
     
-    if (stats && count !== null) {
-      setStats(prev => prev ? { ...prev, pendingVerifications: count } : null);
+    if (count !== null) {
+      setStats(prev => prev ? { ...prev, pendingVerifications: count } : prev);
     }
 
     setIsLoading(false);
@@ -112,7 +123,12 @@ export function AdminSocialMining() {
 
   useEffect(() => {
     fetchData();
+    fetchRewardRules()
+      .then((rules) => setTaskRules(rules.filter((r) => r.admin_granted && r.reward_kind === 'range')))
+      .catch(() => setTaskRules([]));
   }, []);
+
+  const ruleFor = (code?: string | null) => taskRules.find((r) => r.code === (code || 'social_content_task'));
 
   const updateTask = async (task: MiningTask) => {
     const { error } = await supabase
@@ -121,7 +137,7 @@ export function AdminSocialMining() {
       .eq('id', task.id);
 
     if (error) {
-      toast({ title: 'Failed to update task', variant: 'destructive' });
+      toast({ title: 'Failed to update task', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Task updated successfully' });
       setEditingTask(null);
@@ -138,17 +154,18 @@ export function AdminSocialMining() {
         title: newTask.title || '',
         description: newTask.description || null,
         platform: newTask.platform || 'any',
-        base_reward: newTask.base_reward || 10,
+        base_reward: newTask.base_reward || 50,
+        reward_rule: newTask.reward_rule || 'social_content_task',
         reward_tier: newTask.reward_tier || 'low',
         min_followers: newTask.min_followers || 0,
         cooldown_hours: newTask.cooldown_hours || 24,
-        requires_verification: newTask.requires_verification || false,
+        requires_verification: newTask.requires_verification !== false,
         max_daily_completions: newTask.max_daily_completions || 1,
         is_active: newTask.is_active !== false
       }]);
 
     if (error) {
-      toast({ title: 'Failed to add task', variant: 'destructive' });
+      toast({ title: 'Failed to add task', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Task added successfully' });
       setIsAddingTask(false);
@@ -158,11 +175,12 @@ export function AdminSocialMining() {
         title: '',
         description: '',
         platform: 'any',
-        base_reward: 10,
+        base_reward: 50,
+        reward_rule: 'social_content_task',
         reward_tier: 'low',
         min_followers: 0,
         cooldown_hours: 24,
-        requires_verification: false,
+        requires_verification: true,
         max_daily_completions: 1,
         is_active: true
       });
@@ -237,8 +255,20 @@ export function AdminSocialMining() {
       <Tabs defaultValue="tasks">
         <TabsList>
           <TabsTrigger value="tasks">Mining Tasks</TabsTrigger>
-          <TabsTrigger value="tiers">Affiliate Tiers</TabsTrigger>
+          <TabsTrigger value="submissions">
+            Submissions{stats?.pendingVerifications ? ` (${stats.pendingVerifications})` : ''}
+          </TabsTrigger>
+          <TabsTrigger value="grant">Grant reward</TabsTrigger>
+          <TabsTrigger value="tiers">Tiers</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="submissions" className="mt-4">
+          <TaskSubmissionsReview onChanged={fetchData} />
+        </TabsContent>
+
+        <TabsContent value="grant" className="mt-4">
+          <GrantRewardForm />
+        </TabsContent>
 
         <TabsContent value="tasks" className="mt-4">
           <Card>
@@ -269,7 +299,9 @@ export function AdminSocialMining() {
                       <TableCell>
                         <Badge variant="outline">{task.category}</Badge>
                       </TableCell>
-                      <TableCell>{task.base_reward} UCoin</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {task.base_reward} UC <span className="text-muted-foreground">({ucToRand(task.base_reward)})</span>
+                      </TableCell>
                       <TableCell>{task.cooldown_hours}h</TableCell>
                       <TableCell>
                         {task.requires_verification ? (
@@ -308,9 +340,13 @@ export function AdminSocialMining() {
                   <TableRow>
                     <TableHead>Level</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Min Conversions</TableHead>
-                    <TableHead>Mining Multiplier</TableHead>
-                    <TableHead>Daily Cap</TableHead>
+                    <TableHead>Qualified referrals</TableHead>
+                    <TableHead>Monthly price</TableHead>
+                    <TableHead>Max UC/day</TableHead>
+                    <TableHead>Max UC/30 days</TableHead>
+                    <TableHead>Base mining</TableHead>
+                    <TableHead>Cashback</TableHead>
+                    <TableHead>Task multiplier</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -323,8 +359,12 @@ export function AdminSocialMining() {
                         </Badge>
                       </TableCell>
                       <TableCell>{tier.min_conversions}</TableCell>
+                      <TableCell>{Number(tier.monthly_price) > 0 ? `R${Number(tier.monthly_price).toLocaleString()}` : 'Free'}</TableCell>
+                      <TableCell>{tier.daily_mining_cap.toLocaleString()} UC</TableCell>
+                      <TableCell>{tier.monthly_mining_cap ? `${tier.monthly_mining_cap.toLocaleString()} UC` : '—'}</TableCell>
+                      <TableCell>{tier.base_mining ?? 0} UC</TableCell>
+                      <TableCell>{tier.cashback_percent ?? 1}%</TableCell>
                       <TableCell>{tier.mining_multiplier}×</TableCell>
-                      <TableCell>{tier.daily_mining_cap} UCoin</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -356,9 +396,20 @@ export function AdminSocialMining() {
                   onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Reward type</Label>
+                <Select value={editingTask.reward_rule || 'social_content_task'} onValueChange={(v) => setEditingTask({ ...editingTask, reward_rule: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {taskRules.map((r) => (
+                      <SelectItem key={r.code} value={r.code}>{r.display_name} ({r.min_reward}–{r.max_reward} UC)</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Base Reward</Label>
+                  <Label>Reward (UC){ruleFor(editingTask.reward_rule) ? ` · ${ruleFor(editingTask.reward_rule)!.min_reward}–${ruleFor(editingTask.reward_rule)!.max_reward}` : ''}</Label>
                   <Input
                     type="number"
                     value={editingTask.base_reward}
@@ -380,7 +431,7 @@ export function AdminSocialMining() {
                     checked={editingTask.requires_verification}
                     onCheckedChange={(checked) => setEditingTask({ ...editingTask, requires_verification: checked })}
                   />
-                  <Label>Requires Verification</Label>
+                  <Label>Needs approval before paying</Label>
                 </div>
               </div>
             </div>
@@ -434,9 +485,20 @@ export function AdminSocialMining() {
                 onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Reward type</Label>
+              <Select value={newTask.reward_rule || 'social_content_task'} onValueChange={(v) => setNewTask({ ...newTask, reward_rule: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {taskRules.map((r) => (
+                    <SelectItem key={r.code} value={r.code}>{r.display_name} ({r.min_reward}–{r.max_reward} UC)</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Base Reward</Label>
+                <Label>Reward (UC){ruleFor(newTask.reward_rule) ? ` · ${ruleFor(newTask.reward_rule)!.min_reward}–${ruleFor(newTask.reward_rule)!.max_reward}` : ''}</Label>
                 <Input
                   type="number"
                   value={newTask.base_reward}

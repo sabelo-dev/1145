@@ -59,9 +59,15 @@ function paramString(entries: Array<[string, unknown]>, includeEmpty = false): s
 }
 
 /** Signature for an outgoing payment form (keys sorted, as all callers already use). */
+/**
+ * Signature for the checkout (custom integration) form. PayFast signs the
+ * non-blank fields in the order its docs list them (merchant, customer,
+ * transaction, options, payment method, recurring) — NOT alphabetically; the
+ * alphabetical form is only for the REST API (see cancelPayFastSubscription).
+ * Callers build `data` in that documented order.
+ */
 export async function signPayFast(data: Record<string, unknown>, passphrase: string): Promise<string> {
-  const sorted = Object.keys(data).sort().map((key) => [key, data[key]] as [string, unknown]);
-  return md5Hash(`${paramString(sorted)}&passphrase=${phpUrlencode(passphrase)}`);
+  return md5Hash(`${paramString(Object.entries(data))}&passphrase=${phpUrlencode(passphrase)}`);
 }
 
 /**
@@ -111,4 +117,40 @@ export async function validateItn(
 /** PayFast amounts are 2dp strings; compare in cents to avoid float noise. */
 export function amountsMatch(paid: number, expected: number): boolean {
   return Math.round(paid * 100) === Math.round(expected * 100);
+}
+
+/**
+ * Cancel a PayFast subscription (recurring billing) by its token.
+ * PUT https://api.payfast.co.za/subscriptions/{token}/cancel, signed with an
+ * MD5 of the alphabetised headers plus the passphrase.
+ */
+export async function cancelPayFastSubscription(
+  token: string,
+  config: PayFastConfig,
+): Promise<{ ok: boolean; error?: string }> {
+  const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
+  const headers: Record<string, string> = {
+    "merchant-id": config.merchantId,
+    version: "v1",
+    timestamp,
+  };
+  const signed = { ...headers, passphrase: config.passphrase };
+  const signature = await md5Hash(
+    Object.keys(signed)
+      .sort()
+      .map((key) => `${key}=${phpUrlencode(signed[key as keyof typeof signed])}`)
+      .join("&"),
+  );
+
+  const url = `https://api.payfast.co.za/subscriptions/${encodeURIComponent(token)}/cancel${config.sandbox ? "?testing=true" : ""}`;
+  try {
+    const res = await fetch(url, { method: "PUT", headers: { ...headers, signature } });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || body?.response === false) {
+      return { ok: false, error: body?.data?.message || body?.message || `PayFast returned ${res.status}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
 }

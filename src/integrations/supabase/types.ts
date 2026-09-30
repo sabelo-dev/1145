@@ -5590,6 +5590,7 @@ export type Database = {
       }
       mining_tasks: {
         Row: {
+          reward_rule: string | null
           base_reward: number
           category: string
           cooldown_hours: number | null
@@ -5608,6 +5609,7 @@ export type Database = {
           verification_type: string | null
         }
         Insert: {
+          reward_rule?: string | null
           base_reward: number
           category: string
           cooldown_hours?: number | null
@@ -5626,6 +5628,7 @@ export type Database = {
           verification_type?: string | null
         }
         Update: {
+          reward_rule?: string | null
           base_reward?: number
           category?: string
           cooldown_hours?: number | null

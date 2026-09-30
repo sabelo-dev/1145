@@ -146,9 +146,10 @@ export function MiningTaskList({
     if (!selectedTask) return;
     
     setIsSubmitting(true);
-    await onCompleteTask(selectedTask.id, undefined);
+    await onCompleteTask(selectedTask.id, proofUrl.trim() || undefined);
     setIsSubmitting(false);
     setSelectedTask(null);
+    setProofUrl('');
   };
 
   const renderTask = (task: MiningTask) => {
@@ -210,7 +211,7 @@ export function MiningTaskList({
               ) : (
                 <span className="flex items-center gap-1 text-green-600">
                   <CheckCircle2 className="h-3 w-3" />
-                  Auto-verified
+                  {task.requires_verification ? 'Paid when approved' : 'Paid instantly'}
                 </span>
               )}
             </div>
@@ -314,10 +315,26 @@ export function MiningTaskList({
               )}
             </div>
 
+            {selectedTask?.requires_verification && (
+              <div className="space-y-2">
+                <Label htmlFor="task-proof">Link to your post</Label>
+                <Input
+                  id="task-proof"
+                  type="url"
+                  placeholder="https://instagram.com/p/..."
+                  value={proofUrl}
+                  onChange={(e) => setProofUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">So 1145 can check the task before paying.</p>
+              </div>
+            )}
+
             <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
               <p className="text-xs text-green-700 dark:text-green-300">
                 <CheckCircle2 className="inline h-3 w-3 mr-1" />
-                UCoin will be credited instantly upon completion.
+                {selectedTask?.requires_verification
+                  ? 'Submit once you have done it. 1145 checks it and adds the UC to your wallet when approved.'
+                  : 'UC is added to your wallet as soon as you complete it.'}
               </p>
             </div>
           </div>
@@ -328,9 +345,9 @@ export function MiningTaskList({
             </Button>
             <Button 
               onClick={handleSubmit} 
-              disabled={isSubmitting}
+              disabled={isSubmitting || (!!selectedTask?.requires_verification && !/^https?:\/\/\S+$/i.test(proofUrl.trim()))}
             >
-              {isSubmitting ? 'Completing...' : 'Complete Task'}
+              {isSubmitting ? 'Submitting...' : selectedTask?.requires_verification ? 'Submit for review' : 'Complete Task'}
             </Button>
           </DialogFooter>
         </DialogContent>

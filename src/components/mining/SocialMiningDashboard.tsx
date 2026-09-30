@@ -8,6 +8,10 @@ import { MiningTaskList } from './MiningTaskList';
 import { MiningHistory } from './MiningHistory';
 import { ReferralBonusInfo } from './ReferralBonusInfo';
 import { MiningRules } from './MiningRules';
+import { DailyCheckInCard } from './DailyCheckInCard';
+import { MiningCapacityCard, type MiningCapacityHandle } from './MiningCapacityCard';
+import { TierPlans } from './TierPlans';
+import { useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -19,6 +23,12 @@ interface SocialMiningDashboardProps {
 
 export function SocialMiningDashboard({ onTaskCompleted }: SocialMiningDashboardProps = {}) {
   const { user } = useAuth();
+  const capacityRef = useRef<MiningCapacityHandle>(null);
+  // Anything earned here changes today's capacity and the wallet.
+  const handleEarned = () => {
+    capacityRef.current?.refresh();
+    onTaskCompleted?.();
+  };
   const {
     isLoading,
     socialAccounts,
@@ -65,6 +75,11 @@ export function SocialMiningDashboard({ onTaskCompleted }: SocialMiningDashboard
 
   return (
     <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <DailyCheckInCard onEarned={handleEarned} />
+        <MiningCapacityCard ref={capacityRef} />
+      </div>
+
       {/* Header Stats */}
       <div className="grid gap-4 md:grid-cols-2">
         <AffiliateTierCard
@@ -93,7 +108,7 @@ export function SocialMiningDashboard({ onTaskCompleted }: SocialMiningDashboard
             getCompletionsToday={getTaskCompletionsToday}
             onCompleteTask={async (taskId, proofUrl, socialAccountId) => {
               const result = await completeTask(taskId, proofUrl, socialAccountId);
-              if (result) onTaskCompleted?.();
+              if (result) handleEarned();
               return result;
             }}
             onConnectAccount={connectSocialAccount}
@@ -105,6 +120,11 @@ export function SocialMiningDashboard({ onTaskCompleted }: SocialMiningDashboard
           <MiningHistory completions={completions} />
         </div>
       </div>
+
+      <TierPlans
+        currentLevel={affiliateStatus?.tier?.level ?? 1}
+        qualifiedReferrals={affiliateStatus?.total_conversions ?? 0}
+      />
 
       {/* Mining rules */}
       <MiningRules

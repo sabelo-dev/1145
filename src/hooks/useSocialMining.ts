@@ -286,8 +286,8 @@ export function useSocialMining() {
     }
 
     toast({
-      title: 'Task Completed! 🎉',
-      description: result.message || `${result.reward} UCoin has been credited to your wallet.`
+      title: result.status === 'pending' ? 'Submitted for review' : 'Task Completed! 🎉',
+      description: result.message || `${result.reward} UC has been credited to your wallet.`
     });
 
     await Promise.all([fetchCompletions(), fetchDailyLimit(), fetchAffiliateStatus()]);

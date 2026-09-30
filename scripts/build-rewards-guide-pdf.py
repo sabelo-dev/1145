@@ -68,11 +68,8 @@ def esc(text: str) -> str:
 
 def table(spec, width):
     cols = spec["columns"]
-    # First column wider; description-like last column wider still.
-    if len(cols) == 3:
-        widths = [0.27, 0.16, 0.57]
-    else:
-        widths = [0.46, 0.16, 0.19, 0.19]
+    # Column widths (fractions of the page) come from the content file.
+    widths = spec.get("widths") or [1 / len(cols)] * len(cols)
     data = [[Paragraph(esc(c), S["th"]) for c in cols]]
     for row in spec["rows"]:
         data.append([Paragraph(esc(cell), S["td_bold"] if i == 0 else S["td"]) for i, cell in enumerate(row)])

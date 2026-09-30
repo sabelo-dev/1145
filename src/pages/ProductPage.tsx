@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { callRewardRpc } from "@/lib/ucRewards";
 import { useParams, Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -35,6 +37,13 @@ const ProductPage: React.FC = () => {
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [colorImage, setColorImage] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  // Browse/shop reward: 5 UC per product viewed (once a day, up to 25 UC).
+  useEffect(() => {
+    if (!user || !product?.id) return;
+    callRewardRpc('uc_record_product_view', { p_product_id: product.id }).catch(() => undefined);
+  }, [user, product?.id]);
 
   useEffect(() => {
     const loadProduct = async () => {

@@ -29,7 +29,7 @@ export function MiningRules({ tiers, tasks, affiliateStatus }: MiningRulesProps)
             <li>Your reward is the task reward multiplied by your level bonus.</li>
             <li>Each task has a cooldown and a maximum number of times per day.</li>
             <li>Your level sets a daily earning cap. Once you hit it, mining pauses until tomorrow.</li>
-            <li>Rewards are credited instantly and appear in your UCoin history.</li>
+            <li>Most tasks are checked by 1145 first; approved rewards appear in your UCoin history.</li>
             <li>You earn a bonus when people you referred mine: 10% from level 1, 3% from level 2, 1% from level 3.</li>
             <li>Tasks that name a platform need that account connected first.</li>
             <li>Fake, duplicate or removed posts are rejected and can suspend mining.</li>

@@ -1,90 +1,185 @@
 {
   "title": "1145 Rewards Programme",
-  "subtitle": "How to earn, track and use UCoin",
-  "updated": "30 September 2026",
-  "intro": "UCoin is the 1145 Lifestyle reward currency. You earn it for shopping, reviewing, delivering, and sharing 1145 with your followers. This guide explains every way to earn, the limits that keep the programme fair, and where to find your rewards.",
+  "subtitle": "How to earn, track and use UCoin (UC)",
+  "updated": "1 October 2026",
+  "intro": "UCoin (UC) is the 1145 reward currency. You earn it across the 1145 ecosystem: shopping, rides, stays, leasing, driving, selling, creating content and referring friends. 1 UC is worth R0.10, so 10 UC takes R1 off at checkout.",
   "sections": [
     {
-      "id": "earn",
-      "title": "Ways to earn UCoin",
-      "body": [
-        "Most rewards are added to your wallet as soon as the action is verified. Rewards for purchases, reviews and deliveries are checked first, so they can take longer to appear."
-      ],
+      "id": "start",
+      "title": "Getting started",
       "table": {
-        "columns": ["Action", "Reward", "How it works"],
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
         "rows": [
-          ["Join 1145", "10 UCoin", "Paid once, when you confirm your email address. Accounts created with Google or Facebook qualify straight away."],
-          ["Connect a social account", "10 UCoin", "Connect Facebook or Instagram by logging in to it from 1145. Paid once per social account, up to 5 a day. Typing a username without logging in does not qualify."],
-          ["Publish a post", "5 UCoin", "Publish a post from the Influencer Hub to a connected account. Paid once per post, up to 3 a day."],
-          ["Complete social tasks", "2 to 40 UCoin", "Tasks in the Rewards tab, such as sharing your referral link or posting a short video. Your tier multiplier applies. See Social tasks below."],
-          ["Buy on 1145", "25 UCoin", "Per order, once it has been delivered and the 7-day return window has closed."],
-          ["Review a product", "10 UCoin", "For products you bought. Reviews need at least 20 words and are checked by our team before UCoin is added. Up to 3 a day."],
-          ["Deliver as a driver", "20 UCoin", "Per completed delivery with proof of delivery (the customer's OTP and a photo)."],
-          ["Referral mining bonus", "10% / 3% / 1%", "When people you referred complete social tasks, you earn 10% of their reward. You also earn 3% for their referrals, and 1% for the level after that."]
+          ["Create your 1145 account", "100 UC", "R10", "Once, when your email is confirmed"],
+          ["Complete your profile", "50 UC", "R5", "Once: name, mobile number and photo"],
+          ["Verify email + mobile", "50 UC", "R5", "Once"],
+          ["Complete identity verification", "200 UC", "R20", "Once, where required"]
+        ]
+      }
+    },
+    {
+      "id": "everyday",
+      "title": "Every day",
+      "table": {
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
+        "rows": [
+          ["Daily check-in", "5 UC", "R0.50", "Once a day"],
+          ["Base mining", "20-200 UC", "R2-R20", "Paid with your check-in; set by your tier"],
+          ["7-day streak", "50 UC", "R5", "Every 7 check-ins in a row"],
+          ["30-day streak", "300 UC", "R30", "Every 30 check-ins in a row"],
+          ["Browse/shop activity", "5 UC", "R0.50", "Per product viewed, up to 25 UC a day"]
+        ]
+      }
+    },
+    {
+      "id": "shopping",
+      "title": "Shopping, rides, stays and services",
+      "body": ["Cashback is paid on the amount you paid in Rand (not the part paid with UC). Your tier sets the rate: 1% on Starter up to 3% on Diamond."],
+      "table": {
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
+        "rows": [
+          ["First purchase", "200 UC", "R20", "First completed order of R500 or more"],
+          ["Marketplace purchase", "1-3% back", "Variable", "Completed, paid order"],
+          ["Product review", "20 UC", "R2", "Verified purchase; once per product"],
+          ["Photo review", "50 UC", "R5", "Approved by 1145"],
+          ["Video review", "100 UC", "R10", "Approved by 1145"],
+          ["First 1145 Ride", "100 UC", "R10", "Completed trip"],
+          ["Every qualifying ride", "1-3% back", "Variable", "Completed trip"],
+          ["Complete 10 rides", "250 UC", "R25", "Milestone"],
+          ["Complete 50 rides", "1,000 UC", "R100", "Milestone"],
+          ["First Stay booking", "300 UC", "R30", "Completed stay"],
+          ["Stay booking", "1-3% back", "Variable", "Completed stay"],
+          ["Service Hub booking", "1-3% back", "Variable", "Completed service; added by 1145"]
+        ]
+      },
+      "note": "Refunded orders lose the rewards they earned."
+    },
+    {
+      "id": "leasing",
+      "title": "Leasing",
+      "table": {
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
+        "rows": [
+          ["Lease application completed", "100 UC", "R10", "Application approved as valid"],
+          ["First successful lease", "1,000 UC", "R100", "Activated lease"],
+          ["On-time lease payment", "100 UC", "R10", "Per payment made on or before the due date"],
+          ["Asset owner first lease", "1,000 UC", "R100", "Your first asset leased out"],
+          ["Property host first booking", "1,000 UC", "R100", "First completed stay at your property"]
+        ]
+      }
+    },
+    {
+      "id": "referrals",
+      "title": "Referrals",
+      "body": ["Share your referral code. A friend applies it within 30 days of joining. You earn as they qualify and use 1145."],
+      "table": {
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
+        "rows": [
+          ["Refer a new user", "100 UC", "R10", "They verify email and mobile"],
+          ["Referral makes first purchase", "300 UC", "R30", "Their first completed purchase"],
+          ["Referral completes first ride", "200 UC", "R20", "Their first completed ride"],
+          ["Refer an active driver", "1,000 + 2,000 UC", "R300", "They complete 10 trips"],
+          ["Refer an active merchant", "1,500 + 2,000 UC", "R350", "They make their first sale"],
+          ["Refer an influencer", "200-1,000 UC", "R20-R100", "They complete creator onboarding"],
+          ["Referral activity", "10% / 3% / 1%", "Variable", "Of task rewards earned by your referrals, three levels deep"]
+        ]
+      }
+    },
+    {
+      "id": "partners",
+      "title": "Drivers, merchants and influencers",
+      "table": {
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
+        "rows": [
+          ["Driver completes first trip", "500 UC", "R50", "Once; rides and deliveries both count"],
+          ["Driver completes 10 trips", "500 UC", "R50", "Milestone"],
+          ["Driver completes 50 trips", "2,000 UC", "R200", "Milestone"],
+          ["Driver completes 100 trips", "5,000 UC", "R500", "Milestone"],
+          ["Driver peak-hour bonus", "50-200 UC", "R5-R20", "Per qualifying target"],
+          ["Driver weekly target", "500-2,000 UC", "R50-R200", "Target-based"],
+          ["Merchant first sale", "500 UC", "R50", "Once"],
+          ["Merchant 10 sales", "500 UC", "R50", "Milestone"],
+          ["Merchant 100 sales", "3,000 UC", "R300", "Milestone"],
+          ["Merchant R10k GMV", "2,000 UC", "R200", "R10,000 in completed sales"],
+          ["Influencer first sale", "500 UC", "R50", "Once"],
+          ["Influencer affiliate sale", "1-10%", "Variable", "Campaign-defined"],
+          ["Influencer campaign", "500-10,000 UC", "R50-R1,000", "Sponsor-funded"],
+          ["Connect a social account", "50 UC", "R5", "Once per verified account, up to 5 a day"],
+          ["Publish a post", "50 UC", "R5", "Once per post, one a day"]
         ]
       }
     },
     {
       "id": "tasks",
-      "title": "Social tasks",
-      "body": [
-        "Open the Rewards tab to see the tasks available to you. Pick a task, do it on your social account, then press Complete Task. The reward is added to your wallet straight away.",
-        "Each task has a cooldown (how long before you can repeat it) and a daily limit. The rewards below are before your tier multiplier."
-      ],
+      "title": "Tasks, surveys and campaigns",
+      "body": ["Open the Rewards tab, pick a task, do it and submit the link to your post. 1145 checks it and pays the UC when it is approved. Your tier multiplier applies to task rewards."],
       "table": {
-        "columns": ["Task", "Reward", "Cooldown", "Per day"],
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
         "rows": [
-          ["Share your referral link", "5", "6 hours", "4"],
-          ["Mention 1145 Lifestyle in a post", "8", "12 hours", "2"],
-          ["Share a promo code", "6", "12 hours", "2"],
-          ["Like a 1145 post", "2", "6 hours", "5"],
-          ["Comment on a 1145 post", "4", "6 hours", "3"],
-          ["Repost 1145 content", "6", "8 hours", "3"],
-          ["Share to your Instagram story", "7", "12 hours", "2"],
-          ["Create a short TikTok video", "40", "24 hours", "1"],
-          ["Post a product review", "25", "24 hours", "2"],
-          ["Mention 1145 on a livestream", "30", "24 hours", "1"],
-          ["Upload your own photo with a 1145 product", "15", "12 hours", "2"]
+          ["Complete a simple task", "20-100 UC", "R2-R10", "Validated"],
+          ["Complete a premium task", "100-1,000 UC", "R10-R100", "Sponsored or complex"],
+          ["Social/content task", "50-500 UC", "R5-R50", "Campaign-defined"],
+          ["Complete a survey", "50-300 UC", "R5-R30", "Depends on length"],
+          ["Promotional challenge", "100-5,000 UC", "R10-R500", "Campaign-defined"],
+          ["Sponsored partner task", "100-10,000 UC", "R10-R1,000", "Partner-funded"]
+        ]
+      }
+    },
+    {
+      "id": "celebrations",
+      "title": "Celebrations",
+      "table": {
+        "columns": ["Activity", "UC", "Rand value", "Conditions"],
+        "widths": [0.36, 0.14, 0.14, 0.36],
+        "rows": [
+          ["Birthday reward", "1,000 UC", "R100", "Every year, from the date of birth on your verified profile"],
+          ["1145 anniversary", "200 UC", "R20", "Every year on the day you joined"]
         ]
       }
     },
     {
       "id": "tiers",
-      "title": "Tiers and daily limits",
+      "title": "Tiers and mining capacity",
       "body": [
-        "Your tier sets a multiplier for task rewards and the most task UCoin you can earn in a day. Everyone starts on Starter. Higher tiers are for members whose referrals have become shoppers.",
-        "The daily limit applies to task rewards and resets at midnight (UTC). The other rewards in this guide have their own limits."
+        "Your tier sets how much UC you can earn from everyday activity: check-in, base mining, browsing, cashback, tasks and referral activity. One-off bonuses (welcome, first purchase, milestones, referral qualification rewards, birthday, sponsored campaigns) are never limited.",
+        "Reach a tier for free with qualified referrals, or subscribe monthly to get it now. Your tier is whichever is higher. Subscriptions are paid through PayFast and can be cancelled any time; you keep the tier until the paid month ends."
       ],
       "table": {
-        "columns": ["Tier", "Successful referrals", "Task multiplier", "Daily task limit"],
+        "columns": ["Tier", "Qualified referrals", "Monthly price", "Max UC/day", "Max UC/30 days", "Value/month"],
+        "widths": [0.16, 0.17, 0.16, 0.16, 0.18, 0.17],
         "rows": [
-          ["Starter", "0", "1x", "50 UCoin"],
-          ["Bronze", "5", "1.25x", "120 UCoin"],
-          ["Silver", "20", "1.5x", "250 UCoin"],
-          ["Gold", "50", "2x", "500 UCoin"],
-          ["Diamond", "150", "3x", "1,000 UCoin"]
+          ["Starter", "0", "Free", "100 UC", "3,000 UC", "R300"],
+          ["Bronze", "5", "R199", "200 UC", "6,000 UC", "R600"],
+          ["Silver", "15", "R399", "350 UC", "10,500 UC", "R1,050"],
+          ["Gold", "30", "R699", "500 UC", "15,000 UC", "R1,500"],
+          ["Platinum", "60", "R1,199", "750 UC", "22,500 UC", "R2,250"],
+          ["Diamond", "100", "R1,799", "1,000 UC", "30,000 UC", "R3,000"]
         ]
       },
-      "note": "Example: on the Silver tier, a 40 UCoin task pays 60 UCoin."
+      "note": "The Mining capacity card in the Rewards tab shows today's earnings by type and how much capacity you have left. When you reach a limit, everyday rewards pause until the next day (the 30-day limit rolls over continuously)."
     },
     {
       "id": "track",
       "title": "Where to see your rewards",
       "list": [
-        "Wallet: your balance, lifetime earnings and every transaction, including which task or action paid it.",
-        "Rewards tab (Influencer Hub): your tier, today's progress towards your daily limit, and your task history.",
-        "Notifications: you get one each time UCoin is added."
-      ],
-      "body": [
-        "If a reward hasn't appeared, check its rules above. Purchase rewards wait for delivery and the return window, review rewards wait for our team's check, and anything over a daily limit is not paid."
+        "Wallet: your balance and every transaction, including which activity paid it.",
+        "Rewards tab: check-in, today's mining capacity, your tier, and your task submissions.",
+        "Notifications: you get one each time UC is added."
       ]
     },
     {
       "id": "use",
-      "title": "Using your UCoin",
+      "title": "Using your UC",
       "list": [
-        "Send UCoin to another 1145 user from your Wallet. Any fee is shown before you confirm.",
-        "Redeem UCoin in the Rewards shop. Each option shows its cost and what you get before you confirm."
+        "Pay with UC at checkout: 10 UC = R1 off your order.",
+        "Send UC to another 1145 user from your Wallet. Any fee is shown before you confirm."
       ]
     },
     {
@@ -92,20 +187,21 @@
       "title": "Fair play",
       "list": [
         "One 1145 account per person.",
-        "Rewards are only for real, verified actions. Each social account and each post can earn only once.",
-        "Rewards earned through fake accounts, fake activity or misuse can be reversed, and the account can be removed from the programme.",
-        "Reward amounts, tasks and limits may change. The latest version of this guide is always available in the app."
+        "Rewards are only for real, verified actions. Each social account, post, product review and referral can earn only once.",
+        "Changes you make yourself (for example, marking your own ride complete) never earn rewards; the other party or 1145 confirms them.",
+        "Rewards earned through fake accounts, fake activity or misuse can be reversed, and the account removed from the programme.",
+        "Reward amounts, tasks, tiers and limits may change. The latest version of this guide is always in the app."
       ]
     },
     {
       "id": "faq",
       "title": "Questions",
       "faq": [
-        ["I signed up but didn't get the welcome bonus.", "The bonus is paid when your email address is confirmed. Check your inbox for the confirmation code. If you signed up with Google or Facebook, it is paid straight away."],
-        ["I connected my Instagram but got no reward.", "The reward is paid only when you log in to Instagram or Facebook from 1145, once per social account. Reconnecting an account that already earned doesn't pay again, and you can earn this reward up to 5 times a day."],
-        ["Why does Instagram need a Business or Creator account?", "Instagram only lets apps post for professional accounts. You can switch for free in Instagram: Settings, then Account type and tools."],
-        ["I completed a task but it says cooling down.", "Each task has a cooldown before you can repeat it. The Social tasks table shows how long each one takes."],
-        ["My purchase reward is still missing.", "It is paid after your order is delivered and the 7-day return window closes."]
+        ["I signed up but didn't get the welcome bonus.", "It is paid when your email is confirmed. If you signed up with Google or Facebook, it is paid straight away."],
+        ["Why did I get less cashback than expected?", "Everyday rewards stop at your tier's daily and 30-day limits. Check the Mining capacity card; a higher tier raises the limits."],
+        ["My task says Submitted for review.", "Tasks are checked by 1145 before paying. Make sure you added the link to your post."],
+        ["When do referral rewards count towards tiers?", "A referral counts once they verify email and mobile, or complete their first purchase."],
+        ["What happens if I cancel my subscription?", "Nothing changes until the month you paid for ends; then you move to the tier your referrals reach."]
       ]
     }
   ]

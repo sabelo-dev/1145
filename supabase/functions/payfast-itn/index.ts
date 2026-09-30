@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { amountsMatch, getPayFastConfig, validateItn } from "../_shared/payfast.ts";
+import { amountsMatch, cancelPayFastSubscription, getPayFastConfig, validateItn } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,6 +51,34 @@ serve(async (req) => {
     const customStr2 = data.custom_str2;
 
     console.log(`Processing payment: ${paymentId} (${pfPaymentId}), Status: ${paymentStatus}, Type: ${customStr2}, R${amountGross}`);
+
+    // Paid UCoin tiers — TIER-{subscriptionId}. Recurring payments arrive
+    // with the same m_payment_id, a new pf_payment_id and the billing token.
+    if (paymentId.startsWith("TIER-") && customStr2 === "tier_subscription") {
+      const subscriptionId = paymentId.slice("TIER-".length);
+      if (paymentStatus === "COMPLETE") {
+        const { data: result, error } = await supabaseAdmin.rpc("uc_tier_payment_received", {
+          p_subscription_id: subscriptionId,
+          p_pf_payment_id: pfPaymentId,
+          p_amount: amountGross,
+          p_token: data.token || null,
+        });
+        if (error || !result?.success) {
+          console.error("Tier payment not applied:", error ?? result);
+          return ok(); // acknowledged; nothing PayFast can fix by retrying
+        }
+        // A newer tier replaces the old one: stop the old debit order.
+        for (const old of (result.superseded ?? []) as Array<{ id: string; token: string | null }>) {
+          if (!old.token) continue;
+          const cancelled = await cancelPayFastSubscription(old.token, payfast);
+          if (!cancelled.ok) console.error(`Could not cancel superseded subscription ${old.id}:`, cancelled.error);
+        }
+      } else if (paymentStatus === "CANCELLED") {
+        const { error } = await supabaseAdmin.rpc("uc_tier_subscription_cancelled", { p_subscription_id: subscriptionId });
+        if (error) console.error("Tier cancellation not applied:", error);
+      }
+      return ok();
+    }
 
     // Handle auction registration payments — AUCREG-{registrationId}
     if (customStr2 === "auction_registration" && customStr1 && paymentId === `AUCREG-${customStr1}`) {
