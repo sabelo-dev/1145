@@ -1557,11 +1557,36 @@ Deno.serve(async (req) => {
       failed: failureCount,
     };
 
+    /* ---------------------------------------------------------------------- */
+    /* Reward: once per post, the first time it goes live anywhere            */
+    /* ---------------------------------------------------------------------- */
+
+    let reward = 0;
+    if (Object.keys(externalPostIds).some((p) => !existingExternalIds[p])) {
+      const { data: amount, error: rewardError } = await supabase.rpc(
+        "award_activity",
+        {
+          p_user_id: userId,
+          p_activity_code: "post_published",
+          p_idempotency_key: `post_published:${postId}`,
+          p_reference_type: "social_media_post",
+          p_reference_id: postId,
+          p_title: "Published a post",
+        },
+      );
+      if (rewardError) {
+        console.error("post_published reward failed:", rewardError);
+      } else {
+        reward = Number(amount) || 0;
+      }
+    }
+
     return jsonResponse({
       success: successCount > 0,
       status: overallStatus,
       results,
       summary,
+      reward,
     });
   } catch (error) {
     console.error(

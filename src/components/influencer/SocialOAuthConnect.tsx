@@ -174,7 +174,7 @@ export const SocialOAuthConnect: React.FC = () => {
   // Come back to this page (and tab) after the provider, minus old status params.
   const currentPathForReturn = () => {
     const params = new URLSearchParams(window.location.search);
-    ['success', 'error', 'platform'].forEach((key) => params.delete(key));
+    ['success', 'error', 'platform', 'reward'].forEach((key) => params.delete(key));
     const query = params.toString();
     return `${window.location.pathname}${query ? `?${query}` : ''}`;
   };
@@ -182,7 +182,7 @@ export const SocialOAuthConnect: React.FC = () => {
   // Drop only the callback params so ?tab=accounts (and the tab) survive.
   const clearOAuthParams = () => {
     const params = new URLSearchParams(window.location.search);
-    ['success', 'error', 'platform'].forEach((key) => params.delete(key));
+    ['success', 'error', 'platform', 'reward'].forEach((key) => params.delete(key));
     const query = params.toString();
     window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
   };
@@ -195,7 +195,10 @@ export const SocialOAuthConnect: React.FC = () => {
     const platform = urlParams.get('platform');
 
     if (success === 'true' && platform) {
-      toast.success(`Successfully connected ${platform}!`);
+      const reward = Number(urlParams.get('reward')) || 0;
+      toast.success(`Successfully connected ${platform}!`, reward > 0
+        ? { description: `+${reward} UCoin added to your wallet.` }
+        : undefined);
       fetchConnectedAccounts();
       // Clean URL
       clearOAuthParams();

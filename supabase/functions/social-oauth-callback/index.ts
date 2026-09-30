@@ -503,7 +503,26 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.redirect(`${redirectUrl}&success=true&platform=${platform}`);
+    // Reward each newly verified account once. The key has no user id, so the
+    // same social account cannot be farmed from several 1145 accounts.
+    let rewarded = 0;
+    for (const account of linked) {
+      const name = ({ facebook: 'Facebook', instagram: 'Instagram', twitter: 'X', linkedin: 'LinkedIn', tiktok: 'TikTok' } as Record<string, string>)[account.platform] || account.platform;
+      const { data: amount, error: rewardError } = await supabase.rpc('award_activity', {
+        p_user_id: userId,
+        p_activity_code: 'social_connect',
+        p_idempotency_key: `social_connect:${account.platform}:${account.id}`,
+        p_reference_type: 'social_account',
+        p_reference_id: `${account.platform}:${account.id}`,
+        p_title: `Connected ${name} (@${account.handle})`,
+      });
+      if (rewardError) console.error('social_connect reward failed:', rewardError);
+      else rewarded += Number(amount) || 0;
+    }
+
+    return Response.redirect(
+      `${redirectUrl}&success=true&platform=${platform}${rewarded > 0 ? `&reward=${rewarded}` : ''}`,
+    );
     
   } catch (err: any) {
     console.error('OAuth callback error:', err);

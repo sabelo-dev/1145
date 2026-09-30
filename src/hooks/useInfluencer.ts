@@ -188,6 +188,8 @@ export const useInfluencer = () => {
         }
 
         const summary = payload?.summary ?? { success: 0, failed: 0 };
+        const reward = Number(payload?.reward) || 0;
+        const rewardNote = reward > 0 ? `\n+${reward} UCoin added to your wallet.` : '';
         const failures = ((payload?.results ?? []) as Array<{ platform: string; success: boolean; error?: string }>)
           .filter((r) => !r.success)
           .map((r) => `${r.platform}: ${r.error || 'failed'}`)
@@ -198,12 +200,12 @@ export const useInfluencer = () => {
         if (summary.success > 0 && summary.failed > 0) {
           toast({
             title: 'Partially Published',
-            description: `Published to ${summary.success} platform(s). Failed:\n${failures}`,
+            description: `Published to ${summary.success} platform(s). Failed:\n${failures}${rewardNote}`,
           });
         } else if (summary.success > 0) {
           toast({
             title: 'Post Published',
-            description: `Successfully published to ${summary.success} platform(s).`,
+            description: `Successfully published to ${summary.success} platform(s).${rewardNote}`,
           });
         } else {
           toast({

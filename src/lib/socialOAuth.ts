@@ -11,7 +11,7 @@ export const OAUTH_PLATFORMS = new Set(["facebook", "instagram"]);
  */
 export async function startSocialOAuth(platform: string): Promise<void> {
   const params = new URLSearchParams(window.location.search);
-  ["success", "error", "platform"].forEach((key) => params.delete(key));
+  ["success", "error", "platform", "reward"].forEach((key) => params.delete(key));
   const query = params.toString();
   const returnPath = `${window.location.pathname}${query ? `?${query}` : ""}`;
 
