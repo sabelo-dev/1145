@@ -4,7 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { SocialMediaPost, ApprovedSocialAccount, InfluencerProfile } from '@/types/influencer';
 
-export const useInfluencer = () => {
+interface UseInfluencerOptions {
+  /** Admin views: load every influencer's and admin's posts, not just your own. */
+  allPosts?: boolean;
+}
+
+export const useInfluencer = ({ allPosts = false }: UseInfluencerOptions = {}) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<SocialMediaPost[]>([]);
@@ -16,19 +21,21 @@ export const useInfluencer = () => {
     if (!user) return;
     
     try {
-      // RLS also exposes everyone's published posts; only list our own.
-      const { data, error } = await supabase
+      // RLS also exposes everyone's published posts, so the influencer
+      // dashboard filters to its own; admin views ask for all of them.
+      let query = supabase
         .from('social_media_posts')
         .select('*, platform_results:social_post_platforms(*)')
-        .eq('created_by', user.id)
         .order('created_at', { ascending: false });
+      if (!allPosts) query = query.eq('created_by', user.id);
+      const { data, error } = await query;
 
       if (error) throw error;
       setPosts(data as SocialMediaPost[] || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
     }
-  }, [user]);
+  }, [user, allPosts]);
 
   const fetchApprovedAccounts = useCallback(async () => {
     if (!user) return;

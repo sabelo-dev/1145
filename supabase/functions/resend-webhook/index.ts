@@ -1,4 +1,12 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+// Resend webhook: stores inbound mail for @1145.io in inbound_emails (the
+// admin Email Inbox) and logs delivery events.
+//
+// Resend's email.received webhook carries only metadata ("Webhooks do not
+// include the email body, headers, or attachments"), so the full message is
+// fetched from GET https://api.resend.com/emails/receiving/{email_id}.
+//
+// Requests are verified with the webhook's signing secret (Svix scheme) when
+// RESEND_WEBHOOK_SECRET is set — set it, or anyone could post fake emails.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
@@ -6,10 +14,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature",
 };
 
-// Accepted domains for inbound emails
 const ACCEPTED_DOMAINS = ["1145.io"];
+const SIGNATURE_TOLERANCE_SECONDS = 5 * 60;
 
-interface ResendEmailEvent {
+interface ResendEvent {
   type: string;
   created_at: string;
   data: {
@@ -19,153 +27,143 @@ interface ResendEmailEvent {
     subject?: string;
     text?: string;
     html?: string;
-    attachments?: Array<{
-      filename: string;
-      content: string;
-      content_type: string;
-    }>;
-    headers?: Record<string, string>;
-    // For inbound emails
+    attachments?: Array<Record<string, unknown>>;
     sender?: string;
     recipients?: string[];
+    [key: string]: unknown;
   };
 }
 
-const normalizeInboundEmailDetails = (eventData: ResendEmailEvent["data"]) => {
-  const sender = eventData.from ?? eventData.sender ?? "unknown@1145.io";
-  const recipients = eventData.to && eventData.to.length > 0 ? eventData.to : eventData.recipients ?? [];
-  const subject = eventData.subject ?? "(No Subject)";
-  const text = eventData.text ?? null;
-  const html = eventData.html ?? null;
-  const attachments = Array.isArray(eventData.attachments) ? eventData.attachments : [];
+const respond = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
-  return {
-    sender,
-    recipients,
-    subject,
-    text,
-    html,
-    attachments,
-  };
-};
+function base64ToBytes(value: string): Uint8Array {
+  const bin = atob(value);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
 
-const handler = async (req: Request): Promise<Response> => {
-  console.log("Resend webhook received");
+/** Svix signature check: HMAC-SHA256 of "{id}.{timestamp}.{body}". */
+async function verifySignature(secret: string, headers: Headers, body: string): Promise<string | null> {
+  const id = headers.get("svix-id");
+  const timestamp = headers.get("svix-timestamp");
+  const signatures = headers.get("svix-signature");
+  if (!id || !timestamp || !signatures) return "missing signature headers";
 
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  const age = Math.abs(Date.now() / 1000 - Number(timestamp));
+  if (!Number.isFinite(age) || age > SIGNATURE_TOLERANCE_SECONDS) return "stale timestamp";
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    base64ToBytes(secret.replace(/^whsec_/, "")).buffer as ArrayBuffer,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${id}.${timestamp}.${body}`));
+  const expected = btoa(String.fromCharCode(...new Uint8Array(mac)));
+
+  // Header holds space-separated "v1,<base64>" entries (several during key rotation).
+  const match = signatures.split(" ").some((entry) => {
+    const [version, sig] = entry.split(",");
+    return version === "v1" && sig === expected;
+  });
+  return match ? null : "signature mismatch";
+}
+
+/** Full message (body, headers, attachment list) for a received email. */
+async function fetchReceivedEmail(emailId: string): Promise<Record<string, any> | null> {
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) {
+    console.error("RESEND_API_KEY is not set; storing the email without its body.");
+    return null;
   }
+  const res = await fetch(`https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!res.ok) {
+    console.error(`Resend receiving API returned ${res.status}:`, await res.text().catch(() => ""));
+    return null;
+  }
+  return await res.json();
+}
 
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return respond({ error: "Method not allowed" }, 405);
 
-    // Get the raw body for signature verification (optional but recommended)
-    const body = await req.text();
-    const event: ResendEmailEvent = JSON.parse(body);
+  const body = await req.text();
 
-    console.log("Webhook event type:", event.type);
-    console.log("Event data:", JSON.stringify(event.data, null, 2));
-
-    // Handle different event types
-    switch (event.type) {
-      case "email.received": {
-        // Inbound email received.
-        // Resend sends the webhook payload using `from` and `to` for inbound emails.
-        const { sender, recipients, subject, text, html, attachments } = normalizeInboundEmailDetails(event.data);
-
-        console.log(`Inbound email from: ${sender}`);
-        console.log(`To: ${recipients.join(", ")}`);
-        console.log(`Subject: ${subject}`);
-
-        if (!recipients.length) {
-          console.log("Email has no recipients; ignoring.");
-          return new Response(
-            JSON.stringify({ success: true, message: "Email ignored - missing recipients" }),
-            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
-        }
-
-        // Verify the email is addressed to our domain
-        const isValidRecipient = recipients.some((recipient: string) => {
-          const recipientLower = recipient.toLowerCase();
-          return ACCEPTED_DOMAINS.some((domain) => recipientLower.endsWith(`@${domain}`));
-        });
-
-        if (!isValidRecipient) {
-          console.log(`Email not addressed to accepted domains, ignoring. Recipients: ${recipients.join(", ")}`);
-          return new Response(
-            JSON.stringify({ success: true, message: "Email ignored - wrong domain" }),
-            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
-        }
-
-        // Store the inbound email in the database
-        const { data: insertedEmail, error: insertError } = await supabase
-          .from("inbound_emails")
-          .insert({
-            from_address: sender,
-            to_addresses: recipients,
-            subject,
-            body_text: text,
-            body_html: html,
-            has_attachments: attachments.length > 0,
-            attachment_count: attachments.length,
-            raw_payload: event.data,
-            received_at: event.created_at,
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error("Error storing inbound email:", insertError);
-          // Don't fail the webhook - Resend will retry
-        } else {
-          console.log("Inbound email stored with ID:", insertedEmail?.id);
-        }
-
-        break;
-      }
-
-      case "email.sent":
-        console.log("Email sent successfully:", event.data.email_id);
-        break;
-
-      case "email.delivered":
-        console.log("Email delivered:", event.data.email_id);
-        break;
-
-      case "email.bounced":
-        console.log("Email bounced:", event.data.email_id);
-        break;
-
-      case "email.complained":
-        console.log("Email marked as spam:", event.data.email_id);
-        break;
-
-      default:
-        console.log("Unhandled event type:", event.type);
+  const secret = Deno.env.get("RESEND_WEBHOOK_SECRET");
+  if (secret) {
+    const problem = await verifySignature(secret, req.headers, body);
+    if (problem) {
+      console.error("Rejected webhook:", problem);
+      return respond({ error: "Invalid signature" }, 401);
     }
-
-    return new Response(
-      JSON.stringify({ success: true, type: event.type }),
-      { 
-        status: 200, 
-        headers: { "Content-Type": "application/json", ...corsHeaders } 
-      }
-    );
-  } catch (error: any) {
-    console.error("Error processing webhook:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { "Content-Type": "application/json", ...corsHeaders } 
-      }
-    );
+  } else {
+    console.warn("RESEND_WEBHOOK_SECRET is not set; webhook requests are not verified.");
   }
-};
 
-serve(handler);
+  let event: ResendEvent;
+  try {
+    event = JSON.parse(body);
+  } catch {
+    return respond({ error: "Invalid JSON" }, 400);
+  }
+
+  if (event.type !== "email.received") {
+    console.log(`Resend event ${event.type}:`, event.data?.email_id ?? "");
+    return respond({ success: true, type: event.type });
+  }
+
+  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const meta = event.data ?? {};
+  const emailId = meta.email_id ?? null;
+
+  // Resend retries deliveries; store each email once.
+  if (emailId) {
+    const { data: existing } = await supabase
+      .from("inbound_emails")
+      .select("id")
+      .eq("raw_payload->>email_id", emailId)
+      .limit(1)
+      .maybeSingle();
+    if (existing) return respond({ success: true, duplicate: true });
+  }
+
+  const full = emailId ? await fetchReceivedEmail(emailId) : null;
+
+  const recipients: string[] = (full?.to ?? meta.to ?? meta.recipients ?? []) as string[];
+  if (!recipients.some((r) => ACCEPTED_DOMAINS.some((d) => r.toLowerCase().endsWith(`@${d}`)))) {
+    console.log(`Ignoring email not addressed to ${ACCEPTED_DOMAINS.join(", ")}: ${recipients.join(", ")}`);
+    return respond({ success: true, ignored: "wrong domain" });
+  }
+
+  const attachments = (full?.attachments ?? meta.attachments ?? []) as unknown[];
+  const { data: inserted, error } = await supabase
+    .from("inbound_emails")
+    .insert({
+      from_address: full?.from ?? meta.from ?? meta.sender ?? "unknown",
+      to_addresses: recipients,
+      subject: full?.subject ?? meta.subject ?? "(No Subject)",
+      body_text: full?.text ?? meta.text ?? null,
+      body_html: full?.html ?? meta.html ?? null,
+      has_attachments: attachments.length > 0,
+      attachment_count: attachments.length,
+      raw_payload: { ...meta, email_id: emailId, headers: full?.headers ?? null },
+      received_at: full?.created_at ?? event.created_at,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Error storing inbound email:", error);
+    // 500 so Resend retries later.
+    return respond({ error: "Could not store email" }, 500);
+  }
+
+  console.log(`Stored inbound email ${inserted?.id} (${emailId})`);
+  return respond({ success: true, id: inserted?.id });
+});

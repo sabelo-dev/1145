@@ -84,8 +84,20 @@ export const MyPostsPanel: React.FC<MyPostsPanelProps> = ({
             return (
               <div key={post.id} className="rounded-lg border p-3 sm:p-4 space-y-3">
                 <div className="flex gap-3">
-                  {thumb && !/\.(mp4|mov|m4v)(\?|$)/i.test(thumb) && (
-                    <img src={thumb} alt="" className="h-16 w-16 rounded-md object-cover shrink-0 bg-muted" />
+                  {thumb && (
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+                      {/\.(mp4|mov|m4v)(\?|$)/i.test(thumb) ? (
+                        <video src={thumb} className="h-full w-full object-cover" muted preload="metadata" />
+                      ) : (
+                        <img
+                          src={thumb}
+                          alt=""
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      )}
+                    </div>
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

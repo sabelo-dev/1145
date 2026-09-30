@@ -36,7 +36,7 @@ interface PostWithAuthor {
 }
 
 const AdminSocialMedia: React.FC = () => {
-  const { posts, loading, deletePost, publishPost, refreshPosts } = useInfluencer();
+  const { posts, loading, deletePost, publishPost, refreshPosts } = useInfluencer({ allPosts: true });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
   const [postsWithAuthors, setPostsWithAuthors] = useState<PostWithAuthor[]>([]);
