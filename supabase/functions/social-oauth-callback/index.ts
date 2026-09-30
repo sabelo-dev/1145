@@ -1,15 +1,29 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { META_GRAPH, metaAppCredentials, verifyState } from '../_shared/meta.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-interface StateData {
-  userId: string;
+interface LinkedAccount {
   platform: string;
-  appUrl: string;
-  codeVerifier?: string;
+  id: string;
+  handle: string;
+  url: string;
+  followers?: number;
+}
+
+// social_accounts (used by UCoin mining tasks) only accepts these platforms.
+const MINING_PLATFORMS = new Set(['instagram', 'facebook', 'twitter', 'tiktok', 'youtube']);
+
+async function graphGet(path: string, params: Record<string, string>): Promise<any> {
+  const res = await fetch(`${META_GRAPH}/${path}?${new URLSearchParams(params).toString()}`);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok || body?.error) {
+    throw new Error(body?.error?.message || `Meta request failed (${res.status})`);
+  }
+  return body;
 }
 
 Deno.serve(async (req) => {
@@ -40,16 +54,16 @@ Deno.serve(async (req) => {
       return Response.redirect(`${redirectUrl}&error=missing_code_or_state`);
     }
 
-    // Decode state
-    let stateData: StateData;
+    // Verify the signed state — the user id in it decides whose account this is
+    let stateData;
     try {
-      stateData = JSON.parse(atob(decodeURIComponent(stateParam)));
+      stateData = await verifyState(stateParam);
       if (stateData.appUrl) {
         redirectUrl = `${stateData.appUrl}/influencer/dashboard?tab=accounts`;
       }
     } catch (e) {
-      console.error('Failed to decode state:', e);
-      return Response.redirect(`${redirectUrl}&error=invalid_state`);
+      console.error('Failed to verify state:', e);
+      return Response.redirect(`${redirectUrl}&error=${encodeURIComponent('Connection link expired or invalid. Please try again.')}`);
     }
 
     const { userId, platform, codeVerifier } = stateData;
@@ -57,134 +71,122 @@ Deno.serve(async (req) => {
 
     let tokenData: any = null;
     let accountInfo: any = null;
+    const linked: LinkedAccount[] = [];
 
     if (platform === 'facebook' || platform === 'instagram') {
-      const fbAppId = Deno.env.get('FACEBOOK_APP_ID');
-      const fbAppSecret = Deno.env.get('FACEBOOK_APP_SECRET');
-      
+      const { appId: fbAppId, appSecret: fbAppSecret } = metaAppCredentials();
+
       if (!fbAppId || !fbAppSecret) {
         console.error('Facebook credentials not configured');
         return Response.redirect(`${redirectUrl}&error=facebook_not_configured`);
       }
 
-      // Exchange code for short-lived token
-      const tokenResponse = await fetch(
-        `https://graph.facebook.com/v18.0/oauth/access_token?` +
-        `client_id=${fbAppId}` +
-        `&redirect_uri=${encodeURIComponent(`${functionsUrl}/social-oauth-callback`)}` +
-        `&client_secret=${fbAppSecret}` +
-        `&code=${code}`
-      );
-      
-      const shortLivedToken = await tokenResponse.json();
-      console.log('Facebook token exchange status:', tokenResponse.status);
-      
-      if (shortLivedToken.error) {
-        console.error('Facebook token error:', JSON.stringify(shortLivedToken.error));
-        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(shortLivedToken.error.message || 'Facebook auth failed')}`);
-      }
+      // Exchange code for a short-lived token, then for a long-lived one
+      const shortLivedToken = await graphGet('oauth/access_token', {
+        client_id: fbAppId,
+        redirect_uri: `${functionsUrl}/social-oauth-callback`,
+        client_secret: fbAppSecret,
+        code,
+      });
 
-      // Exchange for long-lived token
-      const longLivedResponse = await fetch(
-        `https://graph.facebook.com/v18.0/oauth/access_token?` +
-        `grant_type=fb_exchange_token` +
-        `&client_id=${fbAppId}` +
-        `&client_secret=${fbAppSecret}` +
-        `&fb_exchange_token=${shortLivedToken.access_token}`
-      );
-      
-      const longLivedToken = await longLivedResponse.json();
+      const longLivedToken = await graphGet('oauth/access_token', {
+        grant_type: 'fb_exchange_token',
+        client_id: fbAppId,
+        client_secret: fbAppSecret,
+        fb_exchange_token: shortLivedToken.access_token,
+      }).catch((e) => {
+        console.error('Long-lived token exchange failed:', e);
+        return {} as any;
+      });
+
       const accessToken = longLivedToken.access_token || shortLivedToken.access_token;
-      
-      // Get user info
-      const userResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me?fields=id,name&access_token=${accessToken}`
-      );
-      const userInfo = await userResponse.json();
-      
-      // Get pages the user manages
-      const pagesResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${accessToken}`
-      );
-      const pagesData = await pagesResponse.json();
-      
       tokenData = {
         access_token: accessToken,
-        expires_in: longLivedToken.expires_in || 5184000,
+        expires_in: longLivedToken.expires_in || shortLivedToken.expires_in || 5184000,
       };
-      
-      accountInfo = {
-        id: userInfo.id,
-        name: userInfo.name,
-        pages: pagesData.data || [],
-      };
+      const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000).toISOString();
 
-      // Store each page as a separate connection
-      for (const page of pagesData.data || []) {
-        const instagramAccount = page.instagram_business_account;
-        
-        await supabase
+      const userInfo = await graphGet('me', { fields: 'id,name', access_token: accessToken });
+
+      // Page tokens derived from a long-lived user token do not expire.
+      const pagesData = await graphGet('me/accounts', {
+        fields: 'id,name,access_token,link,followers_count,fan_count,instagram_business_account{id,username,followers_count}',
+        limit: '100',
+        access_token: accessToken,
+      });
+      const pages: any[] = pagesData.data || [];
+
+      const upsertToken = async (row: Record<string, unknown>) => {
+        const { error: upsertError } = await supabase
           .from('social_oauth_tokens')
           .upsert({
             user_id: userId,
-            platform: 'facebook',
-            account_id: page.id,
-            account_handle: page.name,
-            access_token: tokenData.access_token,
-            token_expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
+            token_expires_at: expiresAt,
+            is_active: true,
+            updated_at: new Date().toISOString(),
+            ...row,
+          }, { onConflict: 'user_id,platform,account_id' });
+        if (upsertError) throw new Error(`Failed to save connection: ${upsertError.message}`);
+      };
+
+      // Store each Page (and its linked Instagram professional account) as a connection
+      for (const page of pages) {
+        await upsertToken({
+          platform: 'facebook',
+          account_id: page.id,
+          account_handle: page.name,
+          access_token: accessToken,
+          page_id: page.id,
+          page_name: page.name,
+          page_access_token: page.access_token,
+        });
+        linked.push({
+          platform: 'facebook',
+          id: page.id,
+          handle: page.name,
+          url: page.link || `https://facebook.com/${page.id}`,
+          followers: page.followers_count ?? page.fan_count,
+        });
+
+        const ig = page.instagram_business_account;
+        if (ig?.id) {
+          await upsertToken({
+            platform: 'instagram',
+            account_id: ig.id,
+            account_handle: ig.username || ig.id,
+            access_token: page.access_token,
             page_id: page.id,
             page_name: page.name,
             page_access_token: page.access_token,
-            is_active: true,
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'user_id,platform,account_id',
           });
-
-        if (instagramAccount) {
-          const igResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${instagramAccount.id}?fields=id,username&access_token=${page.access_token}`
-          );
-          const igInfo = await igResponse.json();
-          
-          await supabase
-            .from('social_oauth_tokens')
-            .upsert({
-              user_id: userId,
-              platform: 'instagram',
-              account_id: instagramAccount.id,
-              account_handle: igInfo.username || instagramAccount.id,
-              access_token: page.access_token,
-              token_expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
-              page_id: page.id,
-              page_name: page.name,
-              page_access_token: page.access_token,
-              is_active: true,
-              updated_at: new Date().toISOString(),
-            }, {
-              onConflict: 'user_id,platform,account_id',
-            });
+          linked.push({
+            platform: 'instagram',
+            id: ig.id,
+            handle: ig.username || ig.id,
+            url: ig.username ? `https://instagram.com/${ig.username}` : '',
+            followers: ig.followers_count,
+          });
         }
       }
 
-      // Store user-level token if no pages found
-      if (!pagesData.data?.length) {
-        await supabase
-          .from('social_oauth_tokens')
-          .upsert({
-            user_id: userId,
-            platform: 'facebook',
-            account_id: userInfo.id,
-            account_handle: userInfo.name,
-            access_token: tokenData.access_token,
-            token_expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
-            is_active: true,
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'user_id,platform,account_id',
-          });
+      if (pages.length === 0) {
+        // Keep the user token so publishing can pick up a Page granted later.
+        await upsertToken({
+          platform: 'facebook',
+          account_id: userInfo.id,
+          account_handle: userInfo.name,
+          access_token: accessToken,
+        });
+        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(
+          'Facebook connected, but no Page was shared. Publishing needs a Facebook Page you manage: reconnect and select your Page.',
+        )}`);
       }
-      
+
+      if (platform === 'instagram' && !linked.some((a) => a.platform === 'instagram')) {
+        return Response.redirect(`${redirectUrl}&error=${encodeURIComponent(
+          'No Instagram professional account is linked to the selected Facebook Page. Switch Instagram to a Business or Creator account, link it to your Page, then reconnect.',
+        )}`);
+      }
     } else if (platform === 'twitter') {
       const twitterClientId = Deno.env.get('TWITTER_CLIENT_ID');
       const twitterClientSecret = Deno.env.get('TWITTER_CLIENT_SECRET');
@@ -369,34 +371,56 @@ Deno.serve(async (req) => {
         });
     }
 
-    // Sync to approved_social_accounts for the influencer system
-    if (accountInfo) {
-      const handle = accountInfo.username || accountInfo.name || accountInfo.id;
-      const accountUrl = platform === 'twitter' 
-        ? `https://twitter.com/${accountInfo.username}`
-        : platform === 'instagram'
-        ? `https://instagram.com/${accountInfo.username || accountInfo.name}`
-        : platform === 'linkedin'
-        ? `https://linkedin.com/in/${accountInfo.id}`
-        : platform === 'tiktok'
-        ? `https://tiktok.com/@${accountInfo.username || accountInfo.id}`
-        : `https://facebook.com/${accountInfo.id}`;
+    if (accountInfo && linked.length === 0) {
+      linked.push({
+        platform,
+        id: String(accountInfo.id),
+        handle: accountInfo.username || accountInfo.name || accountInfo.id,
+        url: platform === 'twitter'
+          ? `https://x.com/${accountInfo.username}`
+          : platform === 'linkedin'
+          ? `https://linkedin.com/in/${accountInfo.id}`
+          : platform === 'tiktok'
+          ? `https://tiktok.com/@${accountInfo.username || accountInfo.id}`
+          : '',
+      });
+    }
 
-      await supabase
+    // Mirror verified connections into the influencer and mining account tables
+    for (const account of linked) {
+      const now = new Date().toISOString();
+      const { error: approvedError } = await supabase
         .from('approved_social_accounts')
         .upsert({
           user_id: userId,
-          platform,
-          account_handle: handle,
-          account_url: accountUrl,
+          platform: account.platform,
+          account_handle: account.handle,
+          account_url: account.url || null,
           is_verified: true,
-          verified_at: new Date().toISOString(),
+          verified_at: now,
           is_active: true,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,platform,account_handle',
-          ignoreDuplicates: false,
-        });
+          updated_at: now,
+        }, { onConflict: 'user_id,platform,account_handle' });
+      if (approvedError) console.error('approved_social_accounts sync failed:', approvedError);
+
+      if (MINING_PLATFORMS.has(account.platform)) {
+        const { error: miningError } = await supabase
+          .from('social_accounts')
+          .upsert({
+            user_id: userId,
+            platform: account.platform,
+            platform_user_id: account.id,
+            username: account.handle,
+            display_name: account.handle,
+            profile_url: account.url || null,
+            follower_count: account.followers ?? 0,
+            is_verified: true,
+            status: 'active',
+            connected_at: now,
+            last_synced_at: now,
+          }, { onConflict: 'user_id,platform' });
+        if (miningError) console.error('social_accounts sync failed:', miningError);
+      }
     }
 
     return Response.redirect(`${redirectUrl}&success=true&platform=${platform}`);

@@ -171,6 +171,14 @@ export const SocialOAuthConnect: React.FC = () => {
     fetchConnectedAccounts();
   }, [fetchConnectedAccounts]);
 
+  // Drop only the callback params so ?tab=accounts (and the tab) survive.
+  const clearOAuthParams = () => {
+    const params = new URLSearchParams(window.location.search);
+    ['success', 'error', 'platform'].forEach((key) => params.delete(key));
+    const query = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+  };
+
   // Check URL params for OAuth callback status
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -182,10 +190,10 @@ export const SocialOAuthConnect: React.FC = () => {
       toast.success(`Successfully connected ${platform}!`);
       fetchConnectedAccounts();
       // Clean URL
-      window.history.replaceState({}, '', window.location.pathname);
+      clearOAuthParams();
     } else if (error) {
       toast.error(`Connection failed: ${error}`);
-      window.history.replaceState({}, '', window.location.pathname);
+      clearOAuthParams();
     }
   }, [fetchConnectedAccounts]);
 

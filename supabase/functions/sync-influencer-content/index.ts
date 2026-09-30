@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { META_GRAPH } from "../_shared/meta.ts";
+import { decryptToken } from "../_shared/socialCrypto.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,103 +32,131 @@ interface NormalizedComment {
 }
 
 // Platform-specific fetchers
-async function fetchInstagramPosts(accessToken: string): Promise<{ posts: NormalizedPost[]; comments: NormalizedComment[] }> {
+interface TokenRow {
+  platform: string;
+  account_id: string | null;
+  page_id: string | null;
+  access_token: string | null;
+  page_access_token: string | null;
+}
+
+async function graphGet(path: string, params: Record<string, string>): Promise<any> {
+  const res = await fetch(`${META_GRAPH}/${path}?${new URLSearchParams(params).toString()}`);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok || body?.error) {
+    throw new Error(body?.error?.message || `Meta request failed (${res.status})`);
+  }
+  return body;
+}
+
+async function tokenValue(value: string | null | undefined): Promise<string> {
+  if (!value) throw new Error('Connection has no access token. Reconnect the account.');
+  if (!value.startsWith('enc:v1:')) return value;
+  const [, , iv, ciphertext] = value.split(':');
+  return await decryptToken({ iv, ciphertext });
+}
+
+// Instagram professional account via Facebook Login: /{ig-user-id}/media with the Page token.
+async function fetchInstagramPosts(token: TokenRow): Promise<{ posts: NormalizedPost[]; comments: NormalizedComment[] }> {
+  if (!token.account_id) throw new Error('Instagram account id is missing. Reconnect Instagram.');
+  const accessToken = await tokenValue(token.page_access_token || token.access_token);
   const posts: NormalizedPost[] = [];
   const comments: NormalizedComment[] = [];
 
-  try {
-    // Fetch user's media
-    const mediaRes = await fetch(
-      `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count&access_token=${accessToken}&limit=50`
-    );
-    const mediaData = await mediaRes.json();
+  const mediaData = await graphGet(`${token.account_id}/media`, {
+    fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
+    limit: '50',
+    access_token: accessToken,
+  });
 
-    if (mediaData.data) {
-      for (const item of mediaData.data) {
-        posts.push({
+  for (const item of mediaData.data || []) {
+    posts.push({
+      platform: 'instagram',
+      platform_post_id: item.id,
+      content_type: item.media_type?.toLowerCase() || 'image',
+      media_url: item.media_url || item.thumbnail_url || null,
+      media_urls: item.media_url ? [item.media_url] : [],
+      caption: item.caption || '',
+      permalink: item.permalink || '',
+      posted_at: item.timestamp,
+      metrics: {
+        likes: item.like_count || 0,
+        comments: item.comments_count || 0,
+      },
+    });
+
+    if (!item.comments_count) continue;
+    try {
+      const commentsData = await graphGet(`${item.id}/comments`, {
+        fields: 'id,text,username,timestamp,like_count',
+        limit: '50',
+        access_token: accessToken,
+      });
+      for (const c of commentsData.data || []) {
+        comments.push({
           platform: 'instagram',
-          platform_post_id: item.id,
-          content_type: item.media_type?.toLowerCase() || 'image',
-          media_url: item.media_url || item.thumbnail_url || null,
-          media_urls: item.media_url ? [item.media_url] : [],
-          caption: item.caption || '',
-          permalink: item.permalink || '',
-          posted_at: item.timestamp,
-          metrics: {
-            likes: item.like_count || 0,
-            comments: item.comments_count || 0,
-          },
+          platform_comment_id: c.id,
+          post_platform_id: item.id,
+          username: c.username || 'unknown',
+          user_avatar_url: null,
+          text: c.text || '',
+          posted_at: c.timestamp,
+          metrics: { likes: c.like_count || 0 },
         });
-
-        // Fetch comments for each post
-        try {
-          const commentsRes = await fetch(
-            `https://graph.instagram.com/${item.id}/comments?fields=id,text,username,timestamp&access_token=${accessToken}&limit=50`
-          );
-          const commentsData = await commentsRes.json();
-
-          if (commentsData.data) {
-            for (const c of commentsData.data) {
-              comments.push({
-                platform: 'instagram',
-                platform_comment_id: c.id,
-                post_platform_id: item.id,
-                username: c.username || 'unknown',
-                user_avatar_url: null,
-                text: c.text || '',
-                posted_at: c.timestamp,
-                metrics: {},
-              });
-            }
-          }
-        } catch (e) {
-          console.error(`Failed to fetch comments for post ${item.id}:`, e);
-        }
       }
+    } catch (e) {
+      // Usually a missing instagram_manage_comments permission; keep the posts.
+      console.error(`Failed to fetch comments for post ${item.id}:`, e);
     }
-  } catch (e) {
-    console.error('Instagram fetch error:', e);
   }
 
   return { posts, comments };
 }
 
-async function fetchFacebookPosts(accessToken: string): Promise<{ posts: NormalizedPost[]; comments: NormalizedComment[] }> {
+// One Facebook Page per connection row, read with that Page's token.
+async function fetchFacebookPosts(token: TokenRow): Promise<{ posts: NormalizedPost[]; comments: NormalizedComment[] }> {
+  if (!token.page_id || !token.page_access_token) {
+    throw new Error('No Facebook Page is connected. Reconnect Facebook and select your Page.');
+  }
+  const accessToken = await tokenValue(token.page_access_token);
   const posts: NormalizedPost[] = [];
   const comments: NormalizedComment[] = [];
 
-  try {
-    const pagesRes = await fetch(
-      `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}`
-    );
-    const pagesData = await pagesRes.json();
+  const feedData = await graphGet(`${token.page_id}/posts`, {
+    fields: 'id,message,full_picture,permalink_url,created_time,shares,reactions.summary(true).limit(0),comments.summary(true).limit(25){id,message,from,created_time,like_count}',
+    limit: '25',
+    access_token: accessToken,
+  });
 
-    for (const page of (pagesData.data || []).slice(0, 3)) {
-      const feedRes = await fetch(
-        `https://graph.facebook.com/v18.0/${page.id}/feed?fields=id,message,full_picture,permalink_url,created_time,shares,reactions.summary(true),comments.summary(true)&access_token=${page.access_token}&limit=25`
-      );
-      const feedData = await feedRes.json();
+  for (const item of feedData.data || []) {
+    posts.push({
+      platform: 'facebook',
+      platform_post_id: item.id,
+      content_type: item.full_picture ? 'image' : 'text',
+      media_url: item.full_picture || null,
+      media_urls: item.full_picture ? [item.full_picture] : [],
+      caption: item.message || '',
+      permalink: item.permalink_url || '',
+      posted_at: item.created_time,
+      metrics: {
+        likes: item.reactions?.summary?.total_count || 0,
+        comments: item.comments?.summary?.total_count || 0,
+        shares: item.shares?.count || 0,
+      },
+    });
 
-      for (const item of (feedData.data || [])) {
-        posts.push({
-          platform: 'facebook',
-          platform_post_id: item.id,
-          content_type: item.full_picture ? 'image' : 'text',
-          media_url: item.full_picture || null,
-          media_urls: item.full_picture ? [item.full_picture] : [],
-          caption: item.message || '',
-          permalink: item.permalink_url || '',
-          posted_at: item.created_time,
-          metrics: {
-            likes: item.reactions?.summary?.total_count || 0,
-            comments: item.comments?.summary?.total_count || 0,
-            shares: item.shares?.count || 0,
-          },
-        });
-      }
+    for (const c of item.comments?.data || []) {
+      comments.push({
+        platform: 'facebook',
+        platform_comment_id: c.id,
+        post_platform_id: item.id,
+        username: c.from?.name || 'Facebook user',
+        user_avatar_url: null,
+        text: c.message || '',
+        posted_at: c.created_time,
+        metrics: { likes: c.like_count || 0 },
+      });
     }
-  } catch (e) {
-    console.error('Facebook fetch error:', e);
   }
 
   return { posts, comments };
@@ -213,16 +243,24 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const targetPlatform = body.platform || 'all';
 
-    // Get OAuth tokens
+    // Get active OAuth connections (one row per Page / account)
     const { data: tokens } = await supabase
       .from('social_oauth_tokens')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .eq('is_active', true);
+
+    // Several connections can share a platform (e.g. two Pages); track the
+    // per-platform totals so the status row reflects all of them.
+    const platformTotals: Record<string, { posts: number; comments: number }> = {};
 
     const results: Record<string, { posts: number; comments: number; errors: string[] }> = {};
 
     for (const token of (tokens || [])) {
       if (targetPlatform !== 'all' && token.platform !== targetPlatform) continue;
+      if (!['instagram', 'facebook', 'twitter'].includes(token.platform)) continue;
+      // A user-level Facebook row without a Page cannot read a feed.
+      if (token.platform === 'facebook' && !token.page_id) continue;
 
       // Update sync status to syncing
       await supabase
@@ -239,13 +277,13 @@ serve(async (req) => {
       try {
         switch (token.platform) {
           case 'instagram':
-            fetched = await fetchInstagramPosts(token.access_token);
+            fetched = await fetchInstagramPosts(token);
             break;
           case 'facebook':
-            fetched = await fetchFacebookPosts(token.access_token);
+            fetched = await fetchFacebookPosts(token);
             break;
           case 'twitter':
-            fetched = await fetchTwitterPosts(token.access_token);
+            fetched = await fetchTwitterPosts(await tokenValue(token.access_token));
             break;
         }
 
@@ -307,15 +345,53 @@ serve(async (req) => {
           { likes: 0, comments: 0, shares: 0, reach: 0, impressions: 0 }
         );
 
-        await supabase.from('influencer_engagement_metrics').upsert({
-          influencer_id: profile.id,
-          platform: token.platform,
-          metric_date: today,
+        const totals = platformTotals[token.platform] ?? { posts: 0, comments: 0 };
+        totals.posts += fetched.posts.length;
+        totals.comments += fetched.comments.length;
+        platformTotals[token.platform] = totals;
+
+        // One aggregate row per influencer / platform / day (see the
+        // influencer_engagement_metrics_daily_unique index).
+        const metricRow = {
           ...aggregated,
           engagement_rate: aggregated.reach > 0
             ? ((aggregated.likes + aggregated.comments + aggregated.shares) / aggregated.reach) * 100
             : 0,
-        });
+        };
+        const { data: existingMetric } = await supabase
+          .from('influencer_engagement_metrics')
+          .select('id, likes, comments, shares, reach, impressions')
+          .eq('influencer_id', profile.id)
+          .eq('platform', token.platform)
+          .eq('metric_date', today)
+          .is('post_id', null)
+          .maybeSingle();
+
+        if (existingMetric && Object.keys(results).includes(token.platform)) {
+          // Second connection on the same platform today: add to the first.
+          await supabase
+            .from('influencer_engagement_metrics')
+            .update({
+              likes: existingMetric.likes + metricRow.likes,
+              comments: existingMetric.comments + metricRow.comments,
+              shares: existingMetric.shares + metricRow.shares,
+              reach: existingMetric.reach + metricRow.reach,
+              impressions: existingMetric.impressions + metricRow.impressions,
+            })
+            .eq('id', existingMetric.id);
+        } else if (existingMetric) {
+          await supabase
+            .from('influencer_engagement_metrics')
+            .update(metricRow)
+            .eq('id', existingMetric.id);
+        } else {
+          await supabase.from('influencer_engagement_metrics').insert({
+            influencer_id: profile.id,
+            platform: token.platform,
+            metric_date: today,
+            ...metricRow,
+          });
+        }
 
         // Update sync status
         await supabase
@@ -325,16 +401,16 @@ serve(async (req) => {
             platform: token.platform,
             sync_status: 'completed',
             last_sync_at: new Date().toISOString(),
-            posts_synced: fetched.posts.length,
-            comments_synced: fetched.comments.length,
+            posts_synced: totals.posts,
+            comments_synced: totals.comments,
             error_message: null,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'influencer_id,platform' });
 
         results[token.platform] = {
-          posts: fetched.posts.length,
-          comments: fetched.comments.length,
-          errors: [],
+          posts: totals.posts,
+          comments: totals.comments,
+          errors: results[token.platform]?.errors ?? [],
         };
       } catch (e: any) {
         console.error(`Sync error for ${token.platform}:`, e);
@@ -349,7 +425,8 @@ serve(async (req) => {
             updated_at: new Date().toISOString(),
           }, { onConflict: 'influencer_id,platform' });
 
-        results[token.platform] = { posts: 0, comments: 0, errors: [e.message] };
+        const prev = results[token.platform] ?? { posts: 0, comments: 0, errors: [] };
+        results[token.platform] = { ...prev, errors: [...prev.errors, e.message] };
       }
     }
 

@@ -16,9 +16,11 @@ export const useInfluencer = () => {
     if (!user) return;
     
     try {
+      // RLS also exposes everyone's published posts; only list our own.
       const { data, error } = await supabase
         .from('social_media_posts')
-        .select('*')
+        .select('*, platform_results:social_post_platforms(*)')
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -82,6 +84,7 @@ export const useInfluencer = () => {
         content: postData.content || '',
         content_type: postData.content_type,
         platforms: postData.platforms,
+        media_urls: postData.media_urls || [],
         product_id: postData.product_id,
         scheduled_at: postData.scheduled_at,
         status: postData.status,
@@ -116,9 +119,11 @@ export const useInfluencer = () => {
 
   const updatePost = async (postId: string, updates: Partial<SocialMediaPost> & { external_post_url?: string | null }) => {
     try {
+      // platform_results is a joined relation, not a column.
+      const { platform_results: _results, ...columns } = updates;
       const { error } = await supabase
         .from('social_media_posts')
-        .update(updates)
+        .update(columns)
         .eq('id', postId);
 
       if (error) throw error;
@@ -169,42 +174,31 @@ export const useInfluencer = () => {
   const publishPost = async (postId: string, useApi: boolean = false) => {
     try {
       if (useApi) {
-        // Get session for API call
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) {
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'You must be logged in to publish',
-          });
-          return false;
-        }
+        const { data, error } = await supabase.functions.invoke('social-publish', {
+          body: { post_id: postId },
+        });
 
-        // Call the social-publish edge function
-        const response = await fetch(
-          'https://hipomusjocacncjsvgfa.supabase.co/functions/v1/social-publish',
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ post_id: postId }),
+        // Non-2xx responses still carry a JSON body with the real reason.
+        let payload: any = data;
+        if (error) {
+          payload = await (error as any).context?.json?.().catch(() => null);
+          if (!payload?.results) {
+            throw new Error(payload?.error || error.message || 'Failed to publish post');
           }
-        );
-
-        const data = await response.json();
-
-        if (data.error) {
-          throw new Error(data.error);
         }
 
-        const { summary } = data;
-        
+        const summary = payload?.summary ?? { success: 0, failed: 0 };
+        const failures = ((payload?.results ?? []) as Array<{ platform: string; success: boolean; error?: string }>)
+          .filter((r) => !r.success)
+          .map((r) => `${r.platform}: ${r.error || 'failed'}`)
+          .join('\n');
+
+        await fetchPosts();
+
         if (summary.success > 0 && summary.failed > 0) {
           toast({
             title: 'Partially Published',
-            description: `Published to ${summary.success} platform(s), ${summary.failed} failed.`,
+            description: `Published to ${summary.success} platform(s). Failed:\n${failures}`,
           });
         } else if (summary.success > 0) {
           toast({
@@ -215,12 +209,11 @@ export const useInfluencer = () => {
           toast({
             variant: 'destructive',
             title: 'Publishing Failed',
-            description: 'Could not publish to any platform. Check your connected accounts.',
+            description: failures || payload?.error || 'Could not publish to any platform. Check your connected accounts.',
           });
           return false;
         }
 
-        await fetchPosts();
         return true;
       } else {
         // Original behavior - just mark as published in database

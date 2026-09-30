@@ -16,10 +16,12 @@ const PLATFORM_LABELS: Record<string, string> = {
 
 interface SyncStatusPanelProps {
   syncStatuses: SyncStatus[];
-  onSync?: (platform: string) => void;
+  onSync?: (platform?: string) => void;
+  /** Platform being synced, or 'all'. */
+  syncing?: string | null;
 }
 
-export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({ syncStatuses, onSync }) => {
+export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({ syncStatuses, onSync, syncing }) => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'syncing': return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
@@ -32,15 +34,23 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({ syncStatuses, 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Wifi className="h-4 w-4" />
-          Platform Sync
-        </CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Wifi className="h-4 w-4" />
+            Platform Sync
+          </CardTitle>
+          {onSync && (
+            <Button variant="outline" size="sm" onClick={() => onSync()} disabled={!!syncing}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing === 'all' ? 'animate-spin' : ''}`} />
+              Sync now
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {syncStatuses.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-2">
-            No platforms connected yet
+            Nothing synced yet. Connect Facebook or Instagram under Accounts, then press Sync now.
           </p>
         ) : (
           <div className="space-y-3">
@@ -55,6 +65,9 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({ syncStatuses, 
                         ? `Synced ${formatDistanceToNow(new Date(s.last_sync_at), { addSuffix: true })}`
                         : 'Never synced'}
                     </p>
+                    {s.sync_status === 'error' && s.error_message && (
+                      <p className="text-xs text-destructive">{s.error_message}</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -67,9 +80,10 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({ syncStatuses, 
                       size="icon"
                       className="h-7 w-7"
                       onClick={() => onSync(s.platform)}
-                      disabled={s.sync_status === 'syncing'}
+                      disabled={!!syncing}
+                      aria-label={`Sync ${PLATFORM_LABELS[s.platform] || s.platform}`}
                     >
-                      <RefreshCw className={`h-3.5 w-3.5 ${s.sync_status === 'syncing' ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`h-3.5 w-3.5 ${syncing === s.platform ? 'animate-spin' : ''}`} />
                     </Button>
                   )}
                 </div>

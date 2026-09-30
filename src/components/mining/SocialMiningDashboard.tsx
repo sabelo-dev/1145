@@ -12,7 +12,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
-export function SocialMiningDashboard() {
+interface SocialMiningDashboardProps {
+  /** Called after a task is completed and its reward credited. */
+  onTaskCompleted?: () => void;
+}
+
+export function SocialMiningDashboard({ onTaskCompleted }: SocialMiningDashboardProps = {}) {
   const { user } = useAuth();
   const {
     isLoading,
@@ -86,7 +91,11 @@ export function SocialMiningDashboard() {
             miningMultiplier={miningMultiplier}
             canCompleteTask={canCompleteTask}
             getCompletionsToday={getTaskCompletionsToday}
-            onCompleteTask={completeTask}
+            onCompleteTask={async (taskId, proofUrl, socialAccountId) => {
+              const result = await completeTask(taskId, proofUrl, socialAccountId);
+              if (result) onTaskCompleted?.();
+              return result;
+            }}
             onConnectAccount={connectSocialAccount}
           />
         </div>

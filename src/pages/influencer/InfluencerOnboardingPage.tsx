@@ -176,14 +176,19 @@ const InfluencerOnboardingPage: React.FC = () => {
           };
         });
       if (rows.length > 0) {
-        // Skip rows that already exist; ignore duplicate errors
-        for (const row of rows) {
-          await supabase.from("social_accounts").insert(row as any);
-        }
+        // One row per platform; keep an existing (possibly OAuth-verified) row.
+        const { error: socialErr } = await supabase
+          .from("social_accounts")
+          .upsert(rows as any, { onConflict: "user_id,platform", ignoreDuplicates: true });
+        if (socialErr) console.error("Failed to save social profiles:", socialErr);
       }
 
-      // Ensure influencer role
-      await supabase.from("user_roles").upsert({ user_id: user.id, role: "influencer" }, { onConflict: "user_id,role" });
+      // Ensure influencer role. DO NOTHING on conflict: users may insert
+      // their own influencer role but have no UPDATE rights on user_roles.
+      const { error: roleErr } = await supabase
+        .from("user_roles")
+        .upsert({ user_id: user.id, role: "influencer" }, { onConflict: "user_id,role", ignoreDuplicates: true });
+      if (roleErr) throw roleErr;
 
       await refreshUserProfile();
       toast({ title: "You're in!", description: "Welcome to the 1145 creator programme." });

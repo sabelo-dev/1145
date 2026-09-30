@@ -23,7 +23,20 @@ import {
 import { useInfluencer } from '@/hooks/useInfluencer';
 import { SOCIAL_PLATFORMS, CONTENT_TYPES, ContentType } from '@/types/influencer';
 import { supabase } from '@/integrations/supabase/client';
-import { Instagram, Facebook, Twitter, Youtube, Music, Send, Clock, FileText, Zap } from 'lucide-react';
+import { Instagram, Facebook, Twitter, Youtube, Music, Send, Clock, FileText, Zap, ImagePlus, X, Loader2, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+
+// Platforms social-publish can post to automatically.
+const API_PLATFORMS = new Set(['facebook', 'instagram', 'twitter']);
+
+// <input type="datetime-local"> works in local time without a zone.
+const toLocalInput = (iso: string) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 type PublishOption = 'draft' | 'now' | 'scheduled' | 'api_now';
 
@@ -41,6 +54,11 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
   onSuccess,
 }) => {
   const { createPost, updatePost, publishPost } = useInfluencer();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [mediaUrlInput, setMediaUrlInput] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentType, setContentType] = useState<ContentType>('plain');
@@ -59,16 +77,16 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       setContentType(editingPost.content_type);
       setSelectedPlatforms(editingPost.platforms || []);
       setProductId(editingPost.product_id || '');
+      setMediaUrls(editingPost.media_urls || []);
       // Determine publish option from existing post
       if (editingPost.status === 'published') {
         setPublishOption('now');
       } else if (editingPost.scheduled_at) {
         setPublishOption('scheduled');
-        setScheduledAt(editingPost.scheduled_at);
       } else {
         setPublishOption('draft');
       }
-      setScheduledAt(editingPost.scheduled_at || '');
+      setScheduledAt(editingPost.scheduled_at ? toLocalInput(editingPost.scheduled_at) : '');
       setExternalPostUrl(editingPost.external_post_url || '');
     } else {
       resetForm();
@@ -96,7 +114,44 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
     setPublishOption('draft');
     setScheduledAt('');
     setExternalPostUrl('');
+    setMediaUrls([]);
+    setMediaUrlInput('');
   };
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files?.length || !user) return;
+    setIsUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from('social-media')
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (error) throw error;
+        uploaded.push(supabase.storage.from('social-media').getPublicUrl(path).data.publicUrl);
+      }
+      setMediaUrls((prev) => [...prev, ...uploaded].slice(0, 10));
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Upload failed', description: error.message });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const addMediaUrl = () => {
+    const url = mediaUrlInput.trim();
+    if (!/^https:\/\//i.test(url)) {
+      toast({ variant: 'destructive', title: 'Invalid URL', description: 'Media must be a public https:// link.' });
+      return;
+    }
+    setMediaUrls((prev) => [...prev, url].slice(0, 10));
+    setMediaUrlInput('');
+  };
+
+  const manualOnlyPlatforms = selectedPlatforms.filter((p) => !API_PLATFORMS.has(p));
+  const instagramNeedsMedia = selectedPlatforms.includes('instagram') && mediaUrls.length === 0;
 
   const handlePlatformToggle = (platformId: string) => {
     setSelectedPlatforms((prev) =>
@@ -148,7 +203,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       publishViaApi = true;
     } else if (publishOption === 'scheduled') {
       status = 'scheduled';
-      scheduled_at = scheduledAt;
+      scheduled_at = new Date(scheduledAt).toISOString();
     }
 
     const postData: {
@@ -156,6 +211,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       content: string;
       content_type: 'plain' | 'product' | 'news' | 'promo' | 'announcement';
       platforms: string[];
+      media_urls: string[];
       product_id: string | null;
       scheduled_at: string | null;
       published_at?: string | null;
@@ -166,6 +222,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       content,
       content_type: contentType,
       platforms: selectedPlatforms,
+      media_urls: mediaUrls,
       product_id: contentType === 'product' && productId ? productId : null,
       scheduled_at,
       external_post_url: externalPostUrl || null,
@@ -270,6 +327,57 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
           </div>
 
           <div className="space-y-2">
+            <Label>Media</Label>
+            {mediaUrls.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {mediaUrls.map((url, i) => (
+                  <div key={url + i} className="relative aspect-square rounded-md overflow-hidden border bg-muted">
+                    {/\.(mp4|mov|m4v)(\?|$)/i.test(url) ? (
+                      <video src={url} className="h-full w-full object-cover" muted />
+                    ) : (
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                    )}
+                    <button
+                      type="button"
+                      aria-label="Remove media"
+                      className="absolute top-1 right-1 rounded-full bg-background/80 p-0.5"
+                      onClick={() => setMediaUrls((prev) => prev.filter((_, j) => j !== i))}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button type="button" variant="outline" asChild disabled={isUploading || mediaUrls.length >= 10}>
+                <label className="cursor-pointer">
+                  {isUploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ImagePlus className="h-4 w-4 mr-2" />}
+                  Upload
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
+                    multiple
+                    className="hidden"
+                    disabled={isUploading || mediaUrls.length >= 10}
+                    onChange={(e) => { handleUpload(e.target.files); e.target.value = ''; }}
+                  />
+                </label>
+              </Button>
+              <Input
+                placeholder="or paste a public image/video URL"
+                value={mediaUrlInput}
+                onChange={(e) => setMediaUrlInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addMediaUrl(); } }}
+              />
+              <Button type="button" variant="secondary" onClick={addMediaUrl} disabled={!mediaUrlInput.trim()}>
+                Add
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Up to 10 items. Instagram needs at least one image or video (JPEG recommended).</p>
+          </div>
+
+          <div className="space-y-2">
             <Label>Share to Platforms</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {SOCIAL_PLATFORMS.map((platform) => (
@@ -294,6 +402,21 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
               ))}
             </div>
           </div>
+
+          {publishOption === 'api_now' && (instagramNeedsMedia || manualOnlyPlatforms.length > 0) && (
+            <div className="flex gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
+              <div className="space-y-1">
+                {instagramNeedsMedia && <p>Instagram will fail without an image or video.</p>}
+                {manualOnlyPlatforms.length > 0 && (
+                  <p>
+                    {manualOnlyPlatforms.join(', ')} can't be published automatically yet. Post there yourself,
+                    then add the link below.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <Label>Publish Option</Label>

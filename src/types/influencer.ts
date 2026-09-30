@@ -9,10 +9,11 @@ export interface SocialMediaPost {
   platforms: string[];
   scheduled_at?: string;
   published_at?: string;
-  status: 'draft' | 'scheduled' | 'published' | 'failed';
+  status: 'draft' | 'scheduled' | 'published' | 'partial' | 'failed';
   external_post_ids: Record<string, string>;
   external_post_url?: string;
   engagement_stats: Record<string, any>;
+  platform_results?: SocialPostPlatform[];
   created_at: string;
   updated_at: string;
 }

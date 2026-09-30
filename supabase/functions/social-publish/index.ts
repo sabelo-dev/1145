@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptToken } from "../_shared/socialCrypto.ts";
+import { META_GRAPH_VERSION } from "../_shared/meta.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,11 +13,6 @@ const jsonHeaders = {
   ...corsHeaders,
   "Content-Type": "application/json",
 };
-
-// Keep the Meta version configurable so the function does not require
-// a code deployment every time Meta changes the supported version.
-const META_GRAPH_VERSION =
-  Deno.env.get("META_GRAPH_VERSION") || "v26.0";
 
 const LINKEDIN_VERSION =
   Deno.env.get("LINKEDIN_VERSION") || "202601";
@@ -80,6 +76,7 @@ interface SocialPost {
   status?: string | null;
   published_at?: string | null;
   external_post_ids?: Record<string, string> | null;
+  external_post_url?: string | null;
   updated_at?: string | null;
 }
 
@@ -446,8 +443,35 @@ async function publishToFacebook(
     success: true,
     external_post_id: data.id,
     external_post_url:
+      (await fetchPermalink(data.id, "permalink_url", pageAccessToken)) ||
       `https://www.facebook.com/${data.id}`,
   };
+}
+
+/*
+ * Published IDs are not URL slugs (an Instagram media id is not the /p/
+ * shortcode), so ask Graph for the real link. Never fail a publish over it.
+ */
+async function fetchPermalink(
+  objectId: string,
+  field: "permalink" | "permalink_url",
+  accessToken: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${META_GRAPH_VERSION}/${objectId}?` +
+        new URLSearchParams({
+          fields: field,
+          access_token: accessToken,
+        }).toString(),
+    );
+    const data = await readJson(response);
+    return response.ok && typeof data?.[field] === "string"
+      ? data[field]
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -671,7 +695,8 @@ async function publishToInstagram(
       success: true,
       external_post_id: publishedId,
       external_post_url:
-        `https://www.instagram.com/p/${publishedId}/`,
+        (await fetchPermalink(publishedId, "permalink", accessToken)) ||
+        `https://www.instagram.com/`,
     };
   }
 
@@ -747,7 +772,8 @@ async function publishToInstagram(
     success: true,
     external_post_id: publishedId,
     external_post_url:
-      `https://www.instagram.com/p/${publishedId}/`,
+      (await fetchPermalink(publishedId, "permalink", accessToken)) ||
+      `https://www.instagram.com/`,
   };
 }
 
@@ -962,12 +988,13 @@ async function publishPlatform(
       );
 
     case "instagram":
-      return await publishToInstagram(
-        post,
-        supabase
-          ? await ensureFacebookPage(supabase, tokenData)
-          : tokenData,
-      );
+      // Instagram connections already carry the IG account id plus the Page
+      // token. Do not run the Facebook repair here: it rewrites account_id
+      // to the Page id, which breaks every later Instagram publish.
+      if (!tokenData.page_access_token && !tokenData.access_token) {
+        throw new Error("Instagram connection is incomplete. Reconnect Instagram.");
+      }
+      return await publishToInstagram(post, tokenData);
 
     case "twitter":
       return await publishToTwitter(
@@ -1088,33 +1115,43 @@ Deno.serve(async (req) => {
       );
     }
 
-    const {
-      data: userData,
-      error: authError,
-    } = await supabase.auth.getUser(
-      accessToken,
-    );
+    /*
+     * process-scheduled-posts calls in with the service role key to publish
+     * a due post on behalf of its author. Everyone else must be the author.
+     */
+    const isInternalCall =
+      accessToken === supabaseServiceKey;
 
-    if (
-      authError ||
-      !userData?.user
-    ) {
-      console.error(
-        "Authentication failed:",
-        authError,
+    let userId = "";
+
+    if (!isInternalCall) {
+      const {
+        data: userData,
+        error: authError,
+      } = await supabase.auth.getUser(
+        accessToken,
       );
 
-      return jsonResponse(
-        {
-          success: false,
-          error: "Unauthorized",
-        },
-        401,
-      );
+      if (
+        authError ||
+        !userData?.user
+      ) {
+        console.error(
+          "Authentication failed:",
+          authError,
+        );
+
+        return jsonResponse(
+          {
+            success: false,
+            error: "Unauthorized",
+          },
+          401,
+        );
+      }
+
+      userId = userData.user.id;
     }
-
-    const userId =
-      userData.user.id;
 
     /* ---------------------------------------------------------------------- */
     /* Parse request                                                          */
@@ -1151,10 +1188,7 @@ Deno.serve(async (req) => {
     /* Get owned post                                                         */
     /* ---------------------------------------------------------------------- */
 
-    const {
-      data: post,
-      error: postError,
-    } = await supabase
+    let postQuery = supabase
       .from("social_media_posts")
       .select(`
         id,
@@ -1165,11 +1199,19 @@ Deno.serve(async (req) => {
         status,
         published_at,
         external_post_ids,
+        external_post_url,
         updated_at
       `)
-      .eq("id", postId)
-      .eq("created_by", userId)
-      .single();
+      .eq("id", postId);
+
+    if (!isInternalCall) {
+      postQuery = postQuery.eq("created_by", userId);
+    }
+
+    const {
+      data: post,
+      error: postError,
+    } = await postQuery.single();
 
     if (
       postError ||
@@ -1192,6 +1234,9 @@ Deno.serve(async (req) => {
     const socialPost =
       post as SocialPost;
 
+    // Tokens are always the author's own connections.
+    userId = socialPost.created_by;
+
     /* ---------------------------------------------------------------------- */
     /* Determine platforms                                                    */
     /* ---------------------------------------------------------------------- */
@@ -1212,22 +1257,18 @@ Deno.serve(async (req) => {
       ),
     ];
 
-    const unsupportedPlatforms = requestedPlatforms
-      .map((p) => normalizePlatformName(p))
-      .filter((platform) => platform && !SUPPORTED_PLATFORMS.has(platform));
+    // Platforms without API publishing (e.g. TikTok, YouTube) are reported as
+    // failed for that platform instead of rejecting the whole request, so a
+    // Facebook + TikTok post still goes out on Facebook.
+    const unsupportedPlatforms = [
+      ...new Set(
+        requestedPlatforms
+          .map((p) => normalizePlatformName(p))
+          .filter((platform) => platform && !SUPPORTED_PLATFORMS.has(platform)),
+      ),
+    ];
 
-    if (unsupportedPlatforms.length > 0) {
-      return jsonResponse(
-        {
-          success: false,
-          error: "Unsupported platform(s)",
-          platforms: unsupportedPlatforms,
-        },
-        400,
-      );
-    }
-
-    if (targetPlatforms.length === 0) {
+    if (targetPlatforms.length === 0 && unsupportedPlatforms.length === 0) {
       return jsonResponse(
         {
           success: false,
@@ -1251,7 +1292,12 @@ Deno.serve(async (req) => {
         : {};
 
     const results: PlatformResult[] =
-      [];
+      unsupportedPlatforms.map((platform) => ({
+        platform,
+        success: false,
+        error:
+          `Automatic publishing to ${platform} is not supported yet. Post it manually, then add the post URL.`,
+      }));
 
     const externalPostIds: Record<
       string,
@@ -1356,7 +1402,7 @@ Deno.serve(async (req) => {
       ).length;
 
     const total =
-      targetPlatforms.length;
+      results.length;
 
     let overallStatus:
       | "failed"
@@ -1391,6 +1437,14 @@ Deno.serve(async (req) => {
       updated_at:
         new Date().toISOString(),
     };
+
+    // Keep a public link on the post; mining verification matches on it.
+    const firstUrl = results.find(
+      (result) => result.success && result.external_post_url,
+    )?.external_post_url;
+    if (!socialPost.external_post_url && firstUrl) {
+      updatePayload.external_post_url = firstUrl;
+    }
 
     if (
       overallStatus === "published"
@@ -1435,6 +1489,37 @@ Deno.serve(async (req) => {
           },
         },
         500,
+      );
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* Per-platform results (shown on the post in the dashboard)              */
+    /* ---------------------------------------------------------------------- */
+
+    const publishedAt = new Date().toISOString();
+    const { error: platformsError } = await supabase
+      .from("social_post_platforms")
+      .upsert(
+        results
+          // Already-published platforms were skipped; keep their stored row.
+          .filter((result) => !(result.success && existingExternalIds[result.platform]))
+          .map((result) => ({
+            post_id: postId,
+            platform: result.platform,
+            status: result.success ? "published" : "failed",
+            external_post_id: result.external_post_id ?? null,
+            external_post_url: result.external_post_url ?? null,
+            error_message: result.success ? null : result.error ?? null,
+            published_at: result.success ? publishedAt : null,
+          })),
+        { onConflict: "post_id,platform" },
+      );
+
+    if (platformsError) {
+      // The post itself is already updated; this is only the detail view.
+      console.error(
+        "Failed recording per-platform results:",
+        platformsError,
       );
     }
 

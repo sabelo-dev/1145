@@ -63,9 +63,9 @@ export async function encryptToken(plaintext: string): Promise<EncryptedField> {
 export async function decryptToken(field: EncryptedField): Promise<string> {
   const key = await getKey();
   const buf = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: fromBase64(field.iv) },
+    { name: "AES-GCM", iv: fromBase64(field.iv).buffer as ArrayBuffer },
     key,
-    fromBase64(field.ciphertext),
+    fromBase64(field.ciphertext).buffer as ArrayBuffer,
   );
   return new TextDecoder().decode(buf);
 }

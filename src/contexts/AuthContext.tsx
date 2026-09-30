@@ -178,9 +178,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshUserProfile = async () => {
-    if (session?.user) {
+    // Read the live session: right after signInWithPassword the `session`
+    // state has not caught up yet, and callers navigate on our return.
+    const { data: { session: current } } = await supabase.auth.getSession();
+    const activeSession = current ?? session;
+    if (activeSession?.user) {
+      setSession(activeSession);
       loadingManager.startLoading('refresh');
-      await loadUserProfile(session, 'refresh');
+      await loadUserProfile(activeSession, 'refresh');
       await new Promise(resolve => setTimeout(resolve, 50));
     }
   };

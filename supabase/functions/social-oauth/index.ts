@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { META_GRAPH, META_OAUTH_DIALOG, META_SCOPES, metaAppCredentials, safeAppUrl, signState } from '../_shared/meta.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,10 +22,10 @@ interface OAuthConfig {
 
 const getOAuthConfig = (baseUrl: string): OAuthConfig => ({
   facebook: {
-    clientId: Deno.env.get('FACEBOOK_APP_ID') || '',
-    clientSecret: Deno.env.get('FACEBOOK_APP_SECRET') || '',
+    clientId: metaAppCredentials().appId,
+    clientSecret: metaAppCredentials().appSecret,
     redirectUri: `${baseUrl}/social-oauth-callback`,
-    scope: ['pages_manage_posts', 'pages_read_engagement', 'pages_show_list', 'instagram_basic', 'instagram_content_publish', 'instagram_manage_insights'],
+    scope: META_SCOPES,
   },
   twitter: {
     clientId: Deno.env.get('TWITTER_CLIENT_ID') || '',
@@ -59,7 +60,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     const platform = url.searchParams.get('platform');
-    const appBaseUrl = url.searchParams.get('app_url') || 'https://1145.io';
+    const appBaseUrl = safeAppUrl(url.searchParams.get('app_url'));
     
     // Get auth token from header
     const authHeader = req.headers.get('Authorization');
@@ -94,7 +95,7 @@ Deno.serve(async (req) => {
         }
 
         let authUrl = '';
-        const state = btoa(JSON.stringify({ userId, platform, appUrl: appBaseUrl }));
+        const state = await signState({ userId, platform, appUrl: appBaseUrl });
 
         if (platform === 'facebook' || platform === 'instagram') {
           const fbConfig = config.facebook;
@@ -108,7 +109,7 @@ Deno.serve(async (req) => {
               { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
-          authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
+          authUrl = `${META_OAUTH_DIALOG}?` +
             `client_id=${fbConfig.clientId}` +
             `&redirect_uri=${encodeURIComponent(fbConfig.redirectUri)}` +
             `&scope=${encodeURIComponent(fbConfig.scope.join(','))}` +
@@ -134,12 +135,7 @@ Deno.serve(async (req) => {
           const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
             .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
           
-          const twitterState = btoa(JSON.stringify({ 
-            userId, 
-            platform, 
-            appUrl: appBaseUrl,
-            codeVerifier 
-          }));
+          const twitterState = await signState({ userId, platform, appUrl: appBaseUrl, codeVerifier });
           
           authUrl = `https://twitter.com/i/oauth2/authorize?` +
             `response_type=code` +
@@ -187,12 +183,7 @@ Deno.serve(async (req) => {
           const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
             .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
           
-          const tiktokState = btoa(JSON.stringify({ 
-            userId, 
-            platform, 
-            appUrl: appBaseUrl,
-            codeVerifier 
-          }));
+          const tiktokState = await signState({ userId, platform, appUrl: appBaseUrl, codeVerifier });
 
           authUrl = `https://www.tiktok.com/v2/auth/authorize/?` +
             `client_key=${tiktokConfig.clientId}` +
@@ -289,7 +280,7 @@ Deno.serve(async (req) => {
         if (tokenData.platform === 'facebook' || tokenData.platform === 'instagram') {
           const fbConfig = config.facebook;
           const refreshResponse = await fetch(
-            `https://graph.facebook.com/v18.0/oauth/access_token?` +
+            `${META_GRAPH}/oauth/access_token?` +
             `grant_type=fb_exchange_token` +
             `&client_id=${fbConfig.clientId}` +
             `&client_secret=${fbConfig.clientSecret}` +

@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Crown, LogOut, FileText, MessageCircle, BarChart3, DollarSign,
-  Settings, Link2, Loader2, RefreshCw, Sparkles, Bell
+  Settings, Link2, Loader2, RefreshCw, Sparkles, Bell, Send, Coins
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useInfluencer } from '@/hooks/useInfluencer';
@@ -16,11 +16,14 @@ import { CommentsInbox } from './dashboard/CommentsInbox';
 import { EngagementConsole } from './dashboard/EngagementConsole';
 import { MoneyView } from './dashboard/MoneyView';
 import { SyncStatusPanel } from './dashboard/SyncStatusPanel';
+import { MyPostsPanel } from './dashboard/MyPostsPanel';
+import { InfluencerRewardsTab } from './dashboard/InfluencerRewardsTab';
 import { InfluencerAccountsTab } from './InfluencerAccountsTab';
 import { InfluencerSettingsTab } from './InfluencerSettingsTab';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { NormalizedPost } from '@/hooks/useInfluencerDashboard';
+import type { SocialMediaPost } from '@/types/influencer';
 import { useUrlTab } from "@/hooks/useUrlTab";
 
 const InfluencerDashboard: React.FC = () => {
@@ -31,7 +34,7 @@ const InfluencerDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useUrlTab('feed');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<any>(null);
+  const [editingPost, setEditingPost] = useState<SocialMediaPost | null>(null);
   const [selectedPost, setSelectedPost] = useState<NormalizedPost | null>(null);
 
   const handleLogout = async () => {
@@ -40,6 +43,16 @@ const InfluencerDashboard: React.FC = () => {
   };
 
   const loading = legacyLoading || dashboard.loading;
+
+  const openCreate = () => { setEditingPost(null); setIsModalOpen(true); };
+  const openEdit = (post: SocialMediaPost) => { setEditingPost(post); setIsModalOpen(true); };
+
+  const handlePublish = async (postId: string) => {
+    const ok = await publishPost(postId, true);
+    // Published posts show up in the synced feed on the next sync.
+    if (ok) dashboard.refresh();
+    return ok;
+  };
 
   if (loading) {
     return (
@@ -90,8 +103,9 @@ const InfluencerDashboard: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={dashboard.refresh}
+                onClick={() => { dashboard.refresh(); refreshPosts(); }}
                 title="Refresh"
+                aria-label="Refresh"
               >
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -107,10 +121,14 @@ const InfluencerDashboard: React.FC = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-6 lg:w-auto lg:inline-grid">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="feed" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Feed</span>
+            </TabsTrigger>
+            <TabsTrigger value="posts" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Send className="h-4 w-4" />
+              <span className="hidden sm:inline">Posts</span>
             </TabsTrigger>
             <TabsTrigger value="inbox" className="flex items-center gap-1.5 text-xs sm:text-sm relative">
               <MessageCircle className="h-4 w-4" />
@@ -128,6 +146,10 @@ const InfluencerDashboard: React.FC = () => {
             <TabsTrigger value="money" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <DollarSign className="h-4 w-4" />
               <span className="hidden sm:inline">Money</span>
+            </TabsTrigger>
+            <TabsTrigger value="rewards" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Coins className="h-4 w-4" />
+              <span className="hidden sm:inline">Rewards</span>
             </TabsTrigger>
             <TabsTrigger value="accounts" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <Link2 className="h-4 w-4" />
@@ -153,7 +175,11 @@ const InfluencerDashboard: React.FC = () => {
                 />
               </div>
               <div className="space-y-4">
-                <SyncStatusPanel syncStatuses={dashboard.syncStatuses} />
+                <SyncStatusPanel
+                  syncStatuses={dashboard.syncStatuses}
+                  onSync={dashboard.syncContent}
+                  syncing={dashboard.syncing}
+                />
                 
                 {/* Quick actions */}
                 <Card>
@@ -162,7 +188,7 @@ const InfluencerDashboard: React.FC = () => {
                     {profile?.can_post && (
                       <Button
                         className="w-full"
-                        onClick={() => { setEditingPost(null); setIsModalOpen(true); }}
+                        onClick={openCreate}
                       >
                         <Sparkles className="h-4 w-4 mr-2" />
                         Create Post
@@ -185,6 +211,18 @@ const InfluencerDashboard: React.FC = () => {
                 </Card>
               </div>
             </div>
+          </TabsContent>
+
+          {/* Posts created here, with publish / retry */}
+          <TabsContent value="posts">
+            <MyPostsPanel
+              posts={posts}
+              canPost={!!profile?.can_post}
+              onCreate={openCreate}
+              onEdit={openEdit}
+              onPublish={handlePublish}
+              onDelete={deletePost}
+            />
           </TabsContent>
 
           {/* Comments Inbox */}
@@ -253,6 +291,11 @@ const InfluencerDashboard: React.FC = () => {
             />
           </TabsContent>
 
+          {/* Tasks + UCoin rewards */}
+          <TabsContent value="rewards">
+            <InfluencerRewardsTab />
+          </TabsContent>
+
           {/* Accounts Tab */}
           <TabsContent value="accounts">
             <InfluencerAccountsTab />
@@ -274,6 +317,7 @@ const InfluencerDashboard: React.FC = () => {
           setEditingPost(null);
           refreshPosts();
           dashboard.refresh();
+          setActiveTab('posts');
         }}
       />
     </div>

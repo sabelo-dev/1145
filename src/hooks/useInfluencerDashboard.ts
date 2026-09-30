@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -102,6 +102,7 @@ export const useInfluencerDashboard = () => {
   const [conversions, setConversions] = useState<Conversion[]>([]);
   const [syncStatuses, setSyncStatuses] = useState<SyncStatus[]>([]);
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
+  const [syncing, setSyncing] = useState<string | null>(null);
 
   const fetchProfileId = useCallback(async () => {
     if (!user) return null;
@@ -172,8 +173,11 @@ export const useInfluencerDashboard = () => {
     setSyncStatuses((data as SyncStatus[]) || []);
   }, []);
 
+  // Only the first load shows the full-page loader; refreshes update in place.
+  const loadedOnce = useRef(false);
+
   const loadAll = useCallback(async () => {
-    setLoading(true);
+    if (!loadedOnce.current) setLoading(true);
     const profileId = await fetchProfileId();
     setInfluencerProfileId(profileId);
     
@@ -186,12 +190,50 @@ export const useInfluencerDashboard = () => {
         fetchSyncStatuses(profileId),
       ]);
     }
+    loadedOnce.current = true;
     setLoading(false);
   }, [fetchProfileId, fetchSocialPosts, fetchComments, fetchMetrics, fetchConversions, fetchSyncStatuses]);
 
   useEffect(() => {
     if (user) loadAll();
   }, [user, loadAll]);
+
+  // Pull posts, comments and metrics from the connected platforms.
+  const syncContent = async (platform?: string) => {
+    setSyncing(platform || 'all');
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-influencer-content', {
+        body: { platform: platform || 'all' },
+      });
+      if (error) {
+        const body = await (error as any).context?.json?.().catch(() => null);
+        throw new Error(body?.error || error.message);
+      }
+
+      const results = (data?.results ?? {}) as Record<string, { posts: number; comments: number; errors: string[] }>;
+      const entries = Object.entries(results);
+      const errors = entries.flatMap(([p, r]) => r.errors.map((e) => `${p}: ${e}`));
+
+      if (entries.length === 0) {
+        toast({
+          variant: 'destructive',
+          title: 'Nothing to sync',
+          description: 'Connect Facebook, Instagram or X under Accounts first.',
+        });
+      } else if (errors.length > 0) {
+        toast({ variant: 'destructive', title: 'Sync finished with errors', description: errors.join('\n') });
+      } else {
+        const posts = entries.reduce((sum, [, r]) => sum + r.posts, 0);
+        const comments = entries.reduce((sum, [, r]) => sum + r.comments, 0);
+        toast({ title: 'Sync complete', description: `${posts} posts and ${comments} comments synced.` });
+      }
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Sync failed', description: e.message || 'Could not sync content' });
+    } finally {
+      setSyncing(null);
+      await loadAll();
+    }
+  };
 
   const markCommentHandled = async (commentId: string, replyText?: string) => {
     const updates: Record<string, any> = {
@@ -266,6 +308,8 @@ export const useInfluencerDashboard = () => {
     markCommentSpam,
     linkProductToPost,
     refresh: loadAll,
+    syncContent,
+    syncing,
     stats: {
       totalEngagement,
       totalReach,

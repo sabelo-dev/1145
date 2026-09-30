@@ -60,72 +60,45 @@ Deno.serve(async (req) => {
 
     for (const post of scheduledPosts as ScheduledPost[]) {
       console.log(`Processing post: ${post.id} - "${post.title}"`);
-      
+
       try {
-        // Get the author's connected accounts for the target platforms
-        const { data: connectedAccounts, error: accountsError } = await supabase
-          .from('approved_social_accounts')
-          .select('id, platform, account_handle, is_verified, is_active')
-          .eq('user_id', post.created_by)
-          .in('platform', post.platforms)
-          .eq('is_active', true);
-
-        if (accountsError) {
-          console.error(`Error fetching accounts for post ${post.id}:`, accountsError);
-        }
-
-        // Log which platforms will be "published" to
-        const publishedPlatforms: string[] = [];
-        const failedPlatforms: string[] = [];
-
-        for (const platform of post.platforms) {
-          const account = connectedAccounts?.find(a => a.platform === platform);
-          
-          if (account && account.is_verified) {
-            // In a real implementation, this is where you'd call the platform's API
-            // For now, we just mark it as published
-            console.log(`Publishing to ${platform} via @${account.account_handle}`);
-            publishedPlatforms.push(platform);
-          } else if (account && !account.is_verified) {
-            console.log(`Skipping ${platform} - account @${account.account_handle} not verified`);
-            failedPlatforms.push(`${platform} (not verified)`);
-          } else {
-            console.log(`Skipping ${platform} - no connected account`);
-            failedPlatforms.push(`${platform} (no account)`);
-          }
-        }
-
-        // Determine final status based on publishing results
-        let finalStatus: 'published' | 'failed' = 'published';
-        let statusNote = '';
-
-        if (publishedPlatforms.length === 0 && failedPlatforms.length > 0) {
-          finalStatus = 'failed';
-          statusNote = `Failed platforms: ${failedPlatforms.join(', ')}`;
-        } else if (failedPlatforms.length > 0) {
-          statusNote = `Partial publish. Published: ${publishedPlatforms.join(', ')}. Failed: ${failedPlatforms.join(', ')}`;
-        } else {
-          statusNote = `Published to: ${publishedPlatforms.join(', ')}`;
-        }
-
-        // Update the post status
-        const { error: updateError } = await supabase
+        // Claim the post so an overlapping cron run cannot publish it twice.
+        // social-publish sets the final status (published / partial / failed).
+        const { data: claimed, error: claimError } = await supabase
           .from('social_media_posts')
-          .update({
-            status: finalStatus,
-            published_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', post.id);
+          .update({ status: 'draft', updated_at: new Date().toISOString() })
+          .eq('id', post.id)
+          .eq('status', 'scheduled')
+          .select('id');
 
-        if (updateError) {
-          console.error(`Error updating post ${post.id}:`, updateError);
-          results.push({ postId: post.id, success: false, error: updateError.message });
-        } else {
-          console.log(`Post ${post.id} marked as ${finalStatus}. ${statusNote}`);
-          results.push({ postId: post.id, success: true });
+        if (claimError) throw claimError;
+        if (!claimed || claimed.length === 0) {
+          console.log(`Post ${post.id} already claimed by another run`);
+          continue;
         }
 
+        // Publish through the real publisher, on behalf of the author.
+        const response = await fetch(`${supabaseUrl}/functions/v1/social-publish`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ post_id: post.id }),
+        });
+        const body = await response.json().catch(() => ({}));
+
+        if (body?.summary) {
+          console.log(`Post ${post.id} -> ${body.status} (${body.summary.success}/${body.summary.total} platforms)`);
+          results.push({ postId: post.id, success: body.summary.success > 0, error: body.success ? undefined : body.error });
+        } else {
+          // The publisher never ran (config / auth / validation problem).
+          await supabase
+            .from('social_media_posts')
+            .update({ status: 'failed', updated_at: new Date().toISOString() })
+            .eq('id', post.id);
+          throw new Error(body?.error || `social-publish returned ${response.status}`);
+        }
       } catch (postError: any) {
         console.error(`Error processing post ${post.id}:`, postError);
         results.push({ postId: post.id, success: false, error: postError.message });
