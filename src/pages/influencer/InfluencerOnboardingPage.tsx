@@ -22,6 +22,17 @@ const STEPS = ["Identity", "Niche & audience", "Social profiles", "Payout"];
 
 const NICHES = ["Fashion", "Beauty", "Tech", "Food", "Travel", "Fitness", "Lifestyle", "Gaming", "Finance", "Parenting"];
 const PLATFORMS = ["instagram", "tiktok", "twitter", "youtube", "facebook"] as const;
+const PLATFORM_LABELS: Record<string, string> = {
+  instagram: "Instagram", tiktok: "TikTok", twitter: "X (Twitter)", youtube: "YouTube", facebook: "Facebook",
+};
+// Public profile link from a handle, used when no URL is typed.
+const PROFILE_URL: Record<string, (h: string) => string> = {
+  instagram: (h) => `https://instagram.com/${h}`,
+  tiktok: (h) => `https://tiktok.com/@${h}`,
+  twitter: (h) => `https://x.com/${h}`,
+  youtube: (h) => `https://youtube.com/@${h}`,
+  facebook: (h) => `https://facebook.com/${h}`,
+};
 
 const schema = z.object({
   displayName: z.string().trim().min(2).max(60),
@@ -170,7 +181,7 @@ const InfluencerOnboardingPage: React.FC = () => {
             platform: s.platform,
             username: handle,
             platform_user_id: handle, // placeholder until OAuth resolves the real id
-            profile_url: s.url || null,
+            profile_url: s.url.trim() || PROFILE_URL[s.platform]?.(handle) || null,
             is_verified: false,
             status: "pending",
           };
@@ -313,7 +324,7 @@ const InfluencerOnboardingPage: React.FC = () => {
                       <Select value={s.platform} onValueChange={(v) => setSocials((arr) => arr.map((x, j) => j === i ? { ...x, platform: v } : x))}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                          {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{PLATFORM_LABELS[p]}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
@@ -323,7 +334,7 @@ const InfluencerOnboardingPage: React.FC = () => {
                     </div>
                     <div className="sm:col-span-5">
                       <Label>Profile URL</Label>
-                      <Input value={s.url} onChange={(e) => setSocials((arr) => arr.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} placeholder="https://..." />
+                      <Input value={s.url} onChange={(e) => setSocials((arr) => arr.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} placeholder="Optional" />
                     </div>
                   </div>
                 ))}

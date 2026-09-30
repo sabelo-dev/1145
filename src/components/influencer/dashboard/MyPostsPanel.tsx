@@ -109,7 +109,8 @@ export const MyPostsPanel: React.FC<MyPostsPanelProps> = ({
                   {(post.platforms || []).map((platform) => {
                     const result = results.find((r) => r.platform === platform);
                     const published = result?.status === 'published' || !!post.external_post_ids?.[platform];
-                    const failed = result?.status === 'failed';
+                    // Without a per-platform row, fall back to the post's own outcome.
+                    const failed = result ? result.status === 'failed' : !published && post.status === 'failed';
                     return (
                       <Badge
                         key={platform}

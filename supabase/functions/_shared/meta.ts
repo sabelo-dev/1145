@@ -47,8 +47,16 @@ export interface OAuthState {
   userId: string;
   platform: string;
   appUrl: string;
+  /** In-app path to return to after the provider (defaults to Accounts). */
+  returnPath?: string;
   codeVerifier?: string;
   exp?: number;
+}
+
+/** Only same-site paths ("/x", never "//host" or absolute URLs). */
+export function safeReturnPath(value: string | null | undefined): string | undefined {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) return undefined;
+  return value.slice(0, 300);
 }
 
 function b64url(bytes: Uint8Array): string {

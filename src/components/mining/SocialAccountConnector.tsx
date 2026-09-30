@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SocialAccount } from '@/hooks/useSocialMining';
+import { OAUTH_PLATFORMS, startSocialOAuth } from '@/lib/socialOAuth';
+import { toast } from 'sonner';
 
 // TikTok icon component
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -43,6 +45,19 @@ export function SocialAccountConnector({ accounts, onConnect, onDisconnect }: So
 
   const getAccountForPlatform = (platform: string) => 
     accounts.find(a => a.platform === platform);
+
+  const isOAuth = !!connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform);
+
+  const handleOAuthConnect = async () => {
+    if (!connectingPlatform) return;
+    setIsSubmitting(true);
+    try {
+      await startSocialOAuth(connectingPlatform);
+    } catch (error: any) {
+      toast.error(error.message);
+      setIsSubmitting(false);
+    }
+  };
 
   const handleConnect = async () => {
     if (!connectingPlatform || !username.trim()) return;
@@ -144,6 +159,21 @@ export function SocialAccountConnector({ accounts, onConnect, onDisconnect }: So
             </DialogTitle>
           </DialogHeader>
           
+          {isOAuth ? (
+            <div className="space-y-3 py-4 text-sm text-muted-foreground">
+              <p>
+                You'll sign in with Facebook to prove you own this account. Nothing is posted without your action.
+              </p>
+              {connectingPlatform === 'instagram' ? (
+                <p>
+                  Instagram must be a Business or Creator account linked to a Facebook Page you manage. When Facebook
+                  asks, select that Page.
+                </p>
+              ) : (
+                <p>When Facebook asks, select the Page you post from.</p>
+              )}
+            </div>
+          ) : (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
@@ -158,14 +188,21 @@ export function SocialAccountConnector({ accounts, onConnect, onDisconnect }: So
               </p>
             </div>
           </div>
+          )}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setConnectingPlatform(null)}>
               Cancel
             </Button>
-            <Button onClick={handleConnect} disabled={!username.trim() || isSubmitting}>
-              {isSubmitting ? 'Connecting...' : 'Connect Account'}
-            </Button>
+            {isOAuth ? (
+              <Button onClick={handleOAuthConnect} disabled={isSubmitting}>
+                {isSubmitting ? 'Redirecting…' : 'Continue with Facebook'}
+              </Button>
+            ) : (
+              <Button onClick={handleConnect} disabled={!username.trim() || isSubmitting}>
+                {isSubmitting ? 'Connecting...' : 'Connect Account'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

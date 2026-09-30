@@ -171,6 +171,14 @@ export const SocialOAuthConnect: React.FC = () => {
     fetchConnectedAccounts();
   }, [fetchConnectedAccounts]);
 
+  // Come back to this page (and tab) after the provider, minus old status params.
+  const currentPathForReturn = () => {
+    const params = new URLSearchParams(window.location.search);
+    ['success', 'error', 'platform'].forEach((key) => params.delete(key));
+    const query = params.toString();
+    return `${window.location.pathname}${query ? `?${query}` : ''}`;
+  };
+
   // Drop only the callback params so ?tab=accounts (and the tab) survive.
   const clearOAuthParams = () => {
     const params = new URLSearchParams(window.location.search);
@@ -208,7 +216,7 @@ export const SocialOAuthConnect: React.FC = () => {
     try {
       const appUrl = getAppUrl("/");
       const response = await fetch(
-        `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/social-oauth?action=get_auth_url&platform=${platformId}&app_url=${encodeURIComponent(appUrl)}`,
+        `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/social-oauth?action=get_auth_url&platform=${platformId}&app_url=${encodeURIComponent(appUrl)}&return_path=${encodeURIComponent(currentPathForReturn())}`,
         {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
@@ -352,6 +360,10 @@ export const SocialOAuthConnect: React.FC = () => {
             {PLATFORMS.map((platform) => {
               const connectedPlatformAccounts = getConnectedAccountsForPlatform(platform.id);
               const isConnected = connectedPlatformAccounts.length > 0;
+              // Facebook publishing / sync works through a Page; a personal
+              // profile connection alone cannot post or be synced.
+              const needsPage = platform.id === 'facebook' && isConnected &&
+                !connectedPlatformAccounts.some((a) => a.page_name);
               const isConnecting = connectingPlatform === platform.id;
               const needsSetup = setupRequired[platform.id];
               const Icon = platform.icon;
@@ -360,7 +372,9 @@ export const SocialOAuthConnect: React.FC = () => {
                 <div
                   key={platform.id}
                   className={`p-4 rounded-lg border ${
-                    isConnected ? 'border-green-500/50 bg-green-500/5' : 'border-border'
+                    needsPage
+                      ? 'border-amber-500/50 bg-amber-500/5'
+                      : isConnected ? 'border-green-500/50 bg-green-500/5' : 'border-border'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -374,7 +388,12 @@ export const SocialOAuthConnect: React.FC = () => {
                       <div>
                         <h4 className="font-medium flex items-center gap-2">
                           {platform.name}
-                          {isConnected && (
+                          {needsPage ? (
+                            <Badge variant="outline" className="text-amber-600 border-amber-600">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Page needed
+                            </Badge>
+                          ) : isConnected && (
                             <Badge variant="outline" className="text-green-600 border-green-600">
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Connected
@@ -384,6 +403,12 @@ export const SocialOAuthConnect: React.FC = () => {
                         <p className="text-sm text-muted-foreground mt-1">
                           {platform.description}
                         </p>
+                        {needsPage && (
+                          <p className="text-sm text-amber-700 dark:text-amber-400 mt-2">
+                            Only your personal profile is connected. Posting, syncing and Instagram all need a
+                            Facebook Page you manage: reconnect and tick your Page when Facebook asks.
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -410,7 +435,7 @@ export const SocialOAuthConnect: React.FC = () => {
                         {isConnecting ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         ) : null}
-                        Add Another
+                        {needsPage ? 'Reconnect & choose Page' : 'Add Another'}
                       </Button>
                     )}
                   </div>

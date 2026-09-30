@@ -1339,8 +1339,9 @@ Deno.serve(async (req) => {
         results.push({
           platform,
           success: false,
-          error:
-            "No active connected account for this platform",
+          error: platform === "instagram"
+            ? "Instagram is not connected. Connect it under Accounts (it must be a Business or Creator account linked to your Facebook Page)."
+            : `${platform} is not connected. Connect it under Accounts first.`,
         });
 
         continue;

@@ -16,6 +16,22 @@ REVOKE EXECUTE ON FUNCTION public.process_referral_mining_bonus(uuid, uuid, inte
 GRANT EXECUTE ON FUNCTION public.process_referral_mining_bonus(uuid, uuid, integer) TO service_role;
 
 -- ---------------------------------------------------------------------------
+-- 1b. The reward pipeline's activity catalogue is empty in production, so
+--     every task completion failed on mining_requests_activity_code_fkey.
+--     Re-seed the defaults from 20260728025757 (existing rows are kept).
+-- ---------------------------------------------------------------------------
+INSERT INTO public.mining_activities (code, display_name, description, reward_mg, cooldown_seconds, daily_cap, requires_moderation, rules) VALUES
+  ('daily_login',   'Daily Login',        'Reward for logging in once per day',                  5,   86400, 1,  false, '{"require_trusted_device":true}'::jsonb),
+  ('purchase',      'Verified Purchase',  'Order delivered and return window closed',            25,  0,     NULL, false, '{"await":"order_delivered_and_return_closed","return_window_days":7}'::jsonb),
+  ('referral',      'Referral Reward',    'Referred user KYC + first delivered order',           50,  0,     NULL, false, '{"await":"referral_completed"}'::jsonb),
+  ('delivery',      'Delivery Completed', 'Driver delivered with POD, OTP, photo, rating',       20,  0,     NULL, false, '{"await":"driver_pod_complete"}'::jsonb),
+  ('review',        'Product Review',     'Verified purchase review, moderated',                 10,  0,     3,    true,  '{"min_words":20,"require_verified_purchase":true}'::jsonb),
+  ('social_share',  'Social Share',       'Tracked share link with real unique visitor',         5,   0,     10,   false, '{"min_dwell_seconds":10,"require_unique_device":true}'::jsonb),
+  ('video_watch',   'Video Watched',      '95% watched with quiz passed if applicable',          8,   0,     5,    false, '{"min_watched_percent":95}'::jsonb),
+  ('kyc_complete',  'KYC Completed',      'User completed identity verification',                100, 0,     1,    false, '{"await":"kyc_verified"}'::jsonb)
+ON CONFLICT (code) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
 -- 2. complete_mining_task: a client may only complete tasks for itself.
 --    Same body as 20260908230124, plus the caller check at the top.
 --    service_role / definer callers have no auth.uid() and are unaffected.
@@ -63,6 +79,13 @@ BEGIN
   SELECT * INTO v_task FROM public.mining_tasks WHERE id = p_task_id AND is_active = true;
   IF NOT FOUND THEN
     RETURN jsonb_build_object('success', false, 'error', 'Task not found or inactive');
+  END IF;
+
+  -- Outcome-based tasks are credited by the system when the event happens
+  -- (e.g. a referred shopper's first order), never by clicking "complete".
+  IF auth.uid() IS NOT NULL AND v_task.task_type IN ('conversion_referral') THEN
+    RETURN jsonb_build_object('success', false, 'error',
+      'This reward is credited automatically when your referred shopper places their first order.');
   END IF;
 
   -- Serialise completions per user so two concurrent calls cannot both pass

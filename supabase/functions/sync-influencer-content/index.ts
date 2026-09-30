@@ -255,12 +255,16 @@ serve(async (req) => {
     const platformTotals: Record<string, { posts: number; comments: number }> = {};
 
     const results: Record<string, { posts: number; comments: number; errors: string[] }> = {};
+    let pagelessFacebook = false;
 
     for (const token of (tokens || [])) {
       if (targetPlatform !== 'all' && token.platform !== targetPlatform) continue;
       if (!['instagram', 'facebook', 'twitter'].includes(token.platform)) continue;
       // A user-level Facebook row without a Page cannot read a feed.
-      if (token.platform === 'facebook' && !token.page_id) continue;
+      if (token.platform === 'facebook' && !token.page_id) {
+        pagelessFacebook = true;
+        continue;
+      }
 
       // Update sync status to syncing
       await supabase
@@ -428,6 +432,16 @@ serve(async (req) => {
         const prev = results[token.platform] ?? { posts: 0, comments: 0, errors: [] };
         results[token.platform] = { ...prev, errors: [...prev.errors, e.message] };
       }
+    }
+
+    // Facebook is connected, but only as a personal profile: say so instead
+    // of reporting "nothing to sync".
+    if (pagelessFacebook && !results.facebook && (targetPlatform === 'all' || targetPlatform === 'facebook')) {
+      results.facebook = {
+        posts: 0,
+        comments: 0,
+        errors: ['No Facebook Page is connected. Reconnect Facebook and select the Page you post from (personal profiles cannot be synced).'],
+      };
     }
 
     return new Response(JSON.stringify({ success: true, results }), {

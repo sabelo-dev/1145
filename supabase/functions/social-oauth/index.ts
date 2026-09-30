@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { META_GRAPH, META_OAUTH_DIALOG, META_SCOPES, metaAppCredentials, safeAppUrl, signState } from '../_shared/meta.ts';
+import { META_GRAPH, META_OAUTH_DIALOG, META_SCOPES, metaAppCredentials, safeAppUrl, safeReturnPath, signState } from '../_shared/meta.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,6 +61,7 @@ Deno.serve(async (req) => {
     const action = url.searchParams.get('action');
     const platform = url.searchParams.get('platform');
     const appBaseUrl = safeAppUrl(url.searchParams.get('app_url'));
+    const returnPath = safeReturnPath(url.searchParams.get('return_path'));
     
     // Get auth token from header
     const authHeader = req.headers.get('Authorization');
@@ -95,7 +96,7 @@ Deno.serve(async (req) => {
         }
 
         let authUrl = '';
-        const state = await signState({ userId, platform, appUrl: appBaseUrl });
+        const state = await signState({ userId, platform, appUrl: appBaseUrl, returnPath });
 
         if (platform === 'facebook' || platform === 'instagram') {
           const fbConfig = config.facebook;
@@ -114,6 +115,9 @@ Deno.serve(async (req) => {
             `&redirect_uri=${encodeURIComponent(fbConfig.redirectUri)}` +
             `&scope=${encodeURIComponent(fbConfig.scope.join(','))}` +
             `&state=${encodeURIComponent(state)}` +
+            // Re-show the permission + Page picker on reconnect, so someone who
+            // skipped the Page step first time can select it now.
+            `&auth_type=rerequest` +
             `&response_type=code`;
         } else if (platform === 'twitter') {
           const twitterConfig = config.twitter;
@@ -135,7 +139,7 @@ Deno.serve(async (req) => {
           const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
             .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
           
-          const twitterState = await signState({ userId, platform, appUrl: appBaseUrl, codeVerifier });
+          const twitterState = await signState({ userId, platform, appUrl: appBaseUrl, returnPath, codeVerifier });
           
           authUrl = `https://twitter.com/i/oauth2/authorize?` +
             `response_type=code` +
@@ -183,7 +187,7 @@ Deno.serve(async (req) => {
           const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
             .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
           
-          const tiktokState = await signState({ userId, platform, appUrl: appBaseUrl, codeVerifier });
+          const tiktokState = await signState({ userId, platform, appUrl: appBaseUrl, returnPath, codeVerifier });
 
           authUrl = `https://www.tiktok.com/v2/auth/authorize/?` +
             `client_key=${tiktokConfig.clientId}` +

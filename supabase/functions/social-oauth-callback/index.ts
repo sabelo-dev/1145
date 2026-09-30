@@ -59,7 +59,9 @@ Deno.serve(async (req) => {
     try {
       stateData = await verifyState(stateParam);
       if (stateData.appUrl) {
-        redirectUrl = `${stateData.appUrl}/influencer/dashboard?tab=accounts`;
+        const path = stateData.returnPath || '/influencer/dashboard?tab=accounts';
+        // Status params are appended with "&", so make sure a query exists.
+        redirectUrl = `${stateData.appUrl}${path}${path.includes('?') ? '' : '?'}`;
       }
     } catch (e) {
       console.error('Failed to verify state:', e);

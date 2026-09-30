@@ -12,6 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MiningTask, SocialAccount } from '@/hooks/useSocialMining';
+import { OAUTH_PLATFORMS, startSocialOAuth } from '@/lib/socialOAuth';
+import { toast } from 'sonner';
+
+// Rewarded by the system when the outcome happens (e.g. a referred shopper's
+// first order), so they cannot be claimed with the "complete" button.
+const AUTO_AWARDED_TASKS = new Set(['conversion_referral']);
 
 // TikTok icon component
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -103,6 +109,17 @@ export function MiningTaskList({
     return socialAccounts.some(a => a.platform === platform);
   };
 
+  const handleOAuthConnect = async () => {
+    if (!connectingPlatform) return;
+    setIsConnecting(true);
+    try {
+      await startSocialOAuth(connectingPlatform);
+    } catch (error: any) {
+      toast.error(error.message);
+      setIsConnecting(false);
+    }
+  };
+
   const handleQuickConnect = async () => {
     if (!connectingPlatform || !connectUsername.trim() || !onConnectAccount) return;
     
@@ -137,7 +154,8 @@ export function MiningTaskList({
   const renderTask = (task: MiningTask) => {
     const Icon = taskIcons[task.task_type] || CheckCircle2;
     const completionsToday = getCompletionsToday(task.id);
-    const canComplete = canCompleteTask(task);
+    const autoAwarded = AUTO_AWARDED_TASKS.has(task.task_type);
+    const canComplete = !autoAwarded && canCompleteTask(task);
     const effectiveReward = Math.round(task.base_reward * miningMultiplier);
     const needsConnection = task.platform && task.platform !== 'any' && !isPlatformConnected(task.platform);
     const PlatformIcon = task.platform && task.platform !== 'any' ? platformIcons[task.platform] : null;
@@ -184,10 +202,17 @@ export function MiningTaskList({
                 <CheckCircle2 className="h-3 w-3" />
                 {completionsToday}/{task.max_daily_completions} today
               </span>
-              <span className="flex items-center gap-1 text-green-600">
-                <CheckCircle2 className="h-3 w-3" />
-                Auto-verified
-              </span>
+              {autoAwarded ? (
+                <span className="flex items-center gap-1 text-blue-600">
+                  <Users className="h-3 w-3" />
+                  Credited automatically when it happens
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-green-600">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Auto-verified
+                </span>
+              )}
             </div>
 
             {/* Quick connect prompt for disconnected platforms */}
@@ -324,6 +349,16 @@ export function MiningTaskList({
             </DialogTitle>
           </DialogHeader>
           
+          {connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform) ? (
+            <div className="space-y-3 py-4 text-sm text-muted-foreground">
+              <p>You'll sign in with Facebook to prove you own this account.</p>
+              <p>
+                {connectingPlatform === 'instagram'
+                  ? 'Instagram must be a Business or Creator account linked to a Facebook Page you manage. When Facebook asks, select that Page.'
+                  : 'When Facebook asks, select the Page you post from.'}
+              </p>
+            </div>
+          ) : (
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
               Connect your account to complete tasks on this platform and earn UCoin.
@@ -342,21 +377,26 @@ export function MiningTaskList({
               </p>
             </div>
           </div>
+          )}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setConnectingPlatform(null)}>
               Cancel
             </Button>
             <Button 
-              onClick={handleQuickConnect} 
-              disabled={!connectUsername.trim() || isConnecting}
+              onClick={connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform) ? handleOAuthConnect : handleQuickConnect} 
+              disabled={(!(connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform)) && !connectUsername.trim()) || isConnecting}
               className="gap-2"
             >
               {connectingPlatform && platformIcons[connectingPlatform] && (() => {
                 const PIcon = platformIcons[connectingPlatform];
                 return <PIcon className="h-4 w-4" />;
               })()}
-              {isConnecting ? 'Connecting...' : 'Connect Account'}
+              {isConnecting
+                ? 'Connecting...'
+                : connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform)
+                  ? 'Continue with Facebook'
+                  : 'Connect Account'}
             </Button>
           </DialogFooter>
         </DialogContent>
