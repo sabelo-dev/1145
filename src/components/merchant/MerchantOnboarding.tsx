@@ -49,9 +49,7 @@ const MerchantOnboarding: React.FC = () => {
 
   // KYC state
   const [kycDocuments, setKycDocuments] = useState<Record<string, string>>({});
-  const [bankDetails, setBankDetails] = useState({
-    accountHolder: "", accountNumber: "", routingCode: "",
-  });
+  const [verifiedBank, setVerifiedBank] = useState<{ bank_name: string; last4: string } | null>(null);
 
   // Store state
   const [shippingRegions, setShippingRegions] = useState<string[]>([]);
@@ -95,13 +93,16 @@ const MerchantOnboarding: React.FC = () => {
         setStep(savedStep);
         if (vendor.onboarding_status === "ACTIVE") setIsActivated(true);
 
-        // Load bank details if saved
-        if (fin?.bank_account_holder) {
-          setBankDetails({
-            accountHolder: fin.bank_account_holder || "",
-            accountNumber: fin.bank_account_number || "",
-            routingCode: fin.bank_routing_code || "",
-          });
+        // The payout account, if one has been accepted (card-verified).
+        const { data: payout } = await supabase
+          .from("vendor_payment_methods")
+          .select("*")
+          .eq("vendor_id", vendor.id)
+          .eq("is_default", true)
+          .maybeSingle();
+        const method = payout as unknown as { bank_name: string; account_number: string; verified_at: string | null } | null;
+        if (method?.verified_at) {
+          setVerifiedBank({ bank_name: method.bank_name, last4: method.account_number.slice(-4) });
         }
         if (vendor.shipping_regions) setShippingRegions(vendor.shipping_regions);
         if (vendor.shipping_methods) setShippingMethods(vendor.shipping_methods);
@@ -239,15 +240,8 @@ const MerchantOnboarding: React.FC = () => {
   const handleKYCSubmit = async () => {
     setIsLoading(true);
     try {
-      const { error: finError } = await supabase
-        .from("vendor_financial_details")
-        .upsert({
-          vendor_id: vendorData.id,
-          bank_account_holder: bankDetails.accountHolder,
-          bank_account_number: bankDetails.accountNumber,
-          bank_routing_code: bankDetails.routingCode,
-        }, { onConflict: "vendor_id" });
-      if (finError) throw finError;
+      // Bank details were already saved by the verified bank form.
+      if (!verifiedBank) throw new Error("Add your bank account first.");
       const { error } = await supabase
         .from("vendors")
         .update({ onboarding_status: "KYC_PENDING_REVIEW" })
@@ -256,9 +250,6 @@ const MerchantOnboarding: React.FC = () => {
       setVendorData((prev: any) => ({
         ...prev,
         onboarding_status: "KYC_PENDING_REVIEW",
-        bank_account_holder: bankDetails.accountHolder,
-        bank_account_number: bankDetails.accountNumber,
-        bank_routing_code: bankDetails.routingCode,
       }));
       toast({ title: "KYC Submitted", description: "Your documents are under review. You can continue setting up your store." });
       setStep(4);
@@ -401,7 +392,7 @@ const MerchantOnboarding: React.FC = () => {
     { label: "Email verified", completed: !!user },
     { label: "Business information completed", completed: ["PENDING_KYC", "KYC_PENDING_REVIEW", "KYC_APPROVED", "KYC_REJECTED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
     { label: "KYC documents submitted", completed: ["KYC_PENDING_REVIEW", "KYC_APPROVED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
-    { label: "Bank account on file", completed: !!vendorData?.bank_account_holder },
+    { label: "Bank account on file", completed: !!verifiedBank },
     { label: "Store configured", completed: ["PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
   ];
   const allComplete = checklist.every(c => c.completed);
@@ -461,9 +452,12 @@ const MerchantOnboarding: React.FC = () => {
         {step === 3 && (
           <StepKYC
             documents={kycDocuments}
-            bankDetails={bankDetails}
+            verifiedBank={verifiedBank}
+            onBankVerified={(bank) => {
+              setVerifiedBank({ bank_name: bank.bank_name, last4: bank.last4 });
+              setVendorData((prev: any) => ({ ...prev, bank_account_holder: bank.account_holder_name }));
+            }}
             onUpload={handleKYCUpload}
-            onBankDetailsChange={setBankDetails}
             onNext={handleKYCSubmit}
             onBack={() => setStep(2)}
             isLoading={isLoading}

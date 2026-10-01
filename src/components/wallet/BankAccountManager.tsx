@@ -1,28 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, CheckCircle, Building2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-const SA_BANKS = [
-  { name: 'ABSA', code: '632005' },
-  { name: 'Standard Bank', code: '051001' },
-  { name: 'FNB', code: '250655' },
-  { name: 'Nedbank', code: '198765' },
-  { name: 'Capitec', code: '470010' },
-  { name: 'Discovery Bank', code: '679000' },
-  { name: 'TymeBank', code: '678910' },
-  { name: 'African Bank', code: '430000' },
-  { name: 'Investec', code: '580105' },
-  { name: 'Bidvest Bank', code: '462005' },
-];
+import { VerifiedBankForm } from '@/components/banking/VerifiedBankForm';
 
 export interface LinkedBankAccount {
   id: string;
@@ -48,15 +33,6 @@ export function BankAccountManager({ open, onOpenChange, onAccountSelected, sele
   const [accounts, setAccounts] = useState<LinkedBankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const [form, setForm] = useState({
-    bank_name: '',
-    account_holder_name: '',
-    account_number: '',
-    account_type: 'savings',
-    branch_code: '',
-  });
 
   const fetchAccounts = useCallback(async () => {
     if (!user) return;
@@ -72,43 +48,6 @@ export function BankAccountManager({ open, onOpenChange, onAccountSelected, sele
   useEffect(() => {
     if (open && user) fetchAccounts();
   }, [open, user, fetchAccounts]);
-
-  const handleAdd = async () => {
-    if (!user || !form.bank_name || !form.account_holder_name || !form.account_number) {
-      toast({ variant: 'destructive', title: 'Please fill all required fields' });
-      return;
-    }
-
-    setSaving(true);
-    const masked = '****' + form.account_number.slice(-4);
-    const hash = btoa(form.account_number); // Simple hash for demo; production would use server-side hashing
-
-    const bank = SA_BANKS.find(b => b.name === form.bank_name);
-    const isFirst = accounts.length === 0;
-
-    const { error } = await supabase.from('user_linked_bank_accounts').insert({
-      user_id: user.id,
-      bank_name: form.bank_name,
-      account_holder_name: form.account_holder_name,
-      account_number_masked: masked,
-      account_number_hash: hash,
-      account_type: form.account_type,
-      branch_code: form.branch_code || bank?.code || null,
-      is_default: isFirst,
-      is_verified: true, // Auto-verify for demo
-      verified_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to add bank account' });
-    } else {
-      toast({ title: 'Bank account linked', description: `${form.bank_name} ${masked} added successfully` });
-      setForm({ bank_name: '', account_holder_name: '', account_number: '', account_type: 'savings', branch_code: '' });
-      setShowAddForm(false);
-      fetchAccounts();
-    }
-    setSaving(false);
-  };
 
   const handleDelete = async (id: string) => {
     await supabase.from('user_linked_bank_accounts').delete().eq('id', id);
@@ -207,47 +146,19 @@ export function BankAccountManager({ open, onOpenChange, onAccountSelected, sele
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Link New Bank Account</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Bank *</Label>
-                  <Select value={form.bank_name} onValueChange={v => setForm({ ...form, bank_name: v, branch_code: SA_BANKS.find(b => b.name === v)?.code || '' })}>
-                    <SelectTrigger><SelectValue placeholder="Select bank" /></SelectTrigger>
-                    <SelectContent>
-                      {SA_BANKS.map(b => (
-                        <SelectItem key={b.name} value={b.name}>{b.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Account Holder Name *</Label>
-                  <Input value={form.account_holder_name} onChange={e => setForm({ ...form, account_holder_name: e.target.value })} placeholder="John Doe" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Account Number *</Label>
-                  <Input value={form.account_number} onChange={e => setForm({ ...form, account_number: e.target.value })} placeholder="1234567890" type="password" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Account Type</Label>
-                    <Select value={form.account_type} onValueChange={v => setForm({ ...form, account_type: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="savings">Savings</SelectItem>
-                        <SelectItem value="checking">Cheque</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Branch Code</Label>
-                    <Input value={form.branch_code} onChange={e => setForm({ ...form, branch_code: e.target.value })} placeholder="Auto-filled" />
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <Button variant="outline" className="flex-1" onClick={() => setShowAddForm(false)}>Cancel</Button>
-                  <Button className="flex-1" onClick={handleAdd} disabled={saving}>{saving ? 'Linking...' : 'Link Account'}</Button>
-                </div>
+              <CardContent>
+                <VerifiedBankForm
+                  endpoint="fintech-link-bank"
+                  extraBody={{ destination: "transfers" }}
+                  returnPath="/wallet"
+                  submitLabel="Link Account"
+                  onCancel={() => setShowAddForm(false)}
+                  onSaved={(result) => {
+                    toast({ title: 'Bank account linked', description: `${result.bank_name} ****${result.last4} added successfully` });
+                    setShowAddForm(false);
+                    fetchAccounts();
+                  }}
+                />
               </CardContent>
             </Card>
           )}

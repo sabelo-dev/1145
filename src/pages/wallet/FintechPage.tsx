@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFintech } from "@/hooks/useFintech";
 import { fintech, type LinkedBankAccount } from "@/services/fintech";
 import { motion } from "framer-motion";
+import { VerifiedBankForm } from "@/components/banking/VerifiedBankForm";
 
 const fmtR = (n: number) => `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const brandLabel = (b?: string | null) => (b ? b.replace(/_/g, " ").toUpperCase() : "CARD");
@@ -382,73 +383,24 @@ const FintechPage: React.FC = () => {
 // ==================== Add Bank Dialog ====================
 const AddBankDialog: React.FC<{ open: boolean; onOpenChange: (v: boolean) => void; onAdded: () => void }> = ({ open, onOpenChange, onAdded }) => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ bank_name: "", account_holder_name: "", account_number: "", account_type: "checking", branch_code: "" });
-
-  const submit = async () => {
-    if (!form.bank_name || !form.account_holder_name || form.account_number.length < 6) {
-      toast({ variant: "destructive", title: "Please complete all required fields" }); return;
-    }
-    try {
-      setLoading(true);
-      await fintech.addBankAccount(form);
-      toast({ title: "Bank added", description: "Pending verification by 1145." });
-      onOpenChange(false); onAdded();
-      setForm({ bank_name: "", account_holder_name: "", account_number: "", account_type: "checking", branch_code: "" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Failed", description: (e as Error).message });
-    } finally { setLoading(false); }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Link bank account</DialogTitle>
-          <DialogDescription>Only the last 4 digits of your account number are stored. 1145 never stores your full account number or online banking password.</DialogDescription>
+          <DialogDescription>Verify a card first, then add the account. Only the last 4 digits of your account number are stored. 1145 never stores your full account number or online banking password.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label>Bank</Label>
-            <Select value={form.bank_name} onValueChange={(v) => setForm({ ...form, bank_name: v })}>
-              <SelectTrigger><SelectValue placeholder="Select your bank" /></SelectTrigger>
-              <SelectContent>
-                {["ABSA", "Standard Bank", "FNB", "Nedbank", "Capitec", "Discovery Bank", "TymeBank", "African Bank", "Investec"].map((b) => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Account holder name</Label>
-            <Input value={form.account_holder_name} onChange={(e) => setForm({ ...form, account_holder_name: e.target.value })} placeholder="As shown on your ID" />
-          </div>
-          <div className="space-y-2">
-            <Label>Account number</Label>
-            <Input inputMode="numeric" value={form.account_number} onChange={(e) => setForm({ ...form, account_number: e.target.value })} placeholder="Only last 4 will be stored" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Account type</Label>
-              <Select value={form.account_type} onValueChange={(v) => setForm({ ...form, account_type: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="checking">Cheque / Current</SelectItem>
-                  <SelectItem value="savings">Savings</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Branch code (optional)</Label>
-              <Input value={form.branch_code} onChange={(e) => setForm({ ...form, branch_code: e.target.value })} />
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={loading}>{loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Submit for verification</Button>
-        </DialogFooter>
+        <VerifiedBankForm
+          endpoint="fintech-link-bank"
+          returnPath="/fintech"
+          submitLabel="Add bank"
+          onCancel={() => onOpenChange(false)}
+          onSaved={(result) => {
+            toast({ title: "Bank added", description: `${result.bank_name} account ending ${result.last4} is linked.` });
+            onOpenChange(false); onAdded();
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

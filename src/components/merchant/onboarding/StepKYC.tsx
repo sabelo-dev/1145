@@ -3,17 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Upload, Shield, Loader2, AlertCircle } from "lucide-react";
+import { BadgeCheck, CheckCircle, Upload, Shield, Loader2, AlertCircle } from "lucide-react";
+import { VerifiedBankForm, type VerifiedBankResult } from "@/components/banking/VerifiedBankForm";
 
 interface StepKYCProps {
   documents: Record<string, string>;
-  bankDetails: {
-    accountHolder: string;
-    accountNumber: string;
-    routingCode: string;
-  };
+  /** The payout account already accepted for this merchant, if any. */
+  verifiedBank: { bank_name: string; last4: string } | null;
+  onBankVerified: (bank: VerifiedBankResult) => void;
   onUpload: (file: File, type: string) => Promise<void>;
-  onBankDetailsChange: (details: { accountHolder: string; accountNumber: string; routingCode: string }) => void;
   onNext: () => Promise<void>;
   onBack: () => void;
   isLoading: boolean;
@@ -21,9 +19,10 @@ interface StepKYCProps {
 }
 
 const StepKYC: React.FC<StepKYCProps> = ({
-  documents, bankDetails, onUpload, onBankDetailsChange, onNext, onBack, isLoading, kycStatus
+  documents, verifiedBank, onBankVerified, onUpload, onNext, onBack, isLoading, kycStatus
 }) => {
   const [uploading, setUploading] = useState<string | null>(null);
+  const [replacingBank, setReplacingBank] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (!e.target.files?.[0]) return;
@@ -36,8 +35,7 @@ const StepKYC: React.FC<StepKYCProps> = ({
   };
 
   const hasGovernmentId = !!documents["government-id"];
-  const hasBankDetails = bankDetails.accountHolder && bankDetails.accountNumber && bankDetails.routingCode;
-  const canProceed = hasGovernmentId && hasBankDetails;
+  const canProceed = hasGovernmentId && !!verifiedBank;
 
   const isRejected = kycStatus === 'KYC_REJECTED';
 
@@ -96,38 +94,31 @@ const StepKYC: React.FC<StepKYCProps> = ({
           </div>
         </div>
 
-        {/* Bank Account Details */}
+        {/* Bank Account Details: only accepted through card + bank verification */}
         <div className="space-y-4 p-4 border rounded-lg">
           <h4 className="font-medium">Bank Account Details *</h4>
-          <div className="space-y-3">
-            <div>
-              <Label>Account Holder Name</Label>
-              <Input
-                value={bankDetails.accountHolder}
-                onChange={(e) => onBankDetailsChange({ ...bankDetails, accountHolder: e.target.value })}
-                placeholder="Full name on bank account"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Account Number / IBAN</Label>
-              <Input
-                value={bankDetails.accountNumber}
-                onChange={(e) => onBankDetailsChange({ ...bankDetails, accountNumber: e.target.value })}
-                placeholder="Enter account number or IBAN"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Routing / SWIFT Code</Label>
-              <Input
-                value={bankDetails.routingCode}
-                onChange={(e) => onBankDetailsChange({ ...bankDetails, routingCode: e.target.value })}
-                placeholder="Enter routing or SWIFT code"
-                className="mt-1"
-              />
-            </div>
-          </div>
+          {verifiedBank && (
+            <p className="text-sm flex items-center gap-2">
+              <BadgeCheck className="h-4 w-4 text-green-600" />
+              {verifiedBank.bank_name} account ending {verifiedBank.last4} is saved for payouts.
+            </p>
+          )}
+          {verifiedBank && !replacingBank ? (
+            <Button type="button" variant="outline" size="sm" onClick={() => setReplacingBank(true)}>
+              Use a different account
+            </Button>
+          ) : (
+            <VerifiedBankForm
+              endpoint="vendor-payout-method"
+              returnPath="/merchant/onboarding"
+              submitLabel="Save bank account"
+              onCancel={verifiedBank ? () => setReplacingBank(false) : undefined}
+              onSaved={(result) => {
+                setReplacingBank(false);
+                onBankVerified(result);
+              }}
+            />
+          )}
         </div>
 
         <div className="flex justify-between pt-4">

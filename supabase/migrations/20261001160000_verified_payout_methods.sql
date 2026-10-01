@@ -1,9 +1,9 @@
 -- Payout bank details are only accepted once verified.
 --
 --  * A merchant's bank account is written by the vendor-payout-method edge
---    function, and only after (1) the merchant has a card verified through
---    PayFast (payment_instruments) and (2) the bank confirmed the account
---    number and holder through the account verification provider.
+--    function, and only for merchants with a card verified through PayFast
+--    (payment_instruments). PayFast cannot confirm a bank account number, so
+--    "verified" here means: entered by a PayFast-verified cardholder.
 --  * Merchants can no longer insert or edit vendor_payment_methods directly.
 --  * Rows saved before this migration stay unverified (verified_at IS NULL)
 --    until the merchant re-enters them; payouts need a verified row.
