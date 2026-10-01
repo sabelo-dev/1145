@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,9 +13,8 @@ import { UnifiedPortfolioCard } from "@/components/wallet/UnifiedPortfolioCard";
 import { QuickActions } from "@/components/wallet/QuickActions";
 import { UnifiedTransactionList } from "@/components/wallet/UnifiedTransactionList";
 import { SendMoneyPanel } from "@/components/wallet/SendMoneyPanel";
-import { GoldTradingPanel } from "@/components/wallet/GoldTradingPanel";
 import { GoldPriceTicker } from "@/components/wallet/GoldPriceTicker";
-import { BankTransferDialog } from "@/components/wallet/BankTransferDialog";
+import { useFintech } from "@/hooks/useFintech";
 import { motion } from "framer-motion";
 
 const WalletPage: React.FC = () => {
@@ -24,36 +23,45 @@ const WalletPage: React.FC = () => {
   const { toast } = useToast();
   const { displayCurrency } = useGoldPricingContext();
 
-  const [wallet, setWallet] = useState<any>(null);
-  const [walletTxs, setWalletTxs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'overview' | 'send' | 'trade'>('overview');
-  const [depositOpen, setDepositOpen] = useState(false);
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  // Rand: the real wallet (public.wallets + wallet_ledger), written only by
+  // the server after a PayFast deposit or an approved withdrawal.
+  const { data: fintechData, loading: fintechLoading } = useFintech();
+  const [goldBalanceMg, setGoldBalanceMg] = useState(0);
+  const [activeView, setActiveView] = useState<'overview' | 'send'>('overview');
 
   // UCoin data
   const { wallet: ucoinWallet, transactions: ucoinTxs, isLoading: ucoinLoading } = useUCoin();
   const { transfer: ucoinTransfer, isTransferring: ucoinTransferring } = useUCoinTransfer();
 
-  const fetchWalletData = useCallback(async () => {
+  // Gold holding is display-only; trading is switched off.
+  const fetchGold = useCallback(async () => {
     if (!user) return;
-    await supabase.rpc("get_or_create_wallet", { p_user_id: user.id });
-    const [walletRes, txRes] = await Promise.all([
-      supabase.from("platform_wallets").select("*").eq("user_id", user.id).single(),
-      supabase.from("wallet_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
-    ]);
-    setWallet(walletRes.data);
-    setWalletTxs(txRes.data || []);
-    setLoading(false);
+    const { data } = await supabase.from("platform_wallets").select("gold_balance_mg").eq("user_id", user.id).maybeSingle();
+    setGoldBalanceMg(Number(data?.gold_balance_mg ?? 0));
   }, [user]);
 
   useEffect(() => {
-    if (user) fetchWalletData();
-  }, [user, fetchWalletData]);
+    if (user) fetchGold();
+  }, [user, fetchGold]);
 
   // Merge transactions from both sources
   const mergedTransactions = [
-    ...walletTxs.map(tx => ({ ...tx, source: 'wallet' as const })),
+    ...(fintechData?.ledger ?? [])
+      .filter((row) => row.bucket === 'available')
+      .map((row) => {
+        const signed = row.direction === 'credit' ? Number(row.amount) : -Number(row.amount);
+        return {
+          id: row.id,
+          type: row.type,
+          amount: signed,
+          net_amount: signed,
+          description: row.type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()),
+          asset_type: 'ZAR',
+          status: row.status,
+          created_at: row.created_at,
+          source: 'wallet' as const,
+        };
+      }),
     ...ucoinTxs.map(tx => ({
       id: tx.id,
       type: tx.type,
@@ -68,42 +76,15 @@ const WalletPage: React.FC = () => {
     })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const handleSendZar = async (to: string, amount: number, note?: string) => {
-    if (!user || !wallet) throw new Error('Not ready');
-    if (amount > wallet.balance_zar) throw new Error('Insufficient balance');
-
-    const { error } = await supabase.from("wallet_transactions").insert({
-      wallet_id: wallet.id,
-      user_id: user.id,
-      type: "transfer_out",
-      amount: -amount,
-      net_amount: -amount,
-      status: "completed",
-      description: note || `Transfer to ${to}`,
-      counterparty_id: to,
-      completed_at: new Date().toISOString(),
-    });
-    if (error) throw error;
-
-    await supabase.from("platform_wallets").update({
-      balance_zar: wallet.balance_zar - amount,
-      lifetime_spent: wallet.lifetime_spent + amount,
-    }).eq("id", wallet.id);
-
-    toast({ title: "Sent!", description: `R${amount.toFixed(2)} transferred successfully` });
-    fetchWalletData();
-  };
-
   const handleSendUcoin = async (to: string, amount: number, note?: string) => {
     return ucoinTransfer(to, amount, note);
   };
 
-  const zarBalance = wallet?.balance_zar || 0;
-  const goldBalanceMg = wallet?.gold_balance_mg || 0;
+  const zarBalance = Number(fintechData?.summary?.wallet?.available_balance ?? 0);
   const ucoinBalance = ucoinWallet?.balance || 0;
-  const pendingZar = wallet?.pending_balance_zar || 0;
+  const pendingZar = Number(fintechData?.summary?.wallet?.pending_balance ?? 0);
   const lifetimeEarned = ucoinWallet?.lifetime_earned || 0;
-  const isLoading = loading || ucoinLoading;
+  const isLoading = (fintechLoading && !fintechData) || ucoinLoading;
 
   if (isLoading) {
     return (
@@ -147,22 +128,17 @@ const WalletPage: React.FC = () => {
 
         {/* Quick Actions */}
         <QuickActions
-          onDeposit={() => setDepositOpen(true)}
+          onDeposit={() => navigate("/fintech")}
           onTransfer={() => setActiveView('send')}
-          onWithdraw={() => setWithdrawOpen(true)}
-          onTradeGold={() => setActiveView('trade')}
+          onWithdraw={() => navigate("/fintech")}
           onViewHistory={() => setActiveView('overview')}
         />
 
         {/* Content Sections */}
         <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)}>
-          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3 h-10">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-2 h-10">
             <TabsTrigger value="overview" className="text-xs font-medium">Activity</TabsTrigger>
             <TabsTrigger value="send" className="text-xs font-medium">Send</TabsTrigger>
-            <TabsTrigger value="trade" className="text-xs font-medium gap-1.5">
-              <ArrowRightLeft className="h-3.5 w-3.5" />
-              Trade Gold
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4">
@@ -178,34 +154,11 @@ const WalletPage: React.FC = () => {
               ucoinBalance={ucoinBalance}
               walletAddress={user?.id || ''}
               isTransferring={ucoinTransferring}
-              onSendZar={handleSendZar}
               onSendUcoin={handleSendUcoin}
             />
           </TabsContent>
 
-          <TabsContent value="trade" className="mt-4">
-            <GoldTradingPanel
-              zarBalance={zarBalance}
-              goldBalanceMg={goldBalanceMg}
-              onTradeComplete={fetchWalletData}
-            />
-          </TabsContent>
         </Tabs>
-        {/* Bank Transfer Dialogs */}
-        <BankTransferDialog
-          open={depositOpen}
-          onOpenChange={setDepositOpen}
-          type="deposit"
-          zarBalance={zarBalance}
-          onComplete={fetchWalletData}
-        />
-        <BankTransferDialog
-          open={withdrawOpen}
-          onOpenChange={setWithdrawOpen}
-          type="withdrawal"
-          zarBalance={zarBalance}
-          onComplete={fetchWalletData}
-        />
       </div>
     </div>
   );

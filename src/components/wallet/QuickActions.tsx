@@ -6,16 +6,14 @@ interface QuickActionsProps {
   onDeposit: () => void;
   onTransfer: () => void;
   onWithdraw: () => void;
-  onTradeGold: () => void;
   onViewHistory: () => void;
 }
 
-export function QuickActions({ onDeposit, onTransfer, onWithdraw, onTradeGold, onViewHistory }: QuickActionsProps) {
+export function QuickActions({ onDeposit, onTransfer, onWithdraw, onViewHistory }: QuickActionsProps) {
   const actions = [
     { icon: Plus, label: 'Deposit', onClick: onDeposit, variant: 'default' as const },
     { icon: Send, label: 'Send', onClick: onTransfer, variant: 'outline' as const },
     { icon: CreditCard, label: 'Withdraw', onClick: onWithdraw, variant: 'outline' as const },
-    { icon: ArrowRightLeft, label: 'Trade Gold', onClick: onTradeGold, variant: 'outline' as const },
     { icon: History, label: 'History', onClick: onViewHistory, variant: 'outline' as const },
   ];
 

@@ -14,7 +14,8 @@ interface SendMoneyPanelProps {
   ucoinBalance: number;
   walletAddress: string;
   isTransferring: boolean;
-  onSendZar: (to: string, amount: number, note?: string) => Promise<void>;
+  /** Omit to offer UCoin only (Rand sending is not available). */
+  onSendZar?: (to: string, amount: number, note?: string) => Promise<void>;
   onSendUcoin: (to: string, amount: number, note?: string) => Promise<any>;
 }
 
@@ -44,7 +45,7 @@ export function SendMoneyPanel({
     if (amountNum <= 0) return setError('Enter a valid amount');
     if (amountNum > zarBalance) return setError('Insufficient ZAR balance');
     try {
-      await onSendZar(recipient, amountNum, note || undefined);
+      await onSendZar?.(recipient, amountNum, note || undefined);
       setRecipient(''); setAmount(''); setNote('');
     } catch (e: any) {
       setError(e.message || 'Transfer failed');
@@ -80,7 +81,7 @@ export function SendMoneyPanel({
             <Send className="h-4 w-4" />
             Send Money
           </CardTitle>
-          <CardDescription>Transfer ZAR or UCoin to anyone on the platform</CardDescription>
+          <CardDescription>{onSendZar ? "Transfer ZAR or UCoin to anyone on the platform" : "Transfer UCoin to anyone on the platform"}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Your Wallet Address */}
@@ -101,11 +102,13 @@ export function SendMoneyPanel({
             </Button>
           </div>
 
-          <Tabs defaultValue="zar">
-            <TabsList className="w-full grid grid-cols-2 h-9">
-              <TabsTrigger value="zar" className="text-xs gap-1.5">
-                <Wallet className="h-3.5 w-3.5" /> Cash (ZAR)
-              </TabsTrigger>
+          <Tabs defaultValue={onSendZar ? "zar" : "ucoin"}>
+            <TabsList className={`w-full grid h-9 ${onSendZar ? "grid-cols-2" : "grid-cols-1"}`}>
+              {onSendZar && (
+                <TabsTrigger value="zar" className="text-xs gap-1.5">
+                  <Wallet className="h-3.5 w-3.5" /> Cash (ZAR)
+                </TabsTrigger>
+              )}
               <TabsTrigger value="ucoin" className="text-xs gap-1.5">
                 <Coins className="h-3.5 w-3.5" /> UCoin
               </TabsTrigger>

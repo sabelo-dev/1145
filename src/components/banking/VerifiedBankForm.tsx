@@ -36,6 +36,8 @@ interface VerifiedBankFormProps {
   onSaved: (result: VerifiedBankResult) => void;
   onCancel?: () => void;
   submitLabel?: string;
+  /** Called just before leaving for PayFast, e.g. to keep an unsaved form. */
+  onBeforeCardVerify?: () => void;
 }
 
 /**
@@ -44,7 +46,7 @@ interface VerifiedBankFormProps {
  * which the server accepts only from a user with a verified card.
  */
 export const VerifiedBankForm: React.FC<VerifiedBankFormProps> = ({
-  endpoint, extraBody, returnPath, onSaved, onCancel, submitLabel = "Save bank account",
+  endpoint, extraBody, returnPath, onSaved, onCancel, submitLabel = "Save bank account", onBeforeCardVerify,
 }) => {
   const [card, setCard] = useState<VerifiedCard | null>(null);
   const [checking, setChecking] = useState(true);
@@ -79,6 +81,7 @@ export const VerifiedBankForm: React.FC<VerifiedBankFormProps> = ({
     setProblem(null);
     try {
       setLoading(true);
+      onBeforeCardVerify?.();
       await fintech.startLinkCard(returnPath);
     } catch (error) {
       setProblem(error instanceof Error ? error.message : "Could not start card verification.");

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowDownToLine, ArrowUpRight, Coins, Landmark, Loader2, Wallet } from "lucide-react";
 import { UCOIN_RAND_VALUE } from "@/types/ucoin";
+import { BankAccountManager } from "@/components/wallet/BankAccountManager";
 
 interface BankAccount {
   id: string;
@@ -54,6 +55,8 @@ const UCoinWalletPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
   const [amount, setAmount] = useState("");
   const [accountId, setAccountId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Back from PayFast card verification (?linked=1): reopen the bank dialog.
+  const [bankOpen, setBankOpen] = useState(() => new URLSearchParams(window.location.search).has("linked"));
 
   const balance = wallet?.balance ?? 0;
   const earned = wallet?.lifetime_earned ?? 0;
@@ -191,8 +194,8 @@ const UCoinWalletPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
               <CardContent className="space-y-4">
                 {accounts.length === 0 ? (
                   <div className="text-sm text-muted-foreground space-y-3">
-                    <p>You have no bank account linked yet. Link one in your wallet settings to withdraw.</p>
-                    <Button asChild variant="outline" size="sm"><Link to="/wallet">Link a bank account</Link></Button>
+                    <p>You have no bank account linked yet. Link one to withdraw.</p>
+                    <Button variant="outline" size="sm" onClick={() => setBankOpen(true)}>Link a bank account</Button>
                   </div>
                 ) : (
                   <>
@@ -208,6 +211,9 @@ const UCoinWalletPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
                           ))}
                         </SelectContent>
                       </Select>
+                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setBankOpen(true)}>
+                        Manage bank accounts
+                      </Button>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="withdraw-amount">Amount in UCoin</Label>
@@ -284,6 +290,11 @@ const UCoinWalletPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <BankAccountManager
+        open={bankOpen}
+        onOpenChange={(v) => { setBankOpen(v); if (!v) loadSide(); }}
+      />
     </div>
   );
 });

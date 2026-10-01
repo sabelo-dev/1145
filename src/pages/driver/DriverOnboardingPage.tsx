@@ -18,13 +18,12 @@ import Stepper from "@/components/onboarding/Stepper";
 import DocumentUpload from "@/components/onboarding/DocumentUpload";
 import SelfieCapture from "@/components/onboarding/SelfieCapture";
 import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
+import { VerifiedBankForm } from "@/components/banking/VerifiedBankForm";
 
 const STEPS = ["Personal", "ID document", "Driver's licence", "Vehicle", "Selfie", "Banking & agreements"];
 
-const SA_BANKS = [
-  "ABSA", "Capitec", "First National Bank", "Nedbank", "Standard Bank",
-  "African Bank", "TymeBank", "Discovery Bank", "Bank Zero", "Investec",
-];
+// The unsaved form is kept here while the driver verifies a card on PayFast.
+const draftKey = (userId: string) => `driver-onboarding-draft:${userId}`;
 
 const kycSchema = z.object({
   fullLegalName: z.string().trim().min(3).max(120),
@@ -100,6 +99,7 @@ const DriverOnboardingPage: React.FC = () => {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(initial);
   const [submitting, setSubmitting] = useState(false);
+  const [replacingBank, setReplacingBank] = useState(false);
   const [fingerprint, setFingerprint] = useState<string>("");
 
   useEffect(() => {
@@ -133,6 +133,16 @@ const DriverOnboardingPage: React.FC = () => {
           taxNumber: data.tax_number || "",
         }));
       }
+      // Back from PayFast card verification: restore what was typed.
+      try {
+        const saved = sessionStorage.getItem(draftKey(user.id));
+        if (saved) {
+          sessionStorage.removeItem(draftKey(user.id));
+          const draft = JSON.parse(saved) as { form: FormState; step: number };
+          setForm((f) => ({ ...f, ...draft.form }));
+          setStep(draft.step);
+        }
+      } catch { /* storage unavailable or unreadable draft */ }
     })();
   }, [user]);
 
@@ -174,7 +184,7 @@ const DriverOnboardingPage: React.FC = () => {
         if (!form.selfie?.path || !form.selfie?.hash) return "Please capture a selfie.";
         return null;
       case 5:
-        if (!form.bankName || !form.bankAccountLast4) return "Provide banking details.";
+        if (!form.bankName || !form.bankAccountLast4) return "Add your payout account.";
         if (!form.codeOfConduct || !form.backgroundCheck || !form.ficDeclaration)
           return "You must accept all agreements to submit.";
         return null;
@@ -288,6 +298,7 @@ const DriverOnboardingPage: React.FC = () => {
       await supabase.from("user_roles").upsert({ user_id: user.id, role: "driver" }, { onConflict: "user_id,role" });
 
       await refreshUserProfile();
+      try { sessionStorage.removeItem(draftKey(user.id)); } catch { /* storage unavailable */ }
       toast({
         title: "Application submitted",
         description: "Your driver KYC is under review. We'll notify you within 24–48 hours.",
@@ -455,20 +466,36 @@ const DriverOnboardingPage: React.FC = () => {
 
             {step === 5 && (
               <div className="space-y-4">
+                <div className="rounded-lg border p-4 space-y-3">
+                  <p className="font-medium text-sm">Payout account *</p>
+                  {form.bankName && form.bankAccountLast4 && (
+                    <p className="text-sm flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      {form.bankName} account ending {form.bankAccountLast4}
+                    </p>
+                  )}
+                  {form.bankName && form.bankAccountLast4 && !replacingBank ? (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setReplacingBank(true)}>
+                      Use a different account
+                    </Button>
+                  ) : (
+                    <VerifiedBankForm
+                      endpoint="fintech-link-bank"
+                      returnPath="/driver/onboarding"
+                      submitLabel="Save payout account"
+                      onBeforeCardVerify={() => {
+                        try { sessionStorage.setItem(draftKey(user.id), JSON.stringify({ form, step })); } catch { /* storage unavailable */ }
+                      }}
+                      onCancel={form.bankName ? () => setReplacingBank(false) : undefined}
+                      onSaved={(result) => {
+                        setForm((f) => ({ ...f, bankName: result.bank_name, bankAccountLast4: result.last4 }));
+                        setReplacingBank(false);
+                      }}
+                    />
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Bank *</Label>
-                    <Select value={form.bankName} onValueChange={(v) => set("bankName", v)}>
-                      <SelectTrigger><SelectValue placeholder="Choose bank" /></SelectTrigger>
-                      <SelectContent>
-                        {SA_BANKS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Account — last 4 digits *</Label>
-                    <Input maxLength={4} value={form.bankAccountLast4} onChange={(e) => set("bankAccountLast4", e.target.value.replace(/\D/g, ""))} />
-                  </div>
                   <div className="md:col-span-2">
                     <Label>Tax number (optional)</Label>
                     <Input value={form.taxNumber} onChange={(e) => set("taxNumber", e.target.value)} />

@@ -150,7 +150,7 @@ export function BankAccountManager({ open, onOpenChange, onAccountSelected, sele
                 <VerifiedBankForm
                   endpoint="fintech-link-bank"
                   extraBody={{ destination: "transfers" }}
-                  returnPath="/wallet"
+                  returnPath="/ucoin-wallet"
                   submitLabel="Link Account"
                   onCancel={() => setShowAddForm(false)}
                   onSaved={(result) => {
