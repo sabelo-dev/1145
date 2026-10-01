@@ -54,6 +54,7 @@ import {
   Banknote,
 } from 'lucide-react';
 import { UCoinEarningRule, UCoinSpendingOption } from '@/types/ucoin';
+import { RewardRulesManager } from '@/components/admin/rewards/RewardRulesManager';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   order_completed: <ShoppingBag className="h-4 w-4" />,
@@ -276,7 +277,7 @@ export default function AdminUCoin() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="earning" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            Earning Rules
+            Reward rules
           </TabsTrigger>
           <TabsTrigger value="spending" className="flex items-center gap-2">
             <Gift className="h-4 w-4" />
@@ -285,71 +286,9 @@ export default function AdminUCoin() {
         </TabsList>
 
         <TabsContent value="earning" className="mt-4">
-          <Card>
-            <CardHeader>
-              <div className="header-row">
-                <div>
-                  <CardTitle>Earning Rules</CardTitle>
-                  <CardDescription>Configure how users earn UCoin</CardDescription>
-                </div>
-                <Button onClick={() => setIsAddingRule(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Rule
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Base Amount</TableHead>
-                    <TableHead className="text-right">Multiplier</TableHead>
-                    <TableHead className="text-right">Effective</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {earningRules.map((rule) => (
-                    <TableRow key={rule.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold">
-                            {categoryIcons[rule.category] || <Coins className="h-4 w-4" />}
-                          </div>
-                          <span className="font-medium text-sm">{rule.category.replace(/_/g, ' ')}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
-                        {rule.description}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">{rule.amount}</TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant={rule.multiplier > 1 ? 'default' : 'secondary'}>
-                          {rule.multiplier}x
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-gold">
-                        {rule.amount * rule.multiplier}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={rule.is_active ? 'default' : 'secondary'}>
-                          {rule.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => setEditingRule(rule)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          {/* The live reward catalogue. The old ucoin_earning_rules table was
+              only read by a browser-side "earn" that has been removed. */}
+          <RewardRulesManager />
         </TabsContent>
 
         <TabsContent value="spending" className="mt-4">
@@ -358,7 +297,10 @@ export default function AdminUCoin() {
               <div className="header-row">
                 <div>
                   <CardTitle>Spending Options</CardTitle>
-                  <CardDescription>Configure rewards users can redeem</CardDescription>
+                  <CardDescription>
+                    UC is spent at checkout at a fixed 10 UC = R1 (redeem_ucoin_for_order). These options are shown
+                    to users for information; redeeming them does not deduct UC.
+                  </CardDescription>
                 </div>
                 <Button onClick={() => setIsAddingOption(true)}>
                   <Plus className="h-4 w-4 mr-2" />

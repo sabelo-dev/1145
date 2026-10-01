@@ -85,103 +85,19 @@ export function useUCoin() {
     }
   }, [user, fetchWallet, fetchTransactions, fetchRulesAndOptions]);
 
-  const earnUCoin = async (category: string, referenceId?: string, referenceType?: string) => {
-    if (!user || !wallet) return false;
+  // Rewards are paid by the database when the event happens (uc_award and
+  // the reward triggers); the browser can no longer change wallet balances.
+  // Kept so existing callers keep compiling.
+  const earnUCoin = async (_category: string, _referenceId?: string, _referenceType?: string) => false;
 
-    const rule = earningRules.find(r => r.category === category);
-    if (!rule) return false;
-
-    const amount = rule.amount * rule.multiplier;
-
-    const { error: txError } = await supabase
-      .from('ucoin_transactions')
-      .insert({
-        user_id: user.id,
-        amount,
-        type: 'earn',
-        category,
-        description: rule.description,
-        reference_id: referenceId || null,
-        reference_type: referenceType || null
-      });
-
-    if (txError) {
-      console.error('Error creating transaction:', txError);
-      return false;
-    }
-
-    const { error: walletError } = await supabase
-      .from('ucoin_wallets')
-      .update({
-        balance: wallet.balance + amount,
-        lifetime_earned: wallet.lifetime_earned + amount
-      })
-      .eq('user_id', user.id);
-
-    if (walletError) {
-      console.error('Error updating wallet:', walletError);
-      return false;
-    }
-
+  // UC is spent at checkout (10 UC = R1, redeem_ucoin_for_order). The old
+  // shop deducted UC here without giving anything back.
+  const spendUCoin = async (_category: string) => {
     toast({
-      title: `+${amount} UCoin Earned!`,
-      description: rule.description || `You earned UCoin for ${category.replace(/_/g, ' ')}`
+      title: 'Use your UC at checkout',
+      description: 'Add items to your cart and choose to pay with UCoin at checkout: 10 UC = R1 off.',
     });
-
-    await Promise.all([fetchWallet(), fetchTransactions()]);
-    return true;
-  };
-
-  const spendUCoin = async (category: string) => {
-    if (!user || !wallet) return false;
-
-    const option = spendingOptions.find(o => o.category === category);
-    if (!option) return false;
-
-    if (wallet.balance < option.cost) {
-      toast({
-        title: 'Insufficient UCoin',
-        description: `You need ${option.cost} UCoin but only have ${wallet.balance}`,
-        variant: 'destructive'
-      });
-      return false;
-    }
-
-    const { error: txError } = await supabase
-      .from('ucoin_transactions')
-      .insert({
-        user_id: user.id,
-        amount: option.cost,
-        type: 'spend',
-        category,
-        description: option.description
-      });
-
-    if (txError) {
-      console.error('Error creating transaction:', txError);
-      return false;
-    }
-
-    const { error: walletError } = await supabase
-      .from('ucoin_wallets')
-      .update({
-        balance: wallet.balance - option.cost,
-        lifetime_spent: wallet.lifetime_spent + option.cost
-      })
-      .eq('user_id', user.id);
-
-    if (walletError) {
-      console.error('Error updating wallet:', walletError);
-      return false;
-    }
-
-    toast({
-      title: 'UCoin Redeemed!',
-      description: option.description || `You redeemed ${option.cost} UCoin`
-    });
-
-    await Promise.all([fetchWallet(), fetchTransactions()]);
-    return true;
+    return false;
   };
 
   return {
