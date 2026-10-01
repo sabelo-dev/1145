@@ -34,7 +34,7 @@ serve(async (req) => {
     // Verify vendor is actually ACTIVE and belongs to caller
     const { data: vendor } = await admin
       .from("vendors")
-      .select("id, business_name, business_phone, onboarding_status, user_id")
+      .select("id, business_name, onboarding_status, user_id, vendor_financial_details(business_phone)")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -93,10 +93,12 @@ serve(async (req) => {
       }
     }
 
+    const businessPhone = [vendor.vendor_financial_details].flat()[0]?.business_phone;
+
     // Optional SMS via GatewayAPI (direct REST API) if configured
     const GATEWAYAPI_TOKEN = Deno.env.get("GATEWAYAPI_TOKEN");
-    if (GATEWAYAPI_TOKEN && vendor.business_phone) {
-      const digits = String(vendor.business_phone).replace(/\D/g, "");
+    if (GATEWAYAPI_TOKEN && businessPhone) {
+      const digits = String(businessPhone).replace(/\D/g, "");
       if (digits.length >= 10) {
         try {
           const smsRes = await fetch("https://gatewayapi.com/rest/mtsms", {
@@ -128,7 +130,7 @@ serve(async (req) => {
       success: true,
       vendorStatus: "ACTIVE",
       email: { status: emailStatus, to: email, error: emailError },
-      sms: { status: smsStatus, to: vendor.business_phone ?? null, error: smsError },
+      sms: { status: smsStatus, to: businessPhone ?? null, error: smsError },
     }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

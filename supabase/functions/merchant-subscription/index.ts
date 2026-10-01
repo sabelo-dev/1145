@@ -51,7 +51,7 @@ serve(async (req) => {
     // Resolve the caller's vendor record
     const { data: vendor, error: vendorError } = await admin
       .from("vendors")
-      .select("id, user_id, business_name, email, subscription_tier, subscription_status, subscription_expires_at")
+      .select("id, user_id, business_name, subscription_tier, subscription_status, subscription_expires_at")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -200,7 +200,7 @@ serve(async (req) => {
       cancel_url: payfastReturnUrl(origin, "/merchant/dashboard?subscription=cancelled"),
       notify_url: payfast.notifyUrl,
       name_first: (vendor.business_name || "Merchant").slice(0, 100),
-      email_address: vendor.email || user.email || "",
+      email_address: user.email || "",
       m_payment_id: reference,
       amount: amount.toFixed(2),
       item_name: `1145 ${targetTier.toUpperCase()} plan (${billing})`,

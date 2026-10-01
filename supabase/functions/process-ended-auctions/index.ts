@@ -39,7 +39,7 @@ serve(async (req) => {
         .from("auctions")
         .select(`
           *,
-          product:products(id, name, store_id, stores(vendor_id, vendors(user_id, business_email)))
+          product:products(id, name, store_id, stores(vendor_id, vendors(user_id, vendor_financial_details(business_email))))
         `)
         .eq("id", auctionId)
         .in("status", ["approved", "active"])
@@ -54,7 +54,7 @@ serve(async (req) => {
         .from("auctions")
         .select(`
           *,
-          product:products(id, name, store_id, stores(vendor_id, vendors(user_id, business_email)))
+          product:products(id, name, store_id, stores(vendor_id, vendors(user_id, vendor_financial_details(business_email))))
         `)
         .in("status", ["approved", "active"])
         .lt("end_date", new Date().toISOString());
@@ -195,7 +195,13 @@ serve(async (req) => {
           }
 
           // Get vendor email and notify them
-          const vendorEmail = auction.product?.stores?.vendors?.business_email;
+          const vendorRow = auction.product?.stores?.vendors;
+          const vendorDetails = [vendorRow?.vendor_financial_details].flat()[0];
+          let vendorEmail = vendorDetails?.business_email;
+          if (!vendorEmail && vendorRow?.user_id) {
+            const { data: owner } = await supabaseAdmin.auth.admin.getUserById(vendorRow.user_id);
+            vendorEmail = owner?.user?.email;
+          }
           if (vendorEmail) {
             try {
               await resend.emails.send({

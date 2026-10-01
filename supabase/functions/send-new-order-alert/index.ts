@@ -274,11 +274,22 @@ const handler = async (req: Request): Promise<Response> => {
     const vendorIds = stores?.map(s => s.vendor_id) || [];
     const { data: vendors } = await supabase
       .from('vendors')
-      .select('id, business_email, business_name')
+      .select('id, user_id, business_name, vendor_financial_details(business_email)')
       .in('id', vendorIds);
 
+    // Business email if the merchant gave one, otherwise their account email.
+    const vendorEmails = new Map<string, string>();
+    for (const v of vendors || []) {
+      let email = [v.vendor_financial_details].flat()[0]?.business_email;
+      if (!email && v.user_id) {
+        const { data: owner } = await supabase.auth.admin.getUserById(v.user_id);
+        email = owner?.user?.email;
+      }
+      if (email) vendorEmails.set(v.id, email);
+    }
+
     const storeVendorMap = new Map(stores?.map(s => [s.id, s.vendor_id]) || []);
-    const vendorEmailMap = new Map(vendors?.map(v => [v.id, { email: v.business_email, name: v.business_name }]) || []);
+    const vendorEmailMap = new Map(vendors?.map(v => [v.id, { email: vendorEmails.get(v.id), name: v.business_name }]) || []);
 
     // Send emails to each vendor
     const vendorEmailPromises = [];
