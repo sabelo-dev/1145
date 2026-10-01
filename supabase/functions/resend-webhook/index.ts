@@ -8,13 +8,13 @@
 // Requests are verified with the webhook's signing secret (Svix scheme) when
 // RESEND_WEBHOOK_SECRET is set — set it, or anyone could post fake emails.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { storeReceivedEmail } from "../_shared/resendInbound.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature",
 };
 
-const ACCEPTED_DOMAINS = ["1145.io"];
 const SIGNATURE_TOLERANCE_SECONDS = 5 * 60;
 
 interface ResendEvent {
@@ -72,23 +72,6 @@ async function verifySignature(secret: string, headers: Headers, body: string): 
   return match ? null : "signature mismatch";
 }
 
-/** Full message (body, headers, attachment list) for a received email. */
-async function fetchReceivedEmail(emailId: string): Promise<Record<string, any> | null> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    console.error("RESEND_API_KEY is not set; storing the email without its body.");
-    return null;
-  }
-  const res = await fetch(`https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
-  if (!res.ok) {
-    console.error(`Resend receiving API returned ${res.status}:`, await res.text().catch(() => ""));
-    return null;
-  }
-  return await res.json();
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return respond({ error: "Method not allowed" }, 405);
@@ -119,51 +102,14 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const meta = event.data ?? {};
-  const emailId = meta.email_id ?? null;
-
-  // Resend retries deliveries; store each email once.
-  if (emailId) {
-    const { data: existing } = await supabase
-      .from("inbound_emails")
-      .select("id")
-      .eq("raw_payload->>email_id", emailId)
-      .limit(1)
-      .maybeSingle();
-    if (existing) return respond({ success: true, duplicate: true });
-  }
-
-  const full = emailId ? await fetchReceivedEmail(emailId) : null;
-
-  const recipients: string[] = (full?.to ?? meta.to ?? meta.recipients ?? []) as string[];
-  if (!recipients.some((r) => ACCEPTED_DOMAINS.some((d) => r.toLowerCase().endsWith(`@${d}`)))) {
-    console.log(`Ignoring email not addressed to ${ACCEPTED_DOMAINS.join(", ")}: ${recipients.join(", ")}`);
-    return respond({ success: true, ignored: "wrong domain" });
-  }
-
-  const attachments = (full?.attachments ?? meta.attachments ?? []) as unknown[];
-  const { data: inserted, error } = await supabase
-    .from("inbound_emails")
-    .insert({
-      from_address: full?.from ?? meta.from ?? meta.sender ?? "unknown",
-      to_addresses: recipients,
-      subject: full?.subject ?? meta.subject ?? "(No Subject)",
-      body_text: full?.text ?? meta.text ?? null,
-      body_html: full?.html ?? meta.html ?? null,
-      has_attachments: attachments.length > 0,
-      attachment_count: attachments.length,
-      raw_payload: { ...meta, email_id: emailId, headers: full?.headers ?? null },
-      received_at: full?.created_at ?? event.created_at,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    console.error("Error storing inbound email:", error);
+  try {
+    // Resend retries deliveries; storeReceivedEmail keeps one copy per email.
+    const result = await storeReceivedEmail(supabase, event.data ?? {}, event.created_at);
+    console.log(`Inbound email ${event.data?.email_id}: ${result}`);
+    return respond({ success: true, result });
+  } catch (e) {
+    console.error("Error storing inbound email:", e);
     // 500 so Resend retries later.
     return respond({ error: "Could not store email" }, 500);
   }
-
-  console.log(`Stored inbound email ${inserted?.id} (${emailId})`);
-  return respond({ success: true, id: inserted?.id });
 });

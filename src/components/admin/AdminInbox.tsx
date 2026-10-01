@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +48,24 @@ const AdminInbox = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEmail, setSelectedEmail] = useState<InboundEmail | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  // Pull in anything Resend received that the webhook did not deliver
+  // (e.g. mail from before the webhook existed), then reload the list.
+  const syncFromResend = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("resend-inbox-sync", { body: {} });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Sync failed");
+      if (data.stored > 0) toast.success(`${data.stored} new email${data.stored === 1 ? "" : "s"} imported`);
+      if (data.failed > 0) toast.error(`${data.failed} email${data.failed === 1 ? "" : "s"} could not be imported`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not sync with Resend");
+    } finally {
+      setSyncing(false);
+      refetch();
+    }
+  };
 
   const { data: emails, isLoading, refetch } = useQuery({
     queryKey: ["inbound-emails", showArchived],
@@ -62,6 +80,12 @@ const AdminInbox = () => {
       return data as InboundEmail[];
     },
   });
+
+  // Import missed mail once when the inbox is opened.
+  useEffect(() => {
+    syncFromResend();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const markAsReadMutation = useMutation({
     mutationFn: async (emailId: string) => {
@@ -122,10 +146,11 @@ const AdminInbox = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => refetch()}
+            onClick={syncFromResend}
+            disabled={syncing}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Syncing…" : "Refresh"}
           </Button>
         </div>
       </div>
