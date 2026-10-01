@@ -2,7 +2,7 @@
 // Returns a PayFast redirect. The ITN callback (payfast-itn) creates the payment_instruments row from the returned token.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getPayFastConfig, signPayFast } from "../_shared/payfast.ts";
+import { getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,8 +22,8 @@ serve(async (req) => {
     const user = u.user;
 
     const body = await req.json().catch(() => ({}));
-    const returnUrl = body.returnUrl || `${req.headers.get("origin") || "https://1145.io"}/wallet?linked=1`;
-    const cancelUrl = body.cancelUrl || `${req.headers.get("origin") || "https://1145.io"}/wallet?linked=0`;
+    const returnUrl = body.returnUrl || payfastReturnUrl(req.headers.get("origin"), "/wallet?linked=1");
+    const cancelUrl = body.cancelUrl || payfastReturnUrl(req.headers.get("origin"), "/wallet?linked=0");
 
     const payfast = getPayFastConfig();
     if (!payfast) return json({ success: false, error: "Payment gateway not configured properly" }, 500);

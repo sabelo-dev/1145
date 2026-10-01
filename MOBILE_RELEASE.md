@@ -1,200 +1,141 @@
-# 1145 Lifestyle — Play Store / App Store Release Checklist
+# 1145 — iOS & Android release runbook
 
-This checklist is what to do **on your own machine** to build and ship the
-native Android and iOS apps.
+The native apps are the web app (`dist`) packaged with Capacitor 8. This is
+what to do on your own machine to build, configure and ship them.
 
----
-
-## 1. App identity (already set here)
-
-| Field           | Value                                              |
-| --------------- | -------------------------------------------------- |
-| App name        | `1145 Lifestyle`                                   |
-| App ID          | `io.app.d646f6e6c9f5b90d0c952cb2bdf4d7`            |
-| Web dir         | `dist`                                             |
-| Version (web)   | `package.json → version` — bump before every release |
-
-Configured in `capacitor.config.ts`. Change `appId` only if you are
-publishing under your **own** developer account with your **own** package
-name (e.g. `com.lifestyle1145.app`) — you cannot change it after the app
-has shipped to the store.
+You need: **Android Studio** (JDK 17+, Android SDK 36) for Android, and a
+**Mac with Xcode 16+** plus an Apple Developer account for iOS.
 
 ---
 
-## 2. Version number + version code (Android)
+## 1. App identity
 
-Play Store requires **two** version identifiers. They live in
-`android/app/build.gradle` after you run `npx cap add android`:
+| Field | Value | Where |
+| --- | --- | --- |
+| App ID / bundle ID | `io.lifestyle1145.app` | `capacitor.config.ts`, `android/app/build.gradle`, Xcode target |
+| Name under the icon | `1145` | `capacitor.config.ts`, `strings.xml`, `Info.plist` |
+| App link scheme | `io.lifestyle1145.app://` | `AndroidManifest.xml`, `Info.plist` (CFBundleURLTypes) |
 
-```gradle
-android {
-  defaultConfig {
-    applicationId "io.app.d646f6e6c9f5b90d0c952cb2bdf4d7"
-    versionCode 2       // integer, +1 every upload (Play Store dedupes on this)
-    versionName "1.0.1" // human-readable, matches package.json
-  }
-}
-```
+The app ID **can never change** after the first store upload.
 
-**Rule:** every upload to Play Console must have a **higher `versionCode`**
-than the previous upload, even for internal testing tracks.
+## 2. Versions — bump before every upload
 
-For iOS, edit `ios/App/App/Info.plist` → `CFBundleShortVersionString`
-(`versionName`) and `CFBundleVersion` (`versionCode`).
+- **Android** `android/app/build.gradle`: `versionCode` (integer, +1 on every
+  upload, even to internal testing) and `versionName` (e.g. `1.0.1`).
+- **iOS** Xcode → target → General: *Version* (`MARKETING_VERSION`) and
+  *Build* (`CURRENT_PROJECT_VERSION`, +1 on every upload).
 
----
+## 3. Icon and splash screen
 
-## 3. App icon + splash screen
-
-Sources are pre-seeded at:
-
-- `resources/icon.png`   (1024×1024 recommended, PNG, no transparency)
-- `resources/splash.png` (2732×2732 recommended, PNG, centered logo on brand colour)
-
-Replace those two files with polished art at those sizes, then regenerate
-every platform asset with the official Capacitor Assets CLI:
+Put a 1024×1024 PNG icon (no transparency) at `resources/icon.png` and a
+2732×2732 splash at `resources/splash.png`, then:
 
 ```bash
-npm i -D @capacitor/assets
-npx capacitor-assets generate --iconBackgroundColor '#1e3a5f' \
-                              --iconBackgroundColorDark '#1e3a5f' \
-                              --splashBackgroundColor '#1e3a5f' \
-                              --splashBackgroundColorDark '#1e3a5f'
+npx capacitor-assets generate --iconBackgroundColor '#1e3a5f' --splashBackgroundColor '#1e3a5f'
 ```
 
-This writes `android/app/src/main/res/mipmap-*/` icons and `drawable-*/splash.png`.
+The launcher icon now points at `@mipmap/ic_launcher` (it previously used
+the splash image).
 
-Splash timing is already configured in `capacitor.config.ts`
-(`launchShowDuration: 1500`, hidden by `initNative()`).
+## 4. Supabase settings (once)
 
----
-
-## 4. Android permissions
-
-After `npx cap add android`, open
-`android/app/src/main/AndroidManifest.xml` and confirm the following
-`<uses-permission>` entries exist inside `<manifest>` (add any missing):
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.CAMERA" />
-<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-<uses-permission android:name="android.permission.VIBRATE" />
-<uses-feature android:name="android.hardware.camera" android:required="false" />
-<uses-feature android:name="android.hardware.location.gps" android:required="false" />
-```
-
-For iOS, add the matching purpose strings to `ios/App/App/Info.plist`:
-
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>1145 uses your location to show nearby stores, rides and deliveries.</string>
-<key>NSCameraUsageDescription</key>
-<string>1145 uses the camera so you can upload product and profile photos.</string>
-<key>NSPhotoLibraryUsageDescription</key>
-<string>1145 needs photo access so you can upload images from your library.</string>
-```
-
-In the Play Console **Data safety** form, declare Location, Camera,
-Photos, and Push Notifications — matching the manifest.
-
----
-
-## 5. Privacy Policy & Terms of Service (required by Play Store)
-
-Both live in the app and are publicly accessible:
-
-- Privacy Policy: `https://1145.io/privacy`
-- Terms of Service: `https://1145.io/terms`
-
-Paste those URLs into **Play Console → App content → Privacy Policy** and
-into **App Store Connect → App Privacy**.
-
----
-
-## 6. Google Maps API key
-
-The web app reads `VITE_GOOGLE_MAPS_API_KEY` from `.env` at build time.
-No key is hardcoded anywhere in the codebase.
-
-For a store build you **must** supply your own key:
-
-1. Google Cloud Console → APIs & Services → Credentials → Create API key.
-2. Enable: Maps JavaScript API, Places API (New), Geocoding, Routes.
-3. Restrict the key by **Application → Android apps** (package name +
-   SHA-1 fingerprint) and **iOS apps** (bundle ID). Add HTTP referrers
-   `https://1145.io/*` and `https://www.1145.io/*` for web.
-4. Add to `.env` before `npm run build`:
+1. **Authentication → URL Configuration → Redirect URLs**: add
+   `io.lifestyle1145.app://**`. Google/Facebook sign-in in the apps returns
+   there (without it Supabase falls back to the website).
+2. Run `20261001140000_push_notifications.sql` and
+   `20261001150000_account_deletion_requests.sql` (in `supabase/migrations`)
+   in the SQL Editor.
+3. Create the push secret (any long random string, same value twice):
+   ```sql
+   select vault.create_secret('<random string>', 'push_webhook_secret');
    ```
-   VITE_GOOGLE_MAPS_API_KEY=AIzaSy...
+   ```bash
+   npx supabase secrets set PUSH_WEBHOOK_SECRET=<same random string> --project-ref hipomusjocacncjsvgfa
+   ```
+4. Deploy the functions touched for the apps:
+   ```bash
+   npx supabase functions deploy send-push social-oauth social-oauth-callback fintech-deposit fintech-link-card merchant-subscription payfast-payment --project-ref hipomusjocacncjsvgfa
    ```
 
----
+## 5. Push notifications
 
-## 7. Push notifications
+Every in-app notification (UC rewards, orders, …) is also pushed to the
+user's phones. Devices register after sign-in (`src/lib/push.ts`); the
+`send-push` function delivers via Firebase (Android) and Apple (iOS).
 
-Capacitor plugin `@capacitor/push-notifications` is installed and wired in
-`src/lib/native.ts` (`registerPush()`).
+**Android (Firebase Cloud Messaging)**
+1. Firebase console → add an Android app with package `io.lifestyle1145.app`.
+2. Download `google-services.json` into `android/app/` (the build applies
+   the Google services plugin automatically when the file exists).
+3. Project settings → Service accounts → *Generate new private key*, then:
+   ```bash
+   npx supabase secrets set FIREBASE_SERVICE_ACCOUNT="$(cat service-account.json)" --project-ref hipomusjocacncjsvgfa
+   ```
 
-To finish the pipeline:
+**iOS (Apple Push Notification service, no Firebase SDK needed)**
+1. Apple Developer → Keys → create a key with *Apple Push Notifications
+   service (APNs)*; note the Key ID and your Team ID; download the `.p8`.
+2. ```bash
+   npx supabase secrets set APNS_KEY_P8="$(cat AuthKey_XXXX.p8)" APNS_KEY_ID=XXXX APNS_TEAM_ID=YYYY --project-ref hipomusjocacncjsvgfa
+   ```
+   Add `APNS_PRODUCTION=true` once you test TestFlight / App Store builds
+   (debug builds from Xcode use Apple's sandbox).
+3. In Xcode, the target already uses `App/App.entitlements` (push). Under
+   *Signing & Capabilities* confirm **Push Notifications** shows, and select
+   your team.
 
-- **Android** — create a Firebase project, download `google-services.json`,
-  drop it into `android/app/`. Add the Google services plugin to
-  `android/build.gradle` and `android/app/build.gradle` per the FCM docs.
-- **iOS** — enable the **Push Notifications** capability in Xcode, upload
-  an APNs auth key in Firebase, and add `GoogleService-Info.plist` to the
-  iOS target.
+Test: sign in on a phone, allow notifications, then trigger a reward (e.g.
+daily check-in); a push arrives within seconds.
 
-Test by calling `registerPush()` on device — the token appears in the
-console; send a test push from the FCM console.
+## 6. Sign-in, account connections and payments in the apps
 
----
+- Google / Facebook **sign-in** and Facebook / Instagram **account
+  connection** open in the system browser (both providers block sign-in
+  inside app web views) and come back through `io.lifestyle1145.app://`.
+- **PayFast** payments open in the system browser via `1145.io/pay`, and
+  PayFast returns to `1145.io/app-return`, which reopens the app on the
+  right page. Deploy the website before shipping an app that relies on it.
+- **Paid UC tiers are not sold in the apps.** Apple and Google require their
+  own in-app purchase for digital subscriptions, so the apps show tiers and
+  referral progress only (no prices or buy buttons). Tiers bought on
+  1145.io apply in the apps too.
 
-## 8. Production Supabase URL and keys
+## 7. Permissions declared
 
-Values already live in `.env`:
+| | Android | iOS (purpose text in Info.plist) |
+| --- | --- | --- |
+| Location (nearby stores, rides, deliveries) | fine + coarse | When in use |
+| Camera (profile, products, posts, KYC) | `CAMERA` | `NSCameraUsageDescription` |
+| Photos | system photo picker on Android 13+; `READ_EXTERNAL_STORAGE` only up to Android 12 | library read + add |
+| Notifications | `POST_NOTIFICATIONS` | asked at sign-in |
+| Face ID (biometric sign-in) | — | `NSFaceIDUsageDescription` |
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_PROJECT_ID`
+Declare the same in Play Console → **Data safety** and App Store Connect →
+**App Privacy**.
 
-These are the **production project** (project ref `hipomusjocacncjsvgfa`)
-and are safe to ship in the bundle — RLS enforces access. Never bundle
-`SUPABASE_SERVICE_ROLE_KEY`; it stays in edge-function secrets only.
+## 8. Store listing requirements
 
----
+- Privacy policy: `https://1145.io/privacy` · Terms: `https://1145.io/terms`
+- **Account deletion** (required by both stores): Settings / Profile →
+  Delete account records a request in `account_deletion_requests`
+  (migration `20261001150000_account_deletion_requests.sql`) and signs the
+  user out. Process pending requests within 30 days (delete the user in
+  Supabase → Authentication after keeping any records the law requires),
+  then set the request's status to `completed`.
+- App Review: provide a test account (email + password) with sample data.
+- Wording: avoid presenting UCoin as cryptocurrency or "mining" crypto on
+  the device; it is a loyalty reward (Apple guideline 3.1.5).
 
-## 9. Debug logs
-
-`vite.config.ts` now strips **all** `console.*` and `debugger` statements
-from production builds via esbuild's `drop` option. Preview and
-development builds keep them for troubleshooting.
-
-Verify after building:
-
-```bash
-npm run build
-grep -c "console.log" dist/assets/*.js   # should be 0 (or only inside library comments)
-```
-
----
-
-## 10. Build & upload
+## 9. Build & upload
 
 ```bash
 git pull
 npm ci
 npm run build
 npx cap sync
-# Android
-npx cap open android         # then Build → Generate Signed Bundle → .aab
-# iOS
-npx cap open ios             # then Product → Archive → Distribute to App Store
+npx cap open android   # Build → Generate Signed Bundle → .aab → Play Console (internal testing first)
+npx cap open ios       # Product → Archive → Distribute → App Store Connect (TestFlight first)
 ```
 
-Upload the `.aab` to Play Console → Internal testing first; promote to
-Production after QA.
+Keep the Android upload keystore and its passwords safe: losing them
+means you cannot update the app.

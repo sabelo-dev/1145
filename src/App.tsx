@@ -2,7 +2,8 @@ import React, { Suspense } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { usePushNotifications } from "@/lib/push";
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -93,6 +94,8 @@ const PrivacyPage = lazyWithRetry(() => import("@/pages/PrivacyPage"));
 const AuthConfirmPage = lazyWithRetry(() => import("@/pages/AuthConfirmPage"));
 const VerifyEmailPage = lazyWithRetry(() => import("@/pages/VerifyEmailPage"));
 const AuthCallbackPage = lazyWithRetry(() => import("@/pages/AuthCallbackPage"));
+const PayBridgePage = lazyWithRetry(() => import("@/pages/PayBridgePage"));
+const AppReturnPage = lazyWithRetry(() => import("@/pages/AppReturnPage"));
 
 // Super App
 const ServiceHubPage = lazyWithRetry(() => import("@/pages/ServiceHubPage"));
@@ -127,6 +130,9 @@ const queryClient = new QueryClient({
 
 function AppRouter() {
   const { isCustomDomain, resolvedStoreSlug, loading } = useCustomDomainResolver();
+  const { user } = useAuth();
+  // iOS / Android: register for push once signed in (no-op on the web).
+  usePushNotifications(user?.id);
 
   if (loading) {
     return (
@@ -156,6 +162,8 @@ function AppRouter() {
         <Route path="home" element={<HomePage />} />
         <Route path="install" element={<InstallPage />} />
         <Route path="auth/callback" element={<AuthCallbackPage />} />
+        <Route path="pay" element={<PayBridgePage />} />
+        <Route path="app-return" element={<AppReturnPage />} />
         <Route path="store/:storeSlug" element={<StorefrontPage />} />
         
         <Route path="/" element={<Layout />}>

@@ -8,6 +8,18 @@
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
         <string>1145</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>io.lifestyle1145.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Returns the user to the app after sign-in, account connections and payments -->
+				<string>io.lifestyle1145.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -30,7 +42,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -50,12 +62,12 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>1145 uses your location to show nearby stores, rides and deliveries.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to your camera to take profile photos.</string>
+	<string>1145 uses the camera so you can take photos for your profile, product listings, social posts and identity verification.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app needs access to save photos to your gallery.</string>
+	<string>1145 saves receipts and images you choose to download to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your photo library to select photos.</string>
+	<string>1145 lets you choose photos from your library for your profile, product listings and social posts.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>This app requires Face ID to log you in securely.</string>
+	<string>1145 uses Face ID so you can sign in and approve wallet actions securely.</string>
 </dict>
 </plist>

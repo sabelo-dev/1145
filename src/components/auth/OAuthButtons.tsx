@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { getAppUrl } from "@/lib/appUrl";
+import { appDeepLink, getAppUrl } from "@/lib/appUrl";
+import { isNative, openExternal } from "@/lib/native";
 import { toast } from "sonner";
 
 // Official four-colour Google "G".
@@ -100,11 +101,23 @@ const OAuthButtons: React.FC<Props> = ({ mode = "login", role }) => {
       setLoading(provider);
       const next = mode === "register" && role ? ROLE_ONBOARDING[role] : undefined;
       const callback = next ? `/auth/callback?next=${encodeURIComponent(next)}` : "/auth/callback";
-      const { error } = await supabase.auth.signInWithOAuth({
+      // In the iOS / Android app Google and Facebook refuse to sign in inside
+      // the app's web view: use the system browser and come back through the
+      // app link (io.lifestyle1145.app://app/auth/callback, see lib/native.ts).
+      const native = isNative();
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: getAppUrl(callback) },
+        options: {
+          redirectTo: native ? appDeepLink(callback) : getAppUrl(callback),
+          skipBrowserRedirect: native,
+        },
       });
       if (error) throw error;
+      if (native) {
+        if (!data?.url) throw new Error("Could not start sign-in");
+        await openExternal(data.url);
+        setLoading(null);
+      }
     } catch (err: any) {
       toast.error(err?.message ?? `Failed to ${mode} with ${provider}`);
       setLoading(null);

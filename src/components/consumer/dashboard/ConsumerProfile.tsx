@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -633,7 +634,7 @@ const ConsumerProfile: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-2">
                 Permanently delete your account and all associated data. This action cannot be undone.
               </p>
-              <Button variant="destructive">Delete Account</Button>
+              <DeleteAccountButton label="Delete Account" />
             </div>
           </CardContent>
         </Card>

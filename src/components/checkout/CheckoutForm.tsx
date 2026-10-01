@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAppUrl } from "@/lib/appUrl";
+import { paymentReturnUrl, submitPayFastForm } from "@/lib/payments";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
@@ -188,8 +189,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           // The edge function prices the cart itself; totals here are display-only.
           body: {
             itemName: `Order for ${cart.items.length} items`,
-            returnUrl: getAppUrl("/checkout/success"),
-            cancelUrl: getAppUrl("/checkout/cancel"),
+            returnUrl: paymentReturnUrl("/checkout/success"),
+            cancelUrl: paymentReturnUrl("/checkout/cancel"),
             customerEmail: values.email,
             customerFirstName: values.firstName,
             customerLastName: values.lastName,
@@ -234,21 +235,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         }
 
         if (paymentData?.success && paymentData?.formData) {
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = paymentData.action;
-          form.style.display = 'none';
-
-          Object.entries(paymentData.formData).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value!.toString();
-            form.appendChild(input);
-          });
-
-          document.body.appendChild(form);
-          form.submit();
+          await submitPayFastForm(paymentData.action, paymentData.formData);
         } else {
           throw new Error("No payment data received");
         }

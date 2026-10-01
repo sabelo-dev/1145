@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { submitPayFastForm } from '@/lib/payments';
 
 export type SubscriptionTier = 'starter' | 'bronze' | 'silver' | 'gold';
 export type BillingPeriod = 'monthly' | 'yearly';
@@ -47,19 +48,9 @@ async function callFunction(body: Record<string, unknown>) {
 }
 
 /** Redirects the browser to PayFast via an auto-submitting form POST. */
+/** PayFast hand-off (system browser in the native apps, see lib/payments). */
 export function redirectToPayFast(paymentUrl: string, formData: Record<string, string>) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = paymentUrl;
-  Object.entries(formData).forEach(([key, value]) => {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = key;
-    input.value = String(value ?? '');
-    form.appendChild(input);
-  });
-  document.body.appendChild(form);
-  form.submit();
+  return submitPayFastForm(paymentUrl, formData);
 }
 
 export async function changeSubscription(

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { submitPayFastForm } from "@/lib/payments";
 
 export interface WalletSummary {
   wallet: {
@@ -81,21 +82,6 @@ export interface WalletBundle {
   withdrawals: WithdrawalRequest[];
 }
 
-function submitPayFastForm(action: string, formData: Record<string, string | number>) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = action;
-  form.style.display = "none";
-  Object.entries(formData).forEach(([k, v]) => {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = k;
-    input.value = String(v);
-    form.appendChild(input);
-  });
-  document.body.appendChild(form);
-  form.submit();
-}
 
 export const fintech = {
   async loadWallet(): Promise<WalletBundle> {
@@ -108,7 +94,7 @@ export const fintech = {
     const { data, error } = await supabase.functions.invoke("fintech-link-card", { body: {} });
     if (error) throw error;
     if (!data?.success) throw new Error(data?.error || "Failed to start card linking");
-    submitPayFastForm(data.action, data.formData);
+    await submitPayFastForm(data.action, data.formData);
   },
 
   async removeCard(cardId: string) {
@@ -135,7 +121,7 @@ export const fintech = {
     const { data, error } = await supabase.functions.invoke("fintech-deposit", { body: { amount } });
     if (error) throw error;
     if (!data?.success) throw new Error(data?.error || "Failed to start deposit");
-    submitPayFastForm(data.action, data.formData);
+    await submitPayFastForm(data.action, data.formData);
   },
 
   async withdraw(amount: number, bankAccountId: string) {

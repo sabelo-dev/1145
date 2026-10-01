@@ -2,7 +2,7 @@
 // payfast-itn credits the wallet on COMPLETE.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getPayFastConfig, signPayFast } from "../_shared/payfast.ts";
+import { getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,7 +25,7 @@ serve(async (req) => {
     const amount = Number(body.amount);
     if (!Number.isFinite(amount) || amount < 10 || amount > 100000) return j({ error: "Amount must be between R10 and R100,000" }, 400);
 
-    const origin = req.headers.get("origin") || "https://1145.io";
+    const origin = req.headers.get("origin");
     const payfast = getPayFastConfig();
     if (!payfast) return j({ error: "Payment gateway not configured properly" }, 500);
 
@@ -34,8 +34,8 @@ serve(async (req) => {
     const formData: Record<string, any> = {
       merchant_id: payfast.merchantId,
       merchant_key: payfast.merchantKey,
-      return_url: `${origin}/wallet?deposit=success`,
-      cancel_url: `${origin}/wallet?deposit=cancelled`,
+      return_url: payfastReturnUrl(origin, "/wallet?deposit=success"),
+      cancel_url: payfastReturnUrl(origin, "/wallet?deposit=cancelled"),
       notify_url: payfast.notifyUrl,
       name_first: (user.user_metadata?.first_name as string) || "1145",
       name_last: (user.user_metadata?.last_name as string) || "Member",

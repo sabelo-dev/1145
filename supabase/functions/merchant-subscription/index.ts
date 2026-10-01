@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getPayFastConfig, signPayFast } from "../_shared/payfast.ts";
+import { getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -196,8 +196,8 @@ serve(async (req) => {
     const fields: Record<string, string> = {
       merchant_id: payfast.merchantId,
       merchant_key: payfast.merchantKey,
-      return_url: `${origin}/merchant/dashboard?subscription=success&ref=${reference}`,
-      cancel_url: `${origin}/merchant/dashboard?subscription=cancelled`,
+      return_url: payfastReturnUrl(origin, `/merchant/dashboard?subscription=success&ref=${reference}`),
+      cancel_url: payfastReturnUrl(origin, "/merchant/dashboard?subscription=cancelled"),
       notify_url: payfast.notifyUrl,
       name_first: (vendor.business_name || "Merchant").slice(0, 100),
       email_address: vendor.email || user.email || "",

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { getAppUrl } from "@/lib/appUrl";
+import { APP_LINK_BASE, getAppUrl } from "@/lib/appUrl";
+import { isNative, openExternal } from "@/lib/native";
 
 /** Platforms connected through a real provider login instead of a typed handle. */
 export const OAUTH_PLATFORMS = new Set(["facebook", "instagram"]);
@@ -18,7 +19,8 @@ export async function startSocialOAuth(platform: string): Promise<void> {
   const search = new URLSearchParams({
     action: "get_auth_url",
     platform,
-    app_url: getAppUrl("/"),
+    // In the native app the provider sends the user back through the app link.
+    app_url: isNative() ? APP_LINK_BASE : getAppUrl("/"),
     return_path: returnPath,
   });
 
@@ -28,5 +30,5 @@ export async function startSocialOAuth(platform: string): Promise<void> {
   if (error) throw new Error(error.message || "Could not start the connection");
   if (!data?.auth_url) throw new Error(data?.error || "Could not start the connection");
 
-  window.location.href = data.auth_url;
+  await openExternal(data.auth_url);
 }

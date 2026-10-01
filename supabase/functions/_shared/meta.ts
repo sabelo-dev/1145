@@ -130,9 +130,13 @@ export async function verifyState(token: string): Promise<OAuthState> {
 }
 
 /** Only redirect back to our own app (or local dev). */
+/** The iOS / Android app's link base (capacitor.config.ts appId). */
+export const NATIVE_APP_LINK_BASE = "io.lifestyle1145.app://app";
+
 export function safeAppUrl(value: string | null | undefined): string {
   const fallback = Deno.env.get("SITE_URL") || "https://1145.io";
   if (!value) return fallback;
+  if (value === NATIVE_APP_LINK_BASE) return value;
   try {
     const url = new URL(value);
     const host = url.hostname.toLowerCase();

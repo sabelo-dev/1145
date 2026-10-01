@@ -20,7 +20,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Session } from '@supabase/supabase-js';
-import { getAppUrl } from '@/lib/appUrl';
+import { APP_LINK_BASE, getAppUrl } from '@/lib/appUrl';
+import { isNative, openExternal } from '@/lib/native';
 
 // Platform icons as inline SVGs to avoid style prop issues
 const FacebookIcon = ({ className }: { className?: string }) => (
@@ -219,7 +220,7 @@ export const SocialOAuthConnect: React.FC = () => {
     try {
       const appUrl = getAppUrl("/");
       const response = await fetch(
-        `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/social-oauth?action=get_auth_url&platform=${platformId}&app_url=${encodeURIComponent(appUrl)}&return_path=${encodeURIComponent(currentPathForReturn())}`,
+        `https://hipomusjocacncjsvgfa.supabase.co/functions/v1/social-oauth?action=get_auth_url&platform=${platformId}&app_url=${encodeURIComponent(isNative() ? APP_LINK_BASE : appUrl)}&return_path=${encodeURIComponent(currentPathForReturn())}`,
         {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
@@ -238,7 +239,8 @@ export const SocialOAuthConnect: React.FC = () => {
         });
       } else if (data.auth_url) {
         // Redirect to OAuth provider
-        window.location.href = data.auth_url;
+        // System browser in the native app (providers block in-app web views).
+        await openExternal(data.auth_url);
       } else if (data.error) {
         toast.error(data.error);
       }

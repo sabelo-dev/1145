@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Trophy, CreditCard, Building2, Loader2, CheckCircle, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getAppUrl } from "@/lib/appUrl";
+import { paymentReturnUrl, submitPayFastForm } from "@/lib/payments";
 import SEO from "@/components/SEO";
 
 interface AuctionWinDetails {
@@ -134,8 +135,8 @@ const AuctionCheckoutPage: React.FC = () => {
         // Amount is computed server-side from the winning bid and paid deposit.
         body: {
           itemName: `Auction Win: ${auction.product?.name || 'Auction Item'}`,
-          returnUrl: getAppUrl(`/auction-checkout/success?auctionId=${auction.id}`),
-          cancelUrl: getAppUrl(`/auction-checkout?auctionId=${auction.id}`),
+          returnUrl: paymentReturnUrl(`/auction-checkout/success?auctionId=${auction.id}`),
+          cancelUrl: paymentReturnUrl(`/auction-checkout?auctionId=${auction.id}`),
           customerEmail: user.email,
           customStr1: auction.id,
           customStr2: "auction_winner_payment",
@@ -146,20 +147,7 @@ const AuctionCheckoutPage: React.FC = () => {
 
       if (paymentData?.formData && paymentData?.action) {
         // Create and submit form to PayFast
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = paymentData.action;
-        
-        Object.entries(paymentData.formData).forEach(([key, value]) => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = key;
-          input.value = value as string;
-          form.appendChild(input);
-        });
-        
-        document.body.appendChild(form);
-        form.submit();
+        await submitPayFastForm(paymentData.action, paymentData.formData);
       } else {
         throw new Error("No payment data received");
       }

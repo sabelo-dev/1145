@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
 import { useToast } from "@/hooks/use-toast";
 import {
   Settings,
@@ -95,13 +96,6 @@ const ConsumerSettings: React.FC = () => {
     });
   };
 
-  const handleDeleteAccount = () => {
-    toast({
-      variant: "destructive",
-      title: "Account Deletion Requested",
-      description: "Your account deletion request has been submitted. This process may take up to 30 days.",
-    });
-  };
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -411,29 +405,7 @@ const ConsumerSettings: React.FC = () => {
                 </p>
               </div>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Delete</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your
-                    account and remove all your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteAccount}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Delete Account
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DeleteAccountButton label="Delete" />
           </div>
         </CardContent>
       </Card>

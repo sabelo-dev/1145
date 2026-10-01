@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { getAppUrl } from '@/lib/appUrl';
 import { ucToRand } from '@/lib/ucRewards';
+import { paymentReturnUrl, submitPayFastForm } from '@/lib/payments';
+import { isNative } from '@/lib/native';
 
 interface Tier {
   id: string;
@@ -80,8 +82,8 @@ export function TierPlans({ currentLevel, qualifiedReferrals }: { currentLevel: 
         body: {
           customStr1: tier.name,
           customStr2: 'tier_subscription',
-          returnUrl: getAppUrl(`${here}${sep}tier_payment=success`),
-          cancelUrl: getAppUrl(`${here}${sep}tier_payment=cancelled`),
+          returnUrl: paymentReturnUrl(`${here}${sep}tier_payment=success`),
+          cancelUrl: paymentReturnUrl(`${here}${sep}tier_payment=cancelled`),
         },
       });
       if (error) {
@@ -90,18 +92,7 @@ export function TierPlans({ currentLevel, qualifiedReferrals }: { currentLevel: 
       }
       if (!data?.success || !data.formData) throw new Error(data?.error || 'Could not start the payment');
 
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = data.action;
-      Object.entries(data.formData as Record<string, string>).forEach(([k, v]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = k;
-        input.value = String(v);
-        form.appendChild(input);
-      });
-      document.body.appendChild(form);
-      form.submit();
+      await submitPayFastForm(data.action, data.formData);
     } catch (e: unknown) {
       toast({ variant: 'destructive', title: 'Upgrade failed', description: e instanceof Error ? e.message : String(e) });
       setBusy(null);
@@ -126,14 +117,19 @@ export function TierPlans({ currentLevel, qualifiedReferrals }: { currentLevel: 
   };
 
   const paidTier = sub ? tiers.find((t) => t.id === sub.tier_id) : undefined;
+  // App Store / Play rules: digital subscriptions can't be sold through an
+  // outside payment provider in the apps, so the native apps show tiers and
+  // referral progress only (subscriptions bought on the web still apply).
+  const native = isNative();
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Crown className="h-5 w-5" /> Tiers</CardTitle>
         <CardDescription>
-          Reach a tier with qualified referrals ({qualifiedReferrals} so far), or subscribe to get it now.
-          Your tier is whichever is higher.
+          {native
+            ? `Reach a tier with qualified referrals (${qualifiedReferrals} so far).`
+            : `Reach a tier with qualified referrals (${qualifiedReferrals} so far), or subscribe to get it now. Your tier is whichever is higher.`}
         </CardDescription>
         {sub && paidTier && sub.current_period_end && (
           <div className="flex flex-wrap items-center gap-2 pt-2 text-sm">
@@ -156,7 +152,7 @@ export function TierPlans({ currentLevel, qualifiedReferrals }: { currentLevel: 
               <tr className="text-left">
                 <th className="px-3 py-2 font-semibold">Tier</th>
                 <th className="px-3 py-2 font-semibold whitespace-nowrap">Qualified referrals</th>
-                <th className="px-3 py-2 font-semibold whitespace-nowrap">Monthly price</th>
+                {!native && <th className="px-3 py-2 font-semibold whitespace-nowrap">Monthly price</th>}
                 <th className="px-3 py-2 font-semibold whitespace-nowrap">Max UC/day</th>
                 <th className="px-3 py-2 font-semibold whitespace-nowrap">Max UC/30 days</th>
                 <th className="px-3 py-2 font-semibold whitespace-nowrap">Value/month</th>
@@ -167,7 +163,7 @@ export function TierPlans({ currentLevel, qualifiedReferrals }: { currentLevel: 
               {tiers.map((t) => {
                 const current = t.level === currentLevel;
                 const monthly = t.monthly_mining_cap ?? t.daily_mining_cap * 30;
-                const canBuy = Number(t.monthly_price) > 0 && t.level > currentLevel;
+                const canBuy = !native && Number(t.monthly_price) > 0 && t.level > currentLevel;
                 return (
                   <tr key={t.id} className={`border-t ${current ? 'bg-primary/5' : ''}`}>
                     <td className="px-3 py-2 font-medium whitespace-nowrap">
@@ -175,9 +171,11 @@ export function TierPlans({ currentLevel, qualifiedReferrals }: { currentLevel: 
                       {current && <Check className="inline h-4 w-4 ml-1 text-green-600" aria-label="Your tier" />}
                     </td>
                     <td className="px-3 py-2 tabular-nums">{t.min_conversions}</td>
-                    <td className="px-3 py-2 tabular-nums whitespace-nowrap">
-                      {Number(t.monthly_price) > 0 ? `R${Number(t.monthly_price).toLocaleString()}` : 'Free'}
-                    </td>
+                    {!native && (
+                      <td className="px-3 py-2 tabular-nums whitespace-nowrap">
+                        {Number(t.monthly_price) > 0 ? `R${Number(t.monthly_price).toLocaleString()}` : 'Free'}
+                      </td>
+                    )}
                     <td className="px-3 py-2 tabular-nums whitespace-nowrap">{t.daily_mining_cap.toLocaleString()} UC</td>
                     <td className="px-3 py-2 tabular-nums whitespace-nowrap">{monthly.toLocaleString()} UC</td>
                     <td className="px-3 py-2 tabular-nums whitespace-nowrap">{ucToRand(monthly).replace('.00', '')}</td>
@@ -195,9 +193,11 @@ export function TierPlans({ currentLevel, qualifiedReferrals }: { currentLevel: 
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Subscriptions bill monthly through PayFast and can be cancelled any time; you keep the tier until the paid month ends.
-        </p>
+        {!native && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Subscriptions bill monthly through PayFast and can be cancelled any time; you keep the tier until the paid month ends.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

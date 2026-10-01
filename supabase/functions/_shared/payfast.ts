@@ -154,3 +154,19 @@ export async function cancelPayFastSubscription(
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+/** Origins of the iOS / Android app's web view (Capacitor). */
+const NATIVE_APP_ORIGINS = ["https://localhost", "capacitor://localhost"];
+
+/**
+ * PayFast return / cancel address for a path in the app. Requests from the
+ * native apps come from localhost, which the user's browser cannot reach:
+ * send them to 1145.io/app-return, which reopens the app on that path.
+ */
+export function payfastReturnUrl(origin: string | null | undefined, path: string): string {
+  const site = (Deno.env.get("SITE_URL") || "https://1145.io").replace(/\/$/, "");
+  if (!origin || NATIVE_APP_ORIGINS.includes(origin)) {
+    return origin ? `${site}/app-return?to=${encodeURIComponent(path)}` : `${site}${path}`;
+  }
+  return `${origin.replace(/\/$/, "")}${path}`;
+}

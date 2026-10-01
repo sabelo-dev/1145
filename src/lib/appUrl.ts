@@ -1,4 +1,22 @@
+import { Capacitor } from "@capacitor/core";
+
 const DEFAULT_PLATFORM_BASE_URL = "https://1145.io";
+
+/** Custom URL scheme of the iOS / Android app (capacitor.config.ts appId). */
+export const APP_SCHEME = "io.lifestyle1145.app";
+/** Base for links that open the native app, e.g. io.lifestyle1145.app://app/wallet */
+export const APP_LINK_BASE = `${APP_SCHEME}://app`;
+
+/** Link that returns the user from the system browser into the native app. */
+export const appDeepLink = (path: string) => `${APP_LINK_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+
+const runningNative = () => {
+  try {
+    return Capacitor.isNativePlatform();
+  } catch {
+    return false;
+  }
+};
 const PLATFORM_HOSTS = ["1145.io", "www.1145.io"];
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "::1"];
 const PREVIEW_HOST_SUFFIXES = [
@@ -57,6 +75,12 @@ export const getPlatformBaseUrl = (options: AppUrlOptions = {}) => {
     env?.SITE_URL,
   ].find(Boolean);
   const explicitBaseUrl = normalizeBaseUrl(explicitValue);
+
+  // Inside the iOS / Android app the page is served from localhost; links we
+  // hand out (emails, sharing, redirects) must point at the real site.
+  if (!options.hostname && !options.origin && runningNative()) {
+    return explicitBaseUrl ?? DEFAULT_PLATFORM_BASE_URL;
+  }
 
   const hostname = options.hostname ?? (typeof window !== "undefined" ? window.location.hostname : "1145.io");
   const origin = options.origin ?? (typeof window !== "undefined" ? window.location.origin : DEFAULT_PLATFORM_BASE_URL);

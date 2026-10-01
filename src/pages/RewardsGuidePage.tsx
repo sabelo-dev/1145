@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SEO from "@/components/SEO";
 import guide from "@/content/rewards-guide.json";
+import { isNative } from "@/lib/native";
 
 // Same content as public/docs/1145-rewards-guide.pdf
 // (regenerate with scripts/build-rewards-guide-pdf.py after editing the JSON).
@@ -21,7 +22,25 @@ type Section = {
 };
 
 const RewardsGuidePage: React.FC = () => {
-  const sections = guide.sections as Section[];
+  // In the iOS / Android apps, tier subscriptions can't be offered (store
+  // billing rules), so prices and subscription wording are left out there.
+  const native = isNative();
+  const mentionsPaying = (text: string) => /subscri|payfast|monthly price/i.test(text);
+  const sections = (guide.sections as Section[]).map((section) => {
+    if (!native) return section;
+    const priceCol = section.table?.columns.indexOf("Monthly price") ?? -1;
+    return {
+      ...section,
+      body: section.body?.filter((p) => !mentionsPaying(p)),
+      faq: section.faq?.filter(([q, a]) => !mentionsPaying(q) && !mentionsPaying(a)),
+      table: section.table && priceCol >= 0
+        ? {
+            columns: section.table.columns.filter((_, i) => i !== priceCol),
+            rows: section.table.rows.map((row) => row.filter((_, i) => i !== priceCol)),
+          }
+        : section.table,
+    };
+  });
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8 print:py-0">
@@ -37,6 +56,7 @@ const RewardsGuidePage: React.FC = () => {
         <p className="text-xs text-muted-foreground mt-2">Last updated {guide.updated}</p>
         <p className="mt-4 max-w-prose">{guide.intro}</p>
 
+        {!native && (
         <div className="flex flex-wrap gap-2 mt-5 print:hidden">
           <Button asChild>
             <a href={REWARDS_GUIDE_PDF} download="1145-rewards-guide.pdf">
@@ -49,6 +69,7 @@ const RewardsGuidePage: React.FC = () => {
             Print
           </Button>
         </div>
+        )}
 
         <nav aria-label="Contents" className="mt-6 print:hidden">
           <ul className="flex flex-wrap gap-2 text-sm">

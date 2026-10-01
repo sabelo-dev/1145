@@ -41,6 +41,17 @@ export async function initNative() {
     /* keyboard plugin optional */
   }
 
+  // Links back into the app (io.lifestyle1145.app://app/...) after sign-in,
+  // account connections and payments in the system browser.
+  try {
+    const { App } = await import('@capacitor/app');
+    App.addListener('appUrlOpen', ({ url }) => {
+      handleAppLink(url).catch((e) => console.warn('[native] app link failed', e));
+    });
+  } catch {
+    /* app plugin optional */
+  }
+
   // Native hardware back button -> browser history.back / exit on root
   try {
     const { App } = await import('@capacitor/app');
@@ -85,4 +96,74 @@ export async function registerPush(): Promise<string | null> {
     console.warn('[native] push register failed', e);
     return null;
   }
+}
+
+/** In-app navigation from outside React (BrowserRouter listens to popstate). */
+export function navigateInApp(path: string) {
+  window.history.pushState({}, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+/**
+ * Open a page in the system browser (Custom Tabs / SFSafariViewController).
+ * Google and Facebook block sign-in inside an app's own web view, and
+ * payment pages belong in the browser too. On the web this is a normal
+ * navigation.
+ */
+export async function openExternal(url: string) {
+  if (!isNative()) {
+    window.location.href = url;
+    return;
+  }
+  const { Browser } = await import('@capacitor/browser');
+  await Browser.open({ url, presentationStyle: 'popover' });
+}
+
+/**
+ * io.lifestyle1145.app://app/<path>?<query>#<hash>
+ *  - /auth/callback: Supabase sign-in result (tokens in the hash, or a PKCE
+ *    code) — create the session, then show /auth/callback to route by role.
+ *  - anything else: open that page in the app.
+ */
+async function handleAppLink(url: string) {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return;
+  }
+  // "io.lifestyle1145.app://app/wallet" -> host "app", pathname "/wallet"
+  const path = parsed.host === 'app' ? parsed.pathname || '/' : `/${parsed.host}${parsed.pathname}`;
+
+  try {
+    const { Browser } = await import('@capacitor/browser');
+    await Browser.close();
+  } catch {
+    /* already closed (Android closes Custom Tabs itself) */
+  }
+
+  if (path === '/auth/callback') {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const hash = new URLSearchParams(parsed.hash.replace(/^#/, ''));
+    const query = parsed.searchParams;
+    const accessToken = hash.get('access_token');
+    const refreshToken = hash.get('refresh_token');
+    const code = query.get('code');
+    const error = hash.get('error_description') || query.get('error_description') || hash.get('error') || query.get('error');
+
+    if (accessToken && refreshToken) {
+      await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+    } else if (code) {
+      await supabase.auth.exchangeCodeForSession(code);
+    }
+
+    const next = query.get('next');
+    const params = new URLSearchParams();
+    if (next) params.set('next', next);
+    if (error) params.set('error_description', error);
+    navigateInApp(`/auth/callback${params.toString() ? `?${params}` : ''}`);
+    return;
+  }
+
+  navigateInApp(`${path}${parsed.search}${parsed.hash}`);
 }

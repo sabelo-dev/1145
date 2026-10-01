@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Gavel, CreditCard, Building2, Loader2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getAppUrl } from "@/lib/appUrl";
+import { paymentReturnUrl, submitPayFastForm } from "@/lib/payments";
 import SEO from "@/components/SEO";
 
 interface AuctionDetails {
@@ -118,8 +119,8 @@ const AuctionRegistrationPage: React.FC = () => {
         // Amount is computed server-side from the auction's registration fee.
         body: {
           itemName: `Auction Registration: ${auction.product?.name || 'Auction Item'}`,
-          returnUrl: getAppUrl(`/auction-registration/success?auctionId=${auction.id}&registrationId=${registration.id}`),
-          cancelUrl: getAppUrl(`/auction-registration?auctionId=${auction.id}`),
+          returnUrl: paymentReturnUrl(`/auction-registration/success?auctionId=${auction.id}&registrationId=${registration.id}`),
+          cancelUrl: paymentReturnUrl(`/auction-registration?auctionId=${auction.id}`),
           customerEmail: user.email,
           customStr1: registration.id, // Pass registration ID for webhook
           customStr2: "auction_registration",
@@ -128,10 +129,11 @@ const AuctionRegistrationPage: React.FC = () => {
 
       if (error) throw error;
 
-      if (paymentData?.redirectUrl) {
-        window.location.href = paymentData.redirectUrl;
+      if (paymentData?.error) throw new Error(paymentData.error);
+      if (paymentData?.formData && paymentData?.action) {
+        await submitPayFastForm(paymentData.action, paymentData.formData);
       } else {
-        throw new Error("No payment URL received");
+        throw new Error("No payment data received");
       }
     } catch (error: any) {
       console.error("Payment error:", error);
