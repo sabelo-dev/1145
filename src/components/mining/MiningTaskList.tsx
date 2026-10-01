@@ -253,7 +253,7 @@ export function MiningTaskList({
     <>
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Mining Tasks</CardTitle>
+          <CardTitle className="text-lg">Reward Tasks</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="affiliate">

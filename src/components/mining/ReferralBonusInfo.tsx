@@ -214,7 +214,7 @@ export function ReferralBonusInfo() {
         <div className="pt-2 border-t space-y-2">
           <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
-            Mining Bonus from Referrals
+            Bonus from Referrals
           </p>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between p-2 rounded bg-primary/5 text-sm">

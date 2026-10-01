@@ -51,9 +51,9 @@ export function SocialMiningDashboard({ onTaskCompleted }: SocialMiningDashboard
       <Card>
         <CardContent className="py-12 text-center">
           <Pickaxe className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Sign in to Start Mining</h3>
+          <h3 className="text-lg font-semibold mb-2">Sign in to Start Earning</h3>
           <p className="text-muted-foreground mb-4">
-            Connect your social accounts and earn UCoin through social mining!
+            Connect your social accounts and earn UCoin rewards!
           </p>
           <Button asChild>
             <Link to="/login">Sign In</Link>

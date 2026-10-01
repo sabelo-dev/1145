@@ -15,7 +15,7 @@ interface Capacity {
 
 // Everyday earnings that count towards the tier caps (cap_category).
 const CATEGORIES: [string, string][] = [
-  ['base', 'Base mining'],
+  ['base', 'Base reward'],
   ['checkin', 'Daily check-in'],
   ['browse', 'Browse/shop activity'],
   ['purchase', 'Completed purchase'],
@@ -48,7 +48,7 @@ export const MiningCapacityCard = forwardRef<MiningCapacityHandle>(function Mini
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold tracking-wide uppercase flex items-center gap-2">
           <Gauge className="h-4 w-4" />
-          {cap.tier.name} mining capacity
+          {cap.tier.name} earning capacity
         </CardTitle>
         <p className="text-2xl font-bold tabular-nums">{daily.toLocaleString()} UC/day</p>
       </CardHeader>

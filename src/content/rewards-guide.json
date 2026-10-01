@@ -26,7 +26,7 @@
         "widths": [0.36, 0.14, 0.14, 0.36],
         "rows": [
           ["Daily check-in", "5 UC", "R0.50", "Once a day"],
-          ["Base mining", "20-200 UC", "R2-R20", "Paid with your check-in; set by your tier"],
+          ["Base reward", "20-200 UC", "R2-R20", "Paid with your check-in; set by your tier"],
           ["7-day streak", "50 UC", "R5", "Every 7 check-ins in a row"],
           ["30-day streak", "300 UC", "R30", "Every 30 check-ins in a row"],
           ["Browse/shop activity", "5 UC", "R0.50", "Per product viewed, up to 25 UC a day"]
@@ -146,9 +146,9 @@
     },
     {
       "id": "tiers",
-      "title": "Tiers and mining capacity",
+      "title": "Tiers and earning capacity",
       "body": [
-        "Your tier sets how much UC you can earn from everyday activity: check-in, base mining, browsing, cashback, tasks and referral activity. One-off bonuses (welcome, first purchase, milestones, referral qualification rewards, birthday, sponsored campaigns) are never limited.",
+        "Your tier sets how much UC you can earn from everyday activity: check-in, base reward, browsing, cashback, tasks and referral activity. One-off bonuses (welcome, first purchase, milestones, referral qualification rewards, birthday, sponsored campaigns) are never limited.",
         "Reach a tier for free with qualified referrals, or subscribe monthly to get it now. Your tier is whichever is higher. Subscriptions are paid through PayFast and can be cancelled any time; you keep the tier until the paid month ends."
       ],
       "table": {
@@ -163,14 +163,14 @@
           ["Diamond", "100", "R1,799", "1,000 UC", "30,000 UC", "R3,000"]
         ]
       },
-      "note": "The Mining capacity card in the Rewards tab shows today's earnings by type and how much capacity you have left. When you reach a limit, everyday rewards pause until the next day (the 30-day limit rolls over continuously)."
+      "note": "The Earning capacity card in the Rewards tab shows today's earnings by type and how much capacity you have left. When you reach a limit, everyday rewards pause until the next day (the 30-day limit rolls over continuously)."
     },
     {
       "id": "track",
       "title": "Where to see your rewards",
       "list": [
         "Wallet: your balance and every transaction, including which activity paid it.",
-        "Rewards tab: check-in, today's mining capacity, your tier, and your task submissions.",
+        "Rewards tab: check-in, today's earning capacity, your tier, and your task submissions.",
         "Notifications: you get one each time UC is added."
       ]
     },
@@ -198,7 +198,7 @@
       "title": "Questions",
       "faq": [
         ["I signed up but didn't get the welcome bonus.", "It is paid when your email is confirmed. If you signed up with Google or Facebook, it is paid straight away."],
-        ["Why did I get less cashback than expected?", "Everyday rewards stop at your tier's daily and 30-day limits. Check the Mining capacity card; a higher tier raises the limits."],
+        ["Why did I get less cashback than expected?", "Everyday rewards stop at your tier's daily and 30-day limits. Check the Earning capacity card; a higher tier raises the limits."],
         ["My task says Submitted for review.", "Tasks are checked by 1145 before paying. Make sure you added the link to your post."],
         ["When do referral rewards count towards tiers?", "A referral counts once they verify email and mobile, or complete their first purchase."],
         ["What happens if I cancel my subscription?", "Nothing changes until the month you paid for ends; then you move to the tier your referrals reach."]

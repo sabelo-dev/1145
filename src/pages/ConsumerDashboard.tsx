@@ -149,7 +149,7 @@ const ConsumerDashboard: React.FC = () => {
     },
     {
       id: "mining",
-      title: "Social Mining",
+      title: "Social Rewards",
       icon: Pickaxe,
       description: "Earn UCoin through social media tasks"
     },

@@ -44,7 +44,7 @@ export function DailyMiningProgress({ dailyLimit }: DailyMiningProgressProps) {
 
         {isAtLimit ? (
           <p className="text-sm text-gold dark:text-gold text-center">
-            Daily limit reached! Come back tomorrow for more mining.
+            Daily limit reached! Come back tomorrow to earn more.
           </p>
         ) : (
           <p className="text-sm text-muted-foreground text-center">

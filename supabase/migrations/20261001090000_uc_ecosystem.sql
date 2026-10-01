@@ -84,7 +84,7 @@ VALUES
   ('video_review',            'Video review',                   'Review with your own video',               100,  'fixed',   NULL, NULL, NULL, 'Shoppers', 'Approved by 1145', true, 90, true),
   -- Engagement
   ('daily_checkin',           'Daily check-in',                 'Check in once a day',                      5,    'fixed',   NULL, NULL, 1,    'Everyone', 'Daily', false, 100, true),
-  ('base_mining',             'Base mining',                    'Paid with each check-in; set by your tier', 0,   'range',   20,   200,  1,    'Everyone', 'Daily, with check-in', false, 101, true),
+  ('base_mining',             'Base reward',                    'Paid with each check-in; set by your tier', 0,   'range',   20,   200,  1,    'Everyone', 'Daily, with check-in', false, 101, true),
   ('browse_activity',         'Browse/shop activity',           'Viewing products in the marketplace',      5,    'fixed',   NULL, NULL, 5,    'Everyone', '5 UC per product viewed, up to 25 UC a day', false, 102, true),
   ('streak_7',                '7-day streak',                   'Check in 7 days in a row',                 50,   'fixed',   NULL, NULL, 1,    'Everyone', 'Every 7 consecutive days', false, 110, true),
   ('streak_30',               '30-day streak',                  'Check in 30 days in a row',                300,  'fixed',   NULL, NULL, 1,    'Everyone', 'Every 30 consecutive days', false, 120, true),
@@ -922,7 +922,7 @@ BEGIN
 
   v_earned := v_earned + public.uc_award(v_user, 'daily_checkin', 'daily_checkin:' || v_user || ':' || v_today, NULL, 'checkin', v_today::text);
   v_earned := v_earned + public.uc_award(v_user, 'base_mining', 'base_mining:' || v_user || ':' || v_today,
-    (public.uc_effective_tier(v_user)).base_mining, 'checkin', v_today::text, 'Base mining (' || (public.uc_effective_tier(v_user)).display_name || ')');
+    (public.uc_effective_tier(v_user)).base_mining, 'checkin', v_today::text, 'Base reward (' || (public.uc_effective_tier(v_user)).display_name || ')');
   IF v_streak % 7 = 0 THEN
     v_earned := v_earned + public.uc_award(v_user, 'streak_7', 'streak_7:' || v_user || ':' || v_today, NULL, 'checkin', v_today::text, v_streak || '-day streak');
   END IF;
@@ -1456,3 +1456,61 @@ BEGIN
     PERFORM public.uc_refresh_tier(v_user);
   END LOOP;
 END $$;
+
+-- ---------------------------------------------------------------------------
+-- 12. Wallet wording: "Reward: <task or activity>" (UC is a loyalty reward,
+--     not mined currency). Same as 20260930120000 apart from that text.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.mining_credit_request(p_request_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_req public.mining_requests;
+  v_balance numeric;
+BEGIN
+  SELECT * INTO v_req FROM public.mining_requests WHERE id = p_request_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN false; END IF;
+  IF v_req.status = 'credited' THEN RETURN true; END IF;
+  IF v_req.status <> 'approved' THEN
+    RAISE EXCEPTION 'Cannot credit request not in approved state (status=%)', v_req.status;
+  END IF;
+
+  SELECT COALESCE(SUM(delta_mg),0) INTO v_balance
+    FROM public.ucoin_ledger WHERE user_id = v_req.user_id;
+
+  INSERT INTO public.ucoin_ledger(user_id, request_id, delta_mg, kind, reason, running_balance)
+  VALUES (v_req.user_id, v_req.id, v_req.reward_mg, 'credit', v_req.activity_code, v_balance + v_req.reward_mg);
+
+  INSERT INTO public.ucoin_wallets(user_id, balance, lifetime_earned, lifetime_spent)
+  VALUES (v_req.user_id, v_req.reward_mg, v_req.reward_mg, 0)
+  ON CONFLICT (user_id) DO UPDATE
+    SET balance = ucoin_wallets.balance + EXCLUDED.balance,
+        lifetime_earned = ucoin_wallets.lifetime_earned + EXCLUDED.balance,
+        updated_at = now();
+
+  INSERT INTO public.ucoin_transactions(user_id, amount, type, category, description, reference_id, reference_type)
+  VALUES (v_req.user_id, v_req.reward_mg::integer, 'earn', 'social_mining',
+    'Reward: ' || COALESCE(v_req.metadata->>'task_title', v_req.activity_code), v_req.id, 'mining_request');
+
+  UPDATE public.mining_requests
+    SET status = 'credited', credited_at = now(), updated_at = now()
+    WHERE id = p_request_id;
+
+  INSERT INTO public.mining_events(request_id, stage, actor, payload)
+  VALUES (p_request_id, 'credited', 'system',
+    jsonb_build_object('amount_mg', v_req.reward_mg));
+
+  INSERT INTO public.user_notifications(user_id, type, title, message, data)
+  VALUES (v_req.user_id, 'ucoin_credit',
+    'You earned ' || v_req.reward_mg || ' UCoin',
+    'Reward for: ' || COALESCE(v_req.metadata->>'task_title', v_req.activity_code),
+    jsonb_build_object('request_id', v_req.id, 'activity', v_req.activity_code));
+
+  RETURN true;
+END;
+$$;
+REVOKE EXECUTE ON FUNCTION public.mining_credit_request(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.mining_credit_request(uuid) TO service_role;

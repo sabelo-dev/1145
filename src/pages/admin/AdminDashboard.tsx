@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import AdminOverview from "@/components/admin/AdminOverview";
 import AdminUsers from "@/components/admin/AdminUsers";
+import AdminDeletionRequests from "@/components/admin/AdminDeletionRequests";
 import AdminVendors from "@/components/admin/AdminVendors";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminOrders from "@/components/admin/AdminOrders";
@@ -79,6 +80,7 @@ import {
   Crown,
   Car,
   AlertTriangle,
+  UserX,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -97,6 +99,7 @@ const AdminDashboard = () => {
     { id: "overview", title: "Overview", icon: LayoutDashboard },
     { id: "inbox", title: "Email Inbox", icon: Inbox },
     { id: "users", title: "User Management", icon: Users },
+    { id: "deletion-requests", title: "Deletion Requests", icon: UserX },
     { id: "vendors", title: "Merchant Management", icon: Store },
     { id: "drivers", title: "Driver Management", icon: Truck },
     { id: "leases", title: "Lease Management", icon: FileText },
@@ -256,6 +259,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="users" className="mt-0">
               <AdminUsers />
+            </TabsContent>
+            <TabsContent value="deletion-requests" className="mt-0">
+              <AdminDeletionRequests />
             </TabsContent>
             <TabsContent value="vendors" className="mt-0">
               <AdminVendors />

@@ -50,8 +50,8 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
   return (
     <div ref={ref} className="min-h-screen bg-background">
       <SEO
-        title="UCoin Market | Spend your mining rewards on real goods"
-        description="Turn the UCoin you mined into real products. Every UCoin is worth R0.10 at checkout on 1145 Lifestyle."
+        title="UCoin Market | Spend your rewards on real goods"
+        description="Turn the UCoin you earned into real products. Every UCoin is worth R0.10 at checkout on 1145 Lifestyle."
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -63,7 +63,7 @@ const UCoinMarketPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
                 UCoin Market
               </h1>
               <p className="text-sm text-muted-foreground">
-                Spend the UCoin you mined on real products. 1 UCoin = R0.10 at checkout.
+                Spend the UCoin you earned on real products. 1 UCoin = R0.10 at checkout.
               </p>
             </div>
             <div className="header-actions">

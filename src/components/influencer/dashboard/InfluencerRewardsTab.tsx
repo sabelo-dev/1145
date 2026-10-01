@@ -63,7 +63,7 @@ export const InfluencerRewardsTab: React.FC = () => {
                   <li key={t.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
                     <span className="flex items-center gap-2 min-w-0">
                       <Coins className="h-4 w-4 shrink-0 text-primary" />
-                      <span className="truncate">{t.description || 'Mining reward'}</span>
+                      <span className="truncate">{t.description || 'Reward'}</span>
                     </span>
                     <span className="flex items-center gap-3 shrink-0">
                       <span className="text-xs text-muted-foreground hidden sm:inline">

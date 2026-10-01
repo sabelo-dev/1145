@@ -128,7 +128,7 @@ const UCoinWalletPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
     <div ref={ref} className="min-h-screen bg-background">
       <SEO
         title="UCoin Wallet | Balance, rewards and withdrawals"
-        description="See how much UCoin you have mined and spent, and withdraw your balance to a linked bank account."
+        description="See how much UCoin you have earned and spent, and withdraw your balance to a linked bank account."
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="header-row">
@@ -161,7 +161,7 @@ const UCoinWalletPage = React.forwardRef<HTMLDivElement>((_props, ref) => {
               <CardContent className="p-4">
                 <ArrowDownToLine className="h-5 w-5 text-primary" />
                 <p className="text-2xl font-bold mt-2">{Math.max(earned, mined).toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">Total mined and earned</p>
+                <p className="text-xs text-muted-foreground">Total earned</p>
               </CardContent>
             </Card>
             <Card>

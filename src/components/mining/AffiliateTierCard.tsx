@@ -76,7 +76,7 @@ export function AffiliateTierCard({ affiliateStatus, nextTier, tierProgress }: A
 
         <div className="pt-2 border-t">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Daily Mining Cap</span>
+            <span className="text-muted-foreground">Daily Earning Cap</span>
             <span className="font-medium">{currentTier?.daily_mining_cap || 20} UCoin</span>
           </div>
         </div>

@@ -55,7 +55,7 @@ export default function MiningDashboardPage() {
     <div className="container mx-auto max-w-5xl px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">UCoin Mining</h1>
+          <h1 className="text-2xl font-bold">UCoin Rewards</h1>
           <p className="text-sm text-muted-foreground">
             Proof-of-Action rewards. Coins are credited only after your action is verified end-to-end.
           </p>

@@ -20,7 +20,7 @@ export function MiningHistory({ completions }: MiningHistoryProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Mining History</CardTitle>
+        <CardTitle className="text-lg">Reward History</CardTitle>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[400px] pr-4">
@@ -62,7 +62,7 @@ export function MiningHistory({ completions }: MiningHistoryProps) {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Coins className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No mining activity yet</p>
+              <p>No reward activity yet</p>
               <p className="text-sm">Complete tasks to start earning UCoin!</p>
             </div>
           )}
