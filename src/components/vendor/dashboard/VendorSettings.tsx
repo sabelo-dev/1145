@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateCatalogueCache } from "@/services/products";
 import { PaymentMethodDialog } from "./dialogs/PaymentMethodDialog";
 import { 
   Store, 
@@ -122,7 +123,7 @@ const VendorSettings = () => {
       }
 
       // Update store data using the store ID
-      const { error } = await supabase
+      const { data: saved, error } = await supabase
         .from('stores')
         .update({
           name: storeData.name,
@@ -130,7 +131,9 @@ const VendorSettings = () => {
           description: storeData.description,
           logo_url: storeData.logo_url
         })
-        .eq('id', storeData.id);
+        .eq('id', storeData.id)
+        .select('slug')
+        .single();
 
       if (error) {
         // Check if it's a duplicate slug error
@@ -145,12 +148,17 @@ const VendorSettings = () => {
         throw error;
       }
 
-      // Update local state with the generated slug
-      setStoreData(prev => ({ ...prev, slug }));
+      // A rename moves the store link with it (the database does this, and
+      // keeps old links redirecting), so show the link that was actually saved.
+      const savedSlug = saved?.slug || slug;
+      setStoreData(prev => ({ ...prev, slug: savedSlug }));
+      invalidateCatalogueCache();
 
       toast({
         title: "Settings Saved",
-        description: "Store settings have been updated successfully.",
+        description: savedSlug !== slug
+          ? `Your store link is now /store/${savedSlug}. Old links still open your store.`
+          : "Store settings have been updated successfully.",
       });
     } catch (error) {
       console.error('Error saving store settings:', error);

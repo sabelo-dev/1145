@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateCatalogueCache } from "@/services/products";
 import { uploadFileToStorage } from "@/integrations/supabase/storage";
 import {
   Camera, Edit3, Save, X, Store, Upload, Crown, Medal, Award, Star,
@@ -173,7 +174,9 @@ const VendorShopfront = () => {
       let currentStoreId = storeData?.id;
 
       if (storeData) {
-        const { error } = await supabase
+        // A rename moves the store link with it (done in the database, which
+        // also keeps old links redirecting); read back the saved row.
+        const { data: updatedStore, error } = await supabase
           .from('stores')
           .update({
             name: formData.name,
@@ -183,8 +186,12 @@ const VendorShopfront = () => {
             shipping_policy: formData.shipping_policy,
             return_policy: formData.return_policy,
           })
-          .eq('id', storeData.id);
+          .eq('id', storeData.id)
+          .select()
+          .single();
         if (error) throw error;
+        setStoreData(updatedStore);
+        invalidateCatalogueCache();
       } else {
         let slug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         const { data: existing } = await supabase.from('stores').select('slug').eq('slug', slug).maybeSingle();

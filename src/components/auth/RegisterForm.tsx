@@ -13,6 +13,7 @@ import AccountTypeSelection from "./register/AccountTypeSelection";
 import TermsAndConditions from "./register/TermsAndConditions";
 import SocialLoginButtons from "./register/SocialLoginButtons";
 import { supabase } from "@/integrations/supabase/client";
+import { recalledReferralCode } from "@/lib/referral";
 
 const RegisterForm: React.FC = () => {
   const { register: registerUser, isLoading } = useAuth();
@@ -21,7 +22,7 @@ const RegisterForm: React.FC = () => {
   const [searchParams] = useSearchParams();
   const state = location.state as any;
   
-  const [referralCode, setReferralCode] = useState(searchParams.get('ref') || '');
+  const [referralCode, setReferralCode] = useState(searchParams.get('ref') || recalledReferralCode());
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
   const [checkingReferral, setCheckingReferral] = useState(false);
 

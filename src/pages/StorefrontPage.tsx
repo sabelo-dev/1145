@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Store, ShoppingBag, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -33,6 +33,7 @@ interface StorefrontPageProps {
 const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceWhiteLabel }) => {
   const { storeSlug: urlStoreSlug } = useParams<{ storeSlug: string }>();
   const storeSlug = domainStoreSlug || urlStoreSlug;
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [store, setStore] = useState<any>(null);
   const [customization, setCustomization] = useState<any>(null);
@@ -51,7 +52,14 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
           fetchProductsByStore(storeSlug),
         ]);
         setStore(storeData);
-        setProducts(productsData);
+        if (storeData && storeData.slug !== storeSlug) {
+          // Reached through a former address (the store was renamed): load its
+          // products and move the browser to the current link.
+          setProducts(await fetchProductsByStore(storeData.slug));
+          if (!domainStoreSlug) navigate(`/store/${storeData.slug}`, { replace: true });
+        } else {
+          setProducts(productsData);
+        }
 
         if (storeData) {
           const vendor = storeData.vendors;

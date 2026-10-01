@@ -78,6 +78,71 @@ interface SocialPost {
   external_post_ids?: Record<string, string> | null;
   external_post_url?: string | null;
   updated_at?: string | null;
+  product_id?: string | null;
+  /** Product photo, used by Facebook/Instagram when the post has no media of its own. */
+  fallback_media?: string[];
+  /** Product page link carrying the author's referral code. */
+  share_link?: string | null;
+}
+
+const SITE_URL = (Deno.env.get("APP_URL") || Deno.env.get("SITE_URL") || "https://1145.io").replace(/\/+$/, "");
+
+function postMedia(post: SocialPost): string[] {
+  return Array.isArray(post.media_urls) ? post.media_urls.filter(Boolean) : [];
+}
+
+/** The post's own media, or the promoted product's photo when it has none. */
+function mediaOrProductPhoto(post: SocialPost): string[] {
+  const own = postMedia(post);
+  return own.length > 0 ? own : post.fallback_media ?? [];
+}
+
+/** Post text with the share link on its own line; the text is trimmed, never the link. */
+function captionWithLink(post: SocialPost, maxLength?: number): string {
+  const text = post.content?.trim() || "";
+  const link = post.share_link;
+  if (!link || text.includes(link.split("?")[0])) {
+    return maxLength ? text.slice(0, maxLength) : text;
+  }
+  const suffix = `${text ? "\n\n" : ""}Shop here: ${link}`;
+  return (maxLength ? text.slice(0, Math.max(maxLength - suffix.length, 0)) : text) + suffix;
+}
+
+/*
+ * Product promotions: the product's photo stands in for missing media and the
+ * caption gets the product link with the author's referral code.
+ */
+async function withProductDetails(
+  supabase: any,
+  post: SocialPost,
+): Promise<SocialPost> {
+  if (!post.product_id) return post;
+
+  const [productRes, imageRes, codeRes] = await Promise.all([
+    supabase.from("products").select("slug").eq("id", post.product_id).maybeSingle(),
+    supabase.from("product_images").select("image_url").eq("product_id", post.product_id)
+      .order("position", { ascending: true }).limit(1),
+    supabase.rpc("get_or_create_referral_code", { p_user_id: post.created_by }),
+  ]);
+
+  if (productRes.error || imageRes.error) {
+    console.error("Product lookup failed:", productRes.error || imageRes.error);
+  }
+  if (codeRes.error) {
+    console.error("Referral code lookup failed:", codeRes.error);
+  }
+
+  const slug = productRes.data?.slug;
+  const image = imageRes.data?.[0]?.image_url;
+  const code = typeof codeRes.data === "string" ? codeRes.data : "";
+
+  return {
+    ...post,
+    fallback_media: typeof image === "string" && /^https:\/\//i.test(image) ? [image] : [],
+    share_link: slug
+      ? `${SITE_URL}/product/${encodeURIComponent(slug)}${code ? `?ref=${encodeURIComponent(code)}` : ""}`
+      : null,
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -334,15 +399,66 @@ async function publishToFacebook(
   );
 
   const pageId = tokenData.page_id;
-  const message = post.content?.trim() || "";
-  const mediaUrls = Array.isArray(post.media_urls)
-    ? post.media_urls.filter(Boolean)
-    : [];
+  const message = captionWithLink(post);
+  const mediaUrls = mediaOrProductPhoto(post);
 
   if (!message && mediaUrls.length === 0) {
     throw new Error(
       "Facebook post must contain text or media",
     );
+  }
+
+  /*
+   * One image: publish it as a photo post, caption included. This is the
+   * plain path and does not depend on attaching unpublished photos to a
+   * feed post.
+   */
+  if (mediaUrls.length === 1 && !isVideoUrl(mediaUrls[0])) {
+    const photoParams = new URLSearchParams({
+      url: mediaUrls[0],
+      access_token: pageAccessToken,
+    });
+    if (message) {
+      photoParams.set("caption", message);
+    }
+
+    const photoResponse = await fetch(
+      `https://graph.facebook.com/${META_GRAPH_VERSION}/${pageId}/photos`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded",
+        },
+        body: photoParams,
+      },
+    );
+
+    const photoData = await readJson(photoResponse);
+
+    if (!photoResponse.ok || photoData?.error || !photoData?.id) {
+      console.error(
+        "Facebook photo post failed:",
+        photoData,
+      );
+
+      throw platformApiError(
+        "Facebook",
+        photoResponse,
+        photoData,
+      );
+    }
+
+    const photoPostId = photoData.post_id || photoData.id;
+
+    return {
+      platform: "facebook",
+      success: true,
+      external_post_id: photoPostId,
+      external_post_url:
+        (await fetchPermalink(photoPostId, "permalink_url", pageAccessToken)) ||
+        `https://www.facebook.com/${photoPostId}`,
+    };
   }
 
   const attachedMedia: string[] = [];
@@ -394,6 +510,11 @@ async function publishToFacebook(
 
   if (message) {
     params.set("message", message);
+  }
+
+  // Text-only product post: let Facebook render the product page as a link card.
+  if (attachedMedia.length === 0 && post.share_link) {
+    params.set("link", post.share_link);
   }
 
   attachedMedia.forEach((mediaId, index) => {
@@ -669,16 +790,16 @@ async function publishToInstagram(
     );
   }
 
-  const mediaUrls = Array.isArray(post.media_urls)
-    ? post.media_urls.filter(Boolean)
-    : [];
+  const mediaUrls = mediaOrProductPhoto(post);
+  const caption = captionWithLink(post, 2200);
 
   if (mediaUrls.length === 0) {
     return {
       platform: "instagram",
       success: false,
-      error:
-        "Instagram publishing requires at least one image or video",
+      error: post.product_id
+        ? "Instagram needs an image or video, and the selected product has no photo to use"
+        : "Instagram publishing requires at least one image or video",
     };
   }
 
@@ -697,7 +818,7 @@ async function publishToInstagram(
         igAccountId,
         accessToken,
         mediaUrls[0],
-        post.content?.trim() || undefined,
+        caption || undefined,
         false,
         graphBase,
       );
@@ -755,7 +876,7 @@ async function publishToInstagram(
       body: JSON.stringify({
         media_type: "CAROUSEL",
         children,
-        caption: post.content?.trim() || "",
+        caption,
         access_token: accessToken,
       }),
     },
@@ -832,7 +953,7 @@ async function publishToTwitter(
     };
   }
 
-  const text = post.content?.trim() || "";
+  const text = captionWithLink(post, 280);
 
   if (!text) {
     throw new Error(
@@ -922,7 +1043,7 @@ async function publishToLinkedIn(
     };
   }
 
-  const text = post.content?.trim() || "";
+  const text = captionWithLink(post, 3000);
 
   if (!text) {
     throw new Error(
@@ -1223,7 +1344,8 @@ Deno.serve(async (req) => {
         published_at,
         external_post_ids,
         external_post_url,
-        updated_at
+        updated_at,
+        product_id
       `)
       .eq("id", postId);
 
@@ -1254,8 +1376,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const socialPost =
-      post as SocialPost;
+    const socialPost = await withProductDetails(
+      supabase,
+      post as SocialPost,
+    );
 
     // Tokens are always the author's own connections.
     userId = socialPost.created_by;
@@ -1468,6 +1592,15 @@ Deno.serve(async (req) => {
     )?.external_post_url;
     if (!socialPost.external_post_url && firstUrl) {
       updatePayload.external_post_url = firstUrl;
+    }
+
+    // Keep the product photo on the post so the dashboard shows what went out.
+    if (
+      postMedia(socialPost).length === 0 &&
+      socialPost.fallback_media?.length &&
+      ["facebook", "instagram"].some((p) => externalPostIds[p] && !existingExternalIds[p])
+    ) {
+      updatePayload.media_urls = socialPost.fallback_media;
     }
 
     if (

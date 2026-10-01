@@ -158,7 +158,7 @@ export const fetchProductsByStore = async (storeSlug: string): Promise<Product[]
  */
 export const fetchStoreBySlug = async (storeSlug: string) => {
   try {
-    const { data: store, error } = await supabase
+    const bySlug = (slug: string) => supabase
       .from('stores')
       .select(`
         *,
@@ -170,8 +170,19 @@ export const fetchStoreBySlug = async (storeSlug: string) => {
           subscription_tier
         )
       `)
-      .eq('slug', storeSlug)
+      .eq('slug', slug)
       .maybeSingle();
+
+    let { data: store, error } = await bySlug(storeSlug);
+
+    // A renamed store keeps answering at its former addresses. The caller can
+    // tell from store.slug that it was reached through an old one.
+    if (!store && !error) {
+      const { data: currentSlug } = await (supabase.rpc as any)('resolve_store_slug', { p_slug: storeSlug });
+      if (typeof currentSlug === 'string' && currentSlug !== storeSlug) {
+        ({ data: store, error } = await bySlug(currentSlug));
+      }
+    }
 
     if (error) {
       console.error('Error fetching store:', error);
@@ -192,6 +203,11 @@ export const fetchStoreBySlug = async (storeSlug: string) => {
 // catalogue; share one request for a short window instead of refetching it.
 const CATALOGUE_TTL_MS = 30_000;
 let catalogueCache: { at: number; promise: Promise<Product[]> } | null = null;
+
+/** Drop the shared catalogue so the next read reflects a change just saved (e.g. a store rename). */
+export const invalidateCatalogueCache = () => {
+  catalogueCache = null;
+};
 
 export const fetchAllProducts = async (): Promise<Product[]> => {
   // Callers sort in place, so each gets its own copy of the shared list.

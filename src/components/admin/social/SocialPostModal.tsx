@@ -99,7 +99,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       // rows use 'active'. Load the whole live catalogue, not a first page.
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, slug')
+        .select('id, name, slug, product_images(image_url, position)')
         .in('status', ['approved', 'active'])
         .order('name', { ascending: true })
         .limit(1000);
@@ -155,7 +155,13 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
   };
 
   const manualOnlyPlatforms = selectedPlatforms.filter((p) => !API_PLATFORMS.has(p));
-  const instagramNeedsMedia = selectedPlatforms.includes('instagram') && mediaUrls.length === 0;
+  // A product promotion without media goes out with the product's own photo (see social-publish).
+  const selectedProduct = contentType === 'product' ? products.find((p) => p.id === productId) : undefined;
+  const productPhoto: string | undefined = [...(selectedProduct?.product_images ?? [])]
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))[0]?.image_url;
+  const usesProductPhoto = mediaUrls.length === 0 && !!productPhoto;
+  const instagramNeedsMedia =
+    selectedPlatforms.includes('instagram') && mediaUrls.length === 0 && !usesProductPhoto;
 
   const handlePlatformToggle = (platformId: string) => {
     setSelectedPlatforms((prev) =>
@@ -316,6 +322,9 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Your share link to this product is added to the end of the post when it is published.
+              </p>
             </div>
           )}
 
@@ -353,6 +362,14 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
                 ))}
               </div>
             )}
+            {usesProductPhoto && (
+              <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-2">
+                <img src={productPhoto} alt="" className="h-12 w-12 shrink-0 rounded-md border object-cover" />
+                <p className="min-w-0 text-xs text-muted-foreground">
+                  No media added, so the product photo will be used on Facebook and Instagram. Add your own to replace it.
+                </p>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-2">
               <Button type="button" variant="outline" asChild disabled={isUploading || mediaUrls.length >= 10}>
                 <label className="cursor-pointer">
@@ -378,7 +395,9 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
                 Add
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Up to 10 items. Instagram needs at least one image or video (JPEG recommended).</p>
+            <p className="text-xs text-muted-foreground">
+              Up to 10 items. Instagram needs at least one image or video (JPEG recommended); product posts can use the product photo.
+            </p>
           </div>
 
           <div className="space-y-2">
