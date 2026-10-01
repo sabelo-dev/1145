@@ -40,7 +40,7 @@ export function UCoinDashboard() {
         <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-5">
           <TabsTrigger value="mining" className="flex items-center gap-2">
             <Pickaxe className="h-4 w-4" />
-            <span className="hidden sm:inline">Earn</span>
+            <span className="hidden sm:inline">Tasks</span>
           </TabsTrigger>
           <TabsTrigger value="transfer" className="flex items-center gap-2">
             <Send className="h-4 w-4" />
@@ -52,7 +52,7 @@ export function UCoinDashboard() {
           </TabsTrigger>
           <TabsTrigger value="earn" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
-            <span className="hidden sm:inline">Earn</span>
+            <span className="hidden sm:inline">How to earn</span>
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />

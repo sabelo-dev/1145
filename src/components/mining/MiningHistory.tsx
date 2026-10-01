@@ -39,7 +39,7 @@ export function MiningHistory({ completions }: MiningHistoryProps) {
                       <StatusIcon className={`h-5 w-5 ${status.color}`} />
                       <div>
                         <p className="font-medium text-sm">
-                          {completion.task?.title || 'Mining Task'}
+                          {completion.task?.title || 'Reward task'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {format(new Date(completion.created_at), 'MMM d, yyyy h:mm a')}

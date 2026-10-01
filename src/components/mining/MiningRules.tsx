@@ -18,7 +18,7 @@ export function MiningRules({ tiers, tasks, affiliateStatus }: MiningRulesProps)
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ScrollText className="h-5 w-5 text-primary" />
-            How mining works
+            How rewards work
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">

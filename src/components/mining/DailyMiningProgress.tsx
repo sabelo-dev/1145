@@ -17,7 +17,7 @@ export function DailyMiningProgress({ dailyLimit }: DailyMiningProgressProps) {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Pickaxe className="h-5 w-5" />
-          Today's Mining
+          Today's Earnings
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -25,7 +25,7 @@ export function DailyMiningProgress({ dailyLimit }: DailyMiningProgressProps) {
           <div>
             <p className="text-3xl font-bold">{dailyLimit.total_mined}</p>
             <p className="text-sm text-muted-foreground">
-              of {dailyLimit.daily_cap} UCoin mined
+              of {dailyLimit.daily_cap} UCoin earned
             </p>
           </div>
           <div className="text-right">

@@ -41,7 +41,7 @@ const UCoinPayPanel: React.FC<UCoinPayPanelProps> = ({ total, ucoinToApply, onCh
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Every UCoin you mined is worth {money(UCOIN_RAND_VALUE)}. Use them here and pay the rest with money.
+          Every UCoin you earned is worth {money(UCOIN_RAND_VALUE)}. Use them here and pay the rest with money.
         </p>
 
         <div className="space-y-2">

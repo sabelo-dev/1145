@@ -419,13 +419,18 @@ Deno.serve(async (req) => {
       }
 
       // Get user info
-      const userResponse = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username', {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-        },
-      });
-      const tiktokUserData = await userResponse.json();
-      const tiktokUser = tiktokUserData?.data?.user || {};
+      // `username` needs the user.info.profile scope; without it TikTok
+      // rejects the whole request, so fall back to the basic fields.
+      const tiktokUserInfo = async (fields: string) => {
+        const res = await fetch(`https://open.tiktokapis.com/v2/user/info/?fields=${fields}`, {
+          headers: { 'Authorization': `Bearer ${tokenData.access_token}` },
+        });
+        const body = await res.json().catch(() => ({}));
+        return body?.data?.user;
+      };
+      const tiktokUser = (await tiktokUserInfo('open_id,union_id,avatar_url,display_name,username'))
+        ?? (await tiktokUserInfo('open_id,union_id,avatar_url,display_name'))
+        ?? {};
       
       accountInfo = {
         id: tokenData.open_id || tiktokUser.open_id,

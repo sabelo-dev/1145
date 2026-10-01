@@ -78,7 +78,7 @@ export default function MiningDashboardPage() {
         <div className="text-center py-12 text-muted-foreground">Loading…</div>
       ) : filtered.length === 0 ? (
         <Card className="p-8 text-center text-muted-foreground">
-          No mining requests yet. Complete actions like verified purchases, referrals, or reviews to earn UCoin.
+          No reward requests yet. Complete actions like verified purchases, referrals, or reviews to earn UCoin.
         </Card>
       ) : (
         <div className="space-y-3">

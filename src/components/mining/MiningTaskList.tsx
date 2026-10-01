@@ -373,6 +373,8 @@ export function MiningTaskList({
                   <p>You'll log in on Instagram to prove you own this account.</p>
                   <p>It must be a Business or Creator account (Instagram Settings, then Account type and tools).</p>
                 </>
+              ) : connectingPlatform === 'tiktok' ? (
+                <p>You'll log in on TikTok to prove you own this account.</p>
               ) : (
                 <>
                   <p>You'll sign in with Facebook to prove you own this account.</p>
@@ -417,7 +419,7 @@ export function MiningTaskList({
               {isConnecting
                 ? 'Connecting...'
                 : connectingPlatform && OAUTH_PLATFORMS.has(connectingPlatform)
-                  ? `Continue with ${connectingPlatform === 'instagram' ? 'Instagram' : 'Facebook'}`
+                  ? `Continue with ${platformNames[connectingPlatform] ?? 'Facebook'}`
                   : 'Connect Account'}
             </Button>
           </DialogFooter>

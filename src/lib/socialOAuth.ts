@@ -3,7 +3,7 @@ import { APP_LINK_BASE, getAppUrl } from "@/lib/appUrl";
 import { isNative, openExternal } from "@/lib/native";
 
 /** Platforms connected through a real provider login instead of a typed handle. */
-export const OAUTH_PLATFORMS = new Set(["facebook", "instagram"]);
+export const OAUTH_PLATFORMS = new Set(["facebook", "instagram", "tiktok"]);
 
 /**
  * Start the provider login for a social account (via the social-oauth edge

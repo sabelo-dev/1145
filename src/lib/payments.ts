@@ -29,8 +29,11 @@ const toBase64Url = (text: string) =>
 export async function submitPayFastForm(action: string, formData: Record<string, unknown>) {
   if (!PAYFAST_PROCESS_URLS.includes(action)) throw new Error("Unexpected payment address");
 
+  // Blank fields are not part of the signature, so they are not sent either.
+  const fields = Object.entries(formData).filter(([, value]) => value !== null && value !== undefined && String(value) !== "");
+
   if (isNative()) {
-    const payload = toBase64Url(JSON.stringify({ action, fields: Object.entries(formData) }));
+    const payload = toBase64Url(JSON.stringify({ action, fields }));
     await openExternal(`${getAppUrl("/pay")}#${payload}`);
     return;
   }
@@ -39,11 +42,11 @@ export async function submitPayFastForm(action: string, formData: Record<string,
   form.method = "POST";
   form.action = action;
   form.style.display = "none";
-  for (const [key, value] of Object.entries(formData)) {
+  for (const [key, value] of fields) {
     const input = document.createElement("input");
     input.type = "hidden";
     input.name = key;
-    input.value = String(value ?? "");
+    input.value = String(value);
     form.appendChild(input);
   }
   document.body.appendChild(form);

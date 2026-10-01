@@ -119,7 +119,7 @@ const MerchantUCoinEarnings: React.FC = () => {
         <div className="min-w-0">
           <h3 className="text-lg font-semibold truncate">UCoin rewards</h3>
           <p className="text-sm text-muted-foreground truncate">
-            What you earned from mining and promoting, alongside your sales
+            What you earned from rewards and promoting, alongside your sales
           </p>
         </div>
         <div className="header-actions">

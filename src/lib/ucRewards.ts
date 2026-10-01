@@ -43,11 +43,11 @@ export async function fetchRewardRules(): Promise<RewardRule[]> {
  * (added by 20261001090000_uc_ecosystem.sql).
  */
 export async function callRewardRpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
-  const rpc = supabase.rpc as unknown as (
-    name: string,
-    params?: Record<string, unknown>,
-  ) => Promise<{ data: T | null; error: { message: string } | null }>;
-  const { data, error } = await rpc(fn, args);
+  // Call it on the client: a detached supabase.rpc loses `this`.
+  const client = supabase as unknown as {
+    rpc: (name: string, params?: Record<string, unknown>) => Promise<{ data: T | null; error: { message: string } | null }>;
+  };
+  const { data, error } = await client.rpc(fn, args);
   if (error) throw new Error(error.message);
   return data as T;
 }

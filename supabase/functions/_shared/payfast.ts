@@ -13,9 +13,10 @@ export interface PayFastConfig {
 }
 
 export function getPayFastConfig(): PayFastConfig | null {
-  const merchantId = Deno.env.get("PAYFAST_MERCHANT_ID") ?? "";
-  const merchantKey = Deno.env.get("PAYFAST_MERCHANT_KEY") ?? "";
-  const passphrase = Deno.env.get("PAYFAST_PASSPHRASE") ?? "";
+  // Trimmed: a space or newline pasted with a secret breaks every signature.
+  const merchantId = (Deno.env.get("PAYFAST_MERCHANT_ID") ?? "").trim();
+  const merchantKey = (Deno.env.get("PAYFAST_MERCHANT_KEY") ?? "").trim();
+  const passphrase = (Deno.env.get("PAYFAST_PASSPHRASE") ?? "").trim();
   if (!merchantId || !merchantKey || !passphrase) {
     console.error("PayFast is not configured: set PAYFAST_MERCHANT_ID, PAYFAST_MERCHANT_KEY and PAYFAST_PASSPHRASE");
     return null;
@@ -58,7 +59,6 @@ function paramString(entries: Array<[string, unknown]>, includeEmpty = false): s
     .join("&");
 }
 
-/** Signature for an outgoing payment form (keys sorted, as all callers already use). */
 /**
  * Signature for the checkout (custom integration) form. PayFast signs the
  * non-blank fields in the order its docs list them (merchant, customer,
