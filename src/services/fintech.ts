@@ -90,8 +90,9 @@ export const fintech = {
     return data as WalletBundle;
   },
 
-  async startLinkCard(): Promise<void> {
-    const { data, error } = await supabase.functions.invoke("fintech-link-card", { body: {} });
+  /** Verify a card on PayFast (R1), then come back to `returnPath` (default: the wallet). */
+  async startLinkCard(returnPath?: string): Promise<void> {
+    const { data, error } = await supabase.functions.invoke("fintech-link-card", { body: { returnPath } });
     if (error) throw error;
     if (!data?.success) throw new Error(data?.error || "Failed to start card linking");
     await submitPayFastForm(data.action, data.formData);

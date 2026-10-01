@@ -25,7 +25,10 @@ const VendorSettings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [vendorId, setVendorId] = useState<string | null>(null);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  // Back from PayFast card verification (?linked=1): reopen the payout dialog.
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(
+    () => new URLSearchParams(window.location.search).has("linked"),
+  );
   const [storeData, setStoreData] = useState({
     id: '',
     name: '',

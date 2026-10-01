@@ -22,8 +22,12 @@ serve(async (req) => {
     const user = u.user;
 
     const body = await req.json().catch(() => ({}));
-    const returnUrl = body.returnUrl || payfastReturnUrl(req.headers.get("origin"), "/wallet?linked=1");
-    const cancelUrl = body.cancelUrl || payfastReturnUrl(req.headers.get("origin"), "/wallet?linked=0");
+    // Where to come back to: a path inside the app (default: the wallet).
+    const requested = typeof body.returnPath === "string" ? body.returnPath : "";
+    const returnPath = /^\/(?!\/)[^\s]*$/.test(requested) ? requested : "/wallet";
+    const withFlag = (flag: string) => `${returnPath}${returnPath.includes("?") ? "&" : "?"}linked=${flag}`;
+    const returnUrl = payfastReturnUrl(req.headers.get("origin"), withFlag("1"));
+    const cancelUrl = payfastReturnUrl(req.headers.get("origin"), withFlag("0"));
 
     const payfast = getPayFastConfig();
     if (!payfast) return json({ success: false, error: "Payment gateway not configured properly" }, 500);
