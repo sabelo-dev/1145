@@ -40,7 +40,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({ syncStatuses, 
             Platform Sync
           </CardTitle>
           {onSync && (
-            <Button variant="outline" size="sm" onClick={() => onSync()} disabled={!!syncing}>
+            <Button variant="outline" size="sm" className="shrink-0 min-w-fit" onClick={() => onSync()} disabled={!!syncing}>
               <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing === 'all' ? 'animate-spin' : ''}`} />
               Sync now
             </Button>

@@ -149,20 +149,22 @@ export const InfluencerSettingsTab: React.FC<InfluencerSettingsTabProps> = ({ pr
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
+      <div className="header-row">
+        <div className="header-content">
           <h2 className="text-2xl font-bold">Settings</h2>
           <p className="text-muted-foreground">Your influencer profile and personal details</p>
         </div>
         {hasChanges && (
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Save Changes
-          </Button>
+          <div className="header-actions">
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Save Changes
+            </Button>
+          </div>
         )}
       </div>
 

@@ -54,17 +54,21 @@ export const MyPostsPanel: React.FC<MyPostsPanelProps> = ({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-        <div className="min-w-0">
-          <CardTitle className="text-base sm:text-lg">My Posts</CardTitle>
-          <CardDescription>Drafts, scheduled and published posts you created here</CardDescription>
+      <CardHeader>
+        <div className="header-row">
+          <div className="header-content">
+            <CardTitle className="text-base sm:text-lg">My Posts</CardTitle>
+            <CardDescription className="mt-1">Drafts, scheduled and published posts you created here</CardDescription>
+          </div>
+          {canPost && (
+            <div className="header-actions">
+              <Button size="sm" onClick={onCreate}>
+                <Sparkles className="h-4 w-4" />
+                New post
+              </Button>
+            </div>
+          )}
         </div>
-        {canPost && (
-          <Button size="sm" onClick={onCreate}>
-            <Sparkles className="h-4 w-4 mr-2" />
-            New post
-          </Button>
-        )}
       </CardHeader>
       <CardContent className="space-y-3">
         {posts.length === 0 ? (
@@ -165,27 +169,28 @@ export const MyPostsPanel: React.FC<MyPostsPanelProps> = ({
                   </ul>
                 )}
 
-                <div className="flex flex-wrap gap-2">
+                {/* `grow` (not flex-1) keeps the content-based wrap, then fills the row on phones */}
+                <div className="flex flex-wrap gap-2 [&>*]:grow sm:[&>*]:grow-0">
                   {canPublish && canPost && (
                     <Button size="sm" onClick={() => handlePublish(post.id)} disabled={isPublishing}>
                       {isPublishing ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Send className="h-4 w-4 mr-2" />
+                        <Send className="h-4 w-4" />
                       )}
                       {post.status === 'failed' || post.status === 'partial' ? 'Retry publish' : 'Publish now'}
                     </Button>
                   )}
                   {post.external_post_url && (
-                    <Button size="sm" variant="outline" asChild>
+                    <Button size="sm" variant="outline" className="tap-target" asChild>
                       <a href={post.external_post_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
+                        <ExternalLink className="h-4 w-4" />
                         View
                       </a>
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => onEdit(post)} disabled={isPublishing}>
-                    <Pencil className="h-4 w-4 mr-2" />
+                    <Pencil className="h-4 w-4" />
                     Edit
                   </Button>
                   <Button
@@ -195,7 +200,7 @@ export const MyPostsPanel: React.FC<MyPostsPanelProps> = ({
                     onClick={() => setToDelete(post)}
                     disabled={isPublishing}
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="h-4 w-4" />
                     Delete
                   </Button>
                 </div>

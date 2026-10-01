@@ -5,9 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Crown, LogOut, FileText, MessageCircle, BarChart3, DollarSign,
-  Settings, Link2, Loader2, RefreshCw, Sparkles, Bell, Send, Coins
+  Settings, Link2, Loader2, RefreshCw, Sparkles, Bell, Send, Coins, Store, ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
+import CartSheet from '@/components/shop/CartSheet';
+import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import { useInfluencer } from '@/hooks/useInfluencer';
 import { useInfluencerDashboard } from '@/hooks/useInfluencerDashboard';
 import { SocialPostModal } from '@/components/admin/social/SocialPostModal';
@@ -20,7 +23,7 @@ import { MyPostsPanel } from './dashboard/MyPostsPanel';
 import { InfluencerRewardsTab } from './dashboard/InfluencerRewardsTab';
 import { InfluencerAccountsTab } from './InfluencerAccountsTab';
 import { InfluencerSettingsTab } from './InfluencerSettingsTab';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { NormalizedPost } from '@/hooks/useInfluencerDashboard';
 import type { SocialMediaPost } from '@/types/influencer';
@@ -31,6 +34,8 @@ const InfluencerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { posts, profile, loading: legacyLoading, deletePost, publishPost, refreshPosts } = useInfluencer();
   const dashboard = useInfluencerDashboard();
+  const { cart, toggleCart, isCartOpen, setCartOpen } = useCart();
+  const cartCount = (cart?.items || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   const [activeTab, setActiveTab] = useUrlTab('feed');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,14 +75,14 @@ const InfluencerDashboard: React.FC = () => {
       {/* Premium Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/10 shrink-0">
                 <Crown className="h-6 w-6 text-primary" />
               </div>
-              <div>
-                <h1 className="text-lg font-bold">Influencer Hub</h1>
-                <p className="text-xs text-muted-foreground">
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold truncate">Influencer Hub</h1>
+                <p className="text-xs text-muted-foreground truncate">
                   {profile?.display_name || user?.name || user?.email}
                   {profile?.username && (
                     <span className="text-primary ml-1">@{profile.username}</span>
@@ -86,7 +91,7 @@ const InfluencerDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               {/* Quick Stats */}
               <div className="hidden md:flex items-center gap-3 mr-4">
                 {dashboard.stats.unhandledComments > 0 && (
@@ -100,6 +105,28 @@ const InfluencerDashboard: React.FC = () => {
                 </Badge>
               </div>
 
+              {/* This page sits outside the store layout, so it carries its own way back to the
+                  shop and cart. On phones the bottom nav covers the store, so Shop shows from md up. */}
+              <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
+                <Link to="/shop">
+                  <Store className="h-4 w-4" />
+                  Shop
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={toggleCart}
+                aria-label={cartCount ? `Cart, ${cartCount} items` : 'Cart'}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {cartCount > 0 && (
+                  <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand px-1 text-[11px] font-bold text-brand-foreground ring-2 ring-background">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -109,9 +136,9 @@ const InfluencerDashboard: React.FC = () => {
               >
                 <RefreshCw className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Logout</span>
+              <Button variant="outline" size="sm" className="px-3 sm:px-3.5" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only">Logout</span>
               </Button>
             </div>
           </div>
@@ -119,45 +146,46 @@ const InfluencerDashboard: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-4">
+      <main className="container mx-auto px-4 pt-4 pb-nav md:pb-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-8 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="feed" className="flex items-center gap-1.5 text-xs sm:text-sm">
+          {/* All 8 tabs share the width on phones (icon only) so none sit off-screen */}
+          <TabsList className="grid h-auto min-h-11 w-full grid-cols-8 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="feed" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Feed</span>
+              <span className="sr-only sm:not-sr-only">Feed</span>
             </TabsTrigger>
-            <TabsTrigger value="posts" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="posts" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm">
               <Send className="h-4 w-4" />
-              <span className="hidden sm:inline">Posts</span>
+              <span className="sr-only sm:not-sr-only">Posts</span>
             </TabsTrigger>
-            <TabsTrigger value="inbox" className="flex items-center gap-1.5 text-xs sm:text-sm relative">
+            <TabsTrigger value="inbox" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm relative">
               <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Inbox</span>
+              <span className="sr-only sm:not-sr-only">Inbox</span>
               {dashboard.stats.unhandledComments > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[11px] text-destructive-foreground flex items-center justify-center">
                   {dashboard.stats.unhandledComments > 9 ? '9+' : dashboard.stats.unhandledComments}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="engagement" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="engagement" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Engagement</span>
+              <span className="sr-only sm:not-sr-only">Engagement</span>
             </TabsTrigger>
-            <TabsTrigger value="money" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="money" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm">
               <DollarSign className="h-4 w-4" />
-              <span className="hidden sm:inline">Money</span>
+              <span className="sr-only sm:not-sr-only">Money</span>
             </TabsTrigger>
-            <TabsTrigger value="rewards" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="rewards" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm">
               <Coins className="h-4 w-4" />
-              <span className="hidden sm:inline">Rewards</span>
+              <span className="sr-only sm:not-sr-only">Rewards</span>
             </TabsTrigger>
-            <TabsTrigger value="accounts" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="accounts" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm">
               <Link2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Accounts</span>
+              <span className="sr-only sm:not-sr-only">Accounts</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="settings" className="flex items-center gap-1.5 px-0 text-xs sm:text-sm">
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Settings</span>
+              <span className="sr-only sm:not-sr-only">Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -307,6 +335,10 @@ const InfluencerDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <MobileBottomNav />
+
+      <CartSheet isOpen={isCartOpen} setIsOpen={setCartOpen} />
 
       <SocialPostModal
         open={isModalOpen}

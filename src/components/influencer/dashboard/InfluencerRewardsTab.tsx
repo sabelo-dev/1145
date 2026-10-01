@@ -25,23 +25,27 @@ export const InfluencerRewardsTab: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-          <div className="min-w-0">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Wallet className="h-5 w-5" />
-              UCoin wallet
-            </CardTitle>
-            <CardDescription>
-              Task rewards are credited here instantly.{' '}
-              <Link to="/rewards-guide" className="underline underline-offset-2">How rewards work</Link>
-            </CardDescription>
+        <CardHeader>
+          <div className="header-row">
+            <div className="header-content">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Wallet className="h-5 w-5 shrink-0" />
+                UCoin wallet
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Task rewards are credited here instantly.{' '}
+                <Link to="/rewards-guide" className="underline underline-offset-2">How rewards work</Link>
+              </CardDescription>
+            </div>
+            <div className="header-actions">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/wallet">
+                  Open wallet
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/wallet">
-              Open wallet
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Link>
-          </Button>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg bg-primary/10 p-4">

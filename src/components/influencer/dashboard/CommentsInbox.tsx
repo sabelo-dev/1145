@@ -226,7 +226,7 @@ export const CommentsInbox: React.FC<CommentsInboxProps> = ({
                                   rows={2}
                                   className="text-sm"
                                 />
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
                                   <Button
                                     size="sm"
                                     onClick={() => handleReply(comment.id)}
@@ -248,7 +248,7 @@ export const CommentsInbox: React.FC<CommentsInboxProps> = ({
 
                             {/* Action buttons */}
                             {!comment.is_handled && !isReplying && (
-                              <div className="flex gap-1 mt-2">
+                              <div className="flex flex-wrap gap-1 mt-2">
                                 <Button
                                   size="sm"
                                   variant="outline"

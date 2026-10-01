@@ -276,18 +276,21 @@ const ProductPage: React.FC = () => {
                     <ChevronRight className="h-5 w-5" />
                   </button>
                   {/* Dot indicators */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  {/* min-h-0 / p-0 opt out of the global 44px touch-target rule, which stretched these into tall bars */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex max-w-[calc(100%-1.5rem)] items-center gap-1.5 rounded-full bg-black/25 px-2 py-1.5 backdrop-blur-sm">
                     {product.images.map((_, idx) => (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => { setColorImage(null); setSelectedImage(idx); }}
                         className={cn(
-                          "h-2 w-2 rounded-full transition-all",
-                          selectedImage === idx 
-                            ? "bg-primary w-4" 
-                            : "bg-background/70 hover:bg-background"
+                          "h-1.5 w-1.5 min-h-0 shrink-0 rounded-full p-0 transition-all",
+                          selectedImage === idx && !colorImage
+                            ? "bg-white scale-125"
+                            : "bg-white/50 hover:bg-white/80"
                         )}
                         aria-label={`Go to image ${idx + 1}`}
+                        aria-current={selectedImage === idx && !colorImage}
                       />
                     ))}
                   </div>
@@ -295,11 +298,11 @@ const ProductPage: React.FC = () => {
               )}
             </div>
             {product.images && product.images.length > 0 && (
-              <div className="flex space-x-2 overflow-auto pb-2">
+              <div className="flex space-x-2 overflow-x-auto no-scrollbar p-0.5 pb-2">
                 {product.images.map((image, idx) => (
                 <div
                   key={idx}
-                  className={`relative w-20 h-20 cursor-pointer rounded border ${
+                  className={`relative h-14 w-14 sm:h-20 sm:w-20 shrink-0 cursor-pointer overflow-hidden rounded-md border ${
                     selectedImage === idx
                       ? "ring-2 ring-primary"
                       : "hover:ring-1 hover:ring-muted-foreground/30"
