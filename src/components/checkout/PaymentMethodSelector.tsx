@@ -79,17 +79,17 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ control }
                     }`}
                     onClick={() => field.onChange(method.value)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value={method.value} id={method.value} />
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value={method.value} id={method.value} className="shrink-0" />
                         <FormLabel
                           htmlFor={method.value}
-                          className="flex items-center space-x-3 cursor-pointer flex-1"
+                          className="flex min-w-0 flex-1 cursor-pointer items-center gap-3"
                         >
-                          <Icon className={`h-6 w-6 ${method.iconColor}`} />
-                          <div>
-                            <div className="font-medium">{method.label}</div>
-                            <div className="text-sm text-muted-foreground">
+                          <Icon className={`h-5 w-5 shrink-0 sm:h-6 sm:w-6 ${method.iconColor}`} />
+                          <div className="min-w-0">
+                            <div className="font-medium leading-snug">{method.label}</div>
+                            <div className="text-xs font-normal leading-snug text-muted-foreground sm:text-sm">
                               {method.description}
                             </div>
                           </div>

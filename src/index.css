@@ -289,9 +289,13 @@
   }
 
   /* Apple HIG touch targets — 44px minimum for anything tappable.
-     Navigation links get it too (inline prose links are excluded). */
+     Navigation links get it too (inline prose links are excluded).
+     Radios, checkboxes and switches are <button>s too, but have a fixed shape:
+     stretching them turns circles into tall bars. Their row/label is the tap target.
+     (:where keeps the selector's specificity at a plain `button`.) */
   @media (pointer: coarse), (max-width: 767px) {
-    button, a[role="button"], [role="tab"], [role="switch"], .tap-target,
+    button:where(:not([role="radio"], [role="checkbox"], [role="switch"])),
+    a[role="button"], [role="tab"], .tap-target,
     nav a, header a, footer a, [role="menuitem"], [role="option"] {
       min-height: 44px;
     }

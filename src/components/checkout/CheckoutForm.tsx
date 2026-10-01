@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import UCoinPayPanel from "./UCoinPayPanel";
+import PromoCodePanel, { type AppliedPromo } from "./PromoCodePanel";
 import { UCOIN_RAND_VALUE } from "@/types/ucoin";
 import { useNavigate } from "react-router-dom";
 
@@ -58,11 +59,15 @@ interface SavedAddress {
 interface CheckoutFormProps {
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
+  promo: AppliedPromo | null;
+  onPromoChange: (promo: AppliedPromo | null) => void;
 }
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({
   isProcessing,
   setIsProcessing,
+  promo,
+  onPromoChange,
 }) => {
   const { cart, clearCart } = useCart();
   const { user } = useAuth();
@@ -171,6 +176,11 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
     fetchShippingCost();
   }, [cart?.subtotal, cart?.items]);
 
+  // Display-only: the edge function prices the order itself.
+  const orderTotal = Math.max((cart?.subtotal || 0) * 1.15 + shippingCost - (promo?.savings ?? 0), 0);
+  // A promo can shrink the total below UCoin already entered.
+  const ucoinApplied = Math.min(ucoinToApply, Math.floor(orderTotal / UCOIN_RAND_VALUE));
+
   const onSubmit = async (values: CheckoutFormValues) => {
     if (!cart?.items?.length) {
       toast({
@@ -195,7 +205,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
             customerFirstName: values.firstName,
             customerLastName: values.lastName,
             paymentMethod: values.paymentMethod,
-            ucoinToApply,
+            ucoinToApply: ucoinApplied,
+            promoCode: promo?.code,
             shippingAddress: {
               name: `${values.firstName} ${values.lastName}`,
               street: values.address,
@@ -284,10 +295,12 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           <ShippingForm control={form.control} />
         </div>
 
+        <PromoCodePanel promo={promo} onChange={onPromoChange} />
+
         <div>
           <UCoinPayPanel
-            total={(cart?.subtotal || 0) * 1.15 + shippingCost}
-            ucoinToApply={ucoinToApply}
+            total={orderTotal}
+            ucoinToApply={ucoinApplied}
             onChange={setUcoinToApply}
           />
         </div>
@@ -320,13 +333,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
               Calculating shipping...
             </>
           ) : (
-            `Complete Order - R${(() => {
-              const subtotal = cart?.subtotal || 0;
-              const shipping = shippingCost;
-              const tax = subtotal * 0.15;
-              const total = subtotal + shipping + tax;
-              return Math.max(total - ucoinToApply * UCOIN_RAND_VALUE, 0).toFixed(2);
-            })()}`
+            `Complete Order - R${Math.max(orderTotal - ucoinApplied * UCOIN_RAND_VALUE, 0).toFixed(2)}`
           )}
         </Button>
       </form>

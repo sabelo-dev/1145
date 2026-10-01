@@ -4,8 +4,13 @@ import { useCart } from "@/contexts/CartContext";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/utils";
 import { calculateShipping } from "@/utils/shippingCalculator";
+import type { AppliedPromo } from "./PromoCodePanel";
 
-const OrderSummary: React.FC = () => {
+interface OrderSummaryProps {
+  promo?: AppliedPromo | null;
+}
+
+const OrderSummary: React.FC<OrderSummaryProps> = ({ promo }) => {
   const { cart } = useCart();
   const [shipping, setShipping] = useState<number>(0);
   const [loadingShipping, setLoadingShipping] = useState(true);
@@ -36,7 +41,7 @@ const OrderSummary: React.FC = () => {
   }
 
   const tax = cart.subtotal * 0.15; // 15% VAT
-  const total = cart.subtotal + shipping + tax;
+  const total = Math.max(cart.subtotal + shipping + tax - (promo?.savings ?? 0), 0);
 
   return (
     <div>
@@ -90,6 +95,14 @@ const OrderSummary: React.FC = () => {
           <span>VAT (15%)</span>
           <span>{formatCurrency(tax)}</span>
         </div>
+        {promo && (
+          <div className="flex justify-between gap-3 text-sm text-green-700 dark:text-green-400">
+            <span className="min-w-0 truncate">Promo {promo.code}</span>
+            <span className="shrink-0">
+              {promo.savings > 0 ? `-${formatCurrency(promo.savings)}` : "Applied"}
+            </span>
+          </div>
+        )}
         <Separator className="my-2" />
         <div className="flex justify-between text-base font-medium">
           <span>Total</span>

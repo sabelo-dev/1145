@@ -12,6 +12,7 @@ const PLATFORM_MARKUP_PERCENTAGE = 5;
 const VAT_RATE = 0.15;
 const MAX_CART_LINES = 100;
 const MAX_LINE_QUANTITY = 99;
+const MAX_PROMO_CODE_LENGTH = 50;
 
 interface CartItemInput {
   productId: string;
@@ -32,6 +33,17 @@ interface PayFastPaymentData {
   shippingAddress?: Record<string, unknown>;
   cartItems?: CartItemInput[];
   ucoinToApply?: number;
+  promoCode?: string;
+  /** Price the cart (with any promo code) and return the totals without creating an order. */
+  quoteOnly?: boolean;
+}
+
+interface AppliedPromo {
+  code: string;
+  /** Rand taken off the pre-VAT subtotal. */
+  discount: number;
+  freeShipping: boolean;
+  promotionIds: string[];
 }
 
 interface PricedLine {
@@ -164,6 +176,69 @@ async function priceCart(
   }
 
   return { lines };
+}
+
+/**
+ * Validates a vendor promo code against the priced cart. Codes belong to a
+ * store, so a code only discounts that store's lines (and, if the promotion
+ * lists products, only those products).
+ */
+async function applyPromoCode(
+  db: SupabaseClient,
+  rawCode: string,
+  lines: PricedLine[],
+): Promise<AppliedPromo | { error: string }> {
+  const code = rawCode.trim().toUpperCase();
+  if (!code || code.length > MAX_PROMO_CODE_LENGTH) return { error: "That promo code is not valid." };
+
+  const { data: promos, error } = await db
+    .from("promotions")
+    .select("id, store_id, type, value, min_order_value, usage_limit, usage_count, start_date, end_date, status, products")
+    .eq("code", code);
+  if (error) {
+    console.error("Promo lookup failed:", error);
+    return { error: "Could not check that promo code. Please try again." };
+  }
+
+  const now = Date.now();
+  const live = (promos ?? []).filter((p: any) =>
+    p.status === "active" && new Date(p.start_date).getTime() <= now && new Date(p.end_date).getTime() >= now);
+  if (!live.length) return { error: "That promo code is not valid or has expired." };
+
+  const applied: AppliedPromo = { code, discount: 0, freeShipping: false, promotionIds: [] };
+  let failure = "That promo code doesn't apply to the items in your cart.";
+
+  for (const promo of live as any[]) {
+    const productIds: string[] = Array.isArray(promo.products) ? promo.products.map(String) : [];
+    const eligible = lines.filter((l) =>
+      l.storeId === promo.store_id && (productIds.length === 0 || productIds.includes(l.productId)));
+    if (!eligible.length) continue;
+
+    if (promo.usage_limit != null && Number(promo.usage_count ?? 0) >= Number(promo.usage_limit)) {
+      failure = "That promo code has reached its usage limit.";
+      continue;
+    }
+    const eligibleSubtotal = eligible.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0);
+    const minOrder = Number(promo.min_order_value ?? 0);
+    if (eligibleSubtotal < minOrder) {
+      failure = `Spend at least R${minOrder.toFixed(2)} on the qualifying items to use this code.`;
+      continue;
+    }
+
+    const value = Number(promo.value) || 0;
+    if (promo.type === "free_shipping") {
+      applied.freeShipping = true;
+    } else if (promo.type === "percentage") {
+      applied.discount += eligibleSubtotal * Math.min(Math.max(value, 0), 100) / 100;
+    } else {
+      applied.discount += Math.min(Math.max(value, 0), eligibleSubtotal);
+    }
+    applied.promotionIds.push(promo.id);
+  }
+
+  if (!applied.promotionIds.length) return { error: failure };
+  applied.discount = round2(applied.discount);
+  return applied;
 }
 
 /** Mirrors src/utils/shippingCalculator.ts. */
@@ -324,9 +399,40 @@ serve(async (req) => {
       if ("error" in priced) return json({ success: false, error: priced.error }, 400);
 
       const subtotal = priced.lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0);
-      const shipping = await calculateShipping(supabaseAdmin, subtotal, priced.lines.every((l) => l.downloadable));
-      const tax = subtotal * VAT_RATE;
-      const total = round2(subtotal + shipping + tax);
+      const baseShipping = await calculateShipping(supabaseAdmin, subtotal, priced.lines.every((l) => l.downloadable));
+
+      // Errors come back as 200 so the checkout page can show the reason.
+      let promo: AppliedPromo | null = null;
+      if (paymentData.promoCode && String(paymentData.promoCode).trim()) {
+        const result = await applyPromoCode(supabaseAdmin, String(paymentData.promoCode), priced.lines);
+        if ("error" in result) return json({ success: false, error: result.error });
+        promo = result;
+      }
+
+      // The promo comes off the subtotal before VAT; shipping bands use the full subtotal.
+      const discountedSubtotal = Math.max(subtotal - (promo?.discount ?? 0), 0);
+      const shipping = promo?.freeShipping ? 0 : baseShipping;
+      const tax = discountedSubtotal * VAT_RATE;
+      const total = round2(discountedSubtotal + shipping + tax);
+      const promoSavings = promo ? round2(round2(subtotal + baseShipping + subtotal * VAT_RATE) - total) : 0;
+
+      if (paymentData.quoteOnly) {
+        return json({
+          success: true,
+          quote: {
+            total,
+            promo: promo
+              ? { code: promo.code, discount: promo.discount, freeShipping: promo.freeShipping, savings: promoSavings }
+              : null,
+          },
+        });
+      }
+
+      const promoFields = {
+        promo_code: promo?.code ?? null,
+        promo_discount: promoSavings,
+        promotion_ids: promo?.promotionIds ?? [],
+      };
       const shippingAddress = paymentData.shippingAddress || {};
 
       // Reuse the user's latest pending order instead of creating duplicates.
@@ -343,17 +449,24 @@ serve(async (req) => {
 
       if (existingOrder) {
         orderId = existingOrder.id;
-        await supabaseAdmin.from("orders").update({
+        const { error: reuseError } = await supabaseAdmin.from("orders").update({
           total,
+          ...promoFields,
           shipping_address: shippingAddress,
           updated_at: new Date().toISOString(),
         }).eq("id", orderId);
+        if (reuseError) {
+          // Never carry on with a stale total: the customer would be charged a different amount.
+          console.error("Failed to update pending order:", reuseError);
+          return json({ success: false, error: "Failed to update your order" }, 500);
+        }
         await supabaseAdmin.from("order_items").delete().eq("order_id", orderId);
         console.log(`Reusing existing pending order: ${orderId}`);
       } else {
         const { data: newOrder, error: orderError } = await supabaseAdmin.from("orders").insert({
           user_id: user.id,
           total,
+          ...promoFields,
           status: "pending",
           payment_method: "payfast",
           payment_status: "pending",
@@ -443,7 +556,7 @@ serve(async (req) => {
         amount: amountDue,
         status: "initiated",
         reference: mPaymentId,
-        metadata: { ucoin_discount: ucoinDiscount, subtotal, shipping, tax },
+        metadata: { ucoin_discount: ucoinDiscount, subtotal, shipping, tax, promo_code: promo?.code ?? null, promo_savings: promoSavings },
       });
 
       await supabaseAdmin.from("orders").update({ payment_gateway: "payfast" }).eq("id", orderId);

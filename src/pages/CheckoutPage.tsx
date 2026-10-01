@@ -5,6 +5,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
 import OrderSummary from "@/components/checkout/OrderSummary";
+import type { AppliedPromo } from "@/components/checkout/PromoCodePanel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ShieldCheck, Lock, Truck } from "lucide-react";
@@ -15,6 +16,8 @@ const CheckoutPage: React.FC = () => {
   const { cart } = useCart();
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  // Shared so the form and the order summary show the same total.
+  const [promo, setPromo] = useState<AppliedPromo | null>(null);
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
@@ -51,7 +54,8 @@ const CheckoutPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      {/* Not sticky: the site header already is, and this bar slid underneath it. */}
+      <div className="border-b bg-card/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -100,6 +104,8 @@ const CheckoutPage: React.FC = () => {
             <CheckoutForm
               isProcessing={isProcessing}
               setIsProcessing={setIsProcessing}
+              promo={promo}
+              onPromoChange={setPromo}
             />
           </div>
 
@@ -108,7 +114,7 @@ const CheckoutPage: React.FC = () => {
             <div className="lg:sticky lg:top-24 space-y-4">
               <Card className="border-border/50 shadow-sm rounded-xl overflow-hidden">
                 <CardContent className="p-5">
-                  <OrderSummary />
+                  <OrderSummary promo={promo} />
                 </CardContent>
               </Card>
 
