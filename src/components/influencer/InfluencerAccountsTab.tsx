@@ -18,6 +18,7 @@ import { SOCIAL_PLATFORMS } from '@/types/influencer';
 import { format } from 'date-fns';
 import { AddAccountDialog } from './AddAccountDialog';
 import { SocialOAuthConnect } from './SocialOAuthConnect';
+import { BioLinkCard } from './BioLinkCard';
 import { toast } from 'sonner';
 import DeleteConfirmDialog from '@/components/admin/cms/DeleteConfirmDialog';
 
@@ -132,6 +133,8 @@ export const InfluencerAccountsTab: React.FC = () => {
           Connect and manage your social media accounts for content publishing
         </p>
       </div>
+
+      <BioLinkCard />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="w-full sm:w-auto">

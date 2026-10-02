@@ -83,6 +83,8 @@ interface SocialPost {
   fallback_media?: string[];
   /** Product page link carrying the author's referral code. */
   share_link?: string | null;
+  /** The author's referral code, for platforms where links are not clickable. */
+  referral_code?: string | null;
 }
 
 const SITE_URL = (Deno.env.get("APP_URL") || Deno.env.get("SITE_URL") || "https://1145.io").replace(/\/+$/, "");
@@ -106,6 +108,20 @@ function captionWithLink(post: SocialPost, maxLength?: number): string {
   }
   const suffix = `${text ? "\n\n" : ""}Shop here: ${link}`;
   return (maxLength ? text.slice(0, Math.max(maxLength - suffix.length, 0)) : text) + suffix;
+}
+
+/*
+ * Instagram never makes caption links clickable, so product posts point to the
+ * author's bio link (see BioLinkCard in the dashboard) instead of a pasted URL.
+ */
+function instagramCaption(post: SocialPost, maxLength: number): string {
+  const text = post.content?.trim() || "";
+  if (!post.share_link || /link in (my |the )?bio/i.test(text)) {
+    return text.slice(0, maxLength);
+  }
+  const code = post.referral_code ? ` · referral code ${post.referral_code}` : "";
+  const suffix = `${text ? "\n\n" : ""}Shop via the link in my bio${code}`;
+  return text.slice(0, Math.max(maxLength - suffix.length, 0)) + suffix;
 }
 
 /*
@@ -142,6 +158,7 @@ async function withProductDetails(
     share_link: slug
       ? `${SITE_URL}/product/${encodeURIComponent(slug)}${code ? `?ref=${encodeURIComponent(code)}` : ""}`
       : null,
+    referral_code: code || null,
   };
 }
 
@@ -791,7 +808,7 @@ async function publishToInstagram(
   }
 
   const mediaUrls = mediaOrProductPhoto(post);
-  const caption = captionWithLink(post, 2200);
+  const caption = instagramCaption(post, 2200);
 
   if (mediaUrls.length === 0) {
     return {

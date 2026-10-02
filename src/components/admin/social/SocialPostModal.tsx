@@ -323,7 +323,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Your share link to this product is added to the end of the post when it is published.
+                Your share link to this product is added to the end of the post when it is published. Instagram can't show clickable links, so there the post points to the link in your bio instead.
               </p>
             </div>
           )}
