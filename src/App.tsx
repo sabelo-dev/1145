@@ -22,6 +22,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleDashboardRedirect from "@/components/auth/RoleDashboardRedirect";
 import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
 import ScrollToTop from "@/components/ScrollToTop";
+import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
 // Lazy loaded pages
 const Index = lazyWithRetry(() => import("@/pages/Index"));
@@ -169,7 +170,7 @@ function AppRouter() {
         <Route path="/" element={<Layout />}>
           <Route path="shop" element={<ShopPage />} />
           <Route path="product/:slug" element={<ProductPage />} />
-          <Route path="marketplace" element={<Navigate to="/store/marketplace" replace />} />
+          <Route path="marketplace" element={<Navigate to={OFFICIAL_STORE_PATH} replace />} />
           <Route path="ucoin-market" element={<UCoinMarketPage />} />
           <Route path="ucoin-wallet" element={<UCoinWalletPage />} />
 

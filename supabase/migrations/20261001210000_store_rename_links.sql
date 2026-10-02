@@ -34,11 +34,12 @@ DECLARE
   v_n integer := 1;
 BEGIN
   -- Name changed and the caller did not pick a URL itself.
-  -- The official marketplace store keeps its address: the app links to it by slug.
+  -- The official store keeps its address: the app links to it by slug
+  -- (OFFICIAL_STORE_SLUG in src/lib/officialStore.ts).
   IF NEW.name IS DISTINCT FROM OLD.name
      AND NEW.slug IS NOT DISTINCT FROM OLD.slug
      AND OLD.slug IS NOT NULL
-     AND OLD.slug <> 'marketplace' THEN
+     AND OLD.slug <> 'xixlv' THEN
     v_old_base := public.slugify_store_name(OLD.name);
     v_base := public.slugify_store_name(NEW.name);
 
@@ -84,3 +85,11 @@ RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   );
 $$;
 GRANT EXECUTE ON FUNCTION public.resolve_store_slug(text) TO anon, authenticated;
+
+-- The official store was /store/marketplace before it was renamed to XIXLV;
+-- links shared under the old address keep working.
+INSERT INTO public.store_slug_history (old_slug, store_id)
+SELECT 'marketplace', s.id FROM public.stores s
+ WHERE s.slug = 'xixlv'
+   AND NOT EXISTS (SELECT 1 FROM public.stores WHERE slug = 'marketplace')
+ON CONFLICT (old_slug) DO NOTHING;

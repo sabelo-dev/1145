@@ -357,23 +357,30 @@ export interface FeaturedBrand {
   name: string;
   logoUrl: string | null;
   businessType: string | null;
+  /** Current storefront address, when the vendor has a store. */
+  storeSlug: string | null;
 }
 
 export const fetchFeaturedBrands = async (limit: number = 6): Promise<FeaturedBrand[]> => {
   try {
     const { data, error } = await supabase
       .from("vendors")
-      .select("id, business_name, logo_url, business_type, status")
+      .select("id, business_name, logo_url, business_type, status, stores(name, slug, logo_url)")
       .eq("status", "approved")
       .order("search_boost", { ascending: false, nullsFirst: false })
       .limit(limit);
     if (error) throw error;
-    return (data || []).map((v: any) => ({
-      id: v.id,
-      name: v.business_name,
-      logoUrl: v.logo_url,
-      businessType: v.business_type,
-    }));
+    return (data || []).map((v: any) => {
+      // The store name is what merchants rename; business_name can lag behind it.
+      const store = Array.isArray(v.stores) ? v.stores[0] : v.stores;
+      return {
+        id: v.id,
+        name: store?.name || v.business_name,
+        logoUrl: store?.logo_url || v.logo_url,
+        businessType: v.business_type,
+        storeSlug: store?.slug || null,
+      };
+    });
   } catch (error) {
     console.error("Error fetching featured brands:", error);
     return [];

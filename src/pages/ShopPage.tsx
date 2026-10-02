@@ -30,6 +30,7 @@ import { ChevronDown, Filter, Search, SortAsc, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Product, Category } from "@/types";
 import { fetchAllProducts, fetchCategories } from "@/services/products";
+import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
 const ShopPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -553,7 +554,7 @@ const ShopPage: React.FC = () => {
                       Merchants are stocking their stores. In the meantime, explore the official 1145 store.
                     </p>
                     <Button asChild variant="cta" className="mt-5">
-                      <Link to="/store/marketplace">Visit the 1145 store</Link>
+                      <Link to={OFFICIAL_STORE_PATH}>Visit the 1145 store</Link>
                     </Button>
                   </>
                 ) : (

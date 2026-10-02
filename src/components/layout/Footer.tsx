@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { subscribeToNewsletter } from "@/services/newsletterService";
 import { toast } from "sonner";
+import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 import {
   Accordion,
   AccordionContent,
@@ -12,7 +13,7 @@ import {
 
 const quickLinks = [
   { to: "/shop", label: "Shop" },
-  { to: "/store/marketplace", label: "Marketplace" },
+  { to: OFFICIAL_STORE_PATH, label: "Marketplace" },
   { to: "/categories", label: "Categories" },
   { to: "/deals", label: "Deals & Promotions" },
   { to: "/new-arrivals", label: "New Arrivals" },

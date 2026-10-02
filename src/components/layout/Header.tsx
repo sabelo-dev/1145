@@ -21,11 +21,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
 /** Primary destinations, always visible from md up. */
 const primaryNav = [
   { label: "Shop", path: "/shop" },
-  { label: "Marketplace", path: "/store/marketplace" },
+  { label: "Marketplace", path: OFFICIAL_STORE_PATH },
   { label: "Services", path: "/services" },
   // Tablets (md) move these into "More" so the bar never collides.
   { label: "Deals", path: "/deals", wideOnly: true },

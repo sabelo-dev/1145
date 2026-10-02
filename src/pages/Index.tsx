@@ -21,6 +21,7 @@ import HomePromoCard from "@/components/home/HomePromoCard";
 import { DEFAULT_CENTER, etaFromKm, useNearbySupply, useUserLocation, type LatLng } from "@/hooks/useNearbySupply";
 import { haversineDistance } from "@/services/dispatch/geoUtils";
 import { LocateFixed } from "lucide-react";
+import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
 /** Same names and order as the Services page. */
 const services = [
@@ -453,7 +454,7 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
       <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
           <Link
-            to="/store/marketplace"
+            to={OFFICIAL_STORE_PATH}
             className="group grid overflow-hidden rounded-3xl bg-surface-muted transition-shadow hover:shadow-elevated md:grid-cols-[0.9fr_1.1fr]"
           >
             <div className="flex flex-col justify-center gap-4 p-6 sm:p-10">
@@ -493,7 +494,7 @@ const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
               {featuredBrands.map((b) => (
                 <Link
                   key={b.id}
-                  to={`/shop?brand=${encodeURIComponent(b.name)}`}
+                  to={b.storeSlug ? `/store/${b.storeSlug}` : `/shop?brand=${encodeURIComponent(b.name)}`}
                   className="flex aspect-square items-center justify-center rounded-2xl border border-border bg-background p-4 text-center text-lg font-bold tracking-tight transition hover:-translate-y-0.5 hover:shadow-elevated"
                 >
                   {b.name}

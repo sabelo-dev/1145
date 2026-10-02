@@ -5,11 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchProductsByStore } from "@/services/products";
 import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import { formatCurrency, cn } from "@/lib/utils";
+import { OFFICIAL_STORE_SLUG } from "@/lib/officialStore";
 
 type Slide = { id: string; image: string; title: string; subtitle?: string; href: string; external?: boolean; label: string };
 
 const ROTATE_MS = 5000;
-const MARKETPLACE_SLUG = "marketplace";
 
 /** Active "promo" CMS banners inside their date window, in display order. */
 async function loadAdverts(): Promise<Slide[]> {
@@ -38,7 +38,7 @@ async function loadAdverts(): Promise<Slide[]> {
 
 /** Fallback: approved, priced products from the official Marketplace store. */
 async function loadMarketplaceProducts(): Promise<Slide[]> {
-  const products = await fetchProductsByStore(MARKETPLACE_SLUG);
+  const products = await fetchProductsByStore(OFFICIAL_STORE_SLUG);
   return products
     .filter((p) => p.images?.[0] && p.price > 0)
     .slice(0, 8)
