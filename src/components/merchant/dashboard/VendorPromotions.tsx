@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useVendorSubscription } from "@/hooks/useVendorSubscription";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,12 @@ const VendorPromotions = () => {
   const [promotions, setPromotions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPromotion, setEditingPromotion] = useState<any>(null);
+  const { subscription, canCreatePromotion, refresh: refreshSubscription } = useVendorSubscription();
+  // Until the plan has loaded, don't block; the database enforces the limit too.
+  const limitReached = !!subscription && !canCreatePromotion();
+  const limitMessage = subscription
+    ? `Your plan allows ${subscription.promotionsLimit} promotion${subscription.promotionsLimit === 1 ? "" : "s"} a month and you've created ${subscription.promotionsUsed}. Upgrade your plan to create more.`
+    : "";
   
   // Form state
   const [formData, setFormData] = useState({
@@ -113,6 +120,15 @@ const VendorPromotions = () => {
       return;
     }
 
+    if (!editingPromotion && limitReached) {
+      toast({
+        variant: "destructive",
+        title: "Monthly promotion limit reached",
+        description: limitMessage
+      });
+      return;
+    }
+
     try {
       const { data: vendor } = await supabase
         .from('vendors')
@@ -164,7 +180,7 @@ const VendorPromotions = () => {
         });
       }
 
-      await fetchPromotions();
+      await Promise.all([fetchPromotions(), refreshSubscription()]);
       setDialogOpen(false);
       resetForm();
     } catch (error: any) {
@@ -187,6 +203,7 @@ const VendorPromotions = () => {
       if (error) throw error;
 
       setPromotions(promotions.filter(p => p.id !== id));
+      void refreshSubscription();
       
       toast({
         title: "Promotion deleted",
@@ -277,7 +294,7 @@ const VendorPromotions = () => {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={limitReached}>
               <Plus className="h-4 w-4 mr-2" />
               Create Promotion
             </Button>
@@ -402,6 +419,12 @@ const VendorPromotions = () => {
         </Dialog>
       </div>
 
+      {limitReached && (
+        <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <span className="font-semibold">Monthly promotion limit reached.</span> {limitMessage}
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -460,7 +483,7 @@ const VendorPromotions = () => {
             <Tag className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-lg font-medium mb-2">No promotions yet</p>
             <p className="text-sm text-muted-foreground mb-4">Create your first promotion to start offering discounts.</p>
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button onClick={() => setDialogOpen(true)} disabled={limitReached}>
               <Plus className="h-4 w-4 mr-2" />
               Create Promotion
             </Button>
