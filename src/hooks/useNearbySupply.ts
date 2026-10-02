@@ -108,5 +108,8 @@ export function useUserLocation() {
     );
   }, []);
 
+  // Detect on load; a cached fix still shows instantly and is refreshed here.
+  useEffect(() => { locate(); }, [locate]);
+
   return { location, locating, denied, locate };
 }

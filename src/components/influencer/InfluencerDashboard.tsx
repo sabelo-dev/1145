@@ -54,8 +54,8 @@ const InfluencerDashboard: React.FC = () => {
 
   const handlePublish = async (postId: string) => {
     const ok = await publishPost(postId, true);
-    // Published posts show up in the synced feed on the next sync.
-    if (ok) dashboard.refresh();
+    // Pull the new post into the Feed tab straight away.
+    if (ok) void dashboard.syncContent(undefined, { silent: true });
     return ok;
   };
 
@@ -348,7 +348,7 @@ const InfluencerDashboard: React.FC = () => {
           setIsModalOpen(false);
           setEditingPost(null);
           refreshPosts();
-          dashboard.refresh();
+          void dashboard.syncContent(undefined, { silent: true });
           setActiveTab('posts');
         }}
       />

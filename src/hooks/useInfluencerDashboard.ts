@@ -199,7 +199,8 @@ export const useInfluencerDashboard = () => {
   }, [user, loadAll]);
 
   // Pull posts, comments and metrics from the connected platforms.
-  const syncContent = async (platform?: string) => {
+  // `silent` skips the toasts, for background syncs such as after publishing.
+  const syncContent = async (platform?: string, { silent = false }: { silent?: boolean } = {}) => {
     setSyncing(platform || 'all');
     try {
       const { data, error } = await supabase.functions.invoke('sync-influencer-content', {
@@ -214,7 +215,9 @@ export const useInfluencerDashboard = () => {
       const entries = Object.entries(results);
       const errors = entries.flatMap(([p, r]) => r.errors.map((e) => `${p}: ${e}`));
 
-      if (entries.length === 0) {
+      if (silent) {
+        if (errors.length > 0) console.warn('Background sync errors:', errors);
+      } else if (entries.length === 0) {
         toast({
           variant: 'destructive',
           title: 'Nothing to sync',
@@ -228,7 +231,8 @@ export const useInfluencerDashboard = () => {
         toast({ title: 'Sync complete', description: `${posts} posts and ${comments} comments synced.` });
       }
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Sync failed', description: e.message || 'Could not sync content' });
+      if (silent) console.warn('Background sync failed:', e);
+      else toast({ variant: 'destructive', title: 'Sync failed', description: e.message || 'Could not sync content' });
     } finally {
       setSyncing(null);
       await loadAll();
