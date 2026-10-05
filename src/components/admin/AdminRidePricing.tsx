@@ -145,15 +145,15 @@ const AdminRidePricing: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Calculator className="h-6 w-6 text-primary" />
+            <Calculator className="h-6 w-6 shrink-0 text-primary" />
             Ride Pricing Engine
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Configure vehicle types, base fares, per-km/min rates, surge pricing, and time-based multipliers</p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+        <Button onClick={() => setShowAddDialog(true)} className="w-full shrink-0 gap-2 sm:w-auto">
           <Plus className="h-4 w-4" /> Add Vehicle Type
         </Button>
       </div>
@@ -290,16 +290,16 @@ const AdminRidePricing: React.FC = () => {
           return (
             <Card key={vehicle.id} className={`transition-all ${!vehicle.is_active ? "opacity-60" : ""}`}>
               <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-xl ${vehicle.is_active ? "bg-primary/10" : "bg-muted"}`}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className={`shrink-0 p-3 rounded-xl ${vehicle.is_active ? "bg-primary/10" : "bg-muted"}`}>
                       <Icon className={`h-6 w-6 ${vehicle.is_active ? "text-primary" : "text-muted-foreground"}`} />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       {isEditing ? (
-                        <div className="flex gap-2">
-                          <Input value={form.display_name || ""} onChange={(e) => setEditForm(f => ({ ...f, display_name: e.target.value }))} className="h-8 text-sm font-bold w-40" />
-                          <Input value={form.name || ""} onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-xs w-32" placeholder="slug" />
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <Input value={form.display_name || ""} onChange={(e) => setEditForm(f => ({ ...f, display_name: e.target.value }))} className="h-9 text-sm font-bold w-full sm:w-40" aria-label="Display name" />
+                          <Input value={form.name || ""} onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-9 text-xs w-full sm:w-32" placeholder="slug" aria-label="Slug" />
                         </div>
                       ) : (
                         <>
@@ -310,20 +310,20 @@ const AdminRidePricing: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Badge variant={vehicle.is_active ? "default" : "secondary"}>{vehicle.is_active ? "Active" : "Inactive"}</Badge>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <Badge className="shrink-0" variant={vehicle.is_active ? "default" : "secondary"}>{vehicle.is_active ? "Active" : "Inactive"}</Badge>
                     <Switch checked={vehicle.is_active} onCheckedChange={() => handleToggleActive(vehicle)} />
                     {isEditing ? (
                       <>
-                        <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}><X className="h-4 w-4" /></Button>
-                        <Button size="sm" onClick={() => handleSaveVehicle(vehicle)} disabled={saving === vehicle.id}>
+                        <Button size="sm" variant="ghost" className="shrink-0" aria-label="Cancel" onClick={() => setEditingId(null)}><X className="h-4 w-4 shrink-0" /></Button>
+                        <Button size="sm" className="shrink-0" onClick={() => handleSaveVehicle(vehicle)} disabled={saving === vehicle.id}>
                           <Check className="h-4 w-4 mr-1" />{saving === vehicle.id ? "Saving..." : "Save"}
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button size="sm" variant="outline" onClick={() => startEditing(vehicle)}><Pencil className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeleteVehicle(vehicle.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="outline" className="shrink-0" aria-label="Edit" onClick={() => startEditing(vehicle)}><Pencil className="h-4 w-4 shrink-0" /></Button>
+                        <Button size="sm" variant="destructive" className="shrink-0" aria-label="Delete" onClick={() => handleDeleteVehicle(vehicle.id)}><Trash2 className="h-4 w-4 shrink-0" /></Button>
                       </>
                     )}
                   </div>

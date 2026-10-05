@@ -382,16 +382,16 @@ export const SocialOAuthConnect: React.FC = () => {
                       : isConnected ? 'border-green-500/50 bg-green-500/5' : 'border-border'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start gap-3">
                       <div 
-                        className="p-2 rounded-lg" 
+                        className="shrink-0 p-2 rounded-lg" 
                         style={{ backgroundColor: `${platform.color}15` }}
                       >
-                        <Icon className="h-6 w-6" />
+                        <Icon className="h-6 w-6 shrink-0" />
                       </div>
-                      <div>
-                        <h4 className="font-medium flex items-center gap-2">
+                      <div className="min-w-0">
+                        <h4 className="font-medium flex flex-wrap items-center gap-2">
                           {platform.name}
                           {needsPage ? (
                             <Badge variant="outline" className="text-amber-600 border-amber-600">
@@ -422,6 +422,7 @@ export const SocialOAuthConnect: React.FC = () => {
                         onClick={() => handleConnect(platform.id)}
                         disabled={isConnecting || needsSetup}
                         variant={needsSetup ? 'outline' : 'default'}
+                        className="w-full shrink-0 sm:w-auto"
                       >
                         {isConnecting ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -436,6 +437,7 @@ export const SocialOAuthConnect: React.FC = () => {
                         size="sm"
                         onClick={() => handleConnect(platform.id)}
                         disabled={isConnecting}
+                        className="w-full shrink-0 sm:w-auto"
                       >
                         {isConnecting ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />

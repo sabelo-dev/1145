@@ -96,13 +96,23 @@ const RideRequestPage: React.FC = () => {
       });
       const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
       setPickupCoords(coords);
-      setPickup(`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
+      // Show a street address, not coordinates. Google first, then the same
+      // OpenStreetMap geocoder the address fields use; coordinates only if both fail.
+      let address = "";
       try {
         await loadGoogleMaps();
         const geocoder = new google.maps.Geocoder();
         const result = await geocoder.geocode({ location: coords });
-        if (result.results?.[0]) setPickup(result.results[0].formatted_address);
+        address = result.results?.[0]?.formatted_address || "";
       } catch {}
+      if (!address) {
+        try {
+          const params = new URLSearchParams({ lat: String(coords.lat), lon: String(coords.lng), format: "jsonv2", zoom: "18" });
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params}`, { headers: { Accept: "application/json" } });
+          if (response.ok) address = (await response.json())?.display_name || "";
+        } catch {}
+      }
+      setPickup(address || `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
     } catch {
       toast({ title: "Location unavailable", description: "Please enter your pickup location manually.", variant: "destructive" });
     } finally {

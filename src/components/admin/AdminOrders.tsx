@@ -301,9 +301,9 @@ const AdminOrders: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h2 className="text-2xl font-bold">Order Management</h2>
-        <Button variant="outline" size="sm" onClick={fetchOrders}>
+        <Button variant="outline" size="sm" className="shrink-0" onClick={fetchOrders}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -322,6 +322,38 @@ const AdminOrders: React.FC = () => {
         ))}
       </div>
 
+      {/* Phones: one card per order, so nothing is cut off sideways. */}
+      <div className="space-y-3 md:hidden">
+        {filteredOrders.map((order) => (
+          <div key={order.fullId} className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate font-medium">{order.customerName}</div>
+                <div className="truncate text-xs text-muted-foreground">{order.customerEmail}</div>
+              </div>
+              <div className="shrink-0">{getStatusBadge(order.status)}</div>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div><dt className="text-xs text-muted-foreground">Order ID</dt><dd className="font-mono font-medium">{order.id}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Date</dt><dd>{format(new Date(order.date), "PP")}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Total</dt><dd className="font-semibold">{formatCurrency(order.total)}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Items</dt><dd>{order.items}</dd></div>
+            </dl>
+            <div className="mt-3 flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => openDetailsDialog(order)}>
+                <Eye className="h-4 w-4 mr-2" />
+                Details
+              </Button>
+              <Button variant="default" size="sm" className="flex-1" onClick={() => openUpdateDialog(order)}>
+                Update Status
+              </Button>
+            </div>
+          </div>
+        ))}
+        <p className="pt-1 text-center text-sm text-muted-foreground">List of all orders ({filteredOrders.length})</p>
+      </div>
+
+      <div className="hidden md:block">
       <Table>
         <TableCaption>List of all orders ({filteredOrders.length})</TableCaption>
         <TableHeader>
@@ -369,6 +401,7 @@ const AdminOrders: React.FC = () => {
           ))}
         </TableBody>
       </Table>
+      </div>
 
       {/* Order Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
