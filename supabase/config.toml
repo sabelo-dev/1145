@@ -33,6 +33,10 @@ verify_jwt = false
 [functions.resend-webhook]
 verify_jwt = false
 
+# Admin Email Inbox "Refresh". Signed-in admins only; the function checks the role itself.
+[functions.resend-inbox-sync]
+verify_jwt = true
+
 [functions.update-gold-prices]
 verify_jwt = false
 

@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useReferral } from '@/hooks/useReferral';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Social share icons as simple SVG components
@@ -37,9 +38,15 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-const TelegramIcon = () => (
+const InstagramIcon = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+  </svg>
+);
+
+const TikTokIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
   </svg>
 );
 
@@ -47,6 +54,7 @@ export function ReferralBonusInfo() {
   const { user } = useAuth();
   const { referralCode, stats, isLoading, getReferralLink, copyReferralLink, copyReferralCode } = useReferral();
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
+  const { toast } = useToast();
 
   const handleCopyCode = async () => {
     await copyReferralCode();
@@ -67,7 +75,35 @@ export function ReferralBonusInfo() {
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(referralLink)}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}&quote=${encodeURIComponent(shareText)}`,
     whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + referralLink)}`,
-    telegram: `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`,
+  };
+
+  // Instagram and TikTok have no "share this link" web address like the others do.
+  // On a phone the system share sheet hands the invite straight to the app; elsewhere
+  // the invite is copied and the site opened, ready to paste into a bio, story or message.
+  const appSites = { instagram: 'https://www.instagram.com/', tiktok: 'https://www.tiktok.com/' };
+  const appNames = { instagram: 'Instagram', tiktok: 'TikTok' };
+
+  const shareToApp = async (platform: keyof typeof appSites) => {
+    const invite = `${shareText} ${referralLink}`;
+    if (typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches) {
+      try {
+        await navigator.share({ title: '1145 Lifestyle', text: shareText, url: referralLink });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return; // closed the share sheet
+        // otherwise fall through to copy + open
+      }
+    }
+    let copiedInvite = true;
+    try {
+      await navigator.clipboard.writeText(invite);
+    } catch {
+      copiedInvite = false;
+    }
+    toast(copiedInvite
+      ? { title: 'Invite copied', description: `Paste it into your ${appNames[platform]} bio, story or a message.` }
+      : { variant: 'destructive', title: 'Could not copy the invite', description: 'Copy your shareable link above, then paste it in the app.' });
+    window.open(appSites[platform], '_blank', 'noopener');
   };
 
   const openShare = (platform: keyof typeof shareLinks) => {
@@ -156,6 +192,8 @@ export function ReferralBonusInfo() {
                       size="sm"
                       variant="outline"
                       onClick={() => openShare('twitter')}
+                      aria-label="Share on X"
+                      title="Share on X"
                       className="flex-1 h-9 hover:bg-[#1DA1F2]/10 hover:text-[#1DA1F2] hover:border-[#1DA1F2]"
                     >
                       <TwitterIcon />
@@ -164,6 +202,8 @@ export function ReferralBonusInfo() {
                       size="sm"
                       variant="outline"
                       onClick={() => openShare('facebook')}
+                      aria-label="Share on Facebook"
+                      title="Share on Facebook"
                       className="flex-1 h-9 hover:bg-[#1877F2]/10 hover:text-[#1877F2] hover:border-[#1877F2]"
                     >
                       <FacebookIcon />
@@ -172,6 +212,8 @@ export function ReferralBonusInfo() {
                       size="sm"
                       variant="outline"
                       onClick={() => openShare('whatsapp')}
+                      aria-label="Share on WhatsApp"
+                      title="Share on WhatsApp"
                       className="flex-1 h-9 hover:bg-[#25D366]/10 hover:text-[#25D366] hover:border-[#25D366]"
                     >
                       <WhatsAppIcon />
@@ -179,10 +221,22 @@ export function ReferralBonusInfo() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => openShare('telegram')}
-                      className="flex-1 h-9 hover:bg-[#0088cc]/10 hover:text-[#0088cc] hover:border-[#0088cc]"
+                      onClick={() => shareToApp('instagram')}
+                      aria-label="Share on Instagram"
+                      title="Share on Instagram"
+                      className="flex-1 h-9 hover:bg-[#E4405F]/10 hover:text-[#E4405F] hover:border-[#E4405F]"
                     >
-                      <TelegramIcon />
+                      <InstagramIcon />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => shareToApp('tiktok')}
+                      aria-label="Share on TikTok"
+                      title="Share on TikTok"
+                      className="flex-1 h-9 hover:bg-foreground/10 hover:text-foreground hover:border-foreground"
+                    >
+                      <TikTokIcon />
                     </Button>
                   </div>
                 </div>

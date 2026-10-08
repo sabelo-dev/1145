@@ -16,7 +16,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -29,6 +32,44 @@ import { useToast } from '@/hooks/use-toast';
 
 // Platforms social-publish can post to automatically.
 const API_PLATFORMS = new Set(['facebook', 'instagram', 'twitter']);
+
+// A product's colours come from its variations (attributes: { Color: "Navy" }).
+const COLOUR_KEYS = ['color', 'colour'];
+
+interface ProductColour {
+  name: string;
+  /** Photo of the product in this colour, when one exists. */
+  image: string | null;
+}
+
+interface PromotableProduct {
+  id: string;
+  name: string;
+  slug: string;
+  product_images: { image_url: string; position: number | null }[];
+  colours: ProductColour[];
+}
+
+/** One entry per colour, in the order the merchant listed them. */
+const coloursOf = (variations: { attributes: unknown; image_url: string | null; created_at?: string }[]): ProductColour[] => {
+  const colours = new Map<string, ProductColour>();
+  for (const variation of [...variations].sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))) {
+    const attributes = (variation.attributes ?? {}) as Record<string, unknown>;
+    const key = Object.keys(attributes).find((k) => COLOUR_KEYS.includes(k.toLowerCase()));
+    const name = key ? String(attributes[key] ?? '').trim() : '';
+    if (!name) continue;
+    const known = colours.get(name);
+    // Sizes of the same colour share a row; keep the first photo found.
+    if (!known) colours.set(name, { name, image: variation.image_url || null });
+    else if (!known.image && variation.image_url) known.image = variation.image_url;
+  }
+  return [...colours.values()];
+};
+
+// The picker's value is "<product id>" for the product as a whole, or
+// "<product id>::<colour>" for one colour of it.
+const SEPARATOR = '::';
+const optionValue = (productId: string, colour?: string) => (colour ? `${productId}${SEPARATOR}${colour}` : productId);
 
 // <input type="datetime-local"> works in local time without a zone.
 const toLocalInput = (iso: string) => {
@@ -64,7 +105,9 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
   const [contentType, setContentType] = useState<ContentType>('plain');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [productId, setProductId] = useState<string>('');
-  const [products, setProducts] = useState<any[]>([]);
+  // The colour being promoted, or '' for the product as a whole.
+  const [productColour, setProductColour] = useState<string>('');
+  const [products, setProducts] = useState<PromotableProduct[]>([]);
   const [publishOption, setPublishOption] = useState<PublishOption>('draft');
   const [scheduledAt, setScheduledAt] = useState<string>('');
   const [externalPostUrl, setExternalPostUrl] = useState<string>('');
@@ -77,6 +120,8 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       setContentType(editingPost.content_type);
       setSelectedPlatforms(editingPost.platforms || []);
       setProductId(editingPost.product_id || '');
+      // A saved post keeps its colour as the photo in its media, so there is nothing to re-select.
+      setProductColour('');
       setMediaUrls(editingPost.media_urls || []);
       // Determine publish option from existing post
       if (editingPost.status === 'published') {
@@ -99,12 +144,18 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       // rows use 'active'. Load the whole live catalogue, not a first page.
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, slug, product_images(image_url, position)')
+        .select('id, name, slug, product_images(image_url, position), product_variations(attributes, image_url, created_at)')
         .in('status', ['approved', 'active'])
         .order('name', { ascending: true })
         .limit(1000);
       if (error) console.error('Failed to load products:', error);
-      setProducts(data || []);
+      setProducts((data || []).map((product) => ({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        product_images: product.product_images ?? [],
+        colours: coloursOf(product.product_variations ?? []),
+      })));
     };
     fetchProducts();
   }, []);
@@ -115,6 +166,7 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
     setContentType('plain');
     setSelectedPlatforms([]);
     setProductId('');
+    setProductColour('');
     setPublishOption('draft');
     setScheduledAt('');
     setExternalPostUrl('');
@@ -157,9 +209,18 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
   const manualOnlyPlatforms = selectedPlatforms.filter((p) => !API_PLATFORMS.has(p));
   // A product promotion without media goes out with the product's own photo (see social-publish).
   const selectedProduct = contentType === 'product' ? products.find((p) => p.id === productId) : undefined;
-  const productPhoto: string | undefined = [...(selectedProduct?.product_images ?? [])]
-    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))[0]?.image_url;
+  const selectedColour = selectedProduct?.colours.find((c) => c.name === productColour);
+  // The chosen colour's photo if it has one, otherwise the product's main photo.
+  const productPhoto: string | undefined = selectedColour?.image
+    || [...(selectedProduct?.product_images ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))[0]?.image_url;
   const usesProductPhoto = mediaUrls.length === 0 && !!productPhoto;
+  const colourCount = products.reduce((sum, product) => sum + product.colours.length, 0);
+
+  const handleProductChange = (value: string) => {
+    const [id, ...colour] = value.split(SEPARATOR);
+    setProductId(id);
+    setProductColour(colour.join(SEPARATOR));
+  };
   const instagramNeedsMedia =
     selectedPlatforms.includes('instagram') && mediaUrls.length === 0 && !usesProductPhoto;
 
@@ -232,7 +293,9 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
       content,
       content_type: contentType,
       platforms: selectedPlatforms,
-      media_urls: mediaUrls,
+      // The publisher only knows the product's main photo, so a chosen colour's photo is
+      // saved with the post to make sure that colour is what goes out.
+      media_urls: mediaUrls.length === 0 && contentType === 'product' && selectedColour?.image ? [selectedColour.image] : mediaUrls,
       product_id: contentType === 'product' && productId ? productId : null,
       scheduled_at,
       external_post_url: externalPostUrl || null,
@@ -310,18 +373,32 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
           {contentType === 'product' && (
             <div className="space-y-2">
               <Label htmlFor="product">Select Product</Label>
-              <Select value={productId} onValueChange={setProductId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a product to share" />
+              <Select value={productId ? optionValue(productId, productColour) : ''} onValueChange={handleProductChange}>
+                <SelectTrigger id="product">
+                  <SelectValue placeholder="Choose a product or colour to share" />
                 </SelectTrigger>
-                <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name}
-                    </SelectItem>
+                <SelectContent className="max-h-[60vh]">
+                  {products.map((product, index) => (
+                    <React.Fragment key={product.id}>
+                      {index > 0 && <SelectSeparator />}
+                      <SelectGroup>
+                        <SelectLabel>{product.name}</SelectLabel>
+                        <SelectItem value={optionValue(product.id)}>
+                          {product.name}{product.colours.length > 1 ? ' — all colours' : ''}
+                        </SelectItem>
+                        {product.colours.map((colour) => (
+                          <SelectItem key={colour.name} value={optionValue(product.id, colour.name)}>
+                            {product.name} — {colour.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </React.Fragment>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {products.length} {products.length === 1 ? 'product' : 'products'}{colourCount > 0 ? ` in ${colourCount} colours` : ''}. Pick a colour to post that colour's photo.
+              </p>
               <p className="text-xs text-muted-foreground">
                 Your share link to this product is added to the end of the post when it is published. Instagram can't show clickable links, so there the post points to the link in your bio instead.
               </p>
@@ -366,7 +443,11 @@ export const SocialPostModal: React.FC<SocialPostModalProps> = ({
               <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-2">
                 <img src={productPhoto} alt="" className="h-12 w-12 shrink-0 rounded-md border object-cover" />
                 <p className="min-w-0 text-xs text-muted-foreground">
-                  No media added, so the product photo will be used on Facebook and Instagram. Add your own to replace it.
+                  {selectedColour?.image
+                    ? `No media added, so the ${selectedColour.name} photo will be used on Facebook and Instagram. Add your own to replace it.`
+                    : selectedColour
+                      ? `No media added and ${selectedColour.name} has no photo of its own, so the main product photo will be used on Facebook and Instagram. Add your own to replace it.`
+                      : 'No media added, so the product photo will be used on Facebook and Instagram. Add your own to replace it.'}
                 </p>
               </div>
             )}
