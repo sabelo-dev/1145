@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProductsByStore } from "@/services/products";
 import { applyPlatformMarkup } from "@/utils/pricingMarkup";
-import { formatCurrency, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useGoldPricingContext } from "@/contexts/GoldPricingContext";
 import { OFFICIAL_STORE_SLUG } from "@/lib/officialStore";
 
-type Slide = { id: string; image: string; title: string; subtitle?: string; href: string; external?: boolean; label: string };
+type Slide = { id: string; image: string; title: string; price?: number; href: string; external?: boolean; label: string };
 
 const ROTATE_MS = 5000;
 
@@ -46,7 +47,7 @@ async function loadMarketplaceProducts(): Promise<Slide[]> {
       id: p.id,
       image: p.images[0],
       title: p.name,
-      subtitle: formatCurrency(applyPlatformMarkup(p.price)),
+      price: applyPlatformMarkup(p.price),
       href: `/product/${p.slug}`,
       label: "1145 Marketplace",
     }));
@@ -60,6 +61,9 @@ const HomePromoCard: React.FC<{ className?: string }> = ({ className }) => {
   const [slides, setSlides] = useState<Slide[] | null>(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  /** Explicit stop, so keyboard and touch users can halt the rotation too. */
+  const [stopped, setStopped] = useState(false);
+  const { formatPrice } = useGoldPricingContext();
   const swipeStart = useRef<number | null>(null);
   const swiped = useRef(false);
 
@@ -75,11 +79,11 @@ const HomePromoCard: React.FC<{ className?: string }> = ({ className }) => {
 
   // Auto-advance (paused on hover/touch, and for users who prefer reduced motion).
   useEffect(() => {
-    if (!slides || slides.length < 2 || paused) return;
+    if (!slides || slides.length < 2 || paused || stopped) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const t = setInterval(() => setIndex((i) => (i + 1) % slides.length), ROTATE_MS);
     return () => clearInterval(t);
-  }, [slides, paused]);
+  }, [slides, paused, stopped]);
 
   if (!slides) {
     return <div className={cn("aspect-[4/3] w-full animate-pulse rounded-3xl bg-navy-900/90", className)} aria-hidden />;
@@ -106,7 +110,7 @@ const HomePromoCard: React.FC<{ className?: string }> = ({ className }) => {
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
         <div className="min-w-0">
           <p className="line-clamp-2 text-lg font-semibold text-white">{slide.title}</p>
-          {slide.subtitle && <p className="mt-0.5 text-sm font-medium text-white/80">{slide.subtitle}</p>}
+          {slide.price != null && <p className="mt-0.5 text-sm font-medium tabular-nums text-white/80">{formatPrice(slide.price)}</p>}
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-navy-900 transition-transform group-hover:translate-x-0.5">
           Shop now <ArrowUpRight className="h-4 w-4" />
@@ -120,6 +124,8 @@ const HomePromoCard: React.FC<{ className?: string }> = ({ className }) => {
       className={cn("relative mx-auto w-full max-w-md", className)}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
     >
       <div aria-hidden className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-cyan/20 via-transparent to-gold/20 blur-2xl" />
       <div
@@ -145,7 +151,15 @@ const HomePromoCard: React.FC<{ className?: string }> = ({ className }) => {
         )}
 
         {slides.length > 1 && (
-          <div className="absolute right-4 top-4 flex gap-1.5">
+          <div className="absolute right-4 top-4 flex items-center gap-1.5">
+            <button
+              type="button"
+              aria-label={stopped ? "Play slideshow" : "Pause slideshow"}
+              onClick={() => setStopped((v) => !v)}
+              className="mr-1 flex h-7 min-h-0 w-7 items-center justify-center rounded-full bg-navy-900/70 text-white backdrop-blur transition-colors hover:bg-navy-900"
+            >
+              {stopped ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
+            </button>
             {slides.map((s, i) => (
               <button
                 key={s.id}

@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/lib/push";
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { FoodCartProvider } from "@/contexts/FoodCartContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeCustomizationProvider } from "@/contexts/ThemeCustomizationContext";
 import { GoldPricingProvider } from "@/contexts/GoldPricingContext";
@@ -118,6 +119,21 @@ const StaysPage = lazyWithRetry(() => import("@/pages/StaysPage"));
 const StayDetailPage = lazyWithRetry(() => import("@/pages/StayDetailPage"));
 const PackageSendPage = lazyWithRetry(() => import("@/pages/PackageSendPage"));
 
+// Food delivery
+const FoodPage = lazyWithRetry(() => import("@/pages/food/FoodPage"));
+const EateryPage = lazyWithRetry(() => import("@/pages/food/EateryPage"));
+const FoodCheckoutPage = lazyWithRetry(() => import("@/pages/food/FoodCheckoutPage"));
+const FoodOrdersPage = lazyWithRetry(() => import("@/pages/food/FoodOrdersPage"));
+const FoodOrderPage = lazyWithRetry(() => import("@/pages/food/FoodOrderPage"));
+const EateryDashboardPage = lazyWithRetry(() => import("@/pages/food/EateryDashboardPage"));
+
+// Service marketplace ("Hire a pro")
+const HirePage = lazyWithRetry(() => import("@/pages/hire/HirePage"));
+const ServiceDetailPage = lazyWithRetry(() => import("@/pages/hire/ServiceDetailPage"));
+const ServiceOrdersPage = lazyWithRetry(() => import("@/pages/hire/ServiceOrdersPage"));
+const ServiceOrderPage = lazyWithRetry(() => import("@/pages/hire/ServiceOrderPage"));
+const ProviderDashboardPage = lazyWithRetry(() => import("@/pages/hire/ProviderDashboardPage"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -220,6 +236,48 @@ function AppRouter() {
             </ProtectedRoute>
           } />
           <Route path="services" element={<ServiceHubPage />} />
+
+          {/* Food delivery. Static paths are listed before the :slug catch-all. */}
+          <Route path="food" element={<FoodPage />} />
+          <Route path="food/checkout" element={
+            <ProtectedRoute requireAuth requireVerified>
+              <FoodCheckoutPage />
+            </ProtectedRoute>
+          } />
+          <Route path="food/orders" element={
+            <ProtectedRoute requireAuth>
+              <FoodOrdersPage />
+            </ProtectedRoute>
+          } />
+          <Route path="food/orders/:orderId" element={
+            <ProtectedRoute requireAuth>
+              <FoodOrderPage />
+            </ProtectedRoute>
+          } />
+          <Route path="food/:slug" element={<EateryPage />} />
+          {/* Service marketplace. Static paths are listed before the :slug catch-all. */}
+          <Route path="hire" element={<HirePage />} />
+          <Route path="hire/orders" element={
+            <ProtectedRoute requireAuth>
+              <ServiceOrdersPage />
+            </ProtectedRoute>
+          } />
+          <Route path="hire/orders/:orderId" element={
+            <ProtectedRoute requireAuth>
+              <ServiceOrderPage />
+            </ProtectedRoute>
+          } />
+          <Route path="hire/provider" element={
+            <ProtectedRoute requireAuth requireVerified>
+              <ProviderDashboardPage />
+            </ProtectedRoute>
+          } />
+          <Route path="hire/:slug" element={<ServiceDetailPage />} />
+          <Route path="eatery/dashboard" element={
+            <ProtectedRoute requireAuth requireVerified>
+              <EateryDashboardPage />
+            </ProtectedRoute>
+          } />
         </Route>
         
         <Route path="package/send" element={<PackageSendPage />} />
@@ -370,6 +428,7 @@ function App() {
               <GoldPricingProvider>
                 <WishlistProvider>
                   <CartProvider>
+                    <FoodCartProvider>
                     <Router>
                       <ScrollToTop />
                       <AppRouter />
@@ -377,6 +436,7 @@ function App() {
                       <Sonner />
                       <UpdatePrompt />
                     </Router>
+                    </FoodCartProvider>
                   </CartProvider>
                 </WishlistProvider>
               </GoldPricingProvider>

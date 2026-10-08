@@ -40,6 +40,8 @@ import AdminSettings from "@/components/admin/AdminSettings";
 import { AdminShipping } from "@/components/admin/AdminShipping";
 import AdminAuctions from "@/components/admin/AdminAuctions";
 import AdminDrivers from "@/components/admin/AdminDrivers";
+import AdminEateries from "@/components/admin/AdminEateries";
+import AdminServiceMarketplace from "@/components/admin/AdminServiceMarketplace";
 import AdminUCoin from "@/components/admin/AdminUCoin";
 import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
@@ -102,6 +104,8 @@ const AdminDashboard = () => {
     { id: "deletion-requests", title: "Deletion Requests", icon: UserX },
     { id: "vendors", title: "Merchant Management", icon: Store },
     { id: "drivers", title: "Driver Management", icon: Truck },
+    { id: "eateries", title: "Eateries (Food)", icon: Store },
+    { id: "service-marketplace", title: "Service Marketplace", icon: Package },
     { id: "leases", title: "Lease Management", icon: FileText },
     { id: "influencers", title: "Influencer Management", icon: Crown },
     { id: "ucoin", title: "UCoin Management", icon: Coins },
@@ -259,6 +263,12 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="users" className="mt-0">
               <AdminUsers />
+            </TabsContent>
+            <TabsContent value="eateries" className="mt-0">
+              <AdminEateries />
+            </TabsContent>
+            <TabsContent value="service-marketplace" className="mt-0">
+              <AdminServiceMarketplace />
             </TabsContent>
             <TabsContent value="deletion-requests" className="mt-0">
               <AdminDeletionRequests />

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowUpRight, Building2, Car, Coins, KeyRound, Megaphone, Package, Shield, ShoppingBag, Store, Truck, Wallet, Zap,
+  ArrowUpRight, Briefcase, Building2, Car, Coins, KeyRound, Megaphone, Package, Shield, ShoppingBag, Store, Truck, UtensilsCrossed, Wallet, Zap,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 
@@ -11,6 +11,8 @@ type Service = { name: string; description: string; icon: typeof Car; route: str
 const everyday: Service[] = [
   { name: "Shop", description: "Browse and buy from local merchants and the 1145 store.", icon: ShoppingBag, route: "/shop", tag: "Popular" },
   { name: "Ride", description: "Get a lift anywhere in the city, now or scheduled.", icon: Car, route: "/rides/request" },
+  { name: "Food", description: "Order from local eateries, delivered by a 1145 driver.", icon: UtensilsCrossed, route: "/food", tag: "New" },
+  { name: "Hire a pro", description: "Fixed-price services from approved freelancers and businesses.", icon: Briefcase, route: "/hire", tag: "New" },
   { name: "Send", description: "Courier parcels across town with live tracking.", icon: Package, route: "/package/send" },
   { name: "Wallet", description: "Pay, top up, withdraw and hold value in gold.", icon: Wallet, route: "/wallet" },
   { name: "Lease", description: "Rent-to-own electronics, vehicles and equipment.", icon: KeyRound, route: "/lease/marketplace", tag: "New" },
@@ -21,6 +23,8 @@ const everyday: Service[] = [
 const earn: Service[] = [
   { name: "Drive", description: "Deliver rides and parcels on your own schedule.", icon: Truck, route: "/driver/register", tag: "Earn" },
   { name: "Sell", description: "Open a store and reach customers nationwide.", icon: Store, route: "/merchant/register" },
+  { name: "Offer a service", description: "Sell your skills as fixed-price packages on 1145.", icon: Briefcase, route: "/hire/provider" },
+  { name: "List your eatery", description: "Put your menu on 1145 and take delivery orders.", icon: UtensilsCrossed, route: "/eatery/dashboard" },
   { name: "Create", description: "Grow your audience and get paid for content.", icon: Megaphone, route: "/influencer/login" },
 ];
 

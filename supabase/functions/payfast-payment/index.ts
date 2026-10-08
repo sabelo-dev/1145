@@ -339,6 +339,44 @@ serve(async (req) => {
       const deposit = registration?.payment_status === "paid" ? Number(registration.registration_fee_paid || 0) : 0;
       amountDue = round2(Number(auction.winning_bid || 0) - deposit);
       mPaymentId = `AUCWIN-${auction.id}`;
+    } else if (paymentData.customStr2 === "service_order") {
+      // Priced by service_create_order() from the package; the amount is read from that row in cents.
+      const serviceOrderId = String(paymentData.customStr1 || "");
+      const { data: serviceOrder } = await supabaseAdmin
+        .from("service_orders")
+        .select("id, state, order_number, listing_title, gross_amount_minor")
+        .eq("id", serviceOrderId)
+        .eq("customer_user_id", user.id)
+        .maybeSingle();
+
+      if (!serviceOrder) return json({ success: false, error: "Order not found" }, 404);
+      if (serviceOrder.state !== "pending_payment") {
+        return json({ success: false, error: "This order is not awaiting payment" }, 400);
+      }
+      amountDue = round2(Number(serviceOrder.gross_amount_minor) / 100);
+      mPaymentId = `SVC-${serviceOrder.id}`;
+      itemName = `${serviceOrder.order_number} ${serviceOrder.listing_title}`.slice(0, 100);
+    } else if (paymentData.customStr2 === "food_order") {
+      // The order was priced by place_food_order(); the amount comes from that row, never the client.
+      const foodOrderId = String(paymentData.customStr1 || "");
+      const { data: foodOrder } = await supabaseAdmin
+        .from("food_orders")
+        .select("id, status, payment_status, total, eatery:eateries(name, status, accepting_orders)")
+        .eq("id", foodOrderId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!foodOrder) return json({ success: false, error: "Order not found" }, 404);
+      if (foodOrder.payment_status !== "pending" || foodOrder.status !== "pending_payment") {
+        return json({ success: false, error: "This order is not awaiting payment" }, 400);
+      }
+      const eatery = (foodOrder as any).eatery;
+      if (eatery?.status !== "approved" || !eatery?.accepting_orders) {
+        return json({ success: false, error: "This eatery is not taking orders right now" }, 400);
+      }
+      amountDue = round2(Number(foodOrder.total || 0));
+      mPaymentId = `FOOD-${foodOrder.id}`;
+      itemName = `Food order from ${eatery.name}`.slice(0, 100);
     } else if (paymentData.customStr2 === "tier_subscription") {
       const tierName = String(paymentData.customStr1 || "").toLowerCase();
       const { data: tier } = await supabaseAdmin

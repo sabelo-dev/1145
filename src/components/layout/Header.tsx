@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  ChevronDown, Gavel, Grid3X3, LayoutDashboard, Percent, LogOut, Menu, Package, Search, Settings,
-  ShoppingCart, Sparkles, Store, TrendingUp, Truck, User, X,
+  Briefcase, ChevronDown, Gavel, Grid3X3, LayoutDashboard, LayoutGrid, Percent, LogOut, Menu, Package, Search, Settings,
+  ShoppingCart, Sparkles, Store, TrendingUp, Truck, User, UtensilsCrossed, X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -23,20 +23,21 @@ import {
 import { cn } from "@/lib/utils";
 import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
-/** Primary destinations, always visible from md up. */
+/** Primary destinations, always visible from md up. Keep this list short. */
 const primaryNav = [
   { label: "Shop", path: "/shop" },
   { label: "Marketplace", path: OFFICIAL_STORE_PATH },
-  { label: "Services", path: "/services" },
-  // Tablets (md) move these into "More" so the bar never collides.
-  { label: "Deals", path: "/deals", wideOnly: true },
-  { label: "Auctions", path: "/auctions", wideOnly: true },
+  { label: "Ride", path: "/rides/request" },
+  { label: "Stays", path: "/stays" },
 ];
 
-/** Secondary destinations, grouped under "More" so the bar never overflows. */
+/** Secondary destinations, grouped under "More" so the bar stays calm. */
 const moreNav = [
-  { label: "Deals", path: "/deals", icon: Percent, narrowOnly: true },
-  { label: "Auctions", path: "/auctions", icon: Gavel, narrowOnly: true },
+  { label: "Hire a pro", path: "/hire", icon: Briefcase },
+  { label: "Food delivery", path: "/food", icon: UtensilsCrossed },
+  { label: "All services", path: "/services", icon: LayoutGrid },
+  { label: "Deals", path: "/deals", icon: Percent },
+  { label: "Auctions", path: "/auctions", icon: Gavel },
   { label: "Categories", path: "/categories", icon: Grid3X3 },
   { label: "Best sellers", path: "/best-sellers", icon: TrendingUp },
   { label: "New arrivals", path: "/new-arrivals", icon: Sparkles },
@@ -44,9 +45,9 @@ const moreNav = [
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
-    "relative inline-flex h-9 items-center rounded-full px-3 text-sm font-medium transition-colors whitespace-nowrap",
+    "relative inline-flex h-9 items-center rounded-full px-3.5 text-sm font-medium transition-colors whitespace-nowrap",
     isActive
-      ? "bg-foreground text-background"
+      ? "bg-surface-selected text-brand"
       : "text-foreground/80 hover:bg-surface-hover hover:text-foreground",
   );
 
@@ -110,7 +111,7 @@ const Header: React.FC = () => {
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:px-6 md:h-16 lg:px-8">
           {/* Brand */}
           <Link to="/" className="flex shrink-0 items-center gap-2 rounded-xl" aria-label="1145 home">
-            <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl shadow-soft" />
+            <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
             <span className="hidden font-display text-lg font-bold tracking-tight sm:inline">1145</span>
           </Link>
 
@@ -118,7 +119,7 @@ const Header: React.FC = () => {
           <nav aria-label="Main" className="ml-2 hidden min-w-0 md:block lg:ml-4">
             <ul className="flex items-center gap-0.5">
               {primaryNav.map((item) => (
-                <li key={item.path} className={item.wideOnly ? "hidden lg:block" : undefined}>
+                <li key={item.path}>
                   <NavLink to={item.path} className={navLinkClass}>
                     {item.label}
                   </NavLink>
@@ -135,8 +136,8 @@ const Header: React.FC = () => {
                     More <ChevronDown className="h-3.5 w-3.5" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-52">
-                    {moreNav.map(({ label, path, icon: Icon, narrowOnly }) => (
-                      <DropdownMenuItem key={path} asChild className={narrowOnly ? "lg:hidden" : undefined}>
+                    {moreNav.map(({ label, path, icon: Icon }) => (
+                      <DropdownMenuItem key={path} asChild>
                         <Link to={path} className="flex cursor-pointer items-center gap-2">
                           <Icon className="h-4 w-4 text-muted-foreground" />
                           {label}
@@ -179,7 +180,7 @@ const Header: React.FC = () => {
               {searchOpen ? <X className="h-[18px] w-[18px]" /> : <Search className="h-[18px] w-[18px]" />}
             </Button>
 
-            <div className="hidden xl:block">
+            <div className="hidden md:block">
               <CurrencyToggle compact />
             </div>
 
@@ -292,6 +293,8 @@ const Header: React.FC = () => {
               className={cn(iconButton, "md:hidden")}
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
+              aria-haspopup="dialog"
+              aria-expanded={mobileMenuOpen}
             >
               <Menu className="h-[18px] w-[18px]" />
             </Button>

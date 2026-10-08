@@ -14,10 +14,12 @@ interface StaysSearchBarProps {
     checkOut: Date | undefined;
     guests: number;
   }) => void;
+  /** Pre-fills "Where", e.g. when arriving with ?location= in the URL. */
+  initialLocation?: string;
 }
 
-const StaysSearchBar: React.FC<StaysSearchBarProps> = ({ onSearch }) => {
-  const [location, setLocation] = useState("");
+const StaysSearchBar: React.FC<StaysSearchBarProps> = ({ onSearch, initialLocation = "" }) => {
+  const [location, setLocation] = useState(initialLocation);
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState(1);

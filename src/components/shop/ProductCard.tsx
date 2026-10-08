@@ -92,6 +92,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           src={image}
           alt={product.name}
           loading="lazy"
+          decoding="async"
           className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
           onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }}
         />
@@ -146,7 +147,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); navigate(`/store/${product.vendorSlug}`); }}
-            className="relative z-10 w-fit truncate text-left text-xs font-medium text-text-secondary hover:text-foreground hover:underline"
+            className="relative z-10 min-h-0 w-fit max-w-full truncate py-1 text-left text-xs font-medium text-text-secondary hover:text-foreground hover:underline"
           >
             {product.vendorName}
           </button>
@@ -156,7 +157,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
 
         {/* Stretched link: the whole card opens the product, without nesting other controls inside a link. */}
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
-          <Link to={`/product/${product.slug}`} className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none">
+          <Link to={`/product/${product.slug}`} className="after:absolute after:inset-0 after:rounded-2xl after:content-[''] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring">
             {product.name}
           </Link>
         </h3>
@@ -168,7 +169,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
           </div>
         )}
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-1">
+        <div className="mt-auto flex items-end justify-between gap-2 pt-1 tabular-nums">
           <GoldPriceDisplay price={price} compareAtPrice={markedUpCompareAt} size="md" />
         </div>
 

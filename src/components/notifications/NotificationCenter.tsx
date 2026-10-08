@@ -48,7 +48,11 @@ const NotificationCenter: React.FC = () => {
     markAsRead(notification.id);
     
     // Navigate based on notification type
-    if (notification.data?.order_id) {
+    const link = notification.data?.link;
+    if (typeof link === 'string' && link.startsWith('/') && !link.startsWith('//')) {
+      // Notifications that know exactly where they belong (e.g. a service order).
+      navigate(link);
+    } else if (notification.data?.order_id) {
       navigate(`/dashboard?tab=orders`);
     } else if (notification.data?.auction_id) {
       navigate(`/auctions`);

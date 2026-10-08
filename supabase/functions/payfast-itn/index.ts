@@ -80,6 +80,77 @@ serve(async (req) => {
       return ok();
     }
 
+    // Handle service marketplace orders — SVC-{serviceOrderId}
+    if (customStr2 === "service_order" && customStr1 && paymentId === `SVC-${customStr1}`) {
+      if (paymentStatus === "COMPLETE") {
+        // The database function checks the amount and is safe to call again for a repeated ITN.
+        const { data: outcome, error: paidError } = await supabaseAdmin.rpc("service_order_mark_paid", {
+          p_order_id: customStr1,
+          p_payment_ref: pfPaymentId,
+          p_amount_minor: Math.round(amountGross * 100),
+        });
+        if (paidError) {
+          console.error("Failed to confirm service order:", paidError);
+          return new Response("Database error", { status: 500, headers: corsHeaders });
+        }
+        if (outcome === "amount_mismatch" || outcome === "not_found") {
+          console.error(`Service order ${customStr1}: ${outcome} (paid R${amountGross})`);
+        } else {
+          console.log(`Service order ${customStr1}: ${outcome}`);
+        }
+      }
+      // A failed or abandoned payment leaves the order awaiting payment; the customer can retry or cancel it.
+      return ok();
+    }
+
+    // Handle food orders — FOOD-{foodOrderId}
+    if (customStr2 === "food_order" && customStr1 && paymentId === `FOOD-${customStr1}`) {
+      if (paymentStatus === "COMPLETE") {
+        const { data: foodOrder } = await supabaseAdmin
+          .from("food_orders")
+          .select("id, status, payment_status, total")
+          .eq("id", customStr1)
+          .maybeSingle();
+
+        if (!foodOrder) {
+          console.error(`Food order ${customStr1} not found`);
+          return ok();
+        }
+        if (foodOrder.payment_status !== "pending") {
+          console.log(`Food order ${customStr1} already ${foodOrder.payment_status}; ignoring duplicate ITN`);
+          return ok();
+        }
+        const expected = Number(foodOrder.total || 0);
+        if (!amountsMatch(amountGross, expected)) {
+          console.error(`Amount mismatch for food order ${customStr1}: paid R${amountGross}, expected R${expected}`);
+          return ok();
+        }
+
+        // Paid after the customer cancelled: keep the order cancelled and flag the refund.
+        const stillWanted = foodOrder.status === "pending_payment";
+        const { error: updateError } = await supabaseAdmin
+          .from("food_orders")
+          .update(stillWanted
+            ? { status: "placed", payment_status: "paid", payment_reference: pfPaymentId, placed_at: new Date().toISOString() }
+            : { payment_status: "refund_due", payment_reference: pfPaymentId })
+          .eq("id", customStr1)
+          .eq("payment_status", "pending");
+
+        if (updateError) {
+          console.error("Failed to confirm food order:", updateError);
+          return new Response("Database error", { status: 500, headers: corsHeaders });
+        }
+        console.log(`Food order ${customStr1} ${stillWanted ? "placed" : "paid after cancellation; refund due"}`);
+      } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
+        await supabaseAdmin
+          .from("food_orders")
+          .update({ status: "cancelled" })
+          .eq("id", customStr1)
+          .eq("status", "pending_payment");
+      }
+      return ok();
+    }
+
     // Handle auction registration payments — AUCREG-{registrationId}
     if (customStr2 === "auction_registration" && customStr1 && paymentId === `AUCREG-${customStr1}`) {
       if (paymentStatus === "COMPLETE") {

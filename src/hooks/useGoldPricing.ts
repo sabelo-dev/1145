@@ -3,11 +3,45 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { GoldPrice, CurrencyRate, UserCurrencyPreference, GOLD_CONSTANTS } from '@/types/gold';
 
+type DisplayPreference = Pick<UserCurrencyPreference, 'preferredCurrency' | 'displayMode' | 'goldUnit'>;
+
+/** Prices are stored and charged in this currency. */
+export const BASE_CURRENCY = 'ZAR';
+const DEFAULT_PREFERENCE: DisplayPreference = { preferredCurrency: BASE_CURRENCY, displayMode: 'currency', goldUnit: 'mg' };
+const STORAGE_KEY = '1145.display-preference';
+const DISPLAY_MODES: DisplayPreference['displayMode'][] = ['currency', 'gold', 'both'];
+const GOLD_UNITS: DisplayPreference['goldUnit'][] = ['mg', 'g', 'oz'];
+
+/** The choice made on this device, so it works signed out and survives a reload. */
+const readStoredPreference = (): DisplayPreference => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!saved || typeof saved !== 'object') return DEFAULT_PREFERENCE;
+    return {
+      preferredCurrency: typeof saved.preferredCurrency === 'string' ? saved.preferredCurrency : DEFAULT_PREFERENCE.preferredCurrency,
+      displayMode: DISPLAY_MODES.includes(saved.displayMode) ? saved.displayMode : DEFAULT_PREFERENCE.displayMode,
+      goldUnit: GOLD_UNITS.includes(saved.goldUnit) ? saved.goldUnit : DEFAULT_PREFERENCE.goldUnit,
+    };
+  } catch {
+    return DEFAULT_PREFERENCE;
+  }
+};
+
+const storePreference = (preference: DisplayPreference) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preference));
+  } catch {
+    // storage unavailable (private mode): the choice still applies for this visit
+  }
+};
+
 export function useGoldPricing() {
   const { user } = useAuth();
   const [goldPrice, setGoldPrice] = useState<GoldPrice | null>(null);
   const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
   const [userPreference, setUserPreference] = useState<UserCurrencyPreference | null>(null);
+  // What the UI shows. Updated the moment the user picks; the account copy syncs in the background.
+  const [preference, setPreference] = useState<DisplayPreference>(readStoredPreference);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch current gold price
@@ -54,7 +88,10 @@ export function useGoldPricing() {
 
   // Fetch user preferences
   const fetchUserPreference = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setUserPreference(null);
+      return;
+    }
 
     const { data, error } = await supabase
       .from('user_currency_preferences')
@@ -72,6 +109,18 @@ export function useGoldPricing() {
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       });
+      // Signing in: the choice saved on the account wins over this device's.
+      const fromAccount: DisplayPreference = {
+        preferredCurrency: data.preferred_currency || DEFAULT_PREFERENCE.preferredCurrency,
+        displayMode: DISPLAY_MODES.includes(data.display_mode as DisplayPreference['displayMode'])
+          ? (data.display_mode as DisplayPreference['displayMode'])
+          : DEFAULT_PREFERENCE.displayMode,
+        goldUnit: GOLD_UNITS.includes(data.gold_unit as DisplayPreference['goldUnit'])
+          ? (data.gold_unit as DisplayPreference['goldUnit'])
+          : DEFAULT_PREFERENCE.goldUnit,
+      };
+      setPreference(fromAccount);
+      storePreference(fromAccount);
     }
   }, [user]);
 
@@ -110,6 +159,16 @@ export function useGoldPricing() {
 
     return Math.round(amountCurrency * 100) / 100;
   }, [goldPrice, currencies]);
+
+  // Convert between two currencies directly (no detour through gold, so nothing is lost to rounding).
+  // Returns null when either rate is missing, so callers can fall back instead of showing 0.
+  const convertCurrency = useCallback((amount: number, from: string, to: string): number | null => {
+    if (from === to) return amount;
+    const fromRate = currencies.find(c => c.currencyCode === from)?.rateToUsd;
+    const toRate = currencies.find(c => c.currencyCode === to)?.rateToUsd;
+    if (!fromRate || !toRate) return null;
+    return Math.round((amount / fromRate) * toRate * 100) / 100;
+  }, [currencies]);
 
   // Convert mg gold to different gold units
   const mgToGoldUnit = useCallback((mg: number, unit: 'mg' | 'g' | 'oz'): number => {
@@ -159,47 +218,61 @@ export function useGoldPricing() {
     })}`;
   }, [getCurrency]);
 
-  // Update user preference
-  const updatePreference = useCallback(async (
-    updates: Partial<Pick<UserCurrencyPreference, 'preferredCurrency' | 'displayMode' | 'goldUnit'>>
-  ) => {
-    if (!user) return false;
+  // Update the display preference. Applies immediately (signed in or not) and is
+  // remembered on this device; signed-in users also get it saved to their account.
+  const updatePreference = useCallback(async (updates: Partial<DisplayPreference>) => {
+    const next = { ...preference, ...updates };
+    setPreference(next);
+    storePreference(next);
+    if (!user) return true;
 
     const { error } = await supabase
       .from('user_currency_preferences')
       .upsert({
         user_id: user.id,
-        preferred_currency: updates.preferredCurrency ?? userPreference?.preferredCurrency ?? 'ZAR',
-        display_mode: updates.displayMode ?? userPreference?.displayMode ?? 'currency',
-        gold_unit: updates.goldUnit ?? userPreference?.goldUnit ?? 'mg',
+        preferred_currency: next.preferredCurrency,
+        display_mode: next.displayMode,
+        gold_unit: next.goldUnit,
         updated_at: new Date().toISOString(),
       }, {
         onConflict: 'user_id'
       });
 
-    if (!error) {
-      await fetchUserPreference();
-      return true;
+    if (error) {
+      console.error('Could not save currency preference to the account:', error.message);
+      return false;
     }
-    return false;
-  }, [user, userPreference, fetchUserPreference]);
+    return true;
+  }, [user, preference]);
 
-  // Get display currency (user preferred or default)
+  // A saved currency that has since been switched off falls back to the base currency.
   const displayCurrency = useMemo(() => {
-    return userPreference?.preferredCurrency ?? 'ZAR';
-  }, [userPreference]);
+    if (!currencies.length) return preference.preferredCurrency;
+    return currencies.some(c => c.currencyCode === preference.preferredCurrency)
+      ? preference.preferredCurrency
+      : BASE_CURRENCY;
+  }, [preference.preferredCurrency, currencies]);
 
-  // Get display mode
-  const displayMode = useMemo(() => {
-    return userPreference?.displayMode ?? 'currency';
-  }, [userPreference]);
+  const displayMode = preference.displayMode;
+  const goldUnit = preference.goldUnit;
 
-  // Get gold unit preference
-  const goldUnit = useMemo(() => {
-    return userPreference?.goldUnit ?? 'mg';
-  }, [userPreference]);
+  // Format a price for display in the user's chosen mode. Never shows a bogus 0:
+  // if a rate or the gold price is missing it falls back to the original currency.
+  const formatPrice = useCallback((amount: number, currencyCode: string = BASE_CURRENCY): string => {
+    const safeAmount = amount ?? 0;
+    const converted = convertCurrency(safeAmount, currencyCode, displayCurrency);
+    const currencyText = converted == null
+      ? formatCurrencyAmount(safeAmount, currencyCode)
+      : formatCurrencyAmount(converted, displayCurrency);
+    const goldReady = !!goldPrice && currencies.some(c => c.currencyCode === currencyCode);
+    if (displayMode === 'currency' || !goldReady) return currencyText;
+    const goldText = formatGold(currencyToMgGold(safeAmount, currencyCode), goldUnit);
+    return displayMode === 'gold' ? goldText : `${currencyText} (${goldText})`;
+  }, [convertCurrency, displayCurrency, displayMode, goldUnit, goldPrice, currencies, formatCurrencyAmount, formatGold, currencyToMgGold]);
 
-  return {
+  // One stable object: consumers re-render only when something they can see changed,
+  // and never hold a helper bound to an old user, rate or preference.
+  return useMemo(() => ({
     goldPrice,
     currencies,
     userPreference,
@@ -209,12 +282,18 @@ export function useGoldPricing() {
     goldUnit,
     currencyToMgGold,
     mgGoldToCurrency,
+    convertCurrency,
     mgToGoldUnit,
     formatGold,
     formatCurrencyAmount,
+    formatPrice,
     getCurrency,
     updatePreference,
     refreshGoldPrice: fetchGoldPrice,
     refreshCurrencies: fetchCurrencies,
-  };
+  }), [
+    goldPrice, currencies, userPreference, isLoading, displayCurrency, displayMode, goldUnit,
+    currencyToMgGold, mgGoldToCurrency, convertCurrency, mgToGoldUnit, formatGold, formatCurrencyAmount,
+    formatPrice, getCurrency, updatePreference, fetchGoldPrice, fetchCurrencies,
+  ]);
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/utils";
+import { useGoldPricingContext } from "@/contexts/GoldPricingContext";
 import { calculateShipping } from "@/utils/shippingCalculator";
 import type { AppliedPromo } from "./PromoCodePanel";
 
@@ -12,6 +13,7 @@ interface OrderSummaryProps {
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({ promo }) => {
   const { cart } = useCart();
+  const { displayMode, displayCurrency } = useGoldPricingContext();
   const [shipping, setShipping] = useState<number>(0);
   const [loadingShipping, setLoadingShipping] = useState(true);
 
@@ -108,6 +110,11 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ promo }) => {
           <span>Total</span>
           <span>{formatCurrency(total)}</span>
         </div>
+        {(displayMode !== "currency" || displayCurrency !== "ZAR") && (
+          <p className="text-xs text-muted-foreground">
+            Orders are charged in South African rand (ZAR). Other currencies and gold values are shown as a guide.
+          </p>
+        )}
       </div>
     </div>
   );

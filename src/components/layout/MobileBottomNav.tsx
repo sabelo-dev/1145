@@ -2,10 +2,10 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   CarFront,
-  Grid2x2,
+  BedDouble,
   House,
   UserRound,
-  WalletCards,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -19,9 +19,9 @@ const items: Array<{
   exact?: boolean;
 }> = [
   { label: "Home", path: "/", icon: House, exact: true },
-  { label: "Services", path: "/services", icon: Grid2x2 },
   { label: "Ride", path: "/rides/request", icon: CarFront },
-  { label: "Wallet", path: "/wallet", icon: WalletCards, authRequired: true },
+  { label: "Shop", path: "/shop", icon: ShoppingBag },
+  { label: "Stays", path: "/stays", icon: BedDouble },
   { label: "Account", path: "/dashboard", icon: UserRound, authRequired: true },
 ] as const;
 
@@ -36,7 +36,7 @@ const tap = () => {
 };
 
 const itemClass =
-  "relative flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none";
+  "relative flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium tracking-tight transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring";
 
 const MobileBottomNav: React.FC = () => {
   const { user } = useAuth();

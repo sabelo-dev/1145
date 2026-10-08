@@ -19,169 +19,122 @@ interface CurrencyToggleProps {
   compact?: boolean;
 }
 
+const GOLD_UNIT_SHORT = { mg: 'mg Au', g: 'g Au', oz: 'oz Au' } as const;
+
 export function CurrencyToggle({ className, showLabel = true, compact = false }: CurrencyToggleProps) {
   const {
     displayMode,
     displayCurrency,
     goldUnit,
+    goldPrice,
     currencies,
     updatePreference,
     getCurrency,
   } = useGoldPricingContext();
 
-  const currentCurrency = getCurrency(displayCurrency);
+  const currencySymbol = getCurrency(displayCurrency)?.currencySymbol || displayCurrency;
+  // Gold modes need a gold price; without one prices fall back to currency, so don't offer them.
+  const goldAvailable = !!goldPrice;
+  // Chosen currency first, so it is always visible however long the list gets.
+  const orderedCurrencies = [...currencies].sort((a, b) =>
+    Number(b.currencyCode === displayCurrency) - Number(a.currencyCode === displayCurrency));
 
-  const handleDisplayModeChange = (value: string) => {
-    updatePreference({ displayMode: value as 'currency' | 'gold' | 'both' });
-  };
+  const label =
+    displayMode === 'gold' ? GOLD_UNIT_SHORT[goldUnit]
+      : displayMode === 'both' ? `${currencySymbol} + Au`
+        : currencySymbol;
+  const description =
+    displayMode === 'gold' ? `gold, ${GOLD_UNIT_SHORT[goldUnit]}`
+      : displayMode === 'both' ? `${displayCurrency} and gold`
+        : displayCurrency;
 
-  const handleCurrencyChange = (value: string) => {
-    updatePreference({ preferredCurrency: value });
-  };
+  const icon = displayMode === 'gold'
+    ? <Coins className="h-4 w-4 text-gold" aria-hidden />
+    : <Globe className="h-4 w-4" aria-hidden />;
 
-  const handleGoldUnitChange = (value: string) => {
-    updatePreference({ goldUnit: value as 'mg' | 'g' | 'oz' });
-  };
+  const trigger = compact ? (
+    <Button variant="ghost" size="sm" className={cn('gap-1', className)} aria-label={`Prices shown in ${description}. Change`}>
+      {icon}
+      <span className="text-xs">{label}</span>
+      <ChevronDown className="h-3 w-3" aria-hidden />
+    </Button>
+  ) : (
+    <Button variant="outline" size="sm" className="gap-2" aria-label={`Prices shown in ${description}. Change`}>
+      {icon}
+      <span>{label}</span>
+      <ChevronDown className="h-4 w-4" aria-hidden />
+    </Button>
+  );
 
-  const getDisplayModeLabel = () => {
-    switch (displayMode) {
-      case 'gold':
-        return goldUnit === 'mg' ? 'mg Au' : goldUnit === 'g' ? 'g Au' : 'oz Au';
-      case 'both':
-        return `${currentCurrency?.currencySymbol || displayCurrency} + Au`;
-      default:
-        return currentCurrency?.currencySymbol || displayCurrency;
-    }
-  };
+  const menu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className={cn('max-h-[70vh] overflow-y-auto', compact ? 'w-52' : 'w-60')}>
+        <DropdownMenuLabel>Show prices in</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={displayMode}
+          onValueChange={(value) => updatePreference({ displayMode: value as 'currency' | 'gold' | 'both' })}
+        >
+          <DropdownMenuRadioItem value="currency">
+            <Globe className="mr-2 h-4 w-4" aria-hidden />
+            Currency
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="gold" disabled={!goldAvailable}>
+            <Coins className="mr-2 h-4 w-4 text-gold" aria-hidden />
+            Gold
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="both" disabled={!goldAvailable}>
+            <span className="mr-2 flex items-center" aria-hidden>
+              <Globe className="h-3 w-3" />
+              <span className="mx-0.5">+</span>
+              <Coins className="h-3 w-3 text-gold" />
+            </span>
+            Currency + gold
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
 
-  const getDisplayModeIcon = () => {
-    if (displayMode === 'gold') {
-      return <Coins className="h-4 w-4 text-gold" />;
-    }
-    return <Globe className="h-4 w-4" />;
-  };
+        {displayMode !== 'gold' && orderedCurrencies.length > 1 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Currency</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={displayCurrency}
+              onValueChange={(value) => updatePreference({ preferredCurrency: value })}
+            >
+              {orderedCurrencies.map((c) => (
+                <DropdownMenuRadioItem key={c.currencyCode} value={c.currencyCode}>
+                  <span className="w-8 shrink-0">{c.currencySymbol}</span>
+                  <span className="truncate">{compact ? c.currencyCode : c.currencyName}</span>
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </>
+        )}
 
-  if (compact) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className={cn('gap-1', className)}>
-            {getDisplayModeIcon()}
-            <span className="text-xs">{getDisplayModeLabel()}</span>
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel>Display Mode</DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={displayMode} onValueChange={handleDisplayModeChange}>
-            <DropdownMenuRadioItem value="currency">
-              <Globe className="h-4 w-4 mr-2" />
-              Currency Only
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="gold">
-              <Coins className="h-4 w-4 mr-2 text-gold" />
-              Gold Only
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="both">
-              <div className="flex items-center mr-2">
-                <Globe className="h-3 w-3" />
-                <span className="mx-0.5">+</span>
-                <Coins className="h-3 w-3 text-gold" />
-              </div>
-              Both
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
+        {displayMode !== 'currency' && goldAvailable && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Gold unit</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={goldUnit}
+              onValueChange={(value) => updatePreference({ goldUnit: value as 'mg' | 'g' | 'oz' })}
+            >
+              <DropdownMenuRadioItem value="mg">Milligrams (mg)</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="g">Grams (g)</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="oz">Troy ounces (oz)</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
-          {displayMode !== 'gold' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Currency</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={displayCurrency} onValueChange={handleCurrencyChange}>
-                {currencies.slice(0, 5).map((c) => (
-                  <DropdownMenuRadioItem key={c.currencyCode} value={c.currencyCode}>
-                    {c.currencySymbol} {c.currencyCode}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </>
-          )}
-
-          {displayMode !== 'currency' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Gold Unit</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={goldUnit} onValueChange={handleGoldUnitChange}>
-                <DropdownMenuRadioItem value="mg">Milligrams (mg)</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="g">Grams (g)</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="oz">Troy Ounces (oz)</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
+  if (compact) return menu;
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {showLabel && <span className="text-sm text-muted-foreground">View prices in:</span>}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
-            {getDisplayModeIcon()}
-            <span>{getDisplayModeLabel()}</span>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Display Mode</DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={displayMode} onValueChange={handleDisplayModeChange}>
-            <DropdownMenuRadioItem value="currency">
-              <Globe className="h-4 w-4 mr-2" />
-              Currency Only
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="gold">
-              <Coins className="h-4 w-4 mr-2 text-gold" />
-              Gold Only
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="both">
-              <div className="flex items-center mr-2">
-                <Globe className="h-3 w-3" />
-                <span className="mx-0.5">+</span>
-                <Coins className="h-3 w-3 text-gold" />
-              </div>
-              Currency + Gold
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-
-          {displayMode !== 'gold' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Preferred Currency</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={displayCurrency} onValueChange={handleCurrencyChange}>
-                {currencies.map((c) => (
-                  <DropdownMenuRadioItem key={c.currencyCode} value={c.currencyCode}>
-                    <span className="w-6">{c.currencySymbol}</span>
-                    <span>{c.currencyName}</span>
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </>
-          )}
-
-          {displayMode !== 'currency' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Gold Unit</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={goldUnit} onValueChange={handleGoldUnitChange}>
-                <DropdownMenuRadioItem value="mg">Milligrams (mg Au)</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="g">Grams (g Au)</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="oz">Troy Ounces (oz Au)</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {menu}
     </div>
   );
 }

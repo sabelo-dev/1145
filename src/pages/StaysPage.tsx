@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import StaysSearchBar from "@/components/stays/StaysSearchBar";
@@ -8,7 +9,10 @@ import { Building2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const StaysPage: React.FC = () => {
-  const [filters, setFilters] = useState({ location: "", type: "" });
+  const [searchParams] = useSearchParams();
+  // Arriving from the home planner: /stays?location=…
+  const initialLocation = searchParams.get("location")?.trim() || "";
+  const [filters, setFilters] = useState({ location: initialLocation, type: "" });
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["lodging-properties", filters],
@@ -37,7 +41,7 @@ const StaysPage: React.FC = () => {
         <div className="container mx-auto px-4 py-12 md:py-20">
           <h1 className="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight">Find your perfect stay</h1>
           <p className="text-white/70 text-base md:text-lg mb-8 max-w-lg">Hotels, guesthouses, lodges & more — book directly on 1145.</p>
-          <StaysSearchBar onSearch={handleSearch} />
+          <StaysSearchBar onSearch={handleSearch} initialLocation={initialLocation} />
         </div>
       </div>
 

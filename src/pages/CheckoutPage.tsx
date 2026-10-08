@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate, Navigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
@@ -8,7 +8,7 @@ import OrderSummary from "@/components/checkout/OrderSummary";
 import type { AppliedPromo } from "@/components/checkout/PromoCodePanel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ShieldCheck, Lock, Truck } from "lucide-react";
+import { ArrowLeft, CircleHelp, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -51,6 +51,8 @@ const CheckoutPage: React.FC = () => {
     { label: "Payment", done: false },
   ];
 
+  const activeStep = Math.max(0, steps.findIndex((step) => step.active));
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -71,12 +73,16 @@ const CheckoutPage: React.FC = () => {
               <h1 className="text-xl font-bold text-foreground">Checkout</h1>
             </div>
 
-            {/* Progress steps */}
-            <div className="hidden md:flex items-center gap-2">
+            {/* Progress: a compact "Step 2 of 3" on phones, the full track from md up */}
+            <p className="text-sm font-medium text-muted-foreground md:hidden">
+              Step {activeStep + 1} of {steps.length}
+              <span className="sr-only">: {steps[activeStep].label}</span>
+            </p>
+            <ol aria-label="Checkout progress" className="hidden md:flex items-center gap-2">
               {steps.map((step, i) => (
-                <React.Fragment key={step.label}>
+                <li key={step.label} className="flex items-center gap-2" aria-current={step.active ? "step" : undefined}>
                   <div className="flex items-center gap-1.5">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    <div aria-hidden className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                       step.done ? "bg-primary text-primary-foreground" :
                       step.active ? "bg-primary/10 text-primary border-2 border-primary" :
                       "bg-muted text-muted-foreground"
@@ -85,14 +91,15 @@ const CheckoutPage: React.FC = () => {
                     </div>
                     <span className={`text-xs font-medium ${step.active ? "text-foreground" : "text-muted-foreground"}`}>
                       {step.label}
+                      {step.done && <span className="sr-only"> (completed)</span>}
                     </span>
                   </div>
                   {i < steps.length - 1 && (
-                    <div className={`w-8 h-0.5 ${step.done ? "bg-primary" : "bg-border"}`} />
+                    <div aria-hidden className={`w-8 h-0.5 ${step.done ? "bg-primary" : "bg-border"}`} />
                   )}
-                </React.Fragment>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </div>
       </div>
@@ -118,19 +125,27 @@ const CheckoutPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Trust badges */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* Help within reach while paying: policies and support, not slogans */}
+              <ul className="grid grid-cols-3 gap-3">
                 {[
-                  { icon: Lock, label: "Secure Checkout" },
-                  { icon: ShieldCheck, label: "Buyer Protection" },
-                  { icon: Truck, label: "Fast Shipping" },
-                ].map((badge) => (
-                  <div key={badge.label} className="flex flex-col items-center text-center p-3 rounded-xl bg-muted/50 border border-border/30">
-                    <badge.icon className="h-4 w-4 text-primary mb-1" />
-                    <span className="text-[11px] font-medium text-muted-foreground">{badge.label}</span>
-                  </div>
+                  { icon: Truck, label: "Delivery info", to: "/shipping" },
+                  { icon: RotateCcw, label: "Returns policy", to: "/returns" },
+                  { icon: CircleHelp, label: "Contact support", to: "/contact" },
+                ].map((item) => (
+                  <li key={item.to}>
+                    <Link
+                      to={item.to}
+                      target="_blank"
+                      rel="noopener"
+                      className="flex h-full flex-col items-center rounded-xl border border-border/30 bg-muted/50 p-3 text-center transition-colors hover:bg-surface-hover"
+                    >
+                      <item.icon className="mb-1 h-4 w-4 text-primary" aria-hidden />
+                      <span className="text-xs font-medium text-foreground">{item.label}</span>
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           </div>
         </div>
