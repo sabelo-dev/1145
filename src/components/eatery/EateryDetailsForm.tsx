@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import DeliveryAreasField from "@/components/eatery/DeliveryAreasField";
 import PhotoField from "@/components/eatery/PhotoField";
 import type { EateryDetails } from "@/services/food";
-import type { Eatery } from "@/types/food";
+import type { DeliveryZone, Eatery } from "@/types/food";
 
 interface EateryDetailsFormProps {
   /** Existing eatery when editing; omit to register a new one. */
@@ -31,6 +32,9 @@ const isUrl = (value: string) => /^https:\/\/\S+$/i.test(value);
 
 /** Register or edit an eatery's listing: who you are, where you are and how delivery is priced. */
 const EateryDetailsForm: React.FC<EateryDetailsFormProps> = ({ eatery, submitLabel, onSubmit }) => {
+  // Each listed area, with its map position where one was saved.
+  const [zones, setZones] = useState<DeliveryZone[]>(() => (eatery?.delivery_areas ?? []).map((name) =>
+    eatery?.delivery_zones.find((z) => z.name.toLowerCase() === name.toLowerCase()) ?? { name }));
   const [draft, setDraft] = useState<Draft>(() => toDraft(eatery));
   const [errors, setErrors] = useState<Partial<Record<keyof Draft, string>>>({});
   const [saving, setSaving] = useState(false);
@@ -80,6 +84,8 @@ const EateryDetailsForm: React.FC<EateryDetailsFormProps> = ({ eatery, submitLab
         prep_time_min: prep,
         delivery_fee: Math.round(fee * 100) / 100,
         min_order: Math.round(min * 100) / 100,
+        delivery_areas: zones.map((z) => z.name),
+        delivery_zones: zones,
       });
       setSaved(true);
     } catch (error) {
@@ -145,6 +151,9 @@ const EateryDetailsForm: React.FC<EateryDetailsFormProps> = ({ eatery, submitLab
           {input("prep_time_min", "Typical prep time (minutes)", { type: "number", inputMode: "numeric", min: 5, max: 180, step: 1 })}
           {input("delivery_fee", "Delivery fee (R)", { type: "number", inputMode: "decimal", min: 0, step: "0.01" }, "A flat fee added to every order.")}
           {input("min_order", "Minimum order (R)", { type: "number", inputMode: "decimal", min: 0, step: "0.01" }, "Use 0 for no minimum.")}
+        </div>
+        <div className="mt-6">
+          <DeliveryAreasField zones={zones} onChange={(next) => { setZones(next); setSaved(false); }} />
         </div>
       </fieldset>
 

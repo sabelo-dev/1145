@@ -79,7 +79,12 @@ const OrderCard: React.FC<{ order: FoodOrder; prepTimeMin: number; now: number; 
         ))}
       </ul>
       {order.notes && <p className="mt-2 rounded-lg bg-surface-muted p-2 text-sm text-foreground">Note: {order.notes}</p>}
-      <p className="mt-2 text-sm text-text-secondary">Deliver to {order.delivery_address.street}, {order.delivery_address.city}</p>
+      <p className="mt-2 text-sm text-text-secondary">Deliver to {order.delivery_address.street}, {order.delivery_address.area ? `${order.delivery_address.area}, ` : ""}{order.delivery_address.city}</p>
+      {order.delivery_address.area && (
+        order.delivery_address.area_verified
+          ? <p className="mt-1 text-sm text-success">Address checked on the map: inside {order.delivery_address.area}.</p>
+          : <p className="mt-1 text-sm font-medium text-warning">This address couldn't be found on the map. The customer chose {order.delivery_address.area}; confirm it with them before accepting.</p>
+      )}
       {order.payment_status === "refund_due" && <p className="mt-2 text-sm font-medium text-warning">Refund due to the customer</p>}
 
       {(order.status === "placed" || order.status === "preparing") && (

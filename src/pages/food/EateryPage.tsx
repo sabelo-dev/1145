@@ -114,6 +114,13 @@ const EateryPage: React.FC = () => {
           {eatery.phone && <li className="inline-flex items-center gap-1.5"><Phone className="h-4 w-4" aria-hidden /> <a href={`tel:${eatery.phone}`} className="underline underline-offset-4">{eatery.phone}</a></li>}
           <li>{eatery.delivery_fee > 0 ? `${formatCurrency(eatery.delivery_fee)} delivery` : "Free delivery"}{eatery.min_order > 0 ? ` · ${formatCurrency(eatery.min_order)} minimum` : ""}</li>
         </ul>
+        {eatery.delivery_areas.length > 0 && (
+          <p className="mt-3 text-sm text-text-secondary">
+            <span className="font-medium text-foreground">Delivers to:</span>{" "}
+            {eatery.delivery_areas.slice(0, 12).join(", ")}
+            {eatery.delivery_areas.length > 12 ? ` and ${eatery.delivery_areas.length - 12} more` : ""}
+          </p>
+        )}
       </header>
 
       <div className="page-container mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">

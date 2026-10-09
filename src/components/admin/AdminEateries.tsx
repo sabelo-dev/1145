@@ -68,6 +68,9 @@ const AdminEateries: React.FC = () => {
                     {eatery.cuisines.join(", ") || "No cuisines set"} · delivery {formatCurrency(eatery.delivery_fee)} · minimum {formatCurrency(eatery.min_order)}
                     {" · "}registered {new Date(eatery.created_at).toLocaleDateString("en-ZA")}
                   </p>
+                  <p className="text-sm text-muted-foreground">
+                    Delivers to: {eatery.delivery_areas.length ? eatery.delivery_areas.join(", ") : "any address"}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   {eatery.status !== "approved" && (

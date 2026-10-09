@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Loader2, MapPin } from "lucide-react";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFoodCart } from "@/contexts/FoodCartContext";
-import { payForFoodOrder, placeFoodOrder } from "@/services/food";
+import { checkDeliveryAddress, fetchEateryBySlug, payForFoodOrder, placeFoodOrder } from "@/services/food";
 import { formatCurrency } from "@/lib/utils";
-import type { FoodAddress } from "@/types/food";
 
-type Field = keyof FoodAddress;
+type Field = "name" | "street" | "city" | "postal_code" | "phone";
 const REQUIRED: Field[] = ["name", "street", "city", "phone"];
 const LABELS: Record<Field, string> = {
   name: "Full name", street: "Street address", city: "City or suburb", postal_code: "Postal code", phone: "Phone number",
@@ -22,13 +22,23 @@ const FoodCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const basket = useFoodCart();
-  const [address, setAddress] = useState<FoodAddress>({
+  const [address, setAddress] = useState<Record<Field, string>>({
     name: user?.name ?? "", street: "", city: "", postal_code: "", phone: user?.phone ?? "",
   });
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState<false | "checking" | "placing">(false);
   const [failure, setFailure] = useState<string | null>(null);
+  // Shown only when the server can't find the address on the map and asks the customer to choose.
+  const [askArea, setAskArea] = useState<{ message: string; areas: string[] } | null>(null);
+  const [area, setArea] = useState("");
+
+  // The basket only remembers the eatery's name and prices; its delivery areas are read fresh.
+  const eaterySlug = basket.eatery?.slug;
+  const { data: liveEatery, isLoading: loadingEatery } = useQuery({
+    queryKey: ["eatery", eaterySlug], queryFn: () => fetchEateryBySlug(eaterySlug!), enabled: !!eaterySlug, staleTime: 60_000,
+  });
+  const deliveryAreas = liveEatery?.delivery_areas ?? [];
 
   if (!basket.eatery || basket.lines.length === 0) {
     // The basket is emptied as soon as the order exists, just before the hand-off to PayFast.
@@ -56,14 +66,39 @@ const FoodCheckoutPage: React.FC = () => {
     e.preventDefault();
     setFailure(null);
     if (!validate()) return;
-    setSubmitting(true);
+    const street = address.street.trim();
+    const city = address.city.trim();
 
+    // Eateries with delivery areas: the server locates the address on the map first.
+    let checkId: string | undefined;
+    if (deliveryAreas.length > 0) {
+      setSubmitting("checking");
+      const check = await checkDeliveryAddress({
+        eateryId: eatery.id, street, city, postalCode: address.postal_code.trim() || undefined, area: askArea && area ? area : undefined,
+      });
+      if (check.ok === false) {
+        setSubmitting(false);
+        if (check.reason === "choose_area") {
+          setAskArea({ message: check.message, areas: check.areas?.length ? check.areas : deliveryAreas });
+          window.setTimeout(() => document.getElementById("food-area")?.focus(), 0);
+        } else {
+          setFailure(check.message);
+        }
+        return;
+      }
+      if (check.required === true) checkId = check.checkId;
+    }
+
+    setSubmitting("placing");
     let orderId: string;
     try {
       orderId = await placeFoodOrder({
         eateryId: eatery.id,
         items: basket.lines.map((l) => ({ menuItemId: l.menuItemId, quantity: l.quantity })),
-        address: { ...address, name: address.name.trim(), street: address.street.trim(), city: address.city.trim(), phone: address.phone.trim() },
+        address: {
+          name: address.name.trim(), street, city, postal_code: address.postal_code.trim(), phone: address.phone.trim(),
+          ...(checkId ? { check_id: checkId } : {}),
+        },
         notes: notes.trim() || undefined,
       });
     } catch (error) {
@@ -110,12 +145,37 @@ const FoodCheckoutPage: React.FC = () => {
           <div className="min-w-0 space-y-8">
             <fieldset>
               <legend className="type-title">Delivery details</legend>
+              {deliveryAreas.length > 0 && (
+                <p className="mt-3 flex items-start gap-2 rounded-xl bg-surface-muted p-3 text-sm text-foreground">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                  <span>
+                    {eatery.name} delivers to {deliveryAreas.slice(0, 8).join(", ")}{deliveryAreas.length > 8 ? ` and ${deliveryAreas.length - 8} more` : ""}.
+                    We check your address against these areas when you place the order, so enter the full street name and number.
+                  </span>
+                </p>
+              )}
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 {field("name", { autoComplete: "name" })}
-                {field("street", { autoComplete: "street-address", placeholder: "House number, street, complex or unit" })}
+                {field("street", { autoComplete: "street-address", placeholder: "House number and street name" })}
                 {field("city", { autoComplete: "address-level2" })}
                 {field("postal_code", { autoComplete: "postal-code", inputMode: "numeric" })}
                 {field("phone", { autoComplete: "tel", type: "tel", inputMode: "tel" })}
+                {askArea && (
+                  <div className="sm:col-span-2 rounded-xl border border-border p-4">
+                    <p role="alert" className="text-sm font-medium text-foreground">{askArea.message}</p>
+                    <Label htmlFor="food-area" className="mt-3 block">Your area</Label>
+                    <select
+                      id="food-area" value={area} onChange={(e) => setArea(e.target.value)} aria-describedby="food-area-help"
+                      className="mt-1.5 h-12 w-full rounded-xl border border-input bg-background px-3 text-base text-foreground focus:border-foreground focus:outline-none"
+                    >
+                      <option value="">Choose your area</option>
+                      {askArea.areas.map((a) => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                    <p id="food-area-help" className="mt-1 text-xs text-text-secondary">
+                      If your area isn't listed, {eatery.name} can't deliver to you. The eatery is told your address couldn't be checked on the map and may confirm it with you.
+                    </p>
+                  </div>
+                )}
               </div>
             </fieldset>
 
@@ -144,8 +204,10 @@ const FoodCheckoutPage: React.FC = () => {
 
               {failure && <p role="alert" className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{failure}</p>}
 
-              <Button type="submit" variant="cta" size="lg" className="mt-5 w-full rounded-full" disabled={submitting}>
-                {submitting ? <><Loader2 className="animate-spin" aria-hidden /> Placing your order…</> : `Pay ${formatCurrency(total)}`}
+              <Button type="submit" variant="cta" size="lg" className="mt-5 w-full rounded-full" disabled={!!submitting || loadingEatery}>
+                {submitting === "checking" ? <><Loader2 className="animate-spin" aria-hidden /> Checking your address…</>
+                  : submitting === "placing" ? <><Loader2 className="animate-spin" aria-hidden /> Placing your order…</>
+                    : `Pay ${formatCurrency(total)}`}
               </Button>
               <p className="mt-3 text-xs text-text-secondary">
                 You'll pay securely with PayFast. The eatery starts preparing once your payment is confirmed. Prices are confirmed against the live menu when you pay.

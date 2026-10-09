@@ -160,7 +160,7 @@ const FoodOrderPage: React.FC = () => {
             <p className="font-semibold text-foreground">Delivering to</p>
             <p className="mt-1 text-text-secondary">
               {order.delivery_address.name}<br />
-              {order.delivery_address.street}, {order.delivery_address.city} {order.delivery_address.postal_code}<br />
+              {order.delivery_address.street}, {order.delivery_address.area ? `${order.delivery_address.area}, ` : ""}{order.delivery_address.city} {order.delivery_address.postal_code}<br />
               {order.delivery_address.phone}
             </p>
             {order.notes && <p className="mt-2 text-text-secondary">Note: {order.notes}</p>}

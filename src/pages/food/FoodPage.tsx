@@ -42,10 +42,17 @@ const EateryCard: React.FC<{ eatery: Eatery }> = ({ eatery }) => (
 const FoodPage: React.FC = () => {
   const { data: eateries, isLoading, isError } = useQuery({ queryKey: ["eateries"], queryFn: fetchEateries, staleTime: 60_000 });
   const basket = useFoodCart();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   // Arriving from the home planner: /food?q=…
   const [query, setQuery] = useState(() => searchParams.get("q")?.trim() ?? "");
   const [cuisine, setCuisine] = useState<string | null>(null);
+  // "Delivering to": kept in the address so a filtered view can be shared or bookmarked.
+  const area = searchParams.get("area") ?? "";
+  const setArea = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set("area", value); else next.delete("area");
+    setSearchParams(next, { replace: true });
+  };
 
   const cuisines = useMemo(
     () => [...new Set((eateries ?? []).flatMap((e) => e.cuisines))].sort((a, b) => a.localeCompare(b)),
@@ -56,8 +63,15 @@ const FoodPage: React.FC = () => {
     const q = query.trim().toLowerCase();
     return (eateries ?? []).filter((e) =>
       (!cuisine || e.cuisines.includes(cuisine))
+      // An eatery with no list delivers anywhere, so it matches every area.
+      && (!area || e.delivery_areas.length === 0 || e.delivery_areas.some((a) => a.toLowerCase() === area.toLowerCase()))
       && (!q || [e.name, e.city, ...e.cuisines].some((text) => text.toLowerCase().includes(q))));
-  }, [eateries, query, cuisine]);
+  }, [eateries, query, cuisine, area]);
+
+  const areas = useMemo(
+    () => [...new Set((eateries ?? []).flatMap((e) => e.delivery_areas))].sort((a, b) => a.localeCompare(b)),
+    [eateries],
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,6 +103,20 @@ const FoodPage: React.FC = () => {
           </h2>
           <Link to="/food/orders" className="link-arrow text-foreground">My food orders <ArrowRight aria-hidden /></Link>
         </div>
+
+        {areas.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <label htmlFor="food-area" className="text-sm font-medium text-foreground">Delivering to</label>
+            <select
+              id="food-area" value={area} onChange={(e) => setArea(e.target.value)}
+              className="h-11 rounded-full border border-border bg-background px-4 text-sm text-foreground focus:border-foreground focus:outline-none"
+            >
+              <option value="">Any area</option>
+              {areas.map((a) => <option key={a} value={a}>{a}</option>)}
+              {area && !areas.some((a) => a.toLowerCase() === area.toLowerCase()) && <option value={area}>{area}</option>}
+            </select>
+          </div>
+        )}
 
         {cuisines.length > 1 && (
           <div role="group" aria-label="Filter by cuisine" className="mb-6 flex flex-wrap gap-2">
@@ -122,7 +150,7 @@ const FoodPage: React.FC = () => {
             <UtensilsCrossed className="mx-auto h-10 w-10 text-text-secondary" aria-hidden />
             <p className="type-title mt-4">{eateries?.length ? "No eateries match your search" : "No eateries are listed yet"}</p>
             <p className="mt-2 text-text-secondary">
-              {eateries?.length ? "Try a different name, cuisine or city." : "Own a restaurant, café or takeaway? List it on 1145."}
+              {eateries?.length ? "Try a different name, cuisine, city or delivery area." : "Own a restaurant, café or takeaway? List it on 1145."}
             </p>
           </div>
         ) : (

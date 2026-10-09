@@ -1,6 +1,17 @@
 // Food delivery: eateries, menus and food orders.
 // Mirrors supabase/migrations/20261008100000_food_delivery.sql.
 
+/** A delivery area and where it is on the map. Without the box it can only be matched by name. */
+export interface DeliveryZone {
+  name: string;
+  lat?: number;
+  lng?: number;
+  south?: number;
+  north?: number;
+  west?: number;
+  east?: number;
+}
+
 export type EateryStatus = "pending" | "approved" | "suspended";
 
 export interface Eatery {
@@ -20,6 +31,10 @@ export interface Eatery {
   prep_time_min: number;
   delivery_fee: number;
   min_order: number;
+  /** Suburbs / towns delivered to. Empty means anywhere. */
+  delivery_areas: string[];
+  /** Map positions for delivery_areas (same names). */
+  delivery_zones: DeliveryZone[];
   status: EateryStatus;
   accepting_orders: boolean;
   created_at: string;
@@ -50,6 +65,12 @@ export type FoodOrderStatus =
 export interface FoodAddress {
   name: string;
   street: string;
+  /** The eatery delivery area the customer chose, when the eatery lists areas. */
+  area?: string;
+  /** True when the street address was found on the map inside that area. */
+  area_verified?: boolean;
+  lat?: number | null;
+  lng?: number | null;
   city: string;
   postal_code: string;
   phone: string;

@@ -34,6 +34,10 @@ verify_jwt = false
 verify_jwt = false
 
 # Admin Email Inbox "Refresh". Signed-in admins only; the function checks the role itself.
+# Food checkout: locates a delivery address and checks it against the eatery's areas.
+[functions.food-check-address]
+verify_jwt = true
+
 [functions.resend-inbox-sync]
 verify_jwt = true
 

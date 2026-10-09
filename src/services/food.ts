@@ -13,7 +13,12 @@ const money = (row: Record<string, unknown>, keys: string[]) => {
   for (const key of keys) if (row[key] != null) row[key] = Number(row[key]);
   return row;
 };
-const asEatery = (row: Record<string, unknown>) => money(row, ["delivery_fee", "min_order"]) as unknown as Eatery;
+const asEatery = (row: Record<string, unknown>) => {
+  // Older rows (or a database without the delivery-areas column yet) have no list.
+  if (!Array.isArray(row.delivery_areas)) row.delivery_areas = [];
+  if (!Array.isArray(row.delivery_zones)) row.delivery_zones = [];
+  return money(row, ["delivery_fee", "min_order"]) as unknown as Eatery;
+};
 const asItem = (row: Record<string, unknown>) => money(row, ["price"]) as unknown as MenuItem;
 const asOrder = (row: Record<string, unknown>) => {
   money(row, ["subtotal", "delivery_fee", "total"]);
@@ -58,11 +63,37 @@ export async function fetchMenu(eateryId: string): Promise<{ sections: MenuSecti
   return { sections: (sections.data ?? []) as MenuSection[], items: (items.data ?? []).map(asItem) };
 }
 
+export type AddressCheck =
+  /** No check needed (the eatery delivers anywhere), or the address is accepted. */
+  | { ok: true; required: false }
+  | { ok: true; required: true; verified: boolean; checkId: string; area: string }
+  /** outside: on the map but outside every area. choose_area: not on the map; ask the customer to pick one of `areas`. */
+  | { ok: false; reason: "outside" | "choose_area" | "rate_limited" | "error" | "invalid" | "unauthorized"; message: string; areas?: string[] };
+
+/**
+ * Asks the server to locate a delivery address on the map and check it against the
+ * eatery's delivery areas. `area` is only used when the address can't be found.
+ */
+export async function checkDeliveryAddress(input: { eateryId: string; street: string; city: string; postalCode?: string; area?: string }): Promise<AddressCheck> {
+  const { data, error } = await supabase.functions.invoke("food-check-address", { body: input });
+  if (data && typeof data.ok === "boolean") return data as AddressCheck;
+  // Non-2xx replies still carry the reason in the body.
+  const context = (error as { context?: Response } | null)?.context;
+  if (context && typeof context.json === "function") {
+    try {
+      const body = await context.json();
+      if (body && typeof body.ok === "boolean") return body as AddressCheck;
+    } catch { /* fall through */ }
+  }
+  return { ok: false, reason: "error", message: "We couldn't check your address just now. Please try again." };
+}
+
 /** Creates the order (priced on the server) and returns its id. */
 export async function placeFoodOrder(input: {
   eateryId: string;
   items: { menuItemId: string; quantity: number }[];
-  address: FoodAddress;
+  /** `check_id` is the server's address check, required for eateries with delivery areas. */
+  address: FoodAddress & { check_id?: string };
   notes?: string;
 }): Promise<string> {
   const { data, error } = await db.rpc("place_food_order", {
@@ -128,7 +159,7 @@ export function watchFoodOrder(orderId: string, onChange: () => void) {
 
 export type EateryDetails = Pick<Eatery,
   "name" | "description" | "cuisines" | "logo_url" | "cover_url" | "phone" | "address" | "city" | "province"
-  | "opening_hours" | "prep_time_min" | "delivery_fee" | "min_order">;
+  | "opening_hours" | "prep_time_min" | "delivery_fee" | "min_order" | "delivery_areas" | "delivery_zones">;
 
 export async function fetchMyEateries(userId: string): Promise<Eatery[]> {
   const { data, error } = await db.from("eateries").select("*").eq("owner_id", userId).order("created_at");

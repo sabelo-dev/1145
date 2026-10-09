@@ -63,10 +63,12 @@ const EateryOverview: React.FC<EateryOverviewProps> = ({ eatery, orders, menuIte
   const steps = [
     { done: true, label: "Tell us about your eatery", tab: "details" as EateryTab, action: "Edit details" },
     { done: menuItems.length > 0, label: "Add your menu", tab: "menu" as EateryTab, action: "Add items" },
+    { done: eatery.delivery_areas.length > 0, label: "Choose the areas you deliver to", tab: "details" as EateryTab, action: "Set areas", hint: "Optional: without a list you accept orders to any address." },
     { done: approved, label: "Get approved by 1145", hint: approved ? undefined : "We review new eateries before they are listed." },
     { done: eatery.accepting_orders, label: "Switch on orders", hint: approved ? "Use the switch at the top of this page." : "Available once you're approved." },
   ];
-  const setupDone = steps.every((s) => s.done);
+  // Delivery areas are optional, so they don't keep the checklist open on their own.
+  const setupDone = steps.every((s) => s.done || s.label === "Choose the areas you deliver to");
 
   const now = [
     { label: "New orders to accept", value: stats.waiting, icon: ClipboardList, urgent: stats.waiting > 0 },
