@@ -239,7 +239,7 @@ const Header: React.FC = () => {
                         <Settings className="h-4 w-4" /> Settings
                       </Link>
                     </DropdownMenuItem>
-                    {(!isMerchant || !isDriver) && <DropdownMenuSeparator />}
+                    <DropdownMenuSeparator />
                     {!isMerchant && (
                       <DropdownMenuItem asChild>
                         <Link to="/merchant/register" className="flex cursor-pointer items-center gap-2">
@@ -247,6 +247,11 @@ const Header: React.FC = () => {
                         </Link>
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem asChild>
+                      <Link to="/eatery/dashboard" className="flex cursor-pointer items-center gap-2">
+                        <UtensilsCrossed className="h-4 w-4" /> Eatery dashboard
+                      </Link>
+                    </DropdownMenuItem>
                     {!isDriver && (
                       <DropdownMenuItem asChild>
                         <Link to="/driver/register" className="flex cursor-pointer items-center gap-2">

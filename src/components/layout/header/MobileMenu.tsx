@@ -69,6 +69,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
     ...(isAdmin ? [{ label: "Admin dashboard", path: "/admin/dashboard", icon: Shield }] : []),
     ...(isMerchant ? [{ label: "Merchant dashboard", path: "/merchant/dashboard", icon: Store }] : []),
     ...(isDriver ? [{ label: "Driver dashboard", path: "/driver/dashboard", icon: Truck }] : []),
+    ...(user ? [{ label: "Eatery dashboard", path: "/eatery/dashboard", icon: UtensilsCrossed }] : []),
     ...(user && !isMerchant ? [{ label: "Sell on 1145", path: "/merchant/register", icon: Store }] : []),
     ...(user && !isDriver ? [{ label: "Drive with 1145", path: "/driver/register", icon: Truck }] : []),
   ];

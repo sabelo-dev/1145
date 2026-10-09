@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ redirectPath?: string }>;
-  register: (email: string, password: string, name: string, role?: 'consumer' | 'vendor' | 'driver' | 'influencer') => Promise<{ redirectPath?: string }>;
+  register: (email: string, password: string, name: string, role?: 'consumer' | 'vendor' | 'driver' | 'influencer' | 'restaurateur') => Promise<{ redirectPath?: string }>;
   logout: () => Promise<void>;
   isMerchant: boolean;
   isAdmin: boolean;
@@ -320,7 +320,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isMerchantUser = merchantResult || userRoles.includes('vendor');
         const userRole = userRoles.includes('admin') ? 'admin' :
                         isMerchantUser ? 'vendor' : 'consumer';
-        const redirectPath = await getRedirectPathForRole(userRole, isMerchantUser, isDriverUser, isInfluencerUser, data.user.id, true);
+        let redirectPath = await getRedirectPathForRole(userRole, isMerchantUser, isDriverUser, isInfluencerUser, data.user.id, true);
+        // Someone who signed up to run an eatery lands on its dashboard (unless a role dashboard takes priority).
+        if (userRole === 'consumer' && !isDriverUser && !isInfluencerUser && data.user.user_metadata?.joining_as === 'restaurateur') {
+          redirectPath = '/eatery/dashboard';
+        }
         
         toast({
           title: "Login Successful",
@@ -346,7 +350,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: 'consumer' | 'vendor' | 'driver' | 'influencer' = 'consumer'): Promise<{ redirectPath?: string }> => {
+  const register = async (email: string, password: string, name: string, role: 'consumer' | 'vendor' | 'driver' | 'influencer' | 'restaurateur' = 'consumer'): Promise<{ redirectPath?: string }> => {
     loadingManager.startLoading('register');
     
     try {
@@ -359,7 +363,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailRedirectTo: getAppUrl("/"),
           data: {
             name: name,
-            role: role
+            // Eateries belong to an ordinary account (ownership, not a database role),
+            // so a restaurateur signs up as a consumer and is remembered by `joining_as`.
+            role: role === 'restaurateur' ? 'consumer' : role,
+            ...(role === 'restaurateur' ? { joining_as: 'restaurateur' } : {})
           }
         }
       });

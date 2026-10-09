@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Car, Check, Eye, EyeOff, Loader2, ShoppingBag, Sparkles, Store } from "lucide-react";
+import { Car, Check, Eye, EyeOff, Loader2, ShoppingBag, Sparkles, Store, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import AuthSplitShell from "@/components/auth/AuthSplitShell";
@@ -27,7 +27,7 @@ const registerSchema = z
     email: z.string().trim().min(1, "Email is required").email("Enter a valid email").max(255),
     password: z.string().min(8, "Password must be at least 8 characters").max(72),
     confirmPassword: z.string(),
-    role: z.enum(["consumer", "vendor", "driver", "influencer"]),
+    role: z.enum(["consumer", "vendor", "driver", "influencer", "restaurateur"]),
     terms: z.boolean().refine((v) => v, { message: "Please accept the terms to continue" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -62,12 +62,15 @@ const RoleCard: React.FC<{
   icon: React.ReactNode;
   title: string;
   desc: string;
-}> = ({ active, onClick, icon, title, desc }) => (
+  className?: string;
+}> = ({ active, onClick, icon, title, desc, className }) => (
   <button
     type="button"
     onClick={onClick}
+    aria-pressed={active}
     className={cn(
       "group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all",
+      className,
       "hover:border-foreground/40 hover:bg-accent/40",
       active
         ? "border-foreground bg-accent shadow-sm"
@@ -198,6 +201,14 @@ const RegisterPage: React.FC = () => {
                       icon={<Sparkles className="h-4 w-4" />}
                       title="Influencer"
                       desc="Promote and earn commissions"
+                    />
+                    <RoleCard
+                      active={role === "restaurateur"}
+                      onClick={() => field.onChange("restaurateur")}
+                      icon={<UtensilsCrossed className="h-4 w-4" />}
+                      title="Restaurateur"
+                      desc="List your eatery in the Food Court and take delivery orders"
+                      className="col-span-2 flex-row items-center gap-3"
                     />
                   </div>
                   <FormMessage />

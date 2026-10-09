@@ -49,6 +49,7 @@ const ROLE_ONBOARDING: Record<string, string> = {
   vendor: "/merchant/onboarding",
   driver: "/driver/onboarding",
   influencer: "/influencer/onboarding",
+  restaurateur: "/eatery/dashboard",
 };
 
 /*
