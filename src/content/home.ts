@@ -1,6 +1,6 @@
 import {
-  Building2, Car, CircleHelp, KeyRound, Megaphone, Package, PackageSearch, RotateCcw, ShoppingBag, Store, Truck,
-  Wallet, type LucideIcon,
+  Briefcase, Building2, Car, CircleHelp, KeyRound, Megaphone, Package, PackageSearch, RotateCcw, ShoppingBag, Store, Truck,
+  UtensilsCrossed, Wallet, type LucideIcon,
 } from "lucide-react";
 import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
@@ -22,12 +22,12 @@ export interface HomeImage {
 export const heroCampaign = {
   eyebrow: "Drop 001",
   title: "Wear the time.",
-  description: "Official XIXLV apparel. Hoodies, tracksuits, caps and training wear in five signature colours.",
+  description: "Official 1145 apparel. Hoodies, tracksuits, caps and training wear in five signature colours.",
   primary: { label: "Shop the drop", to: OFFICIAL_STORE_PATH },
-  secondary: { label: "Explore XIXLV services", to: "/services" },
+  secondary: { label: "Explore 1145 services", to: "/services" },
   image: {
     src: "/images/drop-001/hoodie_black.webp",
-    alt: "Black XIXLV TIME hoodie with a small circular XIXLV emblem on the chest",
+    alt: "Black 1145 TIME hoodie with a small circular 1145 emblem on the chest",
     width: 720,
     height: 720,
   } satisfies HomeImage,
@@ -70,6 +70,23 @@ export const collections: CollectionTile[] = [
   },
 ];
 
+export interface QuickStartLink {
+  title: string;
+  desc: string;
+  /** Visible on wider screens; the whole card is the link. */
+  cta: string;
+  icon: LucideIcon;
+  to: string;
+}
+
+/** The most common jobs, one tap from the top of the home page. */
+export const quickStart: QuickStartLink[] = [
+  { title: "Get a ride", desc: "Request a lift now or schedule one for later.", cta: "Request a ride", icon: Car, to: "/rides/request" },
+  { title: "Grab a bite", desc: "Order from eateries in the 1145 Food Court.", cta: "Open the Food Court", icon: UtensilsCrossed, to: "/food" },
+  { title: "Shop the marketplace", desc: "Browse products from the 1145 store and local merchants.", cta: "Open the marketplace", icon: ShoppingBag, to: "/shop" },
+  { title: "Find a place to stay", desc: "Hotels, guesthouses, lodges and more.", cta: "Browse stays", icon: Building2, to: "/stays" },
+];
+
 export interface ServiceLink {
   name: string;
   desc: string;
@@ -81,12 +98,12 @@ export interface ServiceLink {
 export const services: ServiceLink[] = [
   { name: "Shop", desc: "Marketplace", icon: ShoppingBag, href: "/shop" },
   { name: "Ride", desc: "Get a lift", icon: Car, href: "/rides/request" },
+  { name: "Food", desc: "Eateries, delivered", icon: UtensilsCrossed, href: "/food" },
   { name: "Send", desc: "Parcels & courier", icon: Package, href: "/package/send" },
   { name: "Wallet", desc: "Money & gold", icon: Wallet, href: "/wallet" },
   { name: "Lease", desc: "Rent-to-own", icon: KeyRound, href: "/lease/marketplace" },
   { name: "Stay", desc: "Book a stay", icon: Building2, href: "/stays" },
-  { name: "Sell", desc: "Open a store", icon: Store, href: "/merchant/register" },
-  { name: "Create", desc: "Creator hub", icon: Megaphone, href: "/influencer/login" },
+  { name: "Hire", desc: "Pros for the job", icon: Briefcase, href: "/hire" },
 ];
 
 export interface HelpLink {
