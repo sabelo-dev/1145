@@ -79,9 +79,10 @@ export interface QuickStartLink {
   to: string;
 }
 
-/** The three most common jobs, one tap from the top of the home page. */
+/** The most common jobs, one tap from the top of the home page. */
 export const quickStart: QuickStartLink[] = [
   { title: "Get a ride", desc: "Request a lift now or schedule one for later.", cta: "Request a ride", icon: Car, to: "/rides/request" },
+  { title: "Grab a bite", desc: "Order from eateries in the 1145 Food Court.", cta: "Open the Food Court", icon: UtensilsCrossed, to: "/food" },
   { title: "Shop the marketplace", desc: "Browse products from the 1145 store and local merchants.", cta: "Open the marketplace", icon: ShoppingBag, to: "/shop" },
   { title: "Find a place to stay", desc: "Hotels, guesthouses, lodges and more.", cta: "Browse stays", icon: Building2, to: "/stays" },
 ];

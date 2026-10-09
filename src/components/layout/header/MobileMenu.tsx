@@ -26,9 +26,9 @@ type Item = { label: string; path: string; icon: LucideIcon };
 const shopItems: Item[] = [
   { label: "Get a ride", path: "/rides/request", icon: Car },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
-  { label: "Marketplace", path: OFFICIAL_STORE_PATH, icon: Store },
+  { label: "Food Court", path: "/food", icon: UtensilsCrossed },
   { label: "Hire a pro", path: "/hire", icon: Briefcase },
-  { label: "Food delivery", path: "/food", icon: UtensilsCrossed },
+  { label: "Marketplace", path: OFFICIAL_STORE_PATH, icon: Store },
   { label: "Stays", path: "/stays", icon: Building2 },
   { label: "All services", path: "/services", icon: Grid2x2 },
   { label: "Deals", path: "/deals", icon: Percent },

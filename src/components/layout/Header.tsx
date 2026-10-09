@@ -26,7 +26,7 @@ import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 /** Primary destinations, always visible from md up. Keep this list short. */
 const primaryNav = [
   { label: "Shop", path: "/shop" },
-  { label: "Marketplace", path: OFFICIAL_STORE_PATH },
+  { label: "Food Court", path: "/food" },
   { label: "Ride", path: "/rides/request" },
   { label: "Stays", path: "/stays" },
 ];
@@ -34,7 +34,7 @@ const primaryNav = [
 /** Secondary destinations, grouped under "More" so the bar stays calm. */
 const moreNav = [
   { label: "Hire a pro", path: "/hire", icon: Briefcase },
-  { label: "Food delivery", path: "/food", icon: UtensilsCrossed },
+  { label: "Marketplace", path: OFFICIAL_STORE_PATH, icon: Store },
   { label: "All services", path: "/services", icon: LayoutGrid },
   { label: "Deals", path: "/deals", icon: Percent },
   { label: "Auctions", path: "/auctions", icon: Gavel },
@@ -111,7 +111,7 @@ const Header: React.FC = () => {
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:px-6 md:h-16 lg:px-8">
           {/* Brand */}
           <Link to="/" className="flex shrink-0 items-center gap-2 rounded-xl" aria-label="1145 home">
-            <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
+            <img src="/logo-mark-96.png" srcSet="/logo-mark-96.png 1x, /logo-mark-192.png 2x" alt="" width={40} height={40} className="h-10 w-10 shrink-0" />
             <span className="hidden font-display text-lg font-bold tracking-tight sm:inline">1145</span>
           </Link>
 

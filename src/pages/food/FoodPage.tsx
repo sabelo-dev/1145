@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Clock, Search, Store, UtensilsCrossed } from "lucide-react";
 import SEO from "@/components/SEO";
@@ -42,7 +42,9 @@ const EateryCard: React.FC<{ eatery: Eatery }> = ({ eatery }) => (
 const FoodPage: React.FC = () => {
   const { data: eateries, isLoading, isError } = useQuery({ queryKey: ["eateries"], queryFn: fetchEateries, staleTime: 60_000 });
   const basket = useFoodCart();
-  const [query, setQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  // Arriving from the home planner: /food?q=…
+  const [query, setQuery] = useState(() => searchParams.get("q")?.trim() ?? "");
   const [cuisine, setCuisine] = useState<string | null>(null);
 
   const cuisines = useMemo(

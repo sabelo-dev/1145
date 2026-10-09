@@ -146,7 +146,7 @@ const Footer: React.FC = () => {
           {/* Brand and contact */}
           <div>
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="" width={40} height={40} className="h-10 w-10 rounded-full object-cover" loading="lazy" />
+              <img src="/logo-mark-96.png" srcSet="/logo-mark-96.png 1x, /logo-mark-192.png 2x" alt="" width={48} height={48} className="h-12 w-12 shrink-0" loading="lazy" />
               <span className="font-display text-lg font-bold tracking-tight">1145 Lifestyle</span>
             </div>
             <p className="mt-4 max-w-sm text-sm text-white/70">

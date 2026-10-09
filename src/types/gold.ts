@@ -14,7 +14,8 @@ export interface CurrencyRate {
   currencyCode: string;
   currencyName: string;
   currencySymbol: string;
-  rateToUsd: number;
+  /** Units of this currency per R1. ZAR is 1. */
+  rateToZar: number;
   isActive: boolean;
   updatedAt: string;
 }

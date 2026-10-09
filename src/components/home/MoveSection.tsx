@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Building2, Car, Clock, LocateFixed, MapPin, Package, Search, ShoppingBag } from "lucide-react";
+import { ArrowRight, Building2, Car, Clock, LocateFixed, MapPin, Search, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,10 +9,10 @@ import LiveRideMap from "@/components/home/LiveRideMap";
 import { DEFAULT_CENTER, etaFromKm, useNearbySupply, useUserLocation, type LatLng } from "@/hooks/useNearbySupply";
 import { haversineDistance } from "@/services/dispatch/geoUtils";
 
-type Mode = "ride" | "send" | "shop" | "stay";
+type Mode = "ride" | "food" | "shop" | "stay";
 const modes: { id: Mode; label: string; icon: typeof Car }[] = [
   { id: "ride", label: "Ride", icon: Car },
-  { id: "send", label: "Send", icon: Package },
+  { id: "food", label: "Food Court", icon: UtensilsCrossed },
   { id: "shop", label: "Shop", icon: ShoppingBag },
   { id: "stay", label: "Stay", icon: Building2 },
 ];
@@ -82,8 +82,7 @@ const MoveSection: React.FC = () => {
   const [mode, setMode] = useState<Mode>("ride");
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
-  const [senderAddress, setSenderAddress] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
+  const [foodSearch, setFoodSearch] = useState("");
   const [shopSearch, setShopSearch] = useState("");
   const [stayLocation, setStayLocation] = useState("");
   const [when, setWhen] = useState("now");
@@ -191,11 +190,10 @@ const MoveSection: React.FC = () => {
     navigate(`/rides/request?${params.toString()}`);
   };
 
-  const handlePackageQuote = (e: React.FormEvent) => {
+  const handleFoodSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!requireFields(senderAddress, recipientAddress)) return;
-    const params = new URLSearchParams({ mode: "package", pickup: senderAddress.trim(), destination: recipientAddress.trim() });
-    navigate(`/rides/request?${params.toString()}`);
+    const query = foodSearch.trim();
+    navigate(query ? `/food?q=${encodeURIComponent(query)}` : "/food");
   };
 
   const handleShopSearch = (e: React.FormEvent) => {
@@ -231,12 +229,12 @@ const MoveSection: React.FC = () => {
     <section aria-labelledby="move-title" className="section bg-navy-900 text-white">
       <div className="page-container grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div className="min-w-0">
-          <p className="eyebrow text-white/70">Rides · Delivery · Shopping · Stays</p>
+          <p className="eyebrow text-white/70">Rides · Food · Shopping · Stays</p>
           <h2 id="move-title" className="type-headline mt-3 text-white">Go anywhere. Get anything.</h2>
 
           {/* Planner */}
           <div className="mt-8 rounded-2xl bg-card p-4 text-foreground shadow-float sm:p-5">
-            <div role="group" aria-label="What do you need?" className="mb-4 grid grid-cols-4 gap-1 rounded-full bg-surface-input p-1">
+            <div role="group" aria-label="What do you need?" className="mb-4 grid grid-cols-[1fr_1.45fr_1fr_1fr] gap-1 rounded-full bg-surface-input p-1">
               {modes.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -244,7 +242,7 @@ const MoveSection: React.FC = () => {
                   aria-pressed={mode === id}
                   onClick={() => setMode(id)}
                   className={cn(
-                    "flex h-10 items-center justify-center gap-1.5 rounded-full px-1 text-sm font-semibold transition-colors",
+                    "flex h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-1 text-[13px] font-semibold transition-colors sm:text-sm",
                     mode === id ? "bg-background text-foreground shadow-soft" : "text-text-secondary hover:text-foreground",
                   )}
                 >
@@ -273,11 +271,14 @@ const MoveSection: React.FC = () => {
               </form>
             )}
 
-            {mode === "send" && (
-              <form onSubmit={handlePackageQuote} className="space-y-3">
-                {routeFields(senderAddress, setSenderAddress, "Collect from", recipientAddress, setRecipientAddress, "Deliver to")}
+            {mode === "food" && (
+              <form onSubmit={handleFoodSearch} className="space-y-3">
+                <div className="relative">
+                  <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
+                  <input value={foodSearch} onChange={(e) => setFoodSearch(e.target.value)} placeholder="Eatery, cuisine or city" aria-label="Search the Food Court" className={fieldClass} />
+                </div>
                 <Button type="submit" variant="cta" className="h-12 w-full rounded-xl text-base font-semibold">
-                  Get a quote <ArrowRight className="ml-1 h-4 w-4" />
+                  {foodSearch.trim() ? "Find food" : "Browse the Food Court"} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </form>
             )}

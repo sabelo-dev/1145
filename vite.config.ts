@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'prompt', // UpdatePrompt asks before reloading
       injectRegister: false, // we register manually with iframe/preview guards
       devOptions: { enabled: false },
-      includeAssets: ['favicon.ico', 'logo.png', 'pwa-icon-192x192.png', 'pwa-icon-512.png', 'pwa-icon-maskable-512.png'],
+      includeAssets: ['favicon.ico', 'logo.png', 'logo-mark-96.png', 'logo-mark-192.png', 'pwa-icon-192x192.png', 'pwa-icon-512.png', 'pwa-icon-maskable-512.png'],
       manifest: {
         name: '1145 Lifestyle',
         short_name: '1145',

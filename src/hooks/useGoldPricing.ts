@@ -38,7 +38,8 @@ const storePreference = (preference: DisplayPreference) => {
 export function useGoldPricing() {
   const { user } = useAuth();
   const [goldPrice, setGoldPrice] = useState<GoldPrice | null>(null);
-  const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
+  // Every rate, for the maths (gold is quoted in dollars even when USD isn't offered to customers).
+  const [allRates, setAllRates] = useState<CurrencyRate[]>([]);
   const [userPreference, setUserPreference] = useState<UserCurrencyPreference | null>(null);
   // What the UI shows. Updated the moment the user picks; the account copy syncs in the background.
   const [preference, setPreference] = useState<DisplayPreference>(readStoredPreference);
@@ -70,21 +71,34 @@ export function useGoldPricing() {
     const { data, error } = await supabase
       .from('currency_rates')
       .select('*')
-      .eq('is_active', true)
       .order('currency_code');
 
     if (!error && data) {
-      setCurrencies(data.map(c => ({
-        id: c.id,
+      // Rates are stored per R1 (rate_to_zar). A database that has not had that
+      // migration yet still stores them per US$1; convert so both give the same numbers.
+      const rows = data as unknown as Array<Record<string, unknown> & { currency_code: string }>;
+      const legacy = rows.length > 0 && rows[0].rate_to_zar === undefined;
+      const zarPerUsd = legacy ? parseFloat(String(rows.find(r => r.currency_code === BASE_CURRENCY)?.rate_to_usd ?? 'NaN')) : NaN;
+      const rates: CurrencyRate[] = rows.map(c => ({
+        id: String(c.id),
         currencyCode: c.currency_code,
-        currencyName: c.currency_name,
-        currencySymbol: c.currency_symbol,
-        rateToUsd: parseFloat(String(c.rate_to_usd)),
-        isActive: c.is_active ?? true,
-        updatedAt: c.updated_at,
-      })));
+        currencyName: String(c.currency_name),
+        currencySymbol: String(c.currency_symbol),
+        rateToZar: legacy ? parseFloat(String(c.rate_to_usd)) / zarPerUsd : parseFloat(String(c.rate_to_zar)),
+        isActive: (c.is_active as boolean | null) ?? true,
+        updatedAt: String(c.updated_at),
+      })).filter(c => c.rateToZar > 0);
+      if (legacy && zarPerUsd > 0 && !rates.some(c => c.currencyCode === 'USD')) {
+        rates.push({ id: 'usd', currencyCode: 'USD', currencyName: 'US Dollar', currencySymbol: '$', rateToZar: 1 / zarPerUsd, isActive: false, updatedAt: '' });
+      }
+      setAllRates(rates);
     }
   }, []);
+
+  // What customers can choose to view prices in.
+  const currencies = useMemo(() => allRates.filter(c => c.isActive), [allRates]);
+  // US dollars per R1, to reach the gold price.
+  const usdPerZar = useMemo(() => allRates.find(c => c.currencyCode === 'USD')?.rateToZar ?? null, [allRates]);
 
   // Fetch user preferences
   const fetchUserPreference = useCallback(async () => {
@@ -136,39 +150,42 @@ export function useGoldPricing() {
 
   // Convert currency amount to mg gold
   const currencyToMgGold = useCallback((amount: number, currencyCode: string): number => {
-    if (!goldPrice || !currencies.length) return 0;
+    if (!goldPrice || !usdPerZar) return 0;
 
-    const currency = currencies.find(c => c.currencyCode === currencyCode);
+    const currency = allRates.find(c => c.currencyCode === currencyCode);
     if (!currency) return 0;
 
-    const amountUsd = amount / currency.rateToUsd;
+    // currency → rand → dollars → gold
+    const amountUsd = (amount / currency.rateToZar) * usdPerZar;
     const mgGold = amountUsd / goldPrice.pricePerMgUsd;
 
     return Math.floor(mgGold);
-  }, [goldPrice, currencies]);
+  }, [goldPrice, allRates, usdPerZar]);
 
   // Convert mg gold to currency amount
   const mgGoldToCurrency = useCallback((mgGold: number, currencyCode: string): number => {
-    if (!goldPrice || !currencies.length) return 0;
+    if (!goldPrice || !usdPerZar) return 0;
 
-    const currency = currencies.find(c => c.currencyCode === currencyCode);
+    const currency = allRates.find(c => c.currencyCode === currencyCode);
     if (!currency) return 0;
 
-    const amountUsd = mgGold * goldPrice.pricePerMgUsd;
-    const amountCurrency = amountUsd * currency.rateToUsd;
+    // gold → dollars → rand → currency
+    const amountZar = (mgGold * goldPrice.pricePerMgUsd) / usdPerZar;
+    const amountCurrency = amountZar * currency.rateToZar;
 
     return Math.round(amountCurrency * 100) / 100;
-  }, [goldPrice, currencies]);
+  }, [goldPrice, allRates, usdPerZar]);
 
   // Convert between two currencies directly (no detour through gold, so nothing is lost to rounding).
   // Returns null when either rate is missing, so callers can fall back instead of showing 0.
   const convertCurrency = useCallback((amount: number, from: string, to: string): number | null => {
     if (from === to) return amount;
-    const fromRate = currencies.find(c => c.currencyCode === from)?.rateToUsd;
-    const toRate = currencies.find(c => c.currencyCode === to)?.rateToUsd;
+    const fromRate = allRates.find(c => c.currencyCode === from)?.rateToZar;
+    const toRate = allRates.find(c => c.currencyCode === to)?.rateToZar;
     if (!fromRate || !toRate) return null;
+    // into rand, then out to the target currency
     return Math.round((amount / fromRate) * toRate * 100) / 100;
-  }, [currencies]);
+  }, [allRates]);
 
   // Convert mg gold to different gold units
   const mgToGoldUnit = useCallback((mg: number, unit: 'mg' | 'g' | 'oz'): number => {
@@ -198,8 +215,8 @@ export function useGoldPricing() {
 
   // Get currency by code
   const getCurrency = useCallback((code: string): CurrencyRate | undefined => {
-    return currencies.find(c => c.currencyCode === code);
-  }, [currencies]);
+    return allRates.find(c => c.currencyCode === code);
+  }, [allRates]);
 
   // Format currency amount
   const formatCurrencyAmount = useCallback((amount: number, currencyCode: string): string => {
@@ -264,11 +281,11 @@ export function useGoldPricing() {
     const currencyText = converted == null
       ? formatCurrencyAmount(safeAmount, currencyCode)
       : formatCurrencyAmount(converted, displayCurrency);
-    const goldReady = !!goldPrice && currencies.some(c => c.currencyCode === currencyCode);
+    const goldReady = !!goldPrice && !!usdPerZar && allRates.some(c => c.currencyCode === currencyCode);
     if (displayMode === 'currency' || !goldReady) return currencyText;
     const goldText = formatGold(currencyToMgGold(safeAmount, currencyCode), goldUnit);
     return displayMode === 'gold' ? goldText : `${currencyText} (${goldText})`;
-  }, [convertCurrency, displayCurrency, displayMode, goldUnit, goldPrice, currencies, formatCurrencyAmount, formatGold, currencyToMgGold]);
+  }, [convertCurrency, displayCurrency, displayMode, goldUnit, goldPrice, usdPerZar, allRates, formatCurrencyAmount, formatGold, currencyToMgGold]);
 
   // One stable object: consumers re-render only when something they can see changed,
   // and never hold a helper bound to an old user, rate or preference.

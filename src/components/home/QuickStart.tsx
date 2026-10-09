@@ -4,14 +4,14 @@ import { ArrowRight } from "lucide-react";
 import { quickStart } from "@/content/home";
 
 /**
- * The three things people come to do most — ride, shop, stay — one tap from
+ * The things people come to do most — ride, eat, shop, stay — one tap from
  * the top of the page. Sits directly under the hero.
  */
 const QuickStart: React.FC = () => (
   <section aria-labelledby="quick-start-title" className="section-compact border-b border-border bg-background">
     <div className="page-container">
       <h2 id="quick-start-title" className="sr-only">Get started</h2>
-      <ul className="grid gap-3 md:grid-cols-3 md:gap-4">
+      <ul className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-4">
         {quickStart.map(({ title, desc, cta, icon: Icon, to }) => (
           <li key={to} className="min-w-0">
             <Link

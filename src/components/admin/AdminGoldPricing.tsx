@@ -28,15 +28,22 @@ interface CurrencyRate {
   currency_code: string;
   currency_name: string;
   currency_symbol: string;
-  rate_to_usd: number;
+  /** Units of this currency per R1. ZAR is always 1. */
+  rate_to_zar: number;
   is_active: boolean;
   updated_at: string;
 }
+
+/** A rand amount with enough decimals to show small unit values (e.g. R0.10). */
+const formatRand = (amount: number) =>
+  `R${amount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: amount < 1 ? 4 : 2 })}`;
 
 export default function AdminGoldPricing() {
   const [goldPrices, setGoldPrices] = useState<GoldPrice[]>([]);
   const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
   const [loading, setLoading] = useState(true);
+  // True while the database still stores rates per US$1 (the ZAR-base migration has not been applied).
+  const [legacyRates, setLegacyRates] = useState(false);
   const [newGoldPrice, setNewGoldPrice] = useState('');
   const [addCurrencyOpen, setAddCurrencyOpen] = useState(false);
   const [newCurrency, setNewCurrency] = useState({
@@ -67,9 +74,14 @@ export default function AdminGoldPricing() {
       })));
     }
     if (currencyRes.data) {
-      setCurrencies(currencyRes.data.map(c => ({
+      // Before the ZAR-base migration is applied the table still has rate_to_usd.
+      const rows = currencyRes.data as unknown as Array<CurrencyRate & { rate_to_usd?: number }>;
+      const legacy = rows.length > 0 && rows[0].rate_to_zar === undefined;
+      const zarPerUsd = legacy ? parseFloat(String(rows.find(r => r.currency_code === 'ZAR')?.rate_to_usd ?? 'NaN')) : NaN;
+      setLegacyRates(legacy);
+      setCurrencies(rows.map(c => ({
         ...c,
-        rate_to_usd: parseFloat(String(c.rate_to_usd)),
+        rate_to_zar: legacy ? parseFloat(String(c.rate_to_usd)) / zarPerUsd : parseFloat(String(c.rate_to_zar)),
       })));
     }
     setLoading(false);
@@ -107,13 +119,17 @@ export default function AdminGoldPricing() {
   };
 
   const updateCurrencyRate = async (id: string, newRate: number) => {
+    if (!(newRate > 0)) {
+      toast({ title: 'Enter a rate above zero', variant: 'destructive' });
+      return;
+    }
     const { error } = await supabase
       .from('currency_rates')
-      .update({ rate_to_usd: newRate, updated_at: new Date().toISOString() })
+      .update({ rate_to_zar: newRate, updated_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) {
-      toast({ title: 'Failed to update rate', variant: 'destructive' });
+      toast({ title: 'Failed to update rate', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Currency rate updated' });
       fetchData();
@@ -142,7 +158,7 @@ export default function AdminGoldPricing() {
       currency_code: newCurrency.code.toUpperCase(),
       currency_name: newCurrency.name,
       currency_symbol: newCurrency.symbol,
-      rate_to_usd: parseFloat(newCurrency.rate),
+      rate_to_zar: parseFloat(newCurrency.rate),
     });
 
     if (error) {
@@ -256,11 +272,13 @@ export default function AdminGoldPricing() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Currency Exchange Rates</CardTitle>
-                <CardDescription>Rates relative to 1 USD</CardDescription>
+                <CardDescription>
+                  Rates relative to 1 ZAR: how many units of each currency equal R1. Gold is quoted in US dollars, so keep a USD rate here even if it is disabled for customers.
+                </CardDescription>
               </div>
               <Dialog open={addCurrencyOpen} onOpenChange={setAddCurrencyOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm">
+                  <Button size="sm" disabled={legacyRates}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Currency
                   </Button>
@@ -295,28 +313,42 @@ export default function AdminGoldPricing() {
                       />
                     </div>
                     <div>
-                      <Label>Rate to USD</Label>
+                      <Label htmlFor="new-currency-rate">Rate to ZAR</Label>
                       <Input
+                        id="new-currency-rate"
                         type="number"
                         step="0.000001"
-                        placeholder="e.g. 18.5"
+                        min="0"
+                        placeholder="e.g. 0.058824 for US dollars at R17"
+                        aria-describedby="new-currency-rate-hint"
                         value={newCurrency.rate}
                         onChange={(e) => setNewCurrency({ ...newCurrency, rate: e.target.value })}
                       />
                     </div>
+                    <p id="new-currency-rate-hint" className="text-xs text-muted-foreground">
+                      How many units of this currency equal R1. To work it out, divide 1 by the price of one unit in rand.
+                      {parseFloat(newCurrency.rate) > 0 && ` At this rate, 1 ${newCurrency.code.toUpperCase() || 'unit'} = ${formatRand(1 / parseFloat(newCurrency.rate))}.`}
+                    </p>
                     <Button onClick={addCurrency} className="w-full">Add Currency</Button>
                   </div>
                 </DialogContent>
               </Dialog>
             </CardHeader>
             <CardContent>
+              {legacyRates && (
+                <p role="status" className="mb-4 rounded-lg border border-border bg-muted/50 p-3 text-sm">
+                  This database still stores rates against the US dollar. The values below are shown converted to ZAR, but they can't be
+                  edited until the migration <code>20261009090000_currency_rates_relative_to_zar.sql</code> has been applied.
+                </p>
+              )}
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Symbol</TableHead>
-                    <TableHead>Rate to USD</TableHead>
+                    <TableHead>Rate to ZAR</TableHead>
+                    <TableHead>1 unit in rand</TableHead>
                     <TableHead>Updated</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -329,18 +361,31 @@ export default function AdminGoldPricing() {
                       <TableCell>{currency.currency_name}</TableCell>
                       <TableCell>{currency.currency_symbol}</TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          step="0.000001"
-                          defaultValue={currency.rate_to_usd}
-                          className="w-28 h-8"
-                          onBlur={(e) => {
-                            const newRate = parseFloat(e.target.value);
-                            if (!isNaN(newRate) && newRate !== currency.rate_to_usd) {
-                              updateCurrencyRate(currency.id, newRate);
-                            }
-                          }}
-                        />
+                        {currency.currency_code === 'ZAR' ? (
+                          // The base currency: everything else is measured against it.
+                          <span className="inline-flex h-8 items-center tabular-nums text-muted-foreground" title="ZAR is the base currency">1 (base)</span>
+                        ) : (
+                          <Input
+                            // Re-mount when the saved value changes so the field shows it.
+                            key={currency.rate_to_zar}
+                            type="number"
+                            step="0.000001"
+                            min="0"
+                            aria-label={`${currency.currency_code} per R1`}
+                            defaultValue={Number(currency.rate_to_zar.toFixed(8))}
+                            disabled={legacyRates}
+                            className="w-32 h-8"
+                            onBlur={(e) => {
+                              const newRate = parseFloat(e.target.value);
+                              if (!isNaN(newRate) && newRate !== Number(currency.rate_to_zar.toFixed(8))) {
+                                updateCurrencyRate(currency.id, newRate);
+                              }
+                            }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell className="tabular-nums text-muted-foreground">
+                        {currency.rate_to_zar > 0 ? formatRand(1 / currency.rate_to_zar) : '—'}
                       </TableCell>
                       <TableCell>{format(new Date(currency.updated_at), 'MMM d, HH:mm')}</TableCell>
                       <TableCell>

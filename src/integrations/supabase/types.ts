@@ -1530,7 +1530,7 @@ export type Database = {
           currency_symbol: string
           id: string
           is_active: boolean | null
-          rate_to_usd: number
+          rate_to_zar: number
           updated_at: string
         }
         Insert: {
@@ -1540,7 +1540,7 @@ export type Database = {
           currency_symbol: string
           id?: string
           is_active?: boolean | null
-          rate_to_usd: number
+          rate_to_zar: number
           updated_at?: string
         }
         Update: {
@@ -1550,7 +1550,7 @@ export type Database = {
           currency_symbol?: string
           id?: string
           is_active?: boolean | null
-          rate_to_usd?: number
+          rate_to_zar?: number
           updated_at?: string
         }
         Relationships: []

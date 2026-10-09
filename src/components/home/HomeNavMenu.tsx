@@ -69,7 +69,7 @@ const HomeNavMenu: React.FC = () => {
         <div className="flex items-center justify-between gap-3 h-14 md:h-auto md:py-2">
           {/* Logo */}
           <Link to="/shop" className="flex-shrink-0">
-            <img src="/logo.png" alt="1145" className="h-9 w-9 rounded-xl shadow-soft" />
+            <img src="/logo-mark-96.png" srcSet="/logo-mark-96.png 1x, /logo-mark-192.png 2x" alt="1145" width={40} height={40} className="h-10 w-10 shrink-0" />
           </Link>
 
           {/* Desktop Search Bar - hidden on mobile */}
