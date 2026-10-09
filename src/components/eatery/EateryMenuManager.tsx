@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PhotoField from "@/components/eatery/PhotoField";
 import { deleteMenuItem, deleteMenuSection, fetchMenu, saveMenuItem, saveMenuSection } from "@/services/food";
 import { formatCurrency } from "@/lib/utils";
 import type { MenuItem } from "@/types/food";
@@ -29,6 +30,7 @@ const EateryMenuManager: React.FC<{ eateryId: string }> = ({ eateryId }) => {
   const [draft, setDraft] = useState<ItemDraft | null>(null);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
 
   const refresh = () => queryClient.invalidateQueries({ queryKey });
   const act = async (action: () => Promise<void>, done?: string) => {
@@ -130,6 +132,11 @@ const EateryMenuManager: React.FC<{ eateryId: string }> = ({ eateryId }) => {
             <ul className="divide-y divide-border rounded-2xl border border-border">
               {group.items.map((item) => (
                 <li key={item.id} className="flex flex-wrap items-center gap-3 p-3 sm:flex-nowrap">
+                  {item.image_url ? (
+                    <img src={item.image_url} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-lg bg-surface-muted object-cover" />
+                  ) : (
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-border text-[10px] leading-tight text-text-secondary">No photo</span>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-foreground">{item.name}</p>
                     <p className="text-sm tabular-nums text-text-secondary">{formatCurrency(item.price)}{item.description ? ` · ${item.description}` : ""}</p>
@@ -188,14 +195,19 @@ const EateryMenuManager: React.FC<{ eateryId: string }> = ({ eateryId }) => {
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="item-image">Photo link (optional)</Label>
-                <Input id="item-image" type="url" inputMode="url" placeholder="https://…" value={draft.image_url} onChange={(e) => setDraft({ ...draft, image_url: e.target.value })} className="mt-1.5 h-11" />
-              </div>
+              <PhotoField
+                id="item-photo"
+                label="Photo (optional)"
+                kind="menu"
+                value={draft.image_url}
+                onChange={(url) => setDraft((current) => (current ? { ...current, image_url: url } : current))}
+                onBusyChange={setPhotoBusy}
+                hint="A clear photo of the dish helps it sell."
+              />
               {draftError && <p role="alert" className="text-sm text-destructive">{draftError}</p>}
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDraft(null)}>Cancel</Button>
-                <Button type="submit" variant="cta" disabled={saving}>{saving && <Loader2 className="animate-spin" aria-hidden />} Save item</Button>
+                <Button type="submit" variant="cta" disabled={saving || photoBusy}>{saving && <Loader2 className="animate-spin" aria-hidden />} {photoBusy ? "Uploading photo…" : "Save item"}</Button>
               </DialogFooter>
             </form>
           )}

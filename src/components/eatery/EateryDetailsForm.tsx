@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import PhotoField from "@/components/eatery/PhotoField";
 import type { EateryDetails } from "@/services/food";
 import type { Eatery } from "@/types/food";
 
@@ -35,6 +36,7 @@ const EateryDetailsForm: React.FC<EateryDetailsFormProps> = ({ eatery, submitLab
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
 
   const set = (key: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setDraft((prev) => ({ ...prev, [key]: e.target.value }));
@@ -114,8 +116,17 @@ const EateryDetailsForm: React.FC<EateryDetailsFormProps> = ({ eatery, submitLab
           </div>
           {input("phone", "Phone number", { type: "tel", inputMode: "tel", autoComplete: "tel" })}
           {input("opening_hours", "Opening hours (optional)", { placeholder: "Mon–Sat 10:00–21:00" }, "Shown to customers as written.")}
-          {input("logo_url", "Logo image link (optional)", { type: "url", inputMode: "url", placeholder: "https://…" })}
-          {input("cover_url", "Cover photo link (optional)", { type: "url", inputMode: "url", placeholder: "https://…" }, "A wide photo of your food or shopfront.")}
+          <div>
+            <PhotoField id="eatery-logo_url" label="Logo (optional)" kind="logo" value={draft.logo_url} onBusyChange={setPhotoBusy}
+              onChange={(url) => { setDraft((prev) => ({ ...prev, logo_url: url })); setSaved(false); }} />
+            {errors.logo_url && <p className="mt-1 text-sm text-destructive">{errors.logo_url}</p>}
+          </div>
+          <div>
+            <PhotoField id="eatery-cover_url" label="Cover photo (optional)" kind="cover" shape="wide" value={draft.cover_url} onBusyChange={setPhotoBusy}
+              hint="A wide photo of your food or shopfront."
+              onChange={(url) => { setDraft((prev) => ({ ...prev, cover_url: url })); setSaved(false); }} />
+            {errors.cover_url && <p className="mt-1 text-sm text-destructive">{errors.cover_url}</p>}
+          </div>
         </div>
       </fieldset>
 
@@ -140,7 +151,7 @@ const EateryDetailsForm: React.FC<EateryDetailsFormProps> = ({ eatery, submitLab
       {failure && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{failure}</p>}
 
       <div className="flex items-center gap-4">
-        <Button type="submit" variant="cta" size="lg" className="rounded-full" disabled={saving}>
+        <Button type="submit" variant="cta" size="lg" className="rounded-full" disabled={saving || photoBusy}>
           {saving && <Loader2 className="animate-spin" aria-hidden />} {submitLabel}
         </Button>
         {saved && <p role="status" className="text-sm text-success">Saved</p>}
