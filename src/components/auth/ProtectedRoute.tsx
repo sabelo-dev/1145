@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireVerified = false,
   fallbackPath = '/'
 }) => {
-  const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer } = useAuth();
+  const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer, isRestaurateur } = useAuth();
 
   if (isLoading) {
     return (
@@ -49,6 +49,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
     if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
+    if (isRestaurateur) return <Navigate to="/eatery/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 

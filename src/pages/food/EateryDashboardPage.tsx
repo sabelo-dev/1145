@@ -14,6 +14,7 @@ import EateryMenuManager from "@/components/eatery/EateryMenuManager";
 import EateryOrders from "@/components/eatery/EateryOrders";
 import EateryOverview, { type EateryTab } from "@/components/eatery/EateryOverview";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import { fetchEateryOrders, fetchMenu, fetchMyEateries, registerEatery, updateEatery, watchEateryOrders } from "@/services/food";
 
@@ -98,6 +99,9 @@ const EateryDashboardPage: React.FC = () => {
               submitLabel="Submit for review"
               onSubmit={async (details) => {
                 const created = await registerEatery(user.id, details);
+                // Remember this on the account, so future logins (including Google or Facebook
+                // sign-ups, and shoppers who list an eatery later) open this dashboard.
+                void supabase.auth.updateUser({ data: { joining_as: "restaurateur" } }).catch(() => undefined);
                 await refresh();
                 setSelectedId(created.id);
                 setAdding(false);

@@ -16,6 +16,8 @@ interface AuthContextType {
   isAdmin: boolean;
   isDriver: boolean;
   isInfluencer: boolean;
+  /** Signed up (or has since registered) to run an eatery in the Food Court. */
+  isRestaurateur: boolean;
   refreshUserProfile: () => Promise<void>;
   verifyEmailOtp: (email: string, token: string) => Promise<void>;
   resendVerification: (email: string) => Promise<void>;
@@ -30,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
   const [isInfluencer, setIsInfluencer] = useState(false);
+  const [isRestaurateur, setIsRestaurateur] = useState(false);
   const { toast } = useToast();
   // Starts as "loading" so a page refresh never renders a signed-out frame
   // (which made ProtectedRoute bounce users to the login page).
@@ -66,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAdmin(false);
     setIsDriver(false);
     setIsInfluencer(false);
+    setIsRestaurateur(false);
   };
 
   const checkDriverStatus = async (userId: string): Promise<boolean> => {
@@ -102,6 +106,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loadingManager.stopLoading(operation);
       return;
     }
+
+    // Kept on the account itself (not a database role): eateries belong to whoever registers them.
+    setIsRestaurateur(session.user.user_metadata?.joining_as === 'restaurateur');
 
     try {
       const [profileResult, rolesResult] = await Promise.all([
@@ -488,7 +495,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isMerchant, isAdmin, isDriver, isInfluencer, refreshUserProfile, verifyEmailOtp, resendVerification }}>
+    <AuthContext.Provider value={{ user, isLoading: loadingManager.isLoading, login, register, logout, isMerchant, isAdmin, isDriver, isInfluencer, isRestaurateur, refreshUserProfile, verifyEmailOtp, resendVerification }}>
       {children}
     </AuthContext.Provider>
   );

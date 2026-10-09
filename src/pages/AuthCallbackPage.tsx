@@ -15,7 +15,7 @@ const safeNext = (value: string | null) =>
  */
 const AuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoading, isAdmin, isInfluencer, isDriver, isMerchant } = useAuth();
+  const { user, isLoading, isAdmin, isInfluencer, isDriver, isMerchant, isRestaurateur } = useAuth();
 
   // Read once on arrival: the auth client clears the URL after processing it.
   const [params] = useState(() => {
@@ -46,10 +46,12 @@ const AuthCallbackPage: React.FC = () => {
             ? "/driver/dashboard"
             : isMerchant
               ? "/merchant/dashboard"
-              : "/dashboard");
+              : isRestaurateur
+                ? "/eatery/dashboard"
+                : "/dashboard");
 
     navigate(destination, { replace: true });
-  }, [params, isLoading, user, isAdmin, isInfluencer, isDriver, isMerchant, navigate]);
+  }, [params, isLoading, user, isAdmin, isInfluencer, isDriver, isMerchant, isRestaurateur, navigate]);
 
   const failure = params.error
     ? params.error.replace(/\+/g, " ")

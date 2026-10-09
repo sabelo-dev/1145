@@ -29,7 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const LoginPage: React.FC = () => {
   useFrameBreakout();
   const navigate = useNavigate();
-  const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer, login } = useAuth();
+  const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer, isRestaurateur, login } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -53,6 +53,7 @@ const LoginPage: React.FC = () => {
     if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
     if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
+    if (isRestaurateur) return <Navigate to="/eatery/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 

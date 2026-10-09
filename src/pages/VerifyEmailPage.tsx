@@ -12,7 +12,7 @@ const VerifyEmailPage: React.FC = () => {
   useFrameBreakout();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { user, verifyEmailOtp, resendVerification } = useAuth();
+  const { user, verifyEmailOtp, resendVerification, isRestaurateur } = useAuth();
 
   const [email, setEmail] = useState(params.get("email") || user?.email || "");
   const [code, setCode] = useState("");
@@ -26,7 +26,7 @@ const VerifyEmailPage: React.FC = () => {
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  if (user?.emailVerified) return <Navigate to="/dashboard" replace />;
+  if (user?.emailVerified) return <Navigate to={isRestaurateur ? "/eatery/dashboard" : "/dashboard"} replace />;
 
   const onVerify = async (e: React.FormEvent) => {
     e.preventDefault();

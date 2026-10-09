@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Check, Trash2, Package, ShoppingCart, Gavel, MessageSquare, Tag, X } from 'lucide-react';
+import { Bell, Check, Coins, Trash2, Package, ShoppingCart, Gavel, MessageSquare, Tag, Wallet, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/popover';
 import { useRealtimeNotifications, UserNotification } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/contexts/AuthContext';
+import { notificationLink } from '@/lib/notificationLink';
 
 const NotificationCenter: React.FC = () => {
   const navigate = useNavigate();
@@ -37,6 +38,13 @@ const NotificationCenter: React.FC = () => {
         return <Gavel className="h-4 w-4 text-orange-500" />;
       case 'message':
         return <MessageSquare className="h-4 w-4 text-blue-500" />;
+      case 'ucoin_credit':
+        return <Coins className="h-4 w-4 text-gold" />;
+      case 'deposit_completed':
+      case 'withdrawal_requested':
+      case 'withdrawal_completed':
+      case 'withdrawal_rejected':
+        return <Wallet className="h-4 w-4 text-primary" />;
       case 'promotion':
         return <Tag className="h-4 w-4 text-purple-500" />;
       default:
@@ -47,18 +55,7 @@ const NotificationCenter: React.FC = () => {
   const handleNotificationClick = (notification: UserNotification) => {
     markAsRead(notification.id);
     
-    // Navigate based on notification type
-    const link = notification.data?.link;
-    if (typeof link === 'string' && link.startsWith('/') && !link.startsWith('//')) {
-      // Notifications that know exactly where they belong (e.g. a service order).
-      navigate(link);
-    } else if (notification.data?.order_id) {
-      navigate(`/dashboard?tab=orders`);
-    } else if (notification.data?.auction_id) {
-      navigate(`/auctions`);
-    } else {
-      navigate('/dashboard');
-    }
+    navigate(notificationLink(notification));
   };
 
   if (!user) return null;
