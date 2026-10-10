@@ -28,7 +28,7 @@ interface LeaseContract {
 
 interface Props {
   contract: LeaseContract;
-  /** "owner" = asset provider/vendor, "lessee" = consumer */
+  /** "owner" = asset provider/merchant, "lessee" = consumer */
   role: "owner" | "lessee";
   onChanged?: () => void;
 }

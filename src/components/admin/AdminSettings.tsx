@@ -16,7 +16,7 @@ interface SettingsForm {
   platformName: string;
   platformEmail: string;
   platformFee: string;
-  vendorFee: string;
+  merchantFee: string;
   supportEmail: string;
   termsOfService: string;
   privacyPolicy: string;
@@ -42,7 +42,7 @@ const AdminSettings: React.FC = () => {
       platformName: "1145 Lifestyle",
       platformEmail: "support@1145.io",
       platformFee: "5",
-      vendorFee: "10",
+      merchantFee: "10",
       supportEmail: "help@1145.io",
       termsOfService: "Standard terms of service for 1145 marketplace...",
       privacyPolicy: "Privacy policy for 1145 marketplace..."
@@ -105,7 +105,7 @@ const AdminSettings: React.FC = () => {
           platformName: data.platform_name,
           platformEmail: data.platform_email,
           platformFee: String(data.platform_fee ?? ""),
-          vendorFee: String(data.vendor_fee ?? ""),
+          merchantFee: String(data.merchant_fee ?? ""),
           supportEmail: data.support_email,
           termsOfService: data.terms_of_service || "",
           privacyPolicy: data.privacy_policy || ""
@@ -129,21 +129,21 @@ const AdminSettings: React.FC = () => {
     setSaving(true);
     try {
       const platformFee = Number(data.platformFee);
-      const vendorFee = Number(data.vendorFee);
+      const merchantFee = Number(data.merchantFee);
 
       if (!Number.isFinite(platformFee) || platformFee < 0 || platformFee > 100) {
         throw new Error("Platform fee must be a number between 0 and 100");
       }
 
-      if (!Number.isFinite(vendorFee) || vendorFee < 0 || vendorFee > 100) {
-        throw new Error("Vendor fee must be a number between 0 and 100");
+      if (!Number.isFinite(merchantFee) || merchantFee < 0 || merchantFee > 100) {
+        throw new Error("Merchant fee must be a number between 0 and 100");
       }
 
       const settingsData = {
         platform_name: data.platformName,
         platform_email: data.platformEmail,
         platform_fee: platformFee,
-        vendor_fee: vendorFee,
+        merchant_fee: merchantFee,
         support_email: data.supportEmail,
         terms_of_service: data.termsOfService,
         privacy_policy: data.privacyPolicy,
@@ -259,7 +259,7 @@ const AdminSettings: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Fee Configuration</CardTitle>
-              <CardDescription>Set platform and vendor fees</CardDescription>
+              <CardDescription>Set platform and merchant fees</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -278,10 +278,10 @@ const AdminSettings: React.FC = () => {
               
               <FormField
                 control={form.control}
-                name="vendorFee"
+                name="merchantFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Vendor Fee (%)</FormLabel>
+                    <FormLabel>Merchant Fee (%)</FormLabel>
                     <FormControl>
                       <Input {...field} type="number" min="0" max="100" />
                     </FormControl>

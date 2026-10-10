@@ -3,12 +3,12 @@ export interface AdminUser {
   id: string;
   name?: string;
   email: string;
-  role: 'consumer' | 'vendor' | 'admin';
+  role: 'consumer' | 'merchant' | 'admin';
   status?: 'active' | 'suspended' | 'pending';
   createdAt: string;
 }
 
-export interface AdminVendor {
+export interface AdminMerchant {
   id: string;
   businessName: string;
   email: string;
@@ -22,7 +22,7 @@ export interface AdminVendor {
 export interface AdminProduct {
   id: string;
   name: string;
-  vendorName: string;
+  merchantName: string;
   price: number;
   status: "approved" | "pending" | "rejected";
   category: string;

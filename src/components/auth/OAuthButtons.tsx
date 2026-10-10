@@ -46,7 +46,7 @@ const PROVIDERS: { id: Provider; label: string; Icon: React.FC }[] = [
 
 // Where a new account should go after signing up with a given role.
 const ROLE_ONBOARDING: Record<string, string> = {
-  vendor: "/merchant/onboarding",
+  merchant: "/merchant/onboarding",
   driver: "/driver/onboarding",
   influencer: "/influencer/onboarding",
   restaurateur: "/eatery/dashboard",

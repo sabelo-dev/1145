@@ -499,7 +499,7 @@ export type Database = {
           starting_bid_price: number | null
           status: string
           updated_at: string
-          vendor_base_amount: number
+          merchant_base_amount: number
           winner_id: string | null
           winning_bid: number | null
         }
@@ -515,7 +515,7 @@ export type Database = {
           starting_bid_price?: number | null
           status?: string
           updated_at?: string
-          vendor_base_amount: number
+          merchant_base_amount: number
           winner_id?: string | null
           winning_bid?: number | null
         }
@@ -531,7 +531,7 @@ export type Database = {
           starting_bid_price?: number | null
           status?: string
           updated_at?: string
-          vendor_base_amount?: number
+          merchant_base_amount?: number
           winner_id?: string | null
           winning_bid?: number | null
         }
@@ -559,7 +559,7 @@ export type Database = {
           trigger_conditions: Json
           trigger_count: number
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           action_config: Json
@@ -574,7 +574,7 @@ export type Database = {
           trigger_conditions: Json
           trigger_count?: number
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           action_config?: Json
@@ -589,7 +589,7 @@ export type Database = {
           trigger_conditions?: Json
           trigger_count?: number
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
@@ -600,10 +600,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "auto_campaigns_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "auto_campaigns_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -720,7 +720,7 @@ export type Database = {
           id: string
           product_id: string
           status: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           bundle_id: string
@@ -729,7 +729,7 @@ export type Database = {
           id?: string
           product_id: string
           status?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           bundle_id?: string
@@ -738,7 +738,7 @@ export type Database = {
           id?: string
           product_id?: string
           status?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
@@ -756,10 +756,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "brand_bundle_products_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "brand_bundle_products_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -768,7 +768,7 @@ export type Database = {
         Row: {
           bundle_discount: number
           created_at: string
-          created_by_vendor_id: string
+          created_by_merchant_id: string
           description: string | null
           end_date: string | null
           id: string
@@ -780,7 +780,7 @@ export type Database = {
         Insert: {
           bundle_discount?: number
           created_at?: string
-          created_by_vendor_id: string
+          created_by_merchant_id: string
           description?: string | null
           end_date?: string | null
           id?: string
@@ -792,7 +792,7 @@ export type Database = {
         Update: {
           bundle_discount?: number
           created_at?: string
-          created_by_vendor_id?: string
+          created_by_merchant_id?: string
           description?: string | null
           end_date?: string | null
           id?: string
@@ -803,10 +803,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "brand_bundles_created_by_vendor_id_fkey"
-            columns: ["created_by_vendor_id"]
+            foreignKeyName: "brand_bundles_created_by_merchant_id_fkey"
+            columns: ["created_by_merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -823,7 +823,7 @@ export type Database = {
           priority: string
           tip_type: string
           title: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           action_url?: string | null
@@ -836,7 +836,7 @@ export type Database = {
           priority?: string
           tip_type: string
           title: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           action_url?: string | null
@@ -849,14 +849,14 @@ export type Database = {
           priority?: string
           tip_type?: string
           title?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "brand_improvement_tips_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "brand_improvement_tips_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -880,7 +880,7 @@ export type Database = {
           total_orders: number
           total_revenue: number
           total_reviews: number
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           average_delivery_time?: number | null
@@ -900,7 +900,7 @@ export type Database = {
           total_orders?: number
           total_revenue?: number
           total_reviews?: number
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           average_delivery_time?: number | null
@@ -920,14 +920,14 @@ export type Database = {
           total_orders?: number
           total_revenue?: number
           total_reviews?: number
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "brand_performance_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "brand_performance_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -940,7 +940,7 @@ export type Database = {
           previous_tier_id: string | null
           reason: string | null
           tier_id: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           created_at?: string
@@ -949,7 +949,7 @@ export type Database = {
           previous_tier_id?: string | null
           reason?: string | null
           tier_id: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           created_at?: string
@@ -958,7 +958,7 @@ export type Database = {
           previous_tier_id?: string | null
           reason?: string | null
           tier_id?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
@@ -976,10 +976,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "brand_tier_history_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "brand_tier_history_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -1346,7 +1346,7 @@ export type Database = {
           id: string
           notification_preferences: Json | null
           preferred_categories: string[] | null
-          preferred_vendors: string[] | null
+          preferred_merchants: string[] | null
           updated_at: string
           user_id: string
         }
@@ -1356,7 +1356,7 @@ export type Database = {
           id?: string
           notification_preferences?: Json | null
           preferred_categories?: string[] | null
-          preferred_vendors?: string[] | null
+          preferred_merchants?: string[] | null
           updated_at?: string
           user_id: string
         }
@@ -1366,7 +1366,7 @@ export type Database = {
           id?: string
           notification_preferences?: Json | null
           preferred_categories?: string[] | null
-          preferred_vendors?: string[] | null
+          preferred_merchants?: string[] | null
           updated_at?: string
           user_id?: string
         }
@@ -1468,9 +1468,9 @@ export type Database = {
           end_date: string | null
           id: string
           initiator_products: string[] | null
-          initiator_vendor_id: string
+          initiator_merchant_id: string
           partner_products: string[] | null
-          partner_vendor_id: string
+          partner_merchant_id: string
           promo_type: string
           start_date: string | null
           status: string
@@ -1482,9 +1482,9 @@ export type Database = {
           end_date?: string | null
           id?: string
           initiator_products?: string[] | null
-          initiator_vendor_id: string
+          initiator_merchant_id: string
           partner_products?: string[] | null
-          partner_vendor_id: string
+          partner_merchant_id: string
           promo_type: string
           start_date?: string | null
           status?: string
@@ -1496,9 +1496,9 @@ export type Database = {
           end_date?: string | null
           id?: string
           initiator_products?: string[] | null
-          initiator_vendor_id?: string
+          initiator_merchant_id?: string
           partner_products?: string[] | null
-          partner_vendor_id?: string
+          partner_merchant_id?: string
           promo_type?: string
           start_date?: string | null
           status?: string
@@ -1507,17 +1507,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "cross_promotions_initiator_vendor_id_fkey"
-            columns: ["initiator_vendor_id"]
+            foreignKeyName: "cross_promotions_initiator_merchant_id_fkey"
+            columns: ["initiator_merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "cross_promotions_partner_vendor_id_fkey"
-            columns: ["partner_vendor_id"]
+            foreignKeyName: "cross_promotions_partner_merchant_id_fkey"
+            columns: ["partner_merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -1563,7 +1563,7 @@ export type Database = {
           id: string
           image_url: string | null
           value: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           attribute_type_id: string
@@ -1572,7 +1572,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           value: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           attribute_type_id?: string
@@ -1581,7 +1581,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           value?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
@@ -1592,10 +1592,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "custom_attribute_values_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "custom_attribute_values_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -2207,7 +2207,7 @@ export type Database = {
           maturity_date: string | null
           returns_earned: number
           status: string
-          target_vendor_id: string | null
+          target_merchant_id: string | null
           ucoin_spent: number
           updated_at: string
         }
@@ -2220,7 +2220,7 @@ export type Database = {
           maturity_date?: string | null
           returns_earned?: number
           status?: string
-          target_vendor_id?: string | null
+          target_merchant_id?: string | null
           ucoin_spent?: number
           updated_at?: string
         }
@@ -2233,7 +2233,7 @@ export type Database = {
           maturity_date?: string | null
           returns_earned?: number
           status?: string
-          target_vendor_id?: string | null
+          target_merchant_id?: string | null
           ucoin_spent?: number
           updated_at?: string
         }
@@ -2246,10 +2246,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "driver_investments_target_vendor_id_fkey"
-            columns: ["target_vendor_id"]
+            foreignKeyName: "driver_investments_target_merchant_id_fkey"
+            columns: ["target_merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -4991,7 +4991,7 @@ export type Database = {
           rate_limit_per_hour: number | null
           scopes: string[] | null
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           api_key: string
@@ -5005,7 +5005,7 @@ export type Database = {
           rate_limit_per_hour?: number | null
           scopes?: string[] | null
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           api_key?: string
@@ -5019,14 +5019,14 @@ export type Database = {
           rate_limit_per_hour?: number | null
           scopes?: string[] | null
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "merchant_api_keys_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_api_keys_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -5081,7 +5081,7 @@ export type Database = {
           status: string
           store_id: string | null
           updated_at: string
-          vendor_id: string
+          merchant_id: string
           verification_token: string | null
           verified_at: string | null
         }
@@ -5093,7 +5093,7 @@ export type Database = {
           status?: string
           store_id?: string | null
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
           verification_token?: string | null
           verified_at?: string | null
         }
@@ -5105,7 +5105,7 @@ export type Database = {
           status?: string
           store_id?: string | null
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
           verification_token?: string | null
           verified_at?: string | null
         }
@@ -5118,10 +5118,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "merchant_custom_domains_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_custom_domains_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -5138,7 +5138,7 @@ export type Database = {
           reviewed_by: string | null
           status: string
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           created_at?: string
@@ -5151,7 +5151,7 @@ export type Database = {
           reviewed_by?: string | null
           status?: string
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           created_at?: string
@@ -5164,14 +5164,14 @@ export type Database = {
           reviewed_by?: string | null
           status?: string
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "merchant_kyc_documents_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_kyc_documents_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -5888,7 +5888,7 @@ export type Database = {
           store_id: string
           updated_at: string
           variation_id: string | null
-          vendor_status: string
+          merchant_status: string
         }
         Insert: {
           created_at?: string
@@ -5903,7 +5903,7 @@ export type Database = {
           store_id: string
           updated_at?: string
           variation_id?: string | null
-          vendor_status?: string
+          merchant_status?: string
         }
         Update: {
           created_at?: string
@@ -5918,7 +5918,7 @@ export type Database = {
           store_id?: string
           updated_at?: string
           variation_id?: string | null
-          vendor_status?: string
+          merchant_status?: string
         }
         Relationships: [
           {
@@ -6153,7 +6153,7 @@ export type Database = {
           payout_date: string | null
           status: string
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           amount: number
@@ -6162,7 +6162,7 @@ export type Database = {
           payout_date?: string | null
           status?: string
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           amount?: number
@@ -6171,14 +6171,14 @@ export type Database = {
           payout_date?: string | null
           status?: string
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "payouts_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "payouts_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -6194,7 +6194,7 @@ export type Database = {
           support_email: string
           terms_of_service: string | null
           updated_at: string
-          vendor_fee: number
+          merchant_fee: number
         }
         Insert: {
           created_at?: string
@@ -6206,7 +6206,7 @@ export type Database = {
           support_email: string
           terms_of_service?: string | null
           updated_at?: string
-          vendor_fee?: number
+          merchant_fee?: number
         }
         Update: {
           created_at?: string
@@ -6218,7 +6218,7 @@ export type Database = {
           support_email?: string
           terms_of_service?: string | null
           updated_at?: string
-          vendor_fee?: number
+          merchant_fee?: number
         }
         Relationships: []
       }
@@ -6489,7 +6489,7 @@ export type Database = {
           id: string
           reference_id: string | null
           type: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           amount: number
@@ -6499,7 +6499,7 @@ export type Database = {
           id?: string
           reference_id?: string | null
           type: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           amount?: number
@@ -6509,14 +6509,14 @@ export type Database = {
           id?: string
           reference_id?: string | null
           type?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "promo_credit_transactions_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "promo_credit_transactions_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -6530,7 +6530,7 @@ export type Database = {
           lifetime_earned: number
           lifetime_spent: number
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           balance?: number
@@ -6540,7 +6540,7 @@ export type Database = {
           lifetime_earned?: number
           lifetime_spent?: number
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           balance?: number
@@ -6550,14 +6550,14 @@ export type Database = {
           lifetime_earned?: number
           lifetime_spent?: number
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "promo_credits_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "promo_credits_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -6767,8 +6767,8 @@ export type Database = {
           sentiment: string | null
           updated_at: string | null
           user_id: string
-          vendor_responded_at: string | null
-          vendor_response: string | null
+          merchant_responded_at: string | null
+          merchant_response: string | null
         }
         Insert: {
           comment?: string | null
@@ -6782,8 +6782,8 @@ export type Database = {
           sentiment?: string | null
           updated_at?: string | null
           user_id: string
-          vendor_responded_at?: string | null
-          vendor_response?: string | null
+          merchant_responded_at?: string | null
+          merchant_response?: string | null
         }
         Update: {
           comment?: string | null
@@ -6797,8 +6797,8 @@ export type Database = {
           sentiment?: string | null
           updated_at?: string | null
           user_id?: string
-          vendor_responded_at?: string | null
-          vendor_response?: string | null
+          merchant_responded_at?: string | null
+          merchant_response?: string | null
         }
         Relationships: [
           {
@@ -7858,7 +7858,7 @@ export type Database = {
           start_time: string
           status: string
           store_id: string | null
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           clicks?: number
@@ -7873,7 +7873,7 @@ export type Database = {
           start_time: string
           status?: string
           store_id?: string | null
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           clicks?: number
@@ -7888,7 +7888,7 @@ export type Database = {
           start_time?: string
           status?: string
           store_id?: string | null
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
@@ -7906,10 +7906,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sponsored_placements_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "sponsored_placements_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -8096,7 +8096,7 @@ export type Database = {
           shipping_policy: string | null
           slug: string
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           banner_url?: string | null
@@ -8110,7 +8110,7 @@ export type Database = {
           shipping_policy?: string | null
           slug: string
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           banner_url?: string | null
@@ -8124,14 +8124,14 @@ export type Database = {
           shipping_policy?: string | null
           slug?: string
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "stores_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "stores_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -8194,7 +8194,7 @@ export type Database = {
           status: string
           tier: string
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           amount: number
@@ -8209,7 +8209,7 @@ export type Database = {
           status?: string
           tier: string
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           amount?: number
@@ -8224,14 +8224,14 @@ export type Database = {
           status?: string
           tier?: string
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "subscription_payments_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "subscription_payments_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -8289,7 +8289,7 @@ export type Database = {
           subject: string
           updated_at: string | null
           user_id: string | null
-          vendor_id: string | null
+          merchant_id: string | null
         }
         Insert: {
           admin_response?: string | null
@@ -8304,7 +8304,7 @@ export type Database = {
           subject: string
           updated_at?: string | null
           user_id?: string | null
-          vendor_id?: string | null
+          merchant_id?: string | null
         }
         Update: {
           admin_response?: string | null
@@ -8319,14 +8319,14 @@ export type Database = {
           subject?: string
           updated_at?: string | null
           user_id?: string | null
-          vendor_id?: string | null
+          merchant_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "support_tickets_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "support_tickets_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
@@ -9353,7 +9353,7 @@ export type Database = {
           },
         ]
       }
-      vendor_documents: {
+      merchant_documents: {
         Row: {
           document_type: string
           document_url: string
@@ -9361,7 +9361,7 @@ export type Database = {
           status: string
           updated_at: string
           uploaded_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           document_type: string
@@ -9370,7 +9370,7 @@ export type Database = {
           status?: string
           updated_at?: string
           uploaded_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           document_type?: string
@@ -9379,19 +9379,19 @@ export type Database = {
           status?: string
           updated_at?: string
           uploaded_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_documents_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_documents_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendor_financial_details: {
+      merchant_financial_details: {
         Row: {
           bank_account_holder: string | null
           bank_account_number: string | null
@@ -9403,7 +9403,7 @@ export type Database = {
           updated_at: string
           vat_number: string | null
           vat_registered: boolean | null
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           bank_account_holder?: string | null
@@ -9416,7 +9416,7 @@ export type Database = {
           updated_at?: string
           vat_number?: string | null
           vat_registered?: boolean | null
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           bank_account_holder?: string | null
@@ -9429,19 +9429,19 @@ export type Database = {
           updated_at?: string
           vat_number?: string | null
           vat_registered?: boolean | null
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_financial_details_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_financial_details_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: true
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendor_notifications: {
+      merchant_notifications: {
         Row: {
           created_at: string
           data: Json | null
@@ -9450,7 +9450,7 @@ export type Database = {
           read: boolean
           title: string
           type: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           created_at?: string
@@ -9460,7 +9460,7 @@ export type Database = {
           read?: boolean
           title: string
           type: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           created_at?: string
@@ -9470,19 +9470,19 @@ export type Database = {
           read?: boolean
           title?: string
           type?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_notifications_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_notifications_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendor_payment_methods: {
+      merchant_payment_methods: {
         Row: {
           account_holder_name: string
           account_number: string
@@ -9492,7 +9492,7 @@ export type Database = {
           id: string
           is_default: boolean | null
           updated_at: string | null
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           account_holder_name: string
@@ -9503,7 +9503,7 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           updated_at?: string | null
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           account_holder_name?: string
@@ -9514,19 +9514,19 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           updated_at?: string | null
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_payment_methods_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_payment_methods_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendor_subscription_audit_log: {
+      merchant_subscription_audit_log: {
         Row: {
           change_type: string
           changed_by: string
@@ -9537,7 +9537,7 @@ export type Database = {
           old_status: string | null
           old_tier: string | null
           reason: string | null
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           change_type: string
@@ -9549,7 +9549,7 @@ export type Database = {
           old_status?: string | null
           old_tier?: string | null
           reason?: string | null
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           change_type?: string
@@ -9561,19 +9561,19 @@ export type Database = {
           old_status?: string | null
           old_tier?: string | null
           reason?: string | null
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_subscription_audit_log_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_subscription_audit_log_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendor_subscription_features: {
+      merchant_subscription_features: {
         Row: {
           created_at: string
           feature_key: string
@@ -9583,7 +9583,7 @@ export type Database = {
           reset_at: string | null
           updated_at: string
           usage_count: number | null
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           created_at?: string
@@ -9594,7 +9594,7 @@ export type Database = {
           reset_at?: string | null
           updated_at?: string
           usage_count?: number | null
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           created_at?: string
@@ -9605,19 +9605,19 @@ export type Database = {
           reset_at?: string | null
           updated_at?: string
           usage_count?: number | null
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_subscription_features_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_subscription_features_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendor_subscription_usage: {
+      merchant_subscription_usage: {
         Row: {
           created_at: string
           current_value: number
@@ -9627,7 +9627,7 @@ export type Database = {
           period_end: string
           period_start: string
           updated_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           created_at?: string
@@ -9638,7 +9638,7 @@ export type Database = {
           period_end?: string
           period_start?: string
           updated_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           created_at?: string
@@ -9649,19 +9649,19 @@ export type Database = {
           period_end?: string
           period_start?: string
           updated_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_subscription_usage_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_subscription_usage_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendor_upgrade_triggers: {
+      merchant_upgrade_triggers: {
         Row: {
           dismissed_at: string | null
           id: string
@@ -9669,7 +9669,7 @@ export type Database = {
           trigger_data: Json | null
           trigger_type: string
           triggered_at: string
-          vendor_id: string
+          merchant_id: string
         }
         Insert: {
           dismissed_at?: string | null
@@ -9678,7 +9678,7 @@ export type Database = {
           trigger_data?: Json | null
           trigger_type: string
           triggered_at?: string
-          vendor_id: string
+          merchant_id: string
         }
         Update: {
           dismissed_at?: string | null
@@ -9687,19 +9687,19 @@ export type Database = {
           trigger_data?: Json | null
           trigger_type?: string
           triggered_at?: string
-          vendor_id?: string
+          merchant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_upgrade_triggers_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "merchant_upgrade_triggers_merchant_id_fkey"
+            columns: ["merchant_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]
       }
-      vendors: {
+      merchants: {
         Row: {
           ad_credits: number | null
           approval_date: string | null
@@ -9828,7 +9828,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vendors_tier_id_fkey"
+            foreignKeyName: "merchants_tier_id_fkey"
             columns: ["tier_id"]
             isOneToOne: false
             referencedRelation: "brand_tiers"
@@ -10318,12 +10318,12 @@ export type Database = {
         Args: { p_contract_id: string }
         Returns: boolean
       }
-      can_vendor_add_product: {
-        Args: { p_vendor_id: string }
+      can_merchant_add_product: {
+        Args: { p_merchant_id: string }
         Returns: boolean
       }
-      can_vendor_create_promotion: {
-        Args: { p_vendor_id: string }
+      can_merchant_create_promotion: {
+        Args: { p_merchant_id: string }
         Returns: boolean
       }
       can_write_product_image: {
@@ -10335,8 +10335,8 @@ export type Database = {
         Args: { p_driver_id: string; p_lat: number; p_lng: number }
         Returns: Json
       }
-      check_vendor_upgrade_triggers: {
-        Args: { p_vendor_id: string }
+      check_merchant_upgrade_triggers: {
+        Args: { p_merchant_id: string }
         Returns: Json
       }
       complete_mining_task: {
@@ -10382,8 +10382,8 @@ export type Database = {
         }
         Returns: string
       }
-      delete_vendor_cascade: {
-        Args: { vendor_uuid: string }
+      delete_merchant_cascade: {
+        Args: { merchant_uuid: string }
         Returns: undefined
       }
       evaluate_driver_risk: { Args: { p_driver_id: string }; Returns: Json }
@@ -10468,8 +10468,8 @@ export type Database = {
           single_transfer_max_mg: number
         }[]
       }
-      get_vendor_features: { Args: { vendor_id: string }; Returns: Json }
-      get_vendor_tier_config: { Args: { p_vendor_id: string }; Returns: Json }
+      get_merchant_features: { Args: { merchant_id: string }; Returns: Json }
+      get_merchant_tier_config: { Args: { p_merchant_id: string }; Returns: Json }
       get_wallet_summary: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
@@ -10488,9 +10488,9 @@ export type Database = {
         Args: { _auction_id: string; _user_id: string }
         Returns: boolean
       }
-      is_trial_expired: { Args: { vendor_id: string }; Returns: boolean }
-      is_vendor: { Args: { _user_id: string }; Returns: boolean }
-      is_vendor_owned_path: {
+      is_trial_expired: { Args: { merchant_id: string }; Returns: boolean }
+      is_merchant: { Args: { _user_id: string }; Returns: boolean }
+      is_merchant_owned_path: {
         Args: { p_first_segment: string; p_second_segment: string }
         Returns: boolean
       }
@@ -10568,7 +10568,7 @@ export type Database = {
         Returns: {
           domain: string
           store_id: string
-          vendor_id: string
+          merchant_id: string
         }[]
       }
       score_driver_for_dispatch: {
@@ -10622,10 +10622,11 @@ export type Database = {
     Enums: {
       app_role:
         | "consumer"
-        | "vendor"
+        | "merchant"
         | "admin"
         | "driver"
         | "influencer"
+        | "restaurateur"
         | "passenger"
         | "fleet_manager"
         | "service_provider"
@@ -10635,7 +10636,7 @@ export type Database = {
         | "deposit"
         | "purchase"
         | "refund"
-        | "vendor_payout"
+        | "merchant_payout"
         | "driver_earning"
         | "influencer_commission"
         | "referral_reward"
@@ -10774,10 +10775,11 @@ export const Constants = {
     Enums: {
       app_role: [
         "consumer",
-        "vendor",
+        "merchant",
         "admin",
         "driver",
         "influencer",
+        "restaurateur",
         "passenger",
         "fleet_manager",
         "service_provider",
@@ -10788,7 +10790,7 @@ export const Constants = {
         "deposit",
         "purchase",
         "refund",
-        "vendor_payout",
+        "merchant_payout",
         "driver_earning",
         "influencer_commission",
         "referral_reward",

@@ -124,14 +124,14 @@ const TermsPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Vendor Terms */}
+          {/* Merchant Terms */}
           <Card>
             <CardHeader>
-              <CardTitle>Vendor Agreements</CardTitle>
+              <CardTitle>Merchant Agreements</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <h4 className="font-semibold">Vendor Responsibilities</h4>
+                <h4 className="font-semibold">Merchant Responsibilities</h4>
                 <ul className="space-y-2 text-gray-700">
                   <li>• Provide accurate product information</li>
                   <li>• Maintain adequate inventory levels</li>
@@ -142,7 +142,7 @@ const TermsPage: React.FC = () => {
 
                 <h4 className="font-semibold mt-6">Platform Commission</h4>
                 <p className="text-gray-700">
-                  Vendor commission rates and payment terms are outlined in separate vendor agreements.
+                  Merchant commission rates and payment terms are outlined in separate merchant agreements.
                 </p>
               </div>
             </CardContent>

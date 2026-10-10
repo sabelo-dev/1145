@@ -76,7 +76,7 @@ export interface DriverInvestment {
   id: string;
   driver_id: string;
   investment_type: 'brand_stake' | 'vehicle_savings' | 'storefront_fund';
-  target_vendor_id: string | null;
+  target_merchant_id: string | null;
   amount: number;
   ucoin_spent: number;
   returns_earned: number;

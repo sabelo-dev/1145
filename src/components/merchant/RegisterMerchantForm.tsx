@@ -28,7 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
-const vendorSchema = z.object({
+const merchantSchema = z.object({
   businessName: z.string()
     .trim()
     .min(2, "Business name must be at least 2 characters")
@@ -66,16 +66,16 @@ const vendorSchema = z.object({
   }),
 });
 
-type VendorFormValues = z.infer<typeof vendorSchema>;
+type MerchantFormValues = z.infer<typeof merchantSchema>;
 
-const RegisterVendorForm: React.FC = () => {
+const RegisterMerchantForm: React.FC = () => {
   const { user, register: registerUser, refreshUserProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   
-  const form = useForm<VendorFormValues>({
-    resolver: zodResolver(vendorSchema),
+  const form = useForm<MerchantFormValues>({
+    resolver: zodResolver(merchantSchema),
     defaultValues: {
       businessName: "",
       businessEmail: "",
@@ -88,18 +88,18 @@ const RegisterVendorForm: React.FC = () => {
     },
   });
 
-  const onSubmit = async (values: VendorFormValues) => {
-    console.log('RegisterVendorForm onSubmit called with:', values);
+  const onSubmit = async (values: MerchantFormValues) => {
+    console.log('RegisterMerchantForm onSubmit called with:', values);
     console.log('User context:', user);
     
-    // If user is not logged in, redirect to main registration with vendor role
+    // If user is not logged in, redirect to main registration with merchant role
     if (!user) {
       console.log('No user found, redirecting to /register');
-      navigate('/register', { state: { role: 'vendor', businessName: values.businessName, description: values.description } });
+      navigate('/register', { state: { role: 'merchant', businessName: values.businessName, description: values.description } });
       return;
     }
 
-    console.log('User is logged in, proceeding with vendor creation');
+    console.log('User is logged in, proceeding with merchant creation');
     setIsLoading(true);
     
     try {
@@ -112,34 +112,34 @@ const RegisterVendorForm: React.FC = () => {
 
       console.log('Current authenticated user ID:', currentUser.id);
 
-      // Check if vendor already exists
-      const { data: existingVendor, error: checkError } = await supabase
-        .from('vendors')
+      // Check if merchant already exists
+      const { data: existingMerchant, error: checkError } = await supabase
+        .from('merchants')
         .select('id')
         .eq('user_id', currentUser.id)
         .maybeSingle();
 
       if (checkError) {
-        console.error('Error checking existing vendor:', checkError);
+        console.error('Error checking existing merchant:', checkError);
         throw checkError;
       }
 
-      if (existingVendor) {
-        console.log('Vendor already exists, redirecting to dashboard');
+      if (existingMerchant) {
+        console.log('Merchant already exists, redirecting to dashboard');
         toast({
           title: "Already Registered",
-          description: "You're already registered as a vendor.",
+          description: "You're already registered as a merchant.",
         });
         navigate('/merchant/dashboard');
         return;
       }
 
-      console.log('Creating vendor record...');
-      // Create vendor profile in Supabase with trial subscription
+      console.log('Creating merchant record...');
+      // Create merchant profile in Supabase with trial subscription
       const trialEndDate = new Date();
       trialEndDate.setDate(trialEndDate.getDate() + 90); // 90 days trial
 
-      const vendorData = {
+      const merchantData = {
         user_id: currentUser.id,
         business_name: values.businessName,
         description: values.description,
@@ -152,33 +152,33 @@ const RegisterVendorForm: React.FC = () => {
         website: values.website || null
       };
 
-      console.log('Inserting vendor data:', vendorData);
+      console.log('Inserting merchant data:', merchantData);
 
-      const { data: vendorResult, error: vendorError } = await supabase
-        .from("vendors")
-        .insert(vendorData)
+      const { data: merchantResult, error: merchantError } = await supabase
+        .from("merchants")
+        .insert(merchantData)
         .select()
         .single();
 
-      if (vendorError) {
-        console.error('Vendor insert error:', vendorError);
-        throw vendorError;
+      if (merchantError) {
+        console.error('Merchant insert error:', merchantError);
+        throw merchantError;
       }
 
       // Insert sensitive financial / contact details into protected table
-      if (vendorResult?.id) {
-        await supabase.from("vendor_financial_details").insert({
-          vendor_id: vendorResult.id,
+      if (merchantResult?.id) {
+        await supabase.from("merchant_financial_details").insert({
+          merchant_id: merchantResult.id,
           business_email: values.businessEmail || null,
           business_phone: values.businessPhone || null,
           tax_id: values.taxId || null,
         });
       }
 
-      console.log('Vendor created successfully:', vendorResult);
+      console.log('Merchant created successfully:', merchantResult);
 
-      // The vendor role (and profiles.role) is granted by the database when the
-      // vendor record is created (20261001080000_role_sync.sql).
+      // The merchant role (and profiles.role) is granted by the database when the
+      // merchant record is created (20261001080000_role_sync.sql).
 
       // Refresh user profile to update the auth context and wait for completion
       console.log('Refreshing user profile...');
@@ -196,11 +196,11 @@ const RegisterVendorForm: React.FC = () => {
       console.log('Navigating to merchant onboarding...');
       navigate('/merchant/onboarding', { replace: true });
     } catch (error: any) {
-      console.error("Error during vendor registration:", error);
+      console.error("Error during merchant registration:", error);
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: error.message || 'Failed to register as a vendor. Please try again later.',
+        description: error.message || 'Failed to register as a merchant. Please try again later.',
       });
     } finally {
       setIsLoading(false);
@@ -389,4 +389,4 @@ const RegisterVendorForm: React.FC = () => {
   );
 };
 
-export default RegisterVendorForm;
+export default RegisterMerchantForm;

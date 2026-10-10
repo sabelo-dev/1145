@@ -2,21 +2,21 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Crown, Star, Zap, Clock, Percent, Package, TrendingUp, Shield } from 'lucide-react';
-import { useVendorSubscription } from '@/hooks/useVendorSubscription';
+import { useMerchantSubscription } from '@/hooks/useMerchantSubscription';
 import SubscriptionTierBadge from './SubscriptionTierBadge';
 import UsageMeter from './UsageMeter';
 import UpgradeTriggerBanner from './UpgradeTriggerBanner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface SubscriptionStatusCardProps {
-  vendorId?: string;
+  merchantId?: string;
   onUpgrade: () => void;
   onCancel?: () => void;
   className?: string;
 }
 
 const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
-  vendorId,
+  merchantId,
   onUpgrade,
   onCancel,
   className,
@@ -28,7 +28,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
     upgradeTriggers,
     getProductUsagePercent,
     getPromotionUsagePercent,
-  } = useVendorSubscription(vendorId);
+  } = useMerchantSubscription(merchantId);
 
   if (loading) {
     return (

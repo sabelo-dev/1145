@@ -20,7 +20,7 @@ interface Review {
   title: string;
   comment: string;
   date: string;
-  vendor: string;
+  merchant: string;
   status: string;
 }
 
@@ -67,7 +67,7 @@ const ConsumerReviews: React.FC = () => {
           title: review.comment?.split(".")[0] || "",
           comment: review.comment || "",
           date: new Date(review.created_at).toLocaleDateString(),
-          vendor: review.products?.stores?.name || "Unknown Store",
+          merchant: review.products?.stores?.name || "Unknown Store",
           status: "published",
         }))
       );
@@ -162,7 +162,7 @@ const ConsumerReviews: React.FC = () => {
                   <img src={review.productImage} alt={review.productName} className="w-16 h-16 object-cover rounded" />
                   <div>
                     <CardTitle className="text-lg">{review.productName}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{review.vendor}</p>
+                    <p className="text-sm text-muted-foreground">{review.merchant}</p>
                     <div className="flex items-center gap-2 mt-1">
                       {renderStars(review.rating)}
                       <span className="text-sm text-muted-foreground">• {review.date}</span>
@@ -181,7 +181,7 @@ const ConsumerReviews: React.FC = () => {
                           <img src={review.productImage} alt={review.productName} className="w-16 h-16 object-cover rounded" />
                           <div>
                             <h3 className="font-medium">{review.productName}</h3>
-                            <p className="text-sm text-muted-foreground">{review.vendor}</p>
+                            <p className="text-sm text-muted-foreground">{review.merchant}</p>
                             {renderStars(review.rating)}
                           </div>
                         </div>
@@ -215,7 +215,7 @@ const ConsumerReviews: React.FC = () => {
                 <img src={editingReview.productImage} alt={editingReview.productName} className="w-16 h-16 object-cover rounded" />
                 <div>
                   <h3 className="font-medium">{editingReview.productName}</h3>
-                  <p className="text-sm text-muted-foreground">{editingReview.vendor}</p>
+                  <p className="text-sm text-muted-foreground">{editingReview.merchant}</p>
                 </div>
               </div>
               <div>

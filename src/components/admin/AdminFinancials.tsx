@@ -26,7 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Payout {
   id: string;
-  vendorName: string;
+  merchantName: string;
   amount: number;
   status: "pending" | "processing" | "completed" | "failed";
   scheduledDate: string;
@@ -37,7 +37,7 @@ interface Payout {
 interface Commission {
   id: string;
   orderId: string;
-  vendorName: string;
+  merchantName: string;
   orderValue: number;
   commissionRate: number;
   commissionAmount: number;
@@ -189,23 +189,23 @@ const AdminFinancials: React.FC = () => {
         <TabsContent value="payouts">
           <Card>
             <CardHeader>
-              <CardTitle>Vendor Payouts</CardTitle>
-              <CardDescription>Manage and process vendor payments</CardDescription>
+              <CardTitle>Merchant Payouts</CardTitle>
+              <CardDescription>Manage and process merchant payments</CardDescription>
             </CardHeader>
             <CardContent>
               {payouts.length === 0 ? (
                 <EmptyState 
                   icon={CreditCard} 
                   title="No payouts yet" 
-                  description="Vendor payouts will appear here once there are completed orders."
+                  description="Merchant payouts will appear here once there are completed orders."
                 />
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableCaption>Vendor payout schedule</TableCaption>
+                    <TableCaption>Merchant payout schedule</TableCaption>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Vendor</TableHead>
+                        <TableHead>Merchant</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="hidden sm:table-cell">Scheduled Date</TableHead>
@@ -216,7 +216,7 @@ const AdminFinancials: React.FC = () => {
                     <TableBody>
                       {payouts.map((payout) => (
                         <TableRow key={payout.id}>
-                          <TableCell className="font-medium">{payout.vendorName}</TableCell>
+                          <TableCell className="font-medium">{payout.merchantName}</TableCell>
                           <TableCell>{formatCurrency(payout.amount)}</TableCell>
                           <TableCell>
                             <Badge variant={getPayoutStatusColor(payout.status)}>
@@ -251,7 +251,7 @@ const AdminFinancials: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Commission Tracking</CardTitle>
-              <CardDescription>Track platform commissions from vendor sales</CardDescription>
+              <CardDescription>Track platform commissions from merchant sales</CardDescription>
             </CardHeader>
             <CardContent>
               {commissions.length === 0 ? (
@@ -263,11 +263,11 @@ const AdminFinancials: React.FC = () => {
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableCaption>Commission earnings from vendor sales</TableCaption>
+                    <TableCaption>Commission earnings from merchant sales</TableCaption>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Order ID</TableHead>
-                        <TableHead className="hidden sm:table-cell">Vendor</TableHead>
+                        <TableHead className="hidden sm:table-cell">Merchant</TableHead>
                         <TableHead>Order Value</TableHead>
                         <TableHead className="hidden md:table-cell">Rate</TableHead>
                         <TableHead>Commission</TableHead>
@@ -279,7 +279,7 @@ const AdminFinancials: React.FC = () => {
                       {commissions.map((commission) => (
                         <TableRow key={commission.id}>
                           <TableCell className="font-medium">{commission.orderId}</TableCell>
-                          <TableCell className="hidden sm:table-cell">{commission.vendorName}</TableCell>
+                          <TableCell className="hidden sm:table-cell">{commission.merchantName}</TableCell>
                           <TableCell>{formatCurrency(commission.orderValue)}</TableCell>
                           <TableCell className="hidden md:table-cell">{commission.commissionRate}%</TableCell>
                           <TableCell>{formatCurrency(commission.commissionAmount)}</TableCell>
@@ -329,8 +329,8 @@ const AdminFinancials: React.FC = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded gap-2">
                   <div>
-                    <h4 className="font-medium">Vendor Payout Report</h4>
-                    <p className="text-sm text-muted-foreground">All vendor payments</p>
+                    <h4 className="font-medium">Merchant Payout Report</h4>
+                    <p className="text-sm text-muted-foreground">All merchant payments</p>
                   </div>
                   <Button variant="outline" className="w-full sm:w-auto">
                     <Download className="h-4 w-4 mr-2" />
@@ -393,7 +393,7 @@ const AdminFinancials: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Featured Vendor Rate</label>
+                    <label className="text-sm font-medium">Featured Merchant Rate</label>
                     <div className="flex items-center gap-2">
                       <input 
                         type="number" 

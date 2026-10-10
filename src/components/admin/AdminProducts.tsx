@@ -24,9 +24,9 @@ interface AdminProduct {
   created_at: string;
   store_id: string;
   store_name?: string;
-  vendor_business_name?: string;
-  vendor_id?: string;
-  vendor_email?: string;
+  merchant_business_name?: string;
+  merchant_id?: string;
+  merchant_email?: string;
 }
 
 const AdminProducts: React.FC = () => {
@@ -56,14 +56,14 @@ const AdminProducts: React.FC = () => {
         // Get all unique store IDs
         const storeIds = [...new Set(productsData?.map(p => p.store_id) || [])];
         
-        // Fetch all stores with vendors in one query
+        // Fetch all stores with merchants in one query
         const { data: storesData } = await supabase
           .from('stores')
           .select(`
             id,
             name,
-            vendor_id,
-            vendors!inner(
+            merchant_id,
+            merchants!inner(
               id,
               business_name,
               user_id
@@ -71,8 +71,8 @@ const AdminProducts: React.FC = () => {
           `)
           .in('id', storeIds);
 
-        // Get all unique vendor user IDs
-        const userIds = [...new Set(storesData?.map(s => s.vendors.user_id) || [])];
+        // Get all unique merchant user IDs
+        const userIds = [...new Set(storesData?.map(s => s.merchants.user_id) || [])];
         
         // Fetch all profiles in one query
         const { data: profilesData } = await supabase
@@ -88,7 +88,7 @@ const AdminProducts: React.FC = () => {
         const storesMap = new Map(
           (storesData || []).map(s => [s.id, {
             ...s,
-            vendor_email: profilesMap.get(s.vendors.user_id)?.email
+            merchant_email: profilesMap.get(s.merchants.user_id)?.email
           }])
         );
 
@@ -103,9 +103,9 @@ const AdminProducts: React.FC = () => {
             created_at: product.created_at,
             store_id: product.store_id,
             store_name: store?.name || 'N/A',
-            vendor_business_name: store?.vendors?.business_name || 'N/A',
-            vendor_id: store?.vendors?.id || '',
-            vendor_email: store?.vendor_email || 'N/A'
+            merchant_business_name: store?.merchants?.business_name || 'N/A',
+            merchant_id: store?.merchants?.id || '',
+            merchant_email: store?.merchant_email || 'N/A'
           };
         });
 
@@ -173,7 +173,7 @@ const AdminProducts: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Product Name</TableHead>
-              <TableHead>Vendor Info</TableHead>
+              <TableHead>Merchant Info</TableHead>
               <TableHead>Store</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Status</TableHead>
@@ -187,7 +187,7 @@ const AdminProducts: React.FC = () => {
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <div className="font-medium">{product.vendor_business_name || 'N/A'}</div>
+                    <div className="font-medium">{product.merchant_business_name || 'N/A'}</div>
                   </div>
                 </TableCell>
                 <TableCell>{product.store_name || 'N/A'}</TableCell>

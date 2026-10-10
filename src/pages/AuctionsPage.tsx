@@ -439,7 +439,7 @@ const AuctionsPage = () => {
     // In production, this would go through checkout
     toast({
       title: "Purchase",
-      description: `Proceeding to checkout for R${auction.vendor_base_amount}`,
+      description: `Proceeding to checkout for R${auction.merchant_base_amount}`,
     });
   };
 
@@ -535,7 +535,7 @@ const AuctionsPage = () => {
                     {status === "buy-now" ? (
                       <div>
                         <p className="text-sm text-muted-foreground">Buy Now Price</p>
-                        <p className="text-2xl font-bold">R{auction.vendor_base_amount}</p>
+                        <p className="text-2xl font-bold">R{auction.merchant_base_amount}</p>
                       </div>
                     ) : (
                       <div className="space-y-2">

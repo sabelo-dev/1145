@@ -6,7 +6,7 @@ import { Product, Category } from "@/types";
  */
 const mapDatabaseProduct = (dbProduct: any, images: any[] = [], variations: any[] = []): Product => {
   const store = dbProduct.stores || {};
-  const vendor = store.vendors || {};
+  const merchant = store.merchants || {};
   
   const mappedVariations = variations.map(v => ({
     id: v.id,
@@ -37,9 +37,9 @@ const mapDatabaseProduct = (dbProduct: any, images: any[] = [], variations: any[
     rating: Number(dbProduct.rating) || 0,
     reviewCount: dbProduct.review_count || 0,
     inStock: totalStock > 0,
-    vendorId: store.id,
-    vendorName: store.name || vendor.business_name || "Store",
-    vendorSlug: store.slug,
+    merchantId: store.id,
+    merchantName: store.name || merchant.business_name || "Store",
+    merchantSlug: store.slug,
     // Pre-orders: XIXLV products from stores an admin has enabled (the Marketplace).
     allowPreorder: !!store.allow_preorders && String(dbProduct.brand ?? "").toUpperCase() === "XIXLV",
     brand: dbProduct.brand || undefined,
@@ -74,7 +74,7 @@ export const fetchDatabaseProducts = async (): Promise<Product[]> => {
         ),
         stores (
           *,
-          vendors (
+          merchants (
             id,
             business_name
           )
@@ -102,7 +102,7 @@ export const fetchDatabaseProducts = async (): Promise<Product[]> => {
 };
 
 /**
- * Fetches products by vendor store slug
+ * Fetches products by merchant store slug
  */
 export const fetchProductsByStore = async (storeSlug: string): Promise<Product[]> => {
   try {
@@ -125,7 +125,7 @@ export const fetchProductsByStore = async (storeSlug: string): Promise<Product[]
         ),
         stores!inner (
           *,
-          vendors (
+          merchants (
             id,
             business_name
           )
@@ -162,7 +162,7 @@ export const fetchStoreBySlug = async (storeSlug: string) => {
       .from('stores')
       .select(`
         *,
-        vendors (
+        merchants (
           id,
           business_name,
           description,
@@ -350,21 +350,21 @@ export const fetchNewArrivals = async (limit: number = 4): Promise<Product[]> =>
 };
 
 /**
- * Fetches featured/approved vendor brands from database
+ * Fetches featured/approved merchant brands from database
  */
 export interface FeaturedBrand {
   id: string;
   name: string;
   logoUrl: string | null;
   businessType: string | null;
-  /** Current storefront address, when the vendor has a store. */
+  /** Current storefront address, when the merchant has a store. */
   storeSlug: string | null;
 }
 
 export const fetchFeaturedBrands = async (limit: number = 6): Promise<FeaturedBrand[]> => {
   try {
     const { data, error } = await supabase
-      .from("vendors")
+      .from("merchants")
       .select("id, business_name, logo_url, business_type, status, stores(name, slug, logo_url)")
       .eq("status", "approved")
       .order("search_boost", { ascending: false, nullsFirst: false })
@@ -499,7 +499,7 @@ export const fetchProductBySlug = async (slug: string): Promise<Product | null> 
         ),
         stores (
           *,
-          vendors (
+          merchants (
             id,
             business_name
           )
@@ -558,7 +558,7 @@ export const resolveCustomDomain = async (hostname: string): Promise<string | nu
         domain,
         status,
         store_id,
-        vendor_id
+        merchant_id
       `)
       .eq('domain', hostname)
       .eq('status', 'active')
@@ -566,14 +566,14 @@ export const resolveCustomDomain = async (hostname: string): Promise<string | nu
 
     if (error || !domainRecord?.store_id) return null;
 
-    // Verify vendor subscription is still Gold
-    const { data: vendor } = await supabase
-      .from('vendors')
+    // Verify merchant subscription is still Gold
+    const { data: merchant } = await supabase
+      .from('merchants')
       .select('subscription_tier')
-      .eq('id', domainRecord.vendor_id)
+      .eq('id', domainRecord.merchant_id)
       .maybeSingle();
 
-    if (!vendor || vendor.subscription_tier !== 'gold') return null;
+    if (!merchant || merchant.subscription_tier !== 'gold') return null;
 
     // Get store slug
     const { data: store } = await supabase

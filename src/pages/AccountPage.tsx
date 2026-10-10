@@ -382,8 +382,8 @@ const AccountPage: React.FC = () => {
                 </div>
                 <CardTitle>{user.name || user.email}</CardTitle>
                 <CardDescription>
-                  <Badge variant={user.role === 'vendor' ? 'default' : 'secondary'}>
-                    {user.role === 'vendor' ? 'Merchant' : 'Consumer'}
+                  <Badge variant={user.role === 'merchant' ? 'default' : 'secondary'}>
+                    {user.role === 'merchant' ? 'Merchant' : 'Consumer'}
                   </Badge>
                 </CardDescription>
               </CardHeader>

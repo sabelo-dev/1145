@@ -13,15 +13,15 @@ const MerchantLoginPage: React.FC = () => {
 
   useEffect(() => {
     const checkOnboarding = async () => {
-      if (!user || !(isMerchant || user.role === "vendor")) return;
+      if (!user || !(isMerchant || user.role === "merchant")) return;
       setChecking(true);
-      const { data: vendor } = await supabase
-        .from("vendors")
+      const { data: merchant } = await supabase
+        .from("merchants")
         .select("onboarding_status")
         .eq("user_id", user.id)
         .maybeSingle();
       setMerchantRedirect(
-        vendor && vendor.onboarding_status !== "ACTIVE"
+        merchant && merchant.onboarding_status !== "ACTIVE"
           ? "/merchant/onboarding"
           : "/merchant/dashboard"
       );
@@ -42,7 +42,7 @@ const MerchantLoginPage: React.FC = () => {
   }
 
   if (user) {
-    if (isMerchant || user.role === "vendor") {
+    if (isMerchant || user.role === "merchant") {
       if (merchantRedirect) return <Navigate to={merchantRedirect} replace />;
       return null;
     }

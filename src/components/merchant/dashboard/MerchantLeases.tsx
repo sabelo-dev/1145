@@ -41,16 +41,16 @@ const MerchantLeases = () => {
   const [loading, setLoading] = useState(true);
   const [addAssetOpen, setAddAssetOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [vendorId, setVendorId] = useState<string | null>(null);
+  const [merchantId, setMerchantId] = useState<string | null>(null);
   const [newAsset, setNewAsset] = useState({
     title: "", description: "", category: "general", lease_price_monthly: 0,
     security_deposit: 0, condition: "new" as const, min_lease_duration_months: 1, max_lease_duration_months: 24,
   });
 
-  const fetchVendor = useCallback(async () => {
+  const fetchMerchant = useCallback(async () => {
     if (!user?.id) return;
-    const { data } = await supabase.from("vendors").select("id").eq("user_id", user.id).maybeSingle();
-    if (data) setVendorId(data.id);
+    const { data } = await supabase.from("merchants").select("id").eq("user_id", user.id).maybeSingle();
+    if (data) setMerchantId(data.id);
   }, [user?.id]);
 
   const fetchData = useCallback(async () => {
@@ -78,13 +78,13 @@ const MerchantLeases = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchVendor(); fetchData(); }, [fetchVendor, fetchData]);
+  useEffect(() => { fetchMerchant(); fetchData(); }, [fetchMerchant, fetchData]);
 
   const handleAddAsset = async () => {
     setSaving(true);
     const { error } = await supabase.from("leaseable_assets").insert({
       ...newAsset,
-      provider_id: vendorId,
+      provider_id: merchantId,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });

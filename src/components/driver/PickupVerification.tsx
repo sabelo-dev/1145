@@ -124,7 +124,7 @@ const PickupVerification: React.FC<PickupVerificationProps> = ({ job, onVerified
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6 space-y-4">
-        {/* Vendor Info */}
+        {/* Merchant Info */}
         <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
           <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
           <div className="flex-1">
@@ -147,7 +147,7 @@ const PickupVerification: React.FC<PickupVerificationProps> = ({ job, onVerified
 
         {/* Verification Methods */}
         <div className="space-y-3">
-          <p className="text-sm font-medium">Verify pickup with vendor:</p>
+          <p className="text-sm font-medium">Verify pickup with merchant:</p>
           
           <div className="grid grid-cols-2 gap-3">
             {/* PIN Verification */}
@@ -171,7 +171,7 @@ const PickupVerification: React.FC<PickupVerificationProps> = ({ job, onVerified
                 </DialogHeader>
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Ask the vendor for the 4-digit pickup PIN
+                    Ask the merchant for the 4-digit pickup PIN
                   </p>
                   <div className="space-y-2">
                     <Label htmlFor="pin">PIN Code</Label>
@@ -236,7 +236,7 @@ const PickupVerification: React.FC<PickupVerificationProps> = ({ job, onVerified
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground text-center">
-                    Point your camera at the vendor's QR code
+                    Point your camera at the merchant's QR code
                   </p>
                   {/* Simulate scan button for demo */}
                   <Button
@@ -259,17 +259,17 @@ const PickupVerification: React.FC<PickupVerificationProps> = ({ job, onVerified
           <div className="text-sm text-blue-800 dark:text-blue-200">
             <p className="font-medium">Having trouble?</p>
             <p className="text-blue-700 dark:text-blue-300">
-              Contact the vendor or support if you cannot verify pickup.
+              Contact the merchant or support if you cannot verify pickup.
             </p>
           </div>
         </div>
 
-        {/* Contact Vendor */}
+        {/* Contact Merchant */}
         {job.pickup_address?.phone && (
           <Button variant="outline" className="w-full" asChild>
             <a href={`tel:${job.pickup_address.phone}`}>
               <Phone className="h-4 w-4 mr-2" />
-              Call Vendor
+              Call Merchant
             </a>
           </Button>
         )}

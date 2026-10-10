@@ -24,7 +24,7 @@ const RoleDashboardRedirect: React.FC<{ children: React.ReactNode }> = ({ childr
     if (isAdmin || user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
     if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
     if (isDriver || user.role === 'driver') return <Navigate to="/driver/dashboard" replace />;
-    if (isMerchant || user.role === 'vendor') return <Navigate to="/merchant/dashboard" replace />;
+    if (isMerchant || user.role === 'merchant') return <Navigate to="/merchant/dashboard" replace />;
   }
 
   return <>{children}</>;

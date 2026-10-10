@@ -37,7 +37,7 @@ serve(async (req) => {
       });
     }
 
-    // Create a storage bucket for vendor documents if it doesn't exist
+    // Create a storage bucket for merchant documents if it doesn't exist
     const { data, error } = await supabaseClient.storage.createBucket(
       "vendor-documents",
       {
@@ -59,7 +59,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ message: "Vendor documents bucket created or already exists" }),
+      JSON.stringify({ message: "Merchant documents bucket created or already exists" }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200 

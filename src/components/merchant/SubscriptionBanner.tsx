@@ -7,10 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface SubscriptionBannerProps {
-  vendorId?: string;
+  merchantId?: string;
 }
 
-const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ vendorId }) => {
+const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ merchantId }) => {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<any>(null);
   const [daysLeft, setDaysLeft] = useState<number>(0);
@@ -18,26 +18,26 @@ const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ vendorId }) => 
 
   useEffect(() => {
     const fetchSubscriptionData = async () => {
-      if (!vendorId) return;
+      if (!merchantId) return;
 
       try {
-        const { data: vendor } = await supabase
-          .from('vendors')
+        const { data: merchant } = await supabase
+          .from('merchants')
           .select('subscription_tier, trial_end_date, subscription_status')
-          .eq('id', vendorId)
+          .eq('id', merchantId)
           .single();
 
-        if (vendor) {
-          setSubscription(vendor);
+        if (merchant) {
+          setSubscription(merchant);
           
-          if (vendor.trial_end_date) {
-            const endDate = new Date(vendor.trial_end_date);
+          if (merchant.trial_end_date) {
+            const endDate = new Date(merchant.trial_end_date);
             const now = new Date();
             const timeDiff = endDate.getTime() - now.getTime();
             const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
             
             setDaysLeft(daysDiff);
-            setIsExpired(daysDiff <= 0 && vendor.subscription_tier === 'trial');
+            setIsExpired(daysDiff <= 0 && merchant.subscription_tier === 'trial');
           }
         }
       } catch (error) {
@@ -46,7 +46,7 @@ const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ vendorId }) => 
     };
 
     fetchSubscriptionData();
-  }, [vendorId]);
+  }, [merchantId]);
 
   if (!subscription) return null;
 
@@ -61,7 +61,7 @@ const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ vendorId }) => 
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Your trial period has ended. Upgrade to continue accessing your vendor dashboard.
+            Your trial period has ended. Upgrade to continue accessing your merchant dashboard.
           </p>
           <Button className="w-full sm:w-auto">
             Upgrade Now

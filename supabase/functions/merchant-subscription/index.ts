@@ -48,30 +48,30 @@ serve(async (req) => {
     const action: string = body.action ?? "change";
     const origin = req.headers.get("origin") || body.origin || "";
 
-    // Resolve the caller's vendor record
-    const { data: vendor, error: vendorError } = await admin
-      .from("vendors")
+    // Resolve the caller's merchant record
+    const { data: merchant, error: merchantError } = await admin
+      .from("merchants")
       .select("id, user_id, business_name, subscription_tier, subscription_status, subscription_expires_at")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (vendorError) return json({ error: vendorError.message }, 500);
-    if (!vendor) return json({ error: "No merchant account found for this user" }, 403);
+    if (merchantError) return json({ error: merchantError.message }, 500);
+    if (!merchant) return json({ error: "No merchant account found for this user" }, 403);
 
-    const currentTier = (vendor.subscription_tier as Tier) ?? "starter";
+    const currentTier = (merchant.subscription_tier as Tier) ?? "starter";
 
     // ---------- STATUS ----------
     if (action === "status") {
       const { data: payments } = await admin
         .from("subscription_payments")
         .select("*")
-        .eq("vendor_id", vendor.id)
+        .eq("merchant_id", merchant.id)
         .order("created_at", { ascending: false })
         .limit(20);
       return json({
         tier: currentTier,
-        status: vendor.subscription_status,
-        expiresAt: vendor.subscription_expires_at,
+        status: merchant.subscription_status,
+        expiresAt: merchant.subscription_expires_at,
         pricing: PRICING,
         payments: payments ?? [],
       });
@@ -80,18 +80,18 @@ serve(async (req) => {
     // ---------- CANCEL ----------
     if (action === "cancel") {
       const { error } = await admin
-        .from("vendors")
+        .from("merchants")
         .update({ subscription_status: "cancelled" })
-        .eq("id", vendor.id);
+        .eq("id", merchant.id);
       if (error) return json({ error: error.message }, 500);
 
-      await admin.from("vendor_subscription_audit_log").insert({
-        vendor_id: vendor.id,
+      await admin.from("merchant_subscription_audit_log").insert({
+        merchant_id: merchant.id,
         changed_by: user.id,
         change_type: "cancellation",
         old_tier: currentTier,
         new_tier: currentTier,
-        old_status: vendor.subscription_status,
+        old_status: merchant.subscription_status,
         new_status: "cancelled",
         reason: body.reason ?? "Cancelled by merchant",
       });
@@ -100,8 +100,8 @@ serve(async (req) => {
         user_id: user.id,
         type: "subscription_cancelled",
         title: "Subscription cancelled",
-        message: vendor.subscription_expires_at
-          ? `Your ${currentTier} plan stays active until ${new Date(vendor.subscription_expires_at).toLocaleDateString()}.`
+        message: merchant.subscription_expires_at
+          ? `Your ${currentTier} plan stays active until ${new Date(merchant.subscription_expires_at).toLocaleDateString()}.`
           : "Your subscription has been cancelled.",
       });
 
@@ -113,7 +113,7 @@ serve(async (req) => {
     const billing: "monthly" | "yearly" = body.billing_period === "yearly" ? "yearly" : "monthly";
 
     if (!TIERS.includes(targetTier)) return json({ error: "Invalid tier" }, 400);
-    if (targetTier === currentTier && vendor.subscription_status === "active") {
+    if (targetTier === currentTier && merchant.subscription_status === "active") {
       return json({ error: "You are already on this plan" }, 400);
     }
 
@@ -125,31 +125,31 @@ serve(async (req) => {
       const expiresAt =
         targetTier === "starter"
           ? null
-          : vendor.subscription_expires_at ?? new Date(Date.now() + 30 * 864e5).toISOString();
+          : merchant.subscription_expires_at ?? new Date(Date.now() + 30 * 864e5).toISOString();
 
       const { error } = await admin
-        .from("vendors")
+        .from("merchants")
         .update({
           subscription_tier: targetTier,
           subscription_status: "active",
           subscription_expires_at: expiresAt,
         })
-        .eq("id", vendor.id);
+        .eq("id", merchant.id);
       if (error) return json({ error: error.message }, 500);
 
-      await admin.from("vendor_subscription_audit_log").insert({
-        vendor_id: vendor.id,
+      await admin.from("merchant_subscription_audit_log").insert({
+        merchant_id: merchant.id,
         changed_by: user.id,
         change_type: isUpgrade ? "upgrade" : "downgrade",
         old_tier: currentTier,
         new_tier: targetTier,
-        old_status: vendor.subscription_status,
+        old_status: merchant.subscription_status,
         new_status: "active",
         reason: body.reason ?? `Merchant ${isUpgrade ? "upgraded" : "downgraded"} to ${targetTier}`,
       });
 
       await admin.from("subscription_payments").insert({
-        vendor_id: vendor.id,
+        merchant_id: merchant.id,
         tier: targetTier,
         billing_period: billing,
         amount: 0,
@@ -170,11 +170,11 @@ serve(async (req) => {
     }
 
     // Paid upgrade → create pending payment + PayFast checkout
-    const reference = `SUB-${vendor.id.slice(0, 8)}-${Date.now()}`;
+    const reference = `SUB-${merchant.id.slice(0, 8)}-${Date.now()}`;
     const { data: payment, error: payError } = await admin
       .from("subscription_payments")
       .insert({
-        vendor_id: vendor.id,
+        merchant_id: merchant.id,
         tier: targetTier,
         billing_period: billing,
         amount,
@@ -199,7 +199,7 @@ serve(async (req) => {
       return_url: payfastReturnUrl(origin, `/merchant/dashboard?subscription=success&ref=${reference}`),
       cancel_url: payfastReturnUrl(origin, "/merchant/dashboard?subscription=cancelled"),
       notify_url: payfast.notifyUrl,
-      name_first: (vendor.business_name || "Merchant").slice(0, 100),
+      name_first: (merchant.business_name || "Merchant").slice(0, 100),
       email_address: user.email || "",
       m_payment_id: reference,
       amount: amount.toFixed(2),

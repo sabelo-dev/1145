@@ -300,7 +300,7 @@ serve(async (req) => {
               quantity: 1,
               price: auction.winning_bid,
               status: "pending",
-              vendor_status: "pending",
+              merchant_status: "pending",
             });
 
           console.log(`Order ${order.id} created for auction winner`);
@@ -464,42 +464,42 @@ serve(async (req) => {
           })
           .eq("id", paymentRecordId);
 
-        const { data: vendorRow } = await supabaseAdmin
-          .from("vendors")
+        const { data: merchantRow } = await supabaseAdmin
+          .from("merchants")
           .select("id, user_id, subscription_tier, subscription_status")
-          .eq("id", subPayment.vendor_id)
+          .eq("id", subPayment.merchant_id)
           .maybeSingle();
 
         await supabaseAdmin
-          .from("vendors")
+          .from("merchants")
           .update({
             subscription_tier: subPayment.tier,
             subscription_status: "active",
             subscription_expires_at: expires.toISOString(),
           })
-          .eq("id", subPayment.vendor_id);
+          .eq("id", subPayment.merchant_id);
 
-        await supabaseAdmin.from("vendor_subscription_audit_log").insert({
-          vendor_id: subPayment.vendor_id,
-          changed_by: vendorRow?.user_id ?? subPayment.vendor_id,
+        await supabaseAdmin.from("merchant_subscription_audit_log").insert({
+          merchant_id: subPayment.merchant_id,
+          changed_by: merchantRow?.user_id ?? subPayment.merchant_id,
           change_type: "upgrade",
-          old_tier: vendorRow?.subscription_tier ?? null,
+          old_tier: merchantRow?.subscription_tier ?? null,
           new_tier: subPayment.tier,
-          old_status: vendorRow?.subscription_status ?? null,
+          old_status: merchantRow?.subscription_status ?? null,
           new_status: "active",
           reason: `PayFast subscription payment ${pfPaymentId}`,
         });
 
-        if (vendorRow?.user_id) {
+        if (merchantRow?.user_id) {
           await supabaseAdmin.from("user_notifications").insert({
-            user_id: vendorRow.user_id,
+            user_id: merchantRow.user_id,
             type: "subscription_activated",
             title: `${String(subPayment.tier).toUpperCase()} plan active`,
             message: `Your payment of R${amountGross.toFixed(2)} was successful. Your plan renews on ${expires.toLocaleDateString()}.`,
           });
         }
 
-        console.log(`Subscription ${paymentRecordId} activated for vendor ${subPayment.vendor_id}`);
+        console.log(`Subscription ${paymentRecordId} activated for merchant ${subPayment.merchant_id}`);
       } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
         await supabaseAdmin
           .from("subscription_payments")

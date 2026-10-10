@@ -1,7 +1,7 @@
 export interface Auction {
   id: string;
   product_id: string;
-  vendor_base_amount: number;
+  merchant_base_amount: number;
   starting_bid_price: number | null;
   current_bid: number | null;
   registration_fee: number;
@@ -22,8 +22,8 @@ export interface Auction {
     product_images?: { image_url: string }[];
     stores?: {
       name: string;
-      vendor_id: string;
-      vendors?: {
+      merchant_id: string;
+      merchants?: {
         business_name: string;
         user_id: string;
       };

@@ -11,14 +11,14 @@ import { supabase } from "@/integrations/supabase/client";
 interface NewTicketDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  vendorId: string;
+  merchantId: string;
   onTicketCreated?: () => void;
 }
 
 export const NewTicketDialog: React.FC<NewTicketDialogProps> = ({ 
   open, 
   onOpenChange, 
-  vendorId,
+  merchantId,
   onTicketCreated 
 }) => {
   const { toast } = useToast();
@@ -46,7 +46,7 @@ export const NewTicketDialog: React.FC<NewTicketDialogProps> = ({
       const { error } = await supabase
         .from('support_tickets')
         .insert([{
-          vendor_id: vendorId,
+          merchant_id: merchantId,
           subject: formData.subject,
           category: formData.category,
           priority: formData.priority,

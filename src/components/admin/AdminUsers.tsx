@@ -326,11 +326,11 @@ const AdminUsers = () => {
     }
   };
 
-  const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer') => {
+  const handleUpdateRole = async (userId: string, newRole: 'consumer' | 'merchant' | 'admin' | 'driver' | 'influencer' | 'restaurateur') => {
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      if (newRole === 'driver' || newRole === 'vendor' || newRole === 'influencer') {
+      if (newRole === 'driver' || newRole === 'merchant' || newRole === 'influencer' || newRole === 'restaurateur') {
         await supabase
           .from('user_roles')
           .delete()
@@ -378,7 +378,7 @@ const AdminUsers = () => {
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .in('role', ['driver', 'vendor', 'influencer']);
+          .in('role', ['driver', 'merchant', 'influencer', 'restaurateur']);
         
         await supabase
           .from('influencer_profiles')
@@ -642,7 +642,7 @@ const AdminUsers = () => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'vendor' ? 'outline' : 'default'}>
+                  <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'merchant' ? 'outline' : 'default'}>
                     {user.role}
                   </Badge>
                 </TableCell>
@@ -683,9 +683,9 @@ const AdminUsers = () => {
                             Make Admin
                           </DropdownMenuItem>
                         )}
-                        {user.role !== 'vendor' && (
-                          <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'vendor')}>
-                            Make Vendor
+                        {user.role !== 'merchant' && (
+                          <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'merchant')}>
+                            Make Merchant
                           </DropdownMenuItem>
                         )}
                         {user.role !== 'driver' && (
@@ -696,6 +696,11 @@ const AdminUsers = () => {
                         {user.role !== 'influencer' && (
                           <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'influencer')}>
                             Make Influencer
+                          </DropdownMenuItem>
+                        )}
+                        {user.role !== 'restaurateur' && (
+                          <DropdownMenuItem onClick={() => handleUpdateRole(user.id, 'restaurateur')}>
+                            Make Restaurateur
                           </DropdownMenuItem>
                         )}
                         {user.role !== 'consumer' && (

@@ -81,9 +81,10 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
     switch (role) {
       case "admin":
         return "destructive";
-      case "vendor":
+      case "merchant":
         return "outline";
       case "driver":
+      case "restaurateur":
         return "secondary";
       case "influencer":
         return "default";

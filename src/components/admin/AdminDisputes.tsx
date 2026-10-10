@@ -18,7 +18,7 @@ import { format } from "date-fns";
 interface Ticket {
   id: string;
   user_id: string | null;
-  vendor_id: string | null;
+  merchant_id: string | null;
   subject: string;
   description: string;
   category: string;
@@ -65,11 +65,11 @@ const AdminDisputes: React.FC = () => {
 
       // Enrich with user profile info
       const userIds = [...new Set((ticketsData || []).map(t => t.user_id).filter(Boolean))];
-      const vendorIds = [...new Set((ticketsData || []).map(t => t.vendor_id).filter(Boolean))];
+      const merchantIds = [...new Set((ticketsData || []).map(t => t.merchant_id).filter(Boolean))];
 
       let profilesMap: Record<string, any> = {};
       let rolesMap: Record<string, string> = {};
-      let vendorStoreMap: Record<string, string> = {};
+      let merchantStoreMap: Record<string, string> = {};
 
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
@@ -84,7 +84,7 @@ const AdminDisputes: React.FC = () => {
           .in("user_id", userIds);
         (roles || []).forEach(r => {
           // Pick highest priority role
-          const priority: Record<string, number> = { admin: 5, influencer: 4, driver: 3, merchant: 2, vendor: 2, consumer: 1 };
+          const priority: Record<string, number> = { admin: 5, influencer: 4, driver: 3, merchant: 2, consumer: 1 };
           const existing = rolesMap[r.user_id];
           if (!existing || (priority[r.role] || 0) > (priority[existing] || 0)) {
             rolesMap[r.user_id] = r.role;
@@ -92,12 +92,12 @@ const AdminDisputes: React.FC = () => {
         });
       }
 
-      if (vendorIds.length > 0) {
+      if (merchantIds.length > 0) {
         const { data: stores } = await supabase
           .from("stores")
-          .select("id, vendor_id, name")
-          .in("vendor_id", vendorIds);
-        (stores || []).forEach(s => { vendorStoreMap[s.vendor_id] = s.name; });
+          .select("id, merchant_id, name")
+          .in("merchant_id", merchantIds);
+        (stores || []).forEach(s => { merchantStoreMap[s.merchant_id] = s.name; });
       }
 
       const enriched: Ticket[] = (ticketsData || []).map(t => ({
@@ -105,7 +105,7 @@ const AdminDisputes: React.FC = () => {
         user_name: profilesMap[t.user_id]?.name || "Unknown",
         user_email: profilesMap[t.user_id]?.email || "",
         user_role: rolesMap[t.user_id] || "consumer",
-        store_name: t.vendor_id ? vendorStoreMap[t.vendor_id] : undefined,
+        store_name: t.merchant_id ? merchantStoreMap[t.merchant_id] : undefined,
       }));
 
       setTickets(enriched);
@@ -213,7 +213,6 @@ const AdminDisputes: React.FC = () => {
     const colors: Record<string, string> = {
       consumer: "bg-blue-100 text-blue-800",
       merchant: "bg-purple-100 text-purple-800",
-      vendor: "bg-purple-100 text-purple-800",
       driver: "bg-orange-100 text-orange-800",
       influencer: "bg-pink-100 text-pink-800",
       admin: "bg-red-100 text-red-800",

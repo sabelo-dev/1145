@@ -128,7 +128,7 @@ const ConsumerMessages: React.FC = () => {
                     <MessageCircle className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="font-medium mb-1">No conversations yet</h3>
                     <p className="text-sm text-muted-foreground">
-                      Messages from vendors will appear here
+                      Messages from merchants will appear here
                     </p>
                   </div>
                 ) : (

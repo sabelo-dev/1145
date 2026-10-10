@@ -22,7 +22,7 @@ interface AuditLog {
   timestamp: string;
   userId: string;
   userName: string;
-  userRole: "admin" | "vendor" | "customer";
+  userRole: "admin" | "merchant" | "customer";
   action: string;
   resource: string;
   resourceId: string;
@@ -47,28 +47,28 @@ const AdminAuditLogs: React.FC = () => {
         // Generate audit logs from database activities
         const auditLogs: AuditLog[] = [];
         
-        // Get recent vendor approvals/rejections
-        const { data: vendors } = await supabase
-          .from('vendors')
+        // Get recent merchant approvals/rejections
+        const { data: merchants } = await supabase
+          .from('merchants')
           .select('*, profiles!inner(*)')
           .order('updated_at', { ascending: false })
           .limit(20);
 
-        vendors?.forEach(vendor => {
-          if (vendor.approval_date) {
+        merchants?.forEach(merchant => {
+          if (merchant.approval_date) {
             auditLogs.push({
-              id: `vendor-${vendor.id}`,
-              timestamp: vendor.approval_date,
+              id: `merchant-${merchant.id}`,
+              timestamp: merchant.approval_date,
               userId: 'admin',
               userName: 'System Admin',
               userRole: 'admin',
               action: 'UPDATE',
-              resource: 'vendor',
-              resourceId: vendor.id,
-              details: `Vendor ${vendor.business_name} status updated to ${vendor.status}`,
+              resource: 'merchant',
+              resourceId: merchant.id,
+              details: `Merchant ${merchant.business_name} status updated to ${merchant.status}`,
               ipAddress: '127.0.0.1',
               userAgent: 'System',
-              severity: vendor.status === 'approved' ? 'medium' : 'high'
+              severity: merchant.status === 'approved' ? 'medium' : 'high'
             });
           }
         });
@@ -149,7 +149,7 @@ const AdminAuditLogs: React.FC = () => {
   const getRoleColor = (role: string) => {
     switch (role) {
       case "admin": return "destructive";
-      case "vendor": return "outline";
+      case "merchant": return "outline";
       case "customer": return "default";
       default: return "default";
     }

@@ -31,7 +31,7 @@ interface Order {
   status: string;
   total: number;
   items: number;
-  vendor: string;
+  merchant: string;
   trackingNumber: string | null;
   products: OrderProduct[];
   shipping_address?: any;

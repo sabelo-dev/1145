@@ -11,7 +11,7 @@ export interface SubscriptionPlan {
   updated_at: string;
 }
 
-export interface VendorSubscription {
+export interface MerchantSubscription {
   subscription_tier: 'starter' | 'bronze' | 'silver' | 'gold';
   trial_start_date?: string;
   trial_end_date?: string;

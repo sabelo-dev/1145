@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLoader } from "@/components/ui/page-loader";
 
-type Role = "vendor" | "driver" | "influencer";
+type Role = "merchant" | "driver" | "influencer";
 
 interface Props {
   role: Role;
@@ -12,7 +12,7 @@ interface Props {
 }
 
 const ONBOARDING_PATH: Record<Role, string> = {
-  vendor: "/merchant/onboarding",
+  merchant: "/merchant/onboarding",
   driver: "/driver/onboarding",
   influencer: "/influencer/onboarding",
 };
@@ -33,9 +33,9 @@ const RoleOnboardingGate: React.FC<Props> = ({ role, children }) => {
       if (!user) return;
       setChecking(true);
       try {
-        if (role === "vendor") {
+        if (role === "merchant") {
           const { data } = await supabase
-            .from("vendors")
+            .from("merchants")
             .select("status")
             .eq("user_id", user.id)
             .maybeSingle();

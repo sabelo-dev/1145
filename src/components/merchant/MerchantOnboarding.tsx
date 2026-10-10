@@ -40,7 +40,7 @@ const MerchantOnboarding: React.FC = () => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
-  const [vendorData, setVendorData] = useState<any>(null);
+  const [merchantData, setMerchantData] = useState<any>(null);
   const [isActivated, setIsActivated] = useState(false);
   const [notificationResult, setNotificationResult] = useState<{
     email: { status: "sent" | "skipped" | "failed"; to?: string | null; error?: string | null };
@@ -60,67 +60,67 @@ const MerchantOnboarding: React.FC = () => {
   // Product state
   const [productImage, setProductImage] = useState<string | null>(null);
 
-  // Initialize vendor
+  // Initialize merchant
   useEffect(() => {
     if (!user) {
       setPageLoading(false);
       return;
     }
-    initVendor();
+    initMerchant();
   }, [user]);
 
-  const initVendor = async () => {
+  const initMerchant = async () => {
     if (!user) return;
     try {
-      const { data: vendor } = await supabase
-        .from("vendors")
+      const { data: merchant } = await supabase
+        .from("merchants")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (vendor) {
+      if (merchant) {
         // Load financial details from separate secure table
         const { data: fin } = await supabase
-          .from("vendor_financial_details")
+          .from("merchant_financial_details")
           .select("*")
-          .eq("vendor_id", vendor.id)
+          .eq("merchant_id", merchant.id)
           .maybeSingle();
 
-        const merged: any = { ...vendor, ...(fin || {}) };
-        setVendorData(merged);
+        const merged: any = { ...merchant, ...(fin || {}) };
+        setMerchantData(merged);
         // Resume from saved status
-        const savedStep = STATUS_TO_STEP[vendor.onboarding_status] || 1;
+        const savedStep = STATUS_TO_STEP[merchant.onboarding_status] || 1;
         setStep(savedStep);
-        if (vendor.onboarding_status === "ACTIVE") setIsActivated(true);
+        if (merchant.onboarding_status === "ACTIVE") setIsActivated(true);
 
         // The payout account, if one has been accepted (card-verified).
         const { data: payout } = await supabase
-          .from("vendor_payment_methods")
+          .from("merchant_payment_methods")
           .select("*")
-          .eq("vendor_id", vendor.id)
+          .eq("merchant_id", merchant.id)
           .eq("is_default", true)
           .maybeSingle();
         const method = payout as unknown as { bank_name: string; account_number: string; verified_at: string | null } | null;
         if (method?.verified_at) {
           setVerifiedBank({ bank_name: method.bank_name, last4: method.account_number.slice(-4) });
         }
-        if (vendor.shipping_regions) setShippingRegions(vendor.shipping_regions);
-        if (vendor.shipping_methods) setShippingMethods(vendor.shipping_methods);
+        if (merchant.shipping_regions) setShippingRegions(merchant.shipping_regions);
+        if (merchant.shipping_methods) setShippingMethods(merchant.shipping_methods);
 
         // Load KYC docs
         const { data: docs } = await supabase
           .from("merchant_kyc_documents")
           .select("document_type, document_url")
-          .eq("vendor_id", vendor.id);
+          .eq("merchant_id", merchant.id);
         if (docs) {
           const docMap: Record<string, string> = {};
           docs.forEach((d: any) => { docMap[d.document_type] = d.document_url; });
           setKycDocuments(docMap);
         }
       } else {
-        // Create vendor record
-        const { data: newVendor, error } = await supabase
-          .from("vendors")
+        // Create merchant record
+        const { data: newMerchant, error } = await supabase
+          .from("merchants")
           .insert({
             user_id: user.id,
             business_name: user.name || "New Merchant",
@@ -130,10 +130,10 @@ const MerchantOnboarding: React.FC = () => {
           .select()
           .single();
         if (error) throw error;
-        setVendorData(newVendor);
+        setMerchantData(newMerchant);
       }
     } catch (error) {
-      console.error("Error initializing vendor:", error);
+      console.error("Error initializing merchant:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to load onboarding." });
     } finally {
       setPageLoading(false);
@@ -141,13 +141,13 @@ const MerchantOnboarding: React.FC = () => {
   };
 
   const updateOnboardingStatus = async (status: string) => {
-    if (!vendorData) return;
+    if (!merchantData) return;
     const { error } = await supabase
-      .from("vendors")
+      .from("merchants")
       .update({ onboarding_status: status })
-      .eq("id", vendorData.id);
+      .eq("id", merchantData.id);
     if (error) throw error;
-    setVendorData((prev: any) => ({ ...prev, onboarding_status: status }));
+    setMerchantData((prev: any) => ({ ...prev, onboarding_status: status }));
   };
 
   // Step 2: Save business info
@@ -155,7 +155,7 @@ const MerchantOnboarding: React.FC = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from("vendors")
+        .from("merchants")
         .update({
           legal_business_name: data.legalBusinessName,
           business_name: data.legalBusinessName,
@@ -163,15 +163,15 @@ const MerchantOnboarding: React.FC = () => {
           business_address: data.businessAddress,
           onboarding_status: "PENDING_KYC",
         })
-        .eq("id", vendorData.id);
+        .eq("id", merchantData.id);
       if (error) throw error;
       // Save tax_id and business_phone in financial_details
-      await supabase.from("vendor_financial_details").upsert({
-        vendor_id: vendorData.id,
+      await supabase.from("merchant_financial_details").upsert({
+        merchant_id: merchantData.id,
         tax_id: data.taxId || null,
         business_phone: data.businessPhone,
-      }, { onConflict: "vendor_id" });
-      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PENDING_KYC", tax_id: data.taxId || null, business_phone: data.businessPhone }));
+      }, { onConflict: "merchant_id" });
+      setMerchantData((prev: any) => ({ ...prev, onboarding_status: "PENDING_KYC", tax_id: data.taxId || null, business_phone: data.businessPhone }));
       setStep(3);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
@@ -182,11 +182,11 @@ const MerchantOnboarding: React.FC = () => {
 
   // Step 3: Upload KYC document
   const handleKYCUpload = async (file: File, type: string) => {
-    if (!vendorData) return;
+    if (!merchantData) return;
     setIsLoading(true);
 
     try {
-      const filePath = `${user.id}/${vendorData.id}/${type}/${Date.now()}`;
+      const filePath = `${user.id}/${merchantData.id}/${type}/${Date.now()}`;
       const { publicUrl } = await uploadFileToStorage({
         bucket: "vendor-documents",
         path: filePath,
@@ -195,7 +195,7 @@ const MerchantOnboarding: React.FC = () => {
       });
 
       const payload = {
-        vendor_id: vendorData.id,
+        merchant_id: merchantData.id,
         document_type: type,
         document_url: publicUrl,
         file_name: file.name,
@@ -205,7 +205,7 @@ const MerchantOnboarding: React.FC = () => {
       const { data: existingDocument, error: fetchError } = await supabase
         .from("merchant_kyc_documents")
         .select("id")
-        .eq("vendor_id", vendorData.id)
+        .eq("merchant_id", merchantData.id)
         .eq("document_type", type)
         .maybeSingle();
 
@@ -243,11 +243,11 @@ const MerchantOnboarding: React.FC = () => {
       // Bank details were already saved by the verified bank form.
       if (!verifiedBank) throw new Error("Add your bank account first.");
       const { error } = await supabase
-        .from("vendors")
+        .from("merchants")
         .update({ onboarding_status: "KYC_PENDING_REVIEW" })
-        .eq("id", vendorData.id);
+        .eq("id", merchantData.id);
       if (error) throw error;
-      setVendorData((prev: any) => ({
+      setMerchantData((prev: any) => ({
         ...prev,
         onboarding_status: "KYC_PENDING_REVIEW",
       }));
@@ -262,14 +262,14 @@ const MerchantOnboarding: React.FC = () => {
 
   // File upload helper — uploads to Supabase Storage
   const handleFileUpload = async (file: File, setter: (url: string) => void, bucket: string = 'vendor-logos') => {
-    if (!user || !vendorData) return;
+    if (!user || !merchantData) return;
     if (!file.type.startsWith('image/')) {
       toast({ variant: "destructive", title: "Invalid file type", description: "Please upload an image file." });
       return;
     }
 
     try {
-      const filePath = `${vendorData.id}/${Date.now()}`;
+      const filePath = `${merchantData.id}/${Date.now()}`;
       const { publicUrl } = await uploadFileToStorage({
         bucket,
         path: filePath,
@@ -286,7 +286,7 @@ const MerchantOnboarding: React.FC = () => {
 
   // Step 4: Save store
   const handleStoreSetup = async (data: StoreSetupValues) => {
-    if (!vendorData) return;
+    if (!merchantData) return;
     setIsLoading(true);
     try {
       let slug = data.storeName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -296,7 +296,7 @@ const MerchantOnboarding: React.FC = () => {
       if (existing) slug = `${slug}-${Math.floor(Math.random() * 10000)}`;
 
       const { error } = await supabase.from("stores").insert({
-        vendor_id: vendorData.id,
+        merchant_id: merchantData.id,
         name: data.storeName,
         slug,
         description: data.storeDescription,
@@ -306,15 +306,15 @@ const MerchantOnboarding: React.FC = () => {
       });
       if (error) throw error;
 
-      // Update vendor with shipping info
-      await supabase.from("vendors").update({
+      // Update merchant with shipping info
+      await supabase.from("merchants").update({
         shipping_regions: shippingRegions,
         shipping_methods: shippingMethods,
         return_policy: data.returnPolicy || null,
         onboarding_status: "PROFILE_COMPLETED",
-      }).eq("id", vendorData.id);
+      }).eq("id", merchantData.id);
 
-      setVendorData((prev: any) => ({ ...prev, onboarding_status: "PROFILE_COMPLETED" }));
+      setMerchantData((prev: any) => ({ ...prev, onboarding_status: "PROFILE_COMPLETED" }));
       setStep(5);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
@@ -325,18 +325,18 @@ const MerchantOnboarding: React.FC = () => {
 
   // Step 5: Payment & tax (advances to Review & Activation, now step 6)
   const handlePaymentTax = async (data: PaymentTaxValues) => {
-    if (!vendorData) return;
+    if (!merchantData) return;
     setIsLoading(true);
     try {
-      await supabase.from("vendors").update({
+      await supabase.from("merchants").update({
         fee_agreement_accepted: data.feeAgreement,
         payout_schedule: data.payoutSchedule,
-      }).eq("id", vendorData.id);
-      await supabase.from("vendor_financial_details").upsert({
-        vendor_id: vendorData.id,
+      }).eq("id", merchantData.id);
+      await supabase.from("merchant_financial_details").upsert({
+        merchant_id: merchantData.id,
         vat_registered: data.vatRegistered,
         vat_number: data.vatNumber || null,
-      }, { onConflict: "vendor_id" });
+      }, { onConflict: "merchant_id" });
       setStep(6);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
@@ -349,11 +349,11 @@ const MerchantOnboarding: React.FC = () => {
   const handleActivate = async () => {
     setIsLoading(true);
     try {
-      const { error: updateError } = await supabase.from("vendors").update({
+      const { error: updateError } = await supabase.from("merchants").update({
         status: "approved",
         onboarding_status: "ACTIVE",
         onboarding_completed_at: new Date().toISOString(),
-      }).eq("id", vendorData.id);
+      }).eq("id", merchantData.id);
       if (updateError) throw updateError;
 
       setIsActivated(true);
@@ -390,10 +390,10 @@ const MerchantOnboarding: React.FC = () => {
   // Build activation checklist
   const checklist = [
     { label: "Email verified", completed: !!user },
-    { label: "Business information completed", completed: ["PENDING_KYC", "KYC_PENDING_REVIEW", "KYC_APPROVED", "KYC_REJECTED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
-    { label: "KYC documents submitted", completed: ["KYC_PENDING_REVIEW", "KYC_APPROVED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
+    { label: "Business information completed", completed: ["PENDING_KYC", "KYC_PENDING_REVIEW", "KYC_APPROVED", "KYC_REJECTED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(merchantData?.onboarding_status || "") },
+    { label: "KYC documents submitted", completed: ["KYC_PENDING_REVIEW", "KYC_APPROVED", "PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(merchantData?.onboarding_status || "") },
     { label: "Bank account on file", completed: !!verifiedBank },
-    { label: "Store configured", completed: ["PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(vendorData?.onboarding_status || "") },
+    { label: "Store configured", completed: ["PROFILE_COMPLETED", "FIRST_PRODUCT_CREATED", "ACTIVE"].includes(merchantData?.onboarding_status || "") },
   ];
   const allComplete = checklist.every(c => c.completed);
 
@@ -437,11 +437,11 @@ const MerchantOnboarding: React.FC = () => {
         {step === 2 && (
           <StepBusinessInfo
             defaultValues={{
-              legalBusinessName: vendorData?.legal_business_name || vendorData?.business_name || "",
-              businessType: vendorData?.business_type || "",
-              taxId: vendorData?.tax_id || "",
-              businessAddress: vendorData?.business_address || "",
-              businessPhone: vendorData?.business_phone || "",
+              legalBusinessName: merchantData?.legal_business_name || merchantData?.business_name || "",
+              businessType: merchantData?.business_type || "",
+              taxId: merchantData?.tax_id || "",
+              businessAddress: merchantData?.business_address || "",
+              businessPhone: merchantData?.business_phone || "",
             }}
             onNext={handleBusinessInfo}
             onBack={() => setStep(1)}
@@ -455,13 +455,13 @@ const MerchantOnboarding: React.FC = () => {
             verifiedBank={verifiedBank}
             onBankVerified={(bank) => {
               setVerifiedBank({ bank_name: bank.bank_name, last4: bank.last4 });
-              setVendorData((prev: any) => ({ ...prev, bank_account_holder: bank.account_holder_name }));
+              setMerchantData((prev: any) => ({ ...prev, bank_account_holder: bank.account_holder_name }));
             }}
             onUpload={handleKYCUpload}
             onNext={handleKYCSubmit}
             onBack={() => setStep(2)}
             isLoading={isLoading}
-            kycStatus={vendorData?.onboarding_status}
+            kycStatus={merchantData?.onboarding_status}
           />
         )}
 
@@ -470,7 +470,7 @@ const MerchantOnboarding: React.FC = () => {
             defaultValues={{
               storeName: "",
               storeDescription: "",
-              returnPolicy: vendorData?.return_policy || "",
+              returnPolicy: merchantData?.return_policy || "",
             }}
             selectedRegions={shippingRegions}
             selectedMethods={shippingMethods}
@@ -488,12 +488,12 @@ const MerchantOnboarding: React.FC = () => {
 
         {step === 5 && (
           <StepPaymentTax
-            commissionRate={vendorData?.commission_rate || 15}
+            commissionRate={merchantData?.commission_rate || 15}
             defaultValues={{
-              vatRegistered: vendorData?.vat_registered || false,
-              vatNumber: vendorData?.vat_number || "",
-              feeAgreement: vendorData?.fee_agreement_accepted || false,
-              payoutSchedule: vendorData?.payout_schedule || "weekly",
+              vatRegistered: merchantData?.vat_registered || false,
+              vatNumber: merchantData?.vat_number || "",
+              feeAgreement: merchantData?.fee_agreement_accepted || false,
+              payoutSchedule: merchantData?.payout_schedule || "weekly",
             }}
             onNext={handlePaymentTax}
             onBack={() => setStep(4)}

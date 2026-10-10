@@ -17,8 +17,8 @@ import { cn } from '@/lib/utils';
 interface BrandNetworkProps {
   bundles: BrandBundle[];
   crossPromos: CrossPromotion[];
-  vendorId: string;
-  onCreateBundle: (name: string, description: string, products: { productId: string; vendorId: string; discount: number }[]) => Promise<unknown>;
+  merchantId: string;
+  onCreateBundle: (name: string, description: string, products: { productId: string; merchantId: string; discount: number }[]) => Promise<unknown>;
   onCreateCrossPromo: (partnerId: string, type: string, terms: Record<string, unknown>, products: string[]) => Promise<unknown>;
   onRespondToPromo?: (promoId: string, accept: boolean) => Promise<void>;
   onRespondToBundle?: (bundleProductId: string, accept: boolean) => Promise<void>;
@@ -28,7 +28,7 @@ interface BrandNetworkProps {
 export function BrandNetwork({
   bundles,
   crossPromos,
-  vendorId,
+  merchantId,
   onCreateBundle,
   onCreateCrossPromo,
   availablePartners = []
@@ -40,10 +40,10 @@ export function BrandNetwork({
   const [isCreating, setIsCreating] = useState(false);
 
   const pendingPromos = crossPromos.filter(
-    p => p.status === 'pending' && p.partner_vendor_id === vendorId
+    p => p.status === 'pending' && p.partner_merchant_id === merchantId
   );
   const activePromos = crossPromos.filter(p => p.status === 'active');
-  const myInitiatedPromos = crossPromos.filter(p => p.initiator_vendor_id === vendorId);
+  const myInitiatedPromos = crossPromos.filter(p => p.initiator_merchant_id === merchantId);
 
   const handleCreateBundle = async () => {
     if (!bundleName) return;
@@ -71,13 +71,13 @@ export function BrandNetwork({
               <div key={promo.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
                 <div className="flex items-center gap-3">
                   <Avatar>
-                    <AvatarImage src={promo.initiator_vendor?.logo_url || undefined} />
+                    <AvatarImage src={promo.initiator_merchant?.logo_url || undefined} />
                     <AvatarFallback>
-                      {promo.initiator_vendor?.business_name?.[0] || 'B'}
+                      {promo.initiator_merchant?.business_name?.[0] || 'B'}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{promo.initiator_vendor?.business_name}</p>
+                    <p className="font-medium">{promo.initiator_merchant?.business_name}</p>
                     <p className="text-sm text-muted-foreground capitalize">
                       {promo.promo_type.replace(/_/g, ' ')}
                     </p>
@@ -181,9 +181,9 @@ export function BrandNetwork({
               <h4 className="text-sm font-medium mb-3">Active Partnerships</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {activePromos.map((promo) => {
-                  const partner = promo.initiator_vendor_id === vendorId 
-                    ? promo.partner_vendor 
-                    : promo.initiator_vendor;
+                  const partner = promo.initiator_merchant_id === merchantId 
+                    ? promo.partner_merchant 
+                    : promo.initiator_merchant;
                   
                   return (
                     <Card key={promo.id}>

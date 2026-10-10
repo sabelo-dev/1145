@@ -95,10 +95,9 @@ const AdminNotifications: React.FC = () => {
         targetUserIds = (data || []).map(p => p.id);
       } else {
         // Map audience to role
-        const roleMap: Record<string, "consumer" | "vendor" | "driver" | "influencer"> = {
+        const roleMap: Record<string, "consumer" | "merchant" | "driver" | "influencer"> = {
           consumers: "consumer",
-          merchants: "vendor",
-          vendors: "vendor",
+          merchants: "merchant",
           drivers: "driver",
           influencers: "influencer",
         };
@@ -156,7 +155,7 @@ const AdminNotifications: React.FC = () => {
 
   const getAudienceIcon = (audience: string) => {
     switch (audience) {
-      case "merchants": case "vendors": return <Store className="h-4 w-4" />;
+      case "merchants": return <Store className="h-4 w-4" />;
       case "consumers": return <Users className="h-4 w-4" />;
       case "drivers": return <Truck className="h-4 w-4" />;
       case "influencers": return <Sparkles className="h-4 w-4" />;

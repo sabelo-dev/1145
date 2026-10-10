@@ -72,7 +72,7 @@ const AdminAuctions = () => {
           *,
           product:products(id, name, description, price, store_id, 
             product_images(image_url),
-            stores(name, vendor_id, vendors(business_name, user_id))
+            stores(name, merchant_id, merchants(business_name, user_id))
           )
         `)
         .order("created_at", { ascending: false });
@@ -184,28 +184,28 @@ const AdminAuctions = () => {
 
   const sendAuctionStatusEmail = async (auction: Auction, newStatus: string) => {
     try {
-      // Get the vendor's email
-      const vendorUserId = auction.product?.stores?.vendors?.user_id;
-      if (!vendorUserId) {
-        console.log("No vendor user ID found for auction email");
+      // Get the merchant's email
+      const merchantUserId = auction.product?.stores?.merchants?.user_id;
+      if (!merchantUserId) {
+        console.log("No merchant user ID found for auction email");
         return;
       }
 
       const { data: profile } = await supabase
         .from("profiles")
         .select("email, name")
-        .eq("id", vendorUserId)
+        .eq("id", merchantUserId)
         .single();
 
       if (!profile?.email) {
-        console.log("No email found for vendor");
+        console.log("No email found for merchant");
         return;
       }
 
       await supabase.functions.invoke("send-auction-status-email", {
         body: {
           userEmail: profile.email,
-          userName: profile.name || auction.product?.stores?.vendors?.business_name,
+          userName: profile.name || auction.product?.stores?.merchants?.business_name,
           productName: auction.product?.name || "Unknown Product",
           auctionId: auction.id,
           newStatus,
@@ -488,7 +488,7 @@ const AdminAuctions = () => {
           .eq("auction_id", auction.id)
           .eq("user_id", winningBid.user_id);
 
-        // Send email notification for sold auction (to vendor)
+        // Send email notification for sold auction (to merchant)
         const updatedAuction = { ...auction, winning_bid: winningBid.bid_amount };
         sendAuctionStatusEmail(updatedAuction, "sold");
 
@@ -653,7 +653,7 @@ const AdminAuctions = () => {
               <Label>Product</Label>
               <p className="text-sm font-medium">{selectedAuction?.product?.name}</p>
               <p className="text-sm text-muted-foreground">
-                Vendor Base Amount: R{selectedAuction?.vendor_base_amount}
+                Merchant Base Amount: R{selectedAuction?.merchant_base_amount}
               </p>
             </div>
             <div className="space-y-2">
@@ -1038,7 +1038,7 @@ const AuctionTable = ({
                 </TableHead>
                 <TableHead className="w-[80px]">Image</TableHead>
                 <TableHead>Product</TableHead>
-                <TableHead>Vendor</TableHead>
+                <TableHead>Merchant</TableHead>
                 <TableHead>Base Amount</TableHead>
                 <TableHead>Starting Bid</TableHead>
                 <TableHead>Current Bid</TableHead>
@@ -1077,9 +1077,9 @@ const AuctionTable = ({
                       {auction.product?.name || "Unknown"}
                     </TableCell>
                     <TableCell>
-                      {auction.product?.stores?.vendors?.business_name || "Unknown"}
+                      {auction.product?.stores?.merchants?.business_name || "Unknown"}
                     </TableCell>
-                    <TableCell>R{auction.vendor_base_amount}</TableCell>
+                    <TableCell>R{auction.merchant_base_amount}</TableCell>
                     <TableCell>
                       {auction.starting_bid_price ? `R${auction.starting_bid_price}` : "-"}
                     </TableCell>

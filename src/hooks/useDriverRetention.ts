@@ -214,7 +214,7 @@ export function useDriverRetention() {
     investmentType: 'brand_stake' | 'vehicle_savings' | 'storefront_fund',
     amount: number,
     ucoinAmount: number = 0,
-    targetVendorId?: string
+    targetMerchantId?: string
   ) => {
     if (!driverId) return false;
 
@@ -223,7 +223,7 @@ export function useDriverRetention() {
       investment_type: investmentType,
       amount,
       ucoin_spent: ucoinAmount,
-      target_vendor_id: targetVendorId || null,
+      target_merchant_id: targetMerchantId || null,
       status: 'active',
     });
 

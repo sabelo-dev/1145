@@ -8,7 +8,7 @@ import { VerifiedBankForm } from "@/components/banking/VerifiedBankForm";
 interface PaymentMethodDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  vendorId: string;
+  merchantId: string;
 }
 
 interface SavedMethod {
@@ -20,27 +20,27 @@ interface SavedMethod {
 
 /**
  * Payout bank details. They are only accepted from a merchant with a card
- * verified on PayFast (vendor-payout-method edge function); anything else is
+ * verified on PayFast (merchant-payout-method edge function); anything else is
  * never saved.
  */
-export const PaymentMethodDialog: React.FC<PaymentMethodDialogProps> = ({ open, onOpenChange, vendorId }) => {
+export const PaymentMethodDialog: React.FC<PaymentMethodDialogProps> = ({ open, onOpenChange, merchantId }) => {
   const { toast } = useToast();
   const [saved, setSaved] = useState<SavedMethod | null>(null);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
-      .from("vendor_payment_methods")
+      .from("merchant_payment_methods")
       .select("*")
-      .eq("vendor_id", vendorId)
+      .eq("merchant_id", merchantId)
       .eq("is_default", true)
       .maybeSingle();
     if (error) console.error("Error fetching payment method:", error);
     setSaved((data as unknown as SavedMethod) ?? null);
-  }, [vendorId]);
+  }, [merchantId]);
 
   useEffect(() => {
-    if (open && vendorId) load();
-  }, [open, vendorId, load]);
+    if (open && merchantId) load();
+  }, [open, merchantId, load]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,7 +72,7 @@ export const PaymentMethodDialog: React.FC<PaymentMethodDialogProps> = ({ open, 
           )}
 
           <VerifiedBankForm
-            endpoint="vendor-payout-method"
+            endpoint="merchant-payout-method"
             returnPath="/merchant/dashboard?tab=settings"
             submitLabel="Save payout account"
             onCancel={() => onOpenChange(false)}

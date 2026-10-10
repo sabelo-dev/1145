@@ -26,7 +26,7 @@ import {
 import AdminOverview from "@/components/admin/AdminOverview";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminDeletionRequests from "@/components/admin/AdminDeletionRequests";
-import AdminVendors from "@/components/admin/AdminVendors";
+import AdminMerchants from "@/components/admin/AdminMerchants";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminOrders from "@/components/admin/AdminOrders";
 import AdminCategories from "@/components/admin/AdminCategories";
@@ -87,7 +87,9 @@ import {
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useUrlTab("overview");
+  const [urlTab, setActiveTab] = useUrlTab("overview");
+  // Old links and bookmarks still say ?tab=vendors.
+  const activeTab = urlTab === "vendors" ? "merchants" : urlTab;
 
   const handleLogout = async () => {
     try {
@@ -102,7 +104,7 @@ const AdminDashboard = () => {
     { id: "inbox", title: "Email Inbox", icon: Inbox },
     { id: "users", title: "User Management", icon: Users },
     { id: "deletion-requests", title: "Deletion Requests", icon: UserX },
-    { id: "vendors", title: "Merchant Management", icon: Store },
+    { id: "merchants", title: "Merchant Management", icon: Store },
     { id: "drivers", title: "Driver Management", icon: Truck },
     { id: "eateries", title: "Eateries (Food)", icon: Store },
     { id: "service-marketplace", title: "Service Marketplace", icon: Package },
@@ -273,8 +275,8 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             <TabsContent value="deletion-requests" className="mt-0">
               <AdminDeletionRequests />
             </TabsContent>
-            <TabsContent value="vendors" className="mt-0">
-              <AdminVendors />
+            <TabsContent value="merchants" className="mt-0">
+              <AdminMerchants />
             </TabsContent>
             <TabsContent value="products" className="mt-0">
               <AdminProducts />

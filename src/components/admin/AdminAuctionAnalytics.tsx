@@ -68,7 +68,7 @@ const AdminAuctionAnalytics: React.FC = () => {
         .select(`
           *,
           product:products(id, name, price, category, 
-            stores(name, vendors(business_name))
+            stores(name, merchants(business_name))
           )
         `);
 
@@ -665,7 +665,7 @@ const AdminAuctionAnalytics: React.FC = () => {
                     <TableRow>
                       <TableHead>Rank</TableHead>
                       <TableHead>Product</TableHead>
-                      <TableHead>Vendor</TableHead>
+                      <TableHead>Merchant</TableHead>
                       <TableHead>Winning Bid</TableHead>
                       <TableHead>Base Amount</TableHead>
                       <TableHead>Profit Margin</TableHead>
@@ -674,9 +674,9 @@ const AdminAuctionAnalytics: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {topAuctions.map((auction, index) => {
-                      const profit = Number(auction.winning_bid || 0) - Number(auction.vendor_base_amount || 0);
-                      const profitMargin = auction.vendor_base_amount > 0 
-                        ? ((profit / auction.vendor_base_amount) * 100).toFixed(1) 
+                      const profit = Number(auction.winning_bid || 0) - Number(auction.merchant_base_amount || 0);
+                      const profitMargin = auction.merchant_base_amount > 0 
+                        ? ((profit / auction.merchant_base_amount) * 100).toFixed(1) 
                         : '0';
                       
                       return (
@@ -688,13 +688,13 @@ const AdminAuctionAnalytics: React.FC = () => {
                             {auction.product?.name || 'Unknown'}
                           </TableCell>
                           <TableCell>
-                            {auction.product?.stores?.vendors?.business_name || 'Unknown'}
+                            {auction.product?.stores?.merchants?.business_name || 'Unknown'}
                           </TableCell>
                           <TableCell className="font-bold text-primary">
                             {formatCurrency(auction.winning_bid || 0)}
                           </TableCell>
                           <TableCell>
-                            {formatCurrency(auction.vendor_base_amount || 0)}
+                            {formatCurrency(auction.merchant_base_amount || 0)}
                           </TableCell>
                           <TableCell>
                             <span className={profit >= 0 ? 'text-green-600' : 'text-red-600'}>

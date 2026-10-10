@@ -39,7 +39,7 @@ serve(async (req) => {
         .from("auctions")
         .select(`
           *,
-          product:products(id, name, store_id, stores(vendor_id, vendors(user_id, vendor_financial_details(business_email))))
+          product:products(id, name, store_id, stores(merchant_id, merchants(user_id, merchant_financial_details(business_email))))
         `)
         .eq("id", auctionId)
         .in("status", ["approved", "active"])
@@ -54,7 +54,7 @@ serve(async (req) => {
         .from("auctions")
         .select(`
           *,
-          product:products(id, name, store_id, stores(vendor_id, vendors(user_id, vendor_financial_details(business_email))))
+          product:products(id, name, store_id, stores(merchant_id, merchants(user_id, merchant_financial_details(business_email))))
         `)
         .in("status", ["approved", "active"])
         .lt("end_date", new Date().toISOString());
@@ -194,19 +194,19 @@ serve(async (req) => {
             }
           }
 
-          // Get vendor email and notify them
-          const vendorRow = auction.product?.stores?.vendors;
-          const vendorDetails = [vendorRow?.vendor_financial_details].flat()[0];
-          let vendorEmail = vendorDetails?.business_email;
-          if (!vendorEmail && vendorRow?.user_id) {
-            const { data: owner } = await supabaseAdmin.auth.admin.getUserById(vendorRow.user_id);
-            vendorEmail = owner?.user?.email;
+          // Get merchant email and notify them
+          const merchantRow = auction.product?.stores?.merchants;
+          const merchantDetails = [merchantRow?.merchant_financial_details].flat()[0];
+          let merchantEmail = merchantDetails?.business_email;
+          if (!merchantEmail && merchantRow?.user_id) {
+            const { data: owner } = await supabaseAdmin.auth.admin.getUserById(merchantRow.user_id);
+            merchantEmail = owner?.user?.email;
           }
-          if (vendorEmail) {
+          if (merchantEmail) {
             try {
               await resend.emails.send({
                 from: "1145 Auctions <no-reply@1145.io>",
-                to: [vendorEmail],
+                to: [merchantEmail],
                 subject: `Your auction item sold: ${auction.product?.name}`,
                 html: `
                   <h1>Your Auction Item Sold!</h1>
@@ -215,9 +215,9 @@ serve(async (req) => {
                   <p>The buyer has been notified to complete their payment. You'll receive fulfillment instructions once payment is confirmed.</p>
                 `,
               });
-              console.log(`Vendor notification sent to ${vendorEmail}`);
+              console.log(`Merchant notification sent to ${merchantEmail}`);
             } catch (emailError) {
-              console.error("Failed to send vendor email:", emailError);
+              console.error("Failed to send merchant email:", emailError);
             }
           }
 

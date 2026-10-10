@@ -179,7 +179,7 @@ async function priceCart(
 }
 
 /**
- * Validates a vendor promo code against the priced cart. Codes belong to a
+ * Validates a merchant promo code against the priced cart. Codes belong to a
  * store, so a code only discounts that store's lines (and, if the promotion
  * lists products, only those products).
  */
@@ -528,7 +528,7 @@ serve(async (req) => {
           price: line.unitPrice,
           store_id: line.storeId,
           status: "pending",
-          vendor_status: "pending",
+          merchant_status: "pending",
         })),
       );
       if (itemsError) {

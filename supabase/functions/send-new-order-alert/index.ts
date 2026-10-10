@@ -35,16 +35,16 @@ interface NewOrderAlertRequest {
   createdAt: string;
 }
 
-const generateVendorEmailHtml = (
+const generateMerchantEmailHtml = (
   orderId: string,
   orderTotal: number,
   customerName: string,
   shippingAddress: NewOrderAlertRequest['shippingAddress'],
-  vendorItems: OrderItem[],
-  vendorTotal: number,
+  merchantItems: OrderItem[],
+  merchantTotal: number,
   createdAt: string
 ) => {
-  const itemsHtml = vendorItems.map(item => `
+  const itemsHtml = merchantItems.map(item => `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">${item.product_name || 'Product'}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
@@ -79,7 +79,7 @@ const generateVendorEmailHtml = (
           <p style="margin: 5px 0;"><strong>Order ID:</strong> ${orderId.slice(0, 8).toUpperCase()}</p>
           <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(createdAt).toLocaleString('en-ZA')}</p>
           <p style="margin: 5px 0;"><strong>Customer:</strong> ${customerName}</p>
-          <p style="margin: 5px 0;"><strong>Your Total:</strong> R ${vendorTotal.toFixed(2)}</p>
+          <p style="margin: 5px 0;"><strong>Your Total:</strong> R ${merchantTotal.toFixed(2)}</p>
         </div>
 
         <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
@@ -104,7 +104,7 @@ const generateVendorEmailHtml = (
         </div>
         
         <div style="text-align: center; margin: 25px 0;">
-          <a href="${SITE_URL}/vendor/dashboard?tab=orders" style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          <a href="${SITE_URL}/merchant/dashboard?tab=orders" style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
             View in Dashboard
           </a>
         </div>
@@ -131,7 +131,7 @@ const generateAdminEmailHtml = (
   shippingAddress: NewOrderAlertRequest['shippingAddress'],
   orderItems: OrderItem[],
   createdAt: string,
-  vendorCount: number
+  merchantCount: number
 ) => {
   const itemsHtml = orderItems.map(item => `
     <tr>
@@ -169,7 +169,7 @@ const generateAdminEmailHtml = (
           <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(createdAt).toLocaleString('en-ZA')}</p>
           <p style="margin: 5px 0;"><strong>Total Value:</strong> R ${orderTotal.toFixed(2)}</p>
           <p style="margin: 5px 0;"><strong>Items:</strong> ${orderItems.length}</p>
-          <p style="margin: 5px 0;"><strong>Vendors Involved:</strong> ${vendorCount}</p>
+          <p style="margin: 5px 0;"><strong>Merchants Involved:</strong> ${merchantCount}</p>
         </div>
 
         <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
@@ -256,7 +256,7 @@ const handler = async (req: Request): Promise<Response> => {
       product_name: productNameMap.get(item.product_id) || 'Unknown Product'
     }));
 
-    // Group items by store/vendor
+    // Group items by store/merchant
     const itemsByStore = new Map<string, OrderItem[]>();
     for (const item of itemsWithNames) {
       const storeItems = itemsByStore.get(item.store_id) || [];
@@ -264,62 +264,62 @@ const handler = async (req: Request): Promise<Response> => {
       itemsByStore.set(item.store_id, storeItems);
     }
 
-    // Get store and vendor info
+    // Get store and merchant info
     const storeIds = Array.from(itemsByStore.keys());
     const { data: stores } = await supabase
       .from('stores')
-      .select('id, name, vendor_id')
+      .select('id, name, merchant_id')
       .in('id', storeIds);
 
-    const vendorIds = stores?.map(s => s.vendor_id) || [];
-    const { data: vendors } = await supabase
-      .from('vendors')
-      .select('id, user_id, business_name, vendor_financial_details(business_email)')
-      .in('id', vendorIds);
+    const merchantIds = stores?.map(s => s.merchant_id) || [];
+    const { data: merchants } = await supabase
+      .from('merchants')
+      .select('id, user_id, business_name, merchant_financial_details(business_email)')
+      .in('id', merchantIds);
 
     // Business email if the merchant gave one, otherwise their account email.
-    const vendorEmails = new Map<string, string>();
-    for (const v of vendors || []) {
-      let email = [v.vendor_financial_details].flat()[0]?.business_email;
+    const merchantEmails = new Map<string, string>();
+    for (const v of merchants || []) {
+      let email = [v.merchant_financial_details].flat()[0]?.business_email;
       if (!email && v.user_id) {
         const { data: owner } = await supabase.auth.admin.getUserById(v.user_id);
         email = owner?.user?.email;
       }
-      if (email) vendorEmails.set(v.id, email);
+      if (email) merchantEmails.set(v.id, email);
     }
 
-    const storeVendorMap = new Map(stores?.map(s => [s.id, s.vendor_id]) || []);
-    const vendorEmailMap = new Map(vendors?.map(v => [v.id, { email: vendorEmails.get(v.id), name: v.business_name }]) || []);
+    const storeMerchantMap = new Map(stores?.map(s => [s.id, s.merchant_id]) || []);
+    const merchantEmailMap = new Map(merchants?.map(v => [v.id, { email: merchantEmails.get(v.id), name: v.business_name }]) || []);
 
-    // Send emails to each vendor
-    const vendorEmailPromises = [];
+    // Send emails to each merchant
+    const merchantEmailPromises = [];
     for (const [storeId, items] of itemsByStore) {
-      const vendorId = storeVendorMap.get(storeId);
-      const vendorInfo = vendorId ? vendorEmailMap.get(vendorId) : null;
+      const merchantId = storeMerchantMap.get(storeId);
+      const merchantInfo = merchantId ? merchantEmailMap.get(merchantId) : null;
       
-      if (vendorInfo?.email) {
-        const vendorTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const vendorHtml = generateVendorEmailHtml(
+      if (merchantInfo?.email) {
+        const merchantTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const merchantHtml = generateMerchantEmailHtml(
           orderId,
           orderTotal,
           customerName,
           shippingAddress,
           items,
-          vendorTotal,
+          merchantTotal,
           createdAt
         );
 
-        vendorEmailPromises.push(
+        merchantEmailPromises.push(
           resend.emails.send({
             from: "1145 Lifestyle <no-reply@1145.io>",
-            to: [vendorInfo.email],
+            to: [merchantInfo.email],
             subject: `🎉 New Order Received - Order #${orderId.slice(0, 8).toUpperCase()}`,
-            html: vendorHtml,
+            html: merchantHtml,
           }).then(result => {
-            console.log(`Email sent to vendor ${vendorInfo.name}:`, result);
+            console.log(`Email sent to merchant ${merchantInfo.name}:`, result);
             return result;
           }).catch(error => {
-            console.error(`Failed to send email to vendor ${vendorInfo.name}:`, error);
+            console.error(`Failed to send email to merchant ${merchantInfo.name}:`, error);
             return null;
           })
         );
@@ -347,7 +347,7 @@ const handler = async (req: Request): Promise<Response> => {
         itemsByStore.size
       );
 
-      vendorEmailPromises.push(
+      merchantEmailPromises.push(
         resend.emails.send({
           from: "1145 Lifestyle <no-reply@1145.io>",
           to: adminEmails,
@@ -364,7 +364,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Wait for all emails to send
-    await Promise.all(vendorEmailPromises);
+    await Promise.all(merchantEmailPromises);
 
     console.log("All new order alert emails processed");
 

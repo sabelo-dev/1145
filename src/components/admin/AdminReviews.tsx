@@ -22,7 +22,7 @@ interface Review {
 
 interface Complaint {
   id: string;
-  type: "product" | "vendor" | "shipping" | "other";
+  type: "product" | "merchant" | "shipping" | "other";
   subject: string;
   description: string;
   customerName: string;
@@ -75,7 +75,7 @@ const AdminReviews: React.FC = () => {
           rating: review.rating,
           comment: review.comment || '',
           date: new Date(review.created_at).toLocaleDateString(),
-          status: review.vendor_response ? 'approved' : 'pending',
+          status: review.merchant_response ? 'approved' : 'pending',
           flagged: review.flagged || false
         })) || [];
 

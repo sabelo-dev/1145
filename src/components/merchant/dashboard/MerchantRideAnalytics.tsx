@@ -31,16 +31,16 @@ const MerchantRideAnalytics: React.FC = () => {
     if (!user) return;
     setLoading(true);
 
-    // Get vendor's store to find delivery jobs
-    const { data: vendorRow } = await supabase
-      .from("vendors")
+    // Get merchant's store to find delivery jobs
+    const { data: merchantRow } = await supabase
+      .from("merchants")
       .select("id")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const vendor = vendorRow as any;
+    const merchant = merchantRow as any;
 
-    if (!vendor) {
+    if (!merchant) {
       setLoading(false);
       return;
     }
@@ -48,7 +48,7 @@ const MerchantRideAnalytics: React.FC = () => {
     const resp = await (supabase as any)
       .from("delivery_jobs")
       .select("*")
-      .eq("vendor_id", vendor.id)
+      .eq("merchant_id", merchant.id)
       .order("created_at", { ascending: false });
     const deliveryJobs = (resp.data || []) as any[];
 

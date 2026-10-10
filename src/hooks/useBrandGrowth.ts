@@ -14,7 +14,7 @@ import {
   BrandImprovementTip
 } from '@/types/brand';
 
-export function useBrandGrowth(vendorId?: string) {
+export function useBrandGrowth(merchantId?: string) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -40,21 +40,21 @@ export function useBrandGrowth(vendorId?: string) {
     }
   }, []);
 
-  const fetchVendorData = useCallback(async () => {
-    if (!vendorId) return;
+  const fetchMerchantData = useCallback(async () => {
+    if (!merchantId) return;
 
-    // Get vendor's current tier
-    const { data: vendorData } = await supabase
-      .from('vendors')
+    // Get merchant's current tier
+    const { data: merchantData } = await supabase
+      .from('merchants')
       .select('tier_id')
-      .eq('id', vendorId)
+      .eq('id', merchantId)
       .maybeSingle();
 
-    if (vendorData?.tier_id) {
+    if (merchantData?.tier_id) {
       const { data: tierData } = await supabase
         .from('brand_tiers')
         .select('*')
-        .eq('id', vendorData.tier_id)
+        .eq('id', merchantData.tier_id)
         .maybeSingle();
       
       if (tierData) setTier(tierData as unknown as BrandTier);
@@ -64,7 +64,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: perfData } = await supabase
       .from('brand_performance')
       .select('*')
-      .eq('vendor_id', vendorId)
+      .eq('merchant_id', merchantId)
       .order('period_end', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -75,7 +75,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: creditsData } = await supabase
       .from('promo_credits')
       .select('*')
-      .eq('vendor_id', vendorId)
+      .eq('merchant_id', merchantId)
       .maybeSingle();
     
     if (creditsData) setPromoCredits(creditsData as unknown as PromoCredits);
@@ -84,7 +84,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: txData } = await supabase
       .from('promo_credit_transactions')
       .select('*')
-      .eq('vendor_id', vendorId)
+      .eq('merchant_id', merchantId)
       .order('created_at', { ascending: false })
       .limit(20);
     
@@ -94,7 +94,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: placementData } = await supabase
       .from('sponsored_placements')
       .select('*')
-      .eq('vendor_id', vendorId)
+      .eq('merchant_id', merchantId)
       .order('created_at', { ascending: false });
     
     if (placementData) setPlacements(placementData as unknown as SponsoredPlacement[]);
@@ -103,7 +103,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: campaignData } = await supabase
       .from('auto_campaigns')
       .select('*')
-      .eq('vendor_id', vendorId);
+      .eq('merchant_id', merchantId);
     
     if (campaignData) setCampaigns(campaignData as unknown as AutoCampaign[]);
 
@@ -111,7 +111,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: bundleData } = await supabase
       .from('brand_bundles')
       .select('*')
-      .eq('created_by_vendor_id', vendorId);
+      .eq('created_by_merchant_id', merchantId);
     
     if (bundleData) setBundles(bundleData as unknown as BrandBundle[]);
 
@@ -119,7 +119,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: promoData } = await supabase
       .from('cross_promotions')
       .select('*')
-      .or(`initiator_vendor_id.eq.${vendorId},partner_vendor_id.eq.${vendorId}`);
+      .or(`initiator_merchant_id.eq.${merchantId},partner_merchant_id.eq.${merchantId}`);
     
     if (promoData) setCrossPromos(promoData as unknown as CrossPromotion[]);
 
@@ -127,16 +127,16 @@ export function useBrandGrowth(vendorId?: string) {
     const { data: tipsData } = await supabase
       .from('brand_improvement_tips')
       .select('*')
-      .eq('vendor_id', vendorId)
+      .eq('merchant_id', merchantId)
       .eq('is_dismissed', false)
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false });
     
     if (tipsData) setTips(tipsData as unknown as BrandImprovementTip[]);
-  }, [vendorId]);
+  }, [merchantId]);
 
   const spendCredits = async (amount: number, category: string, description: string, referenceId?: string) => {
-    if (!vendorId || !promoCredits || promoCredits.balance < amount) {
+    if (!merchantId || !promoCredits || promoCredits.balance < amount) {
       toast({ title: 'Insufficient promo credits', variant: 'destructive' });
       return false;
     }
@@ -148,7 +148,7 @@ export function useBrandGrowth(vendorId?: string) {
         lifetime_spent: promoCredits.lifetime_spent + amount,
         updated_at: new Date().toISOString()
       })
-      .eq('vendor_id', vendorId);
+      .eq('merchant_id', merchantId);
 
     if (updateError) {
       toast({ title: 'Failed to spend credits', variant: 'destructive' });
@@ -156,7 +156,7 @@ export function useBrandGrowth(vendorId?: string) {
     }
 
     await supabase.from('promo_credit_transactions').insert([{
-      vendor_id: vendorId,
+      merchant_id: merchantId,
       amount: -amount,
       type: 'spend',
       category,
@@ -164,7 +164,7 @@ export function useBrandGrowth(vendorId?: string) {
       reference_id: referenceId
     }]);
 
-    await fetchVendorData();
+    await fetchMerchantData();
     toast({ title: `Spent ${amount} promo credits` });
     return true;
   };
@@ -176,7 +176,7 @@ export function useBrandGrowth(vendorId?: string) {
     productId?: string,
     storeId?: string
   ) => {
-    if (!vendorId) return null;
+    if (!merchantId) return null;
 
     const success = await spendCredits(creditCost, 'sponsored_placement', `Sponsored ${placementType}`);
     if (!success) return null;
@@ -187,7 +187,7 @@ export function useBrandGrowth(vendorId?: string) {
     const { data, error } = await supabase
       .from('sponsored_placements')
       .insert([{
-        vendor_id: vendorId,
+        merchant_id: merchantId,
         store_id: storeId,
         product_id: productId,
         placement_type: placementType,
@@ -203,7 +203,7 @@ export function useBrandGrowth(vendorId?: string) {
       return null;
     }
 
-    await fetchVendorData();
+    await fetchMerchantData();
     toast({ title: 'Sponsored placement created!' });
     return data;
   };
@@ -215,12 +215,12 @@ export function useBrandGrowth(vendorId?: string) {
     creditBudget: number,
     storeId?: string
   ) => {
-    if (!vendorId) return null;
+    if (!merchantId) return null;
 
     const { data, error } = await supabase
       .from('auto_campaigns')
       .insert([{
-        vendor_id: vendorId,
+        merchant_id: merchantId,
         store_id: storeId || null,
         campaign_type: campaignType,
         trigger_conditions: JSON.parse(JSON.stringify(triggerConditions)),
@@ -235,20 +235,20 @@ export function useBrandGrowth(vendorId?: string) {
       return null;
     }
 
-    await fetchVendorData();
+    await fetchMerchantData();
     toast({ title: 'Auto campaign created!' });
     return data;
   };
 
-  const createBundle = async (name: string, description: string, products: { productId: string; vendorId: string; discount: number }[]) => {
-    if (!vendorId) return null;
+  const createBundle = async (name: string, description: string, products: { productId: string; merchantId: string; discount: number }[]) => {
+    if (!merchantId) return null;
 
     const { data: bundle, error } = await supabase
       .from('brand_bundles')
       .insert([{
         name,
         description,
-        created_by_vendor_id: vendorId
+        created_by_merchant_id: merchantId
       }])
       .select()
       .single();
@@ -262,31 +262,31 @@ export function useBrandGrowth(vendorId?: string) {
     await supabase.from('brand_bundle_products').insert(
       products.map(p => ({
         bundle_id: bundle.id,
-        vendor_id: p.vendorId,
+        merchant_id: p.merchantId,
         product_id: p.productId,
         contribution_discount: p.discount,
-        status: p.vendorId === vendorId ? 'accepted' : 'pending'
+        status: p.merchantId === merchantId ? 'accepted' : 'pending'
       }))
     );
 
-    await fetchVendorData();
+    await fetchMerchantData();
     toast({ title: 'Bundle created!' });
     return bundle;
   };
 
   const createCrossPromotion = async (
-    partnerVendorId: string,
+    partnerMerchantId: string,
     promoType: string,
     terms: Record<string, unknown>,
     products: string[]
   ) => {
-    if (!vendorId) return null;
+    if (!merchantId) return null;
 
     const { data, error } = await supabase
       .from('cross_promotions')
       .insert([{
-        initiator_vendor_id: vendorId,
-        partner_vendor_id: partnerVendorId,
+        initiator_merchant_id: merchantId,
+        partner_merchant_id: partnerMerchantId,
         promo_type: promoType,
         terms: JSON.parse(JSON.stringify(terms)),
         initiator_products: products
@@ -299,7 +299,7 @@ export function useBrandGrowth(vendorId?: string) {
       return null;
     }
 
-    await fetchVendorData();
+    await fetchMerchantData();
     toast({ title: 'Cross-promotion request sent!' });
     return data;
   };
@@ -340,12 +340,12 @@ export function useBrandGrowth(vendorId?: string) {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchTiers(), fetchVendorData()]);
+      await Promise.all([fetchTiers(), fetchMerchantData()]);
       setIsLoading(false);
     };
 
     loadData();
-  }, [fetchTiers, fetchVendorData]);
+  }, [fetchTiers, fetchMerchantData]);
 
   return {
     isLoading,
@@ -367,6 +367,6 @@ export function useBrandGrowth(vendorId?: string) {
     dismissTip,
     markTipRead,
     getNextTierProgress,
-    refetch: fetchVendorData
+    refetch: fetchMerchantData
   };
 }

@@ -36,8 +36,8 @@ interface Discount {
   startDate: string;
   endDate: string;
   status: "active" | "inactive" | "expired";
-  scope: "global" | "vendor_specific";
-  vendorId?: string;
+  scope: "global" | "merchant_specific";
+  merchantId?: string;
 }
 
 interface Campaign {

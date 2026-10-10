@@ -109,7 +109,7 @@ const StepKYC: React.FC<StepKYCProps> = ({
             </Button>
           ) : (
             <VerifiedBankForm
-              endpoint="vendor-payout-method"
+              endpoint="merchant-payout-method"
               returnPath="/merchant/onboarding"
               submitLabel="Save bank account"
               onCancel={verifiedBank ? () => setReplacingBank(false) : undefined}

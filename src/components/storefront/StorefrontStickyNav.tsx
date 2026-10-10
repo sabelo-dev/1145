@@ -10,7 +10,7 @@ interface StorefrontStickyNavProps {
   storeName: string;
   logoUrl?: string;
   accentColor: string;
-  vendorTier: string;
+  merchantTier: string;
   sellerBadge?: string | null;
   avgRating: number;
   totalProducts: number;
@@ -26,7 +26,7 @@ const StorefrontStickyNav: React.FC<StorefrontStickyNavProps> = ({
   storeName,
   logoUrl,
   accentColor,
-  vendorTier,
+  merchantTier,
   sellerBadge,
   avgRating,
   totalProducts,
@@ -78,7 +78,7 @@ const StorefrontStickyNav: React.FC<StorefrontStickyNavProps> = ({
           ? "bg-background/95 backdrop-blur-lg shadow-sm border-b border-border/50"
           : "bg-card/80 backdrop-blur-sm border-b"
       }`}
-      style={vendorTier !== "starter" ? { borderBottomColor: `${accentColor}15` } : {}}
+      style={merchantTier !== "starter" ? { borderBottomColor: `${accentColor}15` } : {}}
     >
       <div className="max-w-7xl mx-auto px-4">
         {/* Main header row */}
@@ -118,10 +118,10 @@ const StorefrontStickyNav: React.FC<StorefrontStickyNavProps> = ({
                 <Badge
                   className="gap-1 text-[11px] flex-shrink-0 rounded-full text-white"
                   style={{
-                    backgroundColor: vendorTier === "gold" ? "#eab308" : accentColor,
+                    backgroundColor: merchantTier === "gold" ? "#eab308" : accentColor,
                   }}
                 >
-                  {vendorTier === "gold" ? (
+                  {merchantTier === "gold" ? (
                     <Crown className="h-2.5 w-2.5" />
                   ) : (
                     <Shield className="h-2.5 w-2.5" />
@@ -161,7 +161,7 @@ const StorefrontStickyNav: React.FC<StorefrontStickyNavProps> = ({
               </div>
             )}
 
-            {!scrolled && description && vendorTier !== "starter" && (
+            {!scrolled && description && merchantTier !== "starter" && (
               <p className="text-muted-foreground mt-1 text-xs md:text-sm max-w-xl hidden md:block">
                 {description}
               </p>

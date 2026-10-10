@@ -41,7 +41,7 @@ interface Order {
   status: string;
   total: number;
   items: number;
-  vendor: string;
+  merchant: string;
   trackingNumber: string | null;
   products: OrderProduct[];
   shipping_address?: any;
@@ -88,7 +88,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
         trackingNumber: order.trackingNumber || undefined,
         courierCompany: order.courier_company || undefined,
         estimatedDelivery: order.estimated_delivery || undefined,
-        storeName: order.vendor,
+        storeName: order.merchant,
         orderStatus: order.status,
       });
 
@@ -375,9 +375,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             </div>
           </div>
 
-          {/* Vendor Info */}
+          {/* Merchant Info */}
           <div className="text-center text-sm text-muted-foreground">
-            Sold by <span className="font-medium">{order.vendor}</span>
+            Sold by <span className="font-medium">{order.merchant}</span>
           </div>
         </div>
       </DialogContent>

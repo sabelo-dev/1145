@@ -133,7 +133,7 @@ const generateEmailHtml = (
         ${dateInfo}
         
         <div style="margin-top: 30px; text-align: center;">
-          <a href="${Deno.env.get("SITE_URL") || "https://1145.io"}${isWinnerNotification ? "/dashboard" : "/vendor/dashboard"}" 
+          <a href="${Deno.env.get("SITE_URL") || "https://1145.io"}${isWinnerNotification ? "/dashboard" : "/merchant/dashboard"}" 
              style="display: inline-block; background-color: ${statusDetails.color}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600;">
             ${isWinnerNotification ? "Complete Purchase" : "View Dashboard"}
           </a>

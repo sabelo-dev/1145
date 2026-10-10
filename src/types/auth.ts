@@ -16,7 +16,7 @@ export const registerSchema = z
         "Password must include uppercase, lowercase, and a number"
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
-    role: z.enum(["consumer", "vendor"], {
+    role: z.enum(["consumer", "merchant"], {
       required_error: "Please select an account type",
     }),
     terms: z.boolean().refine((val) => val, {

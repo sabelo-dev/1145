@@ -244,7 +244,7 @@ ORDER BY created_at DESC;
 ## 4. Subscription Upgrade Flow
 
 ### Test Case 4.1: Open Plan Selection Modal
-- **Setup**: Merchant/vendor dashboard
+- **Setup**: Merchant dashboard
 - **Steps**:
   1. Navigate to Subscription page
   2. Click "Upgrade Plan" or similar CTA
@@ -311,7 +311,7 @@ ORDER BY created_at DESC;
 ```sql
 -- Verify subscription upgrade
 SELECT id, subscription_tier, subscription_next_billing_date, subscription_auto_renew, updated_at
-FROM vendors 
+FROM merchants 
 WHERE user_id = 'USER_ID' 
 ORDER BY updated_at DESC LIMIT 1;
 ```

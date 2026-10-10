@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ redirectPath?: string }>;
-  register: (email: string, password: string, name: string, role?: 'consumer' | 'vendor' | 'driver' | 'influencer' | 'restaurateur') => Promise<{ redirectPath?: string }>;
+  register: (email: string, password: string, name: string, role?: 'consumer' | 'merchant' | 'driver' | 'influencer' | 'restaurateur') => Promise<{ redirectPath?: string }>;
   logout: () => Promise<void>;
   isMerchant: boolean;
   isAdmin: boolean;
@@ -45,15 +45,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (userRole === 'admin') return '/admin/dashboard';
     if (isInfluencerUser) return '/influencer/dashboard';
     if (isDriverUser) return '/driver/dashboard';
-    if (userRole === 'vendor' || isMerchantApproved) {
+    if (userRole === 'merchant' || isMerchantApproved) {
       if (!isLogin) return '/login';
       // Check onboarding status
-      const { data: vendor } = await supabase
-        .from('vendors')
+      const { data: merchant } = await supabase
+        .from('merchants')
         .select('onboarding_status')
         .eq('user_id', userId)
         .maybeSingle();
-      if (vendor && vendor.onboarding_status !== 'ACTIVE') {
+      if (merchant && merchant.onboarding_status !== 'ACTIVE') {
         return '/merchant/onboarding';
       }
       return '/merchant/dashboard';
@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const checkMerchantStatus = async (userId: string): Promise<boolean> => {
     try {
       const { data: merchant } = await supabase
-        .from('vendors')
+        .from('merchants')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle();
@@ -107,8 +107,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // Kept on the account itself (not a database role): eateries belong to whoever registers them.
-    setIsRestaurateur(session.user.user_metadata?.joining_as === 'restaurateur');
+    // Set from the sign-up choice straight away; the restaurateur role is added once roles load.
+    const joinedAsRestaurateur = session.user.user_metadata?.joining_as === 'restaurateur';
+    setIsRestaurateur(joinedAsRestaurateur);
 
     try {
       const [profileResult, rolesResult] = await Promise.all([
@@ -133,13 +134,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           checkDriverStatus(profile.id)
         ]);
         
-        let primaryRole: 'admin' | 'vendor' | 'consumer' = 'consumer';
+        let primaryRole: 'admin' | 'merchant' | 'consumer' = 'consumer';
         if (userRoles.includes('admin')) {
           primaryRole = 'admin';
         } else if (driverStatus || userRoles.includes('driver')) {
           primaryRole = 'consumer';
-        } else if (merchantStatus || userRoles.includes('vendor')) {
-          primaryRole = 'vendor';
+        } else if (merchantStatus || userRoles.includes('merchant')) {
+          primaryRole = 'merchant';
         }
         
         const userData: User = {
@@ -156,7 +157,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         setIsAdmin(userRoles.includes('admin'));
         setIsInfluencer(userRoles.includes('influencer'));
-        setIsMerchant(merchantStatus || userRoles.includes('vendor'));
+        setIsRestaurateur(joinedAsRestaurateur || userRoles.includes('restaurateur'));
+        setIsMerchant(merchantStatus || userRoles.includes('merchant'));
         setIsDriver(driverStatus || userRoles.includes('driver'));
         
         console.log('User profile loaded:', { userId: profile.id, role: primaryRole });
@@ -324,12 +326,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userRoles = rolesResult.data?.map(r => r.role) || [];
         const isInfluencerUser = userRoles.includes('influencer');
         const isDriverUser = driverResult || userRoles.includes('driver');
-        const isMerchantUser = merchantResult || userRoles.includes('vendor');
+        const isMerchantUser = merchantResult || userRoles.includes('merchant');
         const userRole = userRoles.includes('admin') ? 'admin' :
-                        isMerchantUser ? 'vendor' : 'consumer';
+                        isMerchantUser ? 'merchant' : 'consumer';
         let redirectPath = await getRedirectPathForRole(userRole, isMerchantUser, isDriverUser, isInfluencerUser, data.user.id, true);
         // Someone who signed up to run an eatery lands on its dashboard (unless a role dashboard takes priority).
-        if (userRole === 'consumer' && !isDriverUser && !isInfluencerUser && data.user.user_metadata?.joining_as === 'restaurateur') {
+        if (userRole === 'consumer' && !isDriverUser && !isInfluencerUser && (userRoles.includes('restaurateur') || data.user.user_metadata?.joining_as === 'restaurateur')) {
           redirectPath = '/eatery/dashboard';
         }
         
@@ -357,7 +359,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: 'consumer' | 'vendor' | 'driver' | 'influencer' | 'restaurateur' = 'consumer'): Promise<{ redirectPath?: string }> => {
+  const register = async (email: string, password: string, name: string, role: 'consumer' | 'merchant' | 'driver' | 'influencer' | 'restaurateur' = 'consumer'): Promise<{ redirectPath?: string }> => {
     loadingManager.startLoading('register');
     
     try {
@@ -370,8 +372,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailRedirectTo: getAppUrl("/"),
           data: {
             name: name,
-            // Eateries belong to an ordinary account (ownership, not a database role),
-            // so a restaurateur signs up as a consumer and is remembered by `joining_as`.
+            // A restaurateur signs up as a consumer with `joining_as`; the database grants
+            // the restaurateur role from that.
             role: role === 'restaurateur' ? 'consumer' : role,
             ...(role === 'restaurateur' ? { joining_as: 'restaurateur' } : {})
           }

@@ -139,7 +139,7 @@ const ConsumerDashboard: React.FC = () => {
       id: "messages",
       title: "Messages",
       icon: MessageCircle,
-      description: "Communicate with vendor/support"
+      description: "Communicate with merchant/support"
     },
     {
       id: "wallet",

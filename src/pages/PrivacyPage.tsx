@@ -71,7 +71,7 @@ const PrivacyPage: React.FC = () => {
                   <li>• Cookies and similar tracking technologies</li>
                 </ul>
 
-                <h4 className="font-semibold mt-6">Vendor Information</h4>
+                <h4 className="font-semibold mt-6">Merchant Information</h4>
                 <ul className="space-y-2 text-gray-700">
                   <li>• Business registration details</li>
                   <li>• Tax and banking information</li>
@@ -129,7 +129,7 @@ const PrivacyPage: React.FC = () => {
                 <h4 className="font-semibold">We Share Information With:</h4>
                 <ul className="space-y-2 text-gray-700">
                   <li>
-                    • <strong>Vendors:</strong> Order details for fulfillment
+                    • <strong>Merchants:</strong> Order details for fulfillment
                   </li>
                   <li>
                     • <strong>Payment Processors:</strong> Secure payment processing

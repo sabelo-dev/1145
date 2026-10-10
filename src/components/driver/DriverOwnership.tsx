@@ -41,7 +41,7 @@ interface DriverOwnershipProps {
     type: 'brand_stake' | 'vehicle_savings' | 'storefront_fund',
     amount: number,
     ucoinAmount?: number,
-    targetVendorId?: string
+    targetMerchantId?: string
   ) => Promise<boolean>;
   onContributeToVehicleFund: (amount: number, ucoinAmount?: number) => Promise<boolean>;
 }
@@ -382,7 +382,7 @@ const DriverOwnership: React.FC<DriverOwnershipProps> = ({
             <div className="flex-1">
               <h3 className="font-semibold text-lg">Open Your Own Store</h3>
               <p className="text-sm text-muted-foreground">
-                Use your earnings and investments to become a vendor and open your own storefront
+                Use your earnings and investments to become a merchant and open your own storefront
               </p>
             </div>
             <Button variant="outline" className="border-purple-500/50">

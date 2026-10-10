@@ -24,7 +24,7 @@ export interface Message {
   id: string;
   conversation_id: string;
   sender_id: string;
-  sender_type: 'customer' | 'vendor' | 'admin';
+  sender_type: 'customer' | 'merchant' | 'admin';
   content: string;
   read: boolean;
   created_at: string;
@@ -33,7 +33,7 @@ export interface Message {
   isFromMe: boolean;
 }
 
-export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
+export function useMessages(userType: 'consumer' | 'merchant' = 'consumer') {
   const { user } = useAuth();
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -59,14 +59,14 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
       if (userType === 'consumer') {
         query = query.eq('customer_id', user.id);
       } else {
-        // For vendors, get their store IDs first
-        const { data: vendor } = await supabase
-          .from('vendors')
+        // For merchants, get their store IDs first
+        const { data: merchant } = await supabase
+          .from('merchants')
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (!vendor) {
+        if (!merchant) {
           setConversations([]);
           return;
         }
@@ -74,7 +74,7 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
         const { data: stores } = await supabase
           .from('stores')
           .select('id')
-          .eq('vendor_id', vendor.id);
+          .eq('merchant_id', merchant.id);
 
         if (!stores || stores.length === 0) {
           setConversations([]);
@@ -104,7 +104,7 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
             .select('*', { count: 'exact', head: true })
             .eq('conversation_id', conv.id)
             .eq('read', false)
-            .neq('sender_type', userType === 'consumer' ? 'customer' : 'vendor');
+            .neq('sender_type', userType === 'consumer' ? 'customer' : 'merchant');
 
           // Get last message
           const { data: lastMsg } = await supabase
@@ -155,7 +155,7 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
         (data || []).map(async (msg) => {
           const isFromMe = 
             (userType === 'consumer' && msg.sender_type === 'customer') ||
-            (userType === 'vendor' && msg.sender_type === 'vendor');
+            (userType === 'merchant' && msg.sender_type === 'merchant');
 
           let senderName = 'Unknown';
           
@@ -183,7 +183,7 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
       setMessages(enrichedMessages);
 
       // Mark messages as read
-      const senderTypeToMark = userType === 'consumer' ? 'vendor' : 'customer';
+      const senderTypeToMark = userType === 'consumer' ? 'merchant' : 'customer';
       await supabase
         .from('messages')
         .update({ read: true })
@@ -216,7 +216,7 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
         .insert([{
           conversation_id: selectedConversationId,
           sender_id: user.id,
-          sender_type: userType === 'consumer' ? 'customer' : 'vendor',
+          sender_type: userType === 'consumer' ? 'customer' : 'merchant',
           content: content.trim(),
           read: false,
         }]);
@@ -313,7 +313,7 @@ export function useMessages(userType: 'consumer' | 'vendor' = 'consumer') {
               // Only process if not from current user
               const isFromMe = 
                 (userType === 'consumer' && newMsg.sender_type === 'customer') ||
-                (userType === 'vendor' && newMsg.sender_type === 'vendor');
+                (userType === 'merchant' && newMsg.sender_type === 'merchant');
 
               let senderName = 'Unknown';
               if (isFromMe) {

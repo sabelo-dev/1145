@@ -105,8 +105,8 @@ const ShopPage: React.FC = () => {
     loadData();
   }, []);
 
-  // Extract all vendors/brands from products
-  const allBrands = Array.from(new Set(products.map((p) => p.vendorName)));
+  // Extract all merchants/brands from products
+  const allBrands = Array.from(new Set(products.map((p) => p.merchantName)));
 
   // Filter products based on selected filters
   const filteredProducts = products.filter((product) => {
@@ -126,14 +126,14 @@ const ShopPage: React.FC = () => {
     }
 
     // Filter by brands
-    if (selectedBrands.length > 0 && !selectedBrands.includes(product.vendorName)) {
+    if (selectedBrands.length > 0 && !selectedBrands.includes(product.merchantName)) {
       return false;
     }
 
     // Filter by search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const haystack = `${product.name} ${product.vendorName ?? ""} ${product.category ?? ""} ${product.description ?? ""}`.toLowerCase();
+      const haystack = `${product.name} ${product.merchantName ?? ""} ${product.category ?? ""} ${product.description ?? ""}`.toLowerCase();
       if (!haystack.includes(q)) return false;
     }
 
@@ -149,7 +149,7 @@ const ShopPage: React.FC = () => {
     for (const p of products) {
       const name = p.name.toLowerCase();
       if (name.startsWith(q)) starts.push(p);
-      else if (name.includes(q) || (p.vendorName ?? "").toLowerCase().includes(q)) contains.push(p);
+      else if (name.includes(q) || (p.merchantName ?? "").toLowerCase().includes(q)) contains.push(p);
       if (starts.length + contains.length >= 20) break;
     }
     return [...starts, ...contains].slice(0, 8);
@@ -286,7 +286,7 @@ const ShopPage: React.FC = () => {
                         <div className="min-w-0 flex-1">
                           <div className="truncate font-medium text-foreground">{p.name}</div>
                           <div className="truncate text-xs text-muted-foreground">
-                            {p.vendorName}{p.category ? ` • ${p.category}` : ""}
+                            {p.merchantName}{p.category ? ` • ${p.category}` : ""}
                           </div>
                         </div>
                         <div className="text-sm font-semibold text-foreground shrink-0">

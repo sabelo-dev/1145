@@ -209,11 +209,11 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     })
   );
 
-  // Load ALL categories directly from database (vendor needs to see all categories)
+  // Load ALL categories directly from database (merchant needs to see all categories)
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        console.log('Fetching categories for vendor product form...');
+        console.log('Fetching categories for merchant product form...');
         // Fetch directly from database to ensure we get ALL active categories
         const { data: categoriesData, error } = await supabase
           .from('categories')
@@ -841,29 +841,29 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       // Validate form data
       const validatedData = productSchema.parse(formData);
 
-      // Get vendor's store and info
-      const { data: vendorData, error: vendorError } = await supabase
-        .from('vendors')
+      // Get merchant's store and info
+      const { data: merchantData, error: merchantError } = await supabase
+        .from('merchants')
         .select('id, business_name, custom_markup_percentage, stores(id)')
         .eq('user_id', user?.id)
         .single();
 
-      if (vendorError) {
-        throw new Error("Vendor profile not found. Please complete vendor registration first.");
+      if (merchantError) {
+        throw new Error("Merchant profile not found. Please complete merchant registration first.");
       }
 
-      let storeId = vendorData?.stores?.[0]?.id;
+      let storeId = merchantData?.stores?.[0]?.id;
 
       // If no store exists, create one automatically
       if (!storeId) {
-        const storeName = vendorData.business_name || 'My Store';
+        const storeName = merchantData.business_name || 'My Store';
         const baseSlug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         const uniqueSlug = `${baseSlug}-${Date.now()}`;
 
         const { data: newStore, error: storeError } = await supabase
           .from('stores')
           .insert({
-            vendor_id: vendorData.id,
+            merchant_id: merchantData.id,
             name: storeName,
             slug: uniqueSlug,
             description: `Welcome to ${storeName}`,
@@ -884,7 +884,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       }
 
       if (mode === "add") {
-        // Create new product with vendor tracking
+        // Create new product with merchant tracking
         const { data: newProduct, error: productError } = await supabase
           .from('products')
           .insert({
@@ -892,8 +892,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             name: validatedData.name,
             slug: validatedData.name.toLowerCase().replace(/\s+/g, '-'),
             description: validatedData.description,
-            price: applyPlatformMarkup(validatedData.price, vendorData.custom_markup_percentage),
-            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice, vendorData.custom_markup_percentage) : undefined,
+            price: applyPlatformMarkup(validatedData.price, merchantData.custom_markup_percentage),
+            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice, merchantData.custom_markup_percentage) : undefined,
             sku: validatedData.sku,
             quantity: validatedData.quantity,
             category: validatedData.category,
@@ -927,7 +927,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             terms_and_conditions: leaseParams.termsAndConditions,
             purchase_price: validatedData.price,
             is_purchasable: validatedData.listingType === 'both',
-            provider_id: vendorData.id,
+            provider_id: merchantData.id,
           });
         }
 
@@ -935,7 +935,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         const tasks = [uploadImages(newProduct.id)];
         
         if (validatedData.productType === 'variable') {
-          tasks.push(saveVariations(newProduct.id, vendorData.custom_markup_percentage));
+          tasks.push(saveVariations(newProduct.id, merchantData.custom_markup_percentage));
         }
         
         if (validatedData.productType === 'downloadable') {
@@ -946,7 +946,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
         toast({
           title: "Product Created",
-          description: `Your product has been created by ${vendorData.business_name} and is pending approval.`,
+          description: `Your product has been created by ${merchantData.business_name} and is pending approval.`,
         });
       } else {
         // Update existing product
@@ -956,8 +956,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             name: validatedData.name,
             slug: validatedData.name.toLowerCase().replace(/\s+/g, '-'),
             description: validatedData.description,
-            price: applyPlatformMarkup(validatedData.price, vendorData.custom_markup_percentage),
-            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice, vendorData.custom_markup_percentage) : undefined,
+            price: applyPlatformMarkup(validatedData.price, merchantData.custom_markup_percentage),
+            compare_at_price: validatedData.compareAtPrice ? applyPlatformMarkup(validatedData.compareAtPrice, merchantData.custom_markup_percentage) : undefined,
             sku: validatedData.sku,
             quantity: validatedData.quantity,
             category: validatedData.category,
@@ -972,7 +972,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         const tasks = [uploadImages(product.id)];
         
         if (validatedData.productType === 'variable') {
-          tasks.push(saveVariations(product.id, vendorData.custom_markup_percentage));
+          tasks.push(saveVariations(product.id, merchantData.custom_markup_percentage));
         }
         
         if (validatedData.productType === 'downloadable') {

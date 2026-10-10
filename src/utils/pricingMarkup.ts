@@ -1,15 +1,15 @@
 /**
  * Platform pricing markup configuration.
- * All merchant/vendor product prices are automatically marked up
+ * All merchant product prices are automatically marked up
  * by this percentage before being stored in the database.
- * Individual vendors may have a custom override set by admin.
+ * Individual merchants may have a custom override set by admin.
  */
 export const DEFAULT_PLATFORM_MARKUP_PERCENTAGE = 5;
 
 /**
  * Applies the platform markup to a merchant-set price.
- * @param merchantPrice - The price set by the merchant/vendor
- * @param customMarkupPercentage - Optional per-vendor override. null/undefined = use default.
+ * @param merchantPrice - The price set by the merchant
+ * @param customMarkupPercentage - Optional per-merchant override. null/undefined = use default.
  * @returns The price with platform markup applied, rounded to 2 decimal places
  */
 export const applyPlatformMarkup = (

@@ -60,7 +60,7 @@ interface Order {
   status: string;
   total: number;
   items: number;
-  vendor: string;
+  merchant: string;
   trackingNumber: string | null;
   products: OrderProduct[];
   shipping_address?: any;
@@ -192,7 +192,7 @@ const ConsumerOrders: React.FC = () => {
           };
         });
 
-        const vendor = items[0]?.stores?.name || "Unknown Vendor";
+        const merchant = items[0]?.stores?.name || "Unknown Merchant";
 
         return {
           id: order.id,
@@ -200,7 +200,7 @@ const ConsumerOrders: React.FC = () => {
           status: order.status,
           total: Number(order.total),
           items: products.length,
-          vendor,
+          merchant,
           trackingNumber: order.tracking_number,
           products,
           shipping_address: order.shipping_address,
@@ -235,7 +235,7 @@ const ConsumerOrders: React.FC = () => {
       const matchesSearch =
         searchQuery === "" ||
         order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.merchant.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.products.some((p) =>
           p.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
@@ -318,13 +318,13 @@ const ConsumerOrders: React.FC = () => {
       return;
     }
 
-    const headers = ["Order ID", "Date", "Status", "Vendor", "Items", "Products", "Total (R)"];
+    const headers = ["Order ID", "Date", "Status", "Merchant", "Items", "Products", "Total (R)"];
     
     const rows = dataToExport.map((order) => [
       order.id.slice(0, 8).toUpperCase(),
       format(new Date(order.date), "yyyy-MM-dd"),
       order.status.replace(/_/g, " "),
-      order.vendor,
+      order.merchant,
       order.items.toString(),
       order.products.map((p) => `${p.name} x${p.quantity}`).join("; "),
       order.total.toFixed(2),
@@ -389,14 +389,14 @@ const ConsumerOrders: React.FC = () => {
       order.id.slice(0, 8).toUpperCase(),
       format(new Date(order.date), "dd MMM yyyy"),
       order.status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
-      order.vendor.length > 20 ? order.vendor.slice(0, 20) + "..." : order.vendor,
+      order.merchant.length > 20 ? order.merchant.slice(0, 20) + "..." : order.merchant,
       order.items.toString(),
       `R${order.total.toFixed(2)}`,
     ]);
 
     autoTable(doc, {
       startY: 50,
-      head: [["Order ID", "Date", "Status", "Vendor", "Items", "Total"]],
+      head: [["Order ID", "Date", "Status", "Merchant", "Items", "Total"]],
       body: tableData,
       theme: "striped",
       headStyles: {
@@ -711,7 +711,7 @@ const ConsumerOrders: React.FC = () => {
                           <span>{formatDistanceToNow(new Date(order.date), { addSuffix: true })}</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          from <span className="font-medium text-foreground">{order.vendor}</span>
+                          from <span className="font-medium text-foreground">{order.merchant}</span>
                         </p>
                       </div>
                       <div className="text-right">

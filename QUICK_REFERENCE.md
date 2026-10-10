@@ -161,7 +161,7 @@ ORDER BY created_at DESC;
 ```sql
 -- Check tier changes
 SELECT user_id, subscription_tier, updated_at 
-FROM vendors 
+FROM merchants 
 ORDER BY updated_at DESC LIMIT 10;
 ```
 

@@ -30,7 +30,7 @@ const categoryLabels: Record<string, string> = {
   ad_boost_premium: 'Premium Ad Boost',
   priority_listing: 'Priority Listing',
   cashout_driver: 'Cash Out',
-  cashout_vendor: 'Cash Out'
+  cashout_merchant: 'Cash Out'
 };
 
 export function UCoinTransactionList({ transactions, isLoading }: UCoinTransactionListProps) {

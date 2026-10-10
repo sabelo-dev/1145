@@ -143,13 +143,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
 
       {/* Info */}
       <div className="flex flex-1 flex-col gap-1.5 p-3 md:p-4">
-        {product.vendorName && product.vendorSlug ? (
+        {product.merchantName && product.merchantSlug ? (
           <button
             type="button"
-            onClick={(e) => { e.preventDefault(); navigate(`/store/${product.vendorSlug}`); }}
+            onClick={(e) => { e.preventDefault(); navigate(`/store/${product.merchantSlug}`); }}
             className="relative z-10 min-h-0 w-fit max-w-full truncate py-1 text-left text-xs font-medium text-text-secondary hover:text-foreground hover:underline"
           >
-            {product.vendorName}
+            {product.merchantName}
           </button>
         ) : (
           <span className="text-xs font-medium text-text-secondary">{product.category}</span>

@@ -12,7 +12,7 @@ const HomeHero: React.FC = () => {
         <div className="max-w-3xl mx-auto text-center space-y-4">
           <h1 className="text-2xl md:text-4xl font-bold text-foreground leading-tight">
             Discover Quality Products from
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> Trusted Vendors</span>
+            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> Trusted Merchants</span>
           </h1>
           
           <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto">

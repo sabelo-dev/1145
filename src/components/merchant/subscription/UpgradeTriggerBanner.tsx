@@ -11,7 +11,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { UpgradeTrigger } from '@/hooks/useVendorSubscription';
+import type { UpgradeTrigger } from '@/hooks/useMerchantSubscription';
 
 interface UpgradeTriggerBannerProps {
   triggers: UpgradeTrigger[];

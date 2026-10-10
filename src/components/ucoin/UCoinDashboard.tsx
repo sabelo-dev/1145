@@ -17,7 +17,7 @@ export function UCoinDashboard() {
   const { wallet, transactions, earningRules, spendingOptions, isLoading, spendUCoin } = useUCoin();
   const { limits, transfers, isTransferring, transfer, isLoading: transferLoading } = useUCoinTransfer();
 
-  const userType = isDriver ? 'driver' : isMerchant ? 'vendor' : 'consumer';
+  const userType = isDriver ? 'driver' : isMerchant ? 'merchant' : 'consumer';
 
   if (!user) {
     return (

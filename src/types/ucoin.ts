@@ -132,7 +132,7 @@ export type SpendingCategory =
   | 'ad_boost_premium'
   | 'priority_listing'
   | 'cashout_driver'
-  | 'cashout_vendor'
+  | 'cashout_merchant'
   | 'p2p_transfer_sent';
 
 // Display mode types

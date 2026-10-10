@@ -17,7 +17,7 @@ import {
 interface UCoinRewardsShopProps {
   options: UCoinSpendingOption[];
   balance: number;
-  userType: 'consumer' | 'vendor' | 'driver';
+  userType: 'consumer' | 'merchant' | 'driver';
   onRedeem: (category: string) => Promise<boolean>;
   isLoading?: boolean;
 }
@@ -31,7 +31,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
   ad_boost_premium: <Rocket className="h-5 w-5" />,
   priority_listing: <Rocket className="h-5 w-5" />,
   cashout_driver: <Banknote className="h-5 w-5" />,
-  cashout_vendor: <Banknote className="h-5 w-5" />
+  cashout_merchant: <Banknote className="h-5 w-5" />
 };
 
 export function UCoinRewardsShop({ options, balance, userType, onRedeem, isLoading }: UCoinRewardsShopProps) {

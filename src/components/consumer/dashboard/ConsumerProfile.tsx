@@ -562,20 +562,20 @@ const ConsumerProfile: React.FC = () => {
               <span className="text-sm">January 2024</span>
             </div>
             
-            {/* Become a Vendor */}
+            {/* Become a Merchant */}
             <div className="p-4 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
                 <Store className="h-6 w-6 text-primary" />
                 <div>
-                  <h4 className="font-medium">Become a Vendor</h4>
+                  <h4 className="font-medium">Become a Merchant</h4>
                   <p className="text-sm text-muted-foreground">
                     Start selling your products on our platform
                   </p>
                 </div>
               </div>
-              <Link to="/vendor/register" className="mt-3 inline-block">
+              <Link to="/merchant/register" className="mt-3 inline-block">
                 <Button variant="outline">
-                  Apply to Become a Vendor
+                  Apply to Become a Merchant
                 </Button>
               </Link>
             </div>

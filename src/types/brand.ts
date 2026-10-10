@@ -18,7 +18,7 @@ export interface BrandTier {
 
 export interface BrandPerformance {
   id: string;
-  vendor_id: string;
+  merchant_id: string;
   period_start: string;
   period_end: string;
   total_revenue: number;
@@ -39,7 +39,7 @@ export interface BrandPerformance {
 
 export interface PromoCredits {
   id: string;
-  vendor_id: string;
+  merchant_id: string;
   balance: number;
   lifetime_earned: number;
   lifetime_spent: number;
@@ -50,7 +50,7 @@ export interface PromoCredits {
 
 export interface PromoCreditTransaction {
   id: string;
-  vendor_id: string;
+  merchant_id: string;
   amount: number;
   type: 'earn' | 'spend' | 'expire' | 'bonus';
   category: string;
@@ -61,7 +61,7 @@ export interface PromoCreditTransaction {
 
 export interface SponsoredPlacement {
   id: string;
-  vendor_id: string;
+  merchant_id: string;
   store_id: string | null;
   product_id: string | null;
   placement_type: 'homepage_featured' | 'category_top' | 'search_boost' | 'banner';
@@ -77,7 +77,7 @@ export interface SponsoredPlacement {
 
 export interface AutoCampaign {
   id: string;
-  vendor_id: string;
+  merchant_id: string;
   store_id: string | null;
   campaign_type: 'slow_day_boost' | 'weekend_special' | 'weather_based' | 'inventory_clear';
   trigger_conditions: {
@@ -104,7 +104,7 @@ export interface BrandBundle {
   id: string;
   name: string;
   description: string | null;
-  created_by_vendor_id: string;
+  created_by_merchant_id: string;
   bundle_discount: number;
   status: 'draft' | 'pending' | 'active' | 'expired';
   start_date: string | null;
@@ -117,7 +117,7 @@ export interface BrandBundle {
 export interface BrandBundleProduct {
   id: string;
   bundle_id: string;
-  vendor_id: string;
+  merchant_id: string;
   product_id: string;
   contribution_discount: number;
   status: 'pending' | 'accepted' | 'declined';
@@ -128,7 +128,7 @@ export interface BrandBundleProduct {
     price: number;
     store_id: string;
   };
-  vendor?: {
+  merchant?: {
     id: string;
     business_name: string;
   };
@@ -136,8 +136,8 @@ export interface BrandBundleProduct {
 
 export interface CrossPromotion {
   id: string;
-  initiator_vendor_id: string;
-  partner_vendor_id: string;
+  initiator_merchant_id: string;
+  partner_merchant_id: string;
   promo_type: 'cross_display' | 'shared_discount' | 'co_campaign';
   terms: {
     discount_split?: number;
@@ -151,12 +151,12 @@ export interface CrossPromotion {
   partner_products: string[];
   created_at: string;
   updated_at: string;
-  initiator_vendor?: {
+  initiator_merchant?: {
     id: string;
     business_name: string;
     logo_url: string | null;
   };
-  partner_vendor?: {
+  partner_merchant?: {
     id: string;
     business_name: string;
     logo_url: string | null;
@@ -165,7 +165,7 @@ export interface CrossPromotion {
 
 export interface BrandImprovementTip {
   id: string;
-  vendor_id: string;
+  merchant_id: string;
   tip_type: 'pricing' | 'inventory' | 'marketing' | 'fulfillment' | 'customer_service';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   title: string;

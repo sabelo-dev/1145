@@ -506,7 +506,7 @@ newsletter_subscribers (
 - `affiliate_tiers` - Multiplier configurations
 - `social_accounts` - Connected platforms
 - `payment_cards` (fintech backend) - Card data
-- `vendors` - Subscription tier tracking
+- `merchants` - Subscription tier tracking
 
 ---
 
@@ -647,7 +647,7 @@ newsletter_subscribers (
 
 #### Subscription not updating
 1. Verify payment processing completed
-2. Check vendor record was updated
+2. Check merchant record was updated
 3. Verify user is authorized merchant
 4. Check for any pending payment status
 

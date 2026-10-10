@@ -2,7 +2,7 @@ export interface ConsumerPreferences {
   id: string;
   user_id: string;
   preferred_categories: string[];
-  preferred_vendors: string[];
+  preferred_merchants: string[];
   default_location: {
     latitude?: number;
     longitude?: number;

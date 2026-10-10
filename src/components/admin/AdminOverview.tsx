@@ -102,9 +102,9 @@ const AdminOverview: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [kpiData, setKpiData] = useState({
     // Current values
-    totalVendors: 0,
-    activeVendors: 0,
-    pendingVendors: 0,
+    totalMerchants: 0,
+    activeMerchants: 0,
+    pendingMerchants: 0,
     totalSales: 0,
     todaySales: 0,
     yesterdaySales: 0,
@@ -122,13 +122,13 @@ const AdminOverview: React.FC = () => {
     commissionThisMonth: 0,
     commissionLastMonth: 0,
     // Signups
-    newVendorsThisWeek: 0,
-    newVendorsLastWeek: 0,
+    newMerchantsThisWeek: 0,
+    newMerchantsLastWeek: 0,
     newCustomersThisWeek: 0,
     newCustomersLastWeek: 0,
-    // Vendors
-    newVendorsThisMonth: 0,
-    newVendorsLastMonth: 0,
+    // Merchants
+    newMerchantsThisMonth: 0,
+    newMerchantsLastMonth: 0,
     // Reviews
     totalReviews: 0,
     flaggedProducts: 0,
@@ -150,35 +150,35 @@ const AdminOverview: React.FC = () => {
 
         // Fetch all data in parallel
         const [
-          { data: vendors },
+          { data: merchants },
           { data: orders },
           { data: products },
           { data: profiles },
           { data: reviews },
         ] = await Promise.all([
-          supabase.from('vendors').select('*'),
+          supabase.from('merchants').select('*'),
           supabase.from('orders').select('*'),
           supabase.from('products').select('*'),
           supabase.from('profiles').select('id, role, created_at'),
           supabase.from('reviews').select('id'),
         ]);
 
-        // Vendor calculations
-        const totalVendors = vendors?.length || 0;
-        const activeVendors = vendors?.filter(v => v.status === 'approved').length || 0;
-        const pendingVendors = vendors?.filter(v => v.status === 'pending').length || 0;
+        // Merchant calculations
+        const totalMerchants = merchants?.length || 0;
+        const activeMerchants = merchants?.filter(v => v.status === 'approved').length || 0;
+        const pendingMerchants = merchants?.filter(v => v.status === 'pending').length || 0;
         
-        const newVendorsThisMonth = vendors?.filter(v => 
+        const newMerchantsThisMonth = merchants?.filter(v => 
           new Date(v.created_at) >= thisMonthStart
         ).length || 0;
-        const newVendorsLastMonth = vendors?.filter(v => 
+        const newMerchantsLastMonth = merchants?.filter(v => 
           new Date(v.created_at) >= lastMonthStart && new Date(v.created_at) <= lastMonthEnd
         ).length || 0;
 
-        const newVendorsThisWeek = vendors?.filter(v => 
+        const newMerchantsThisWeek = merchants?.filter(v => 
           new Date(v.created_at) >= thisWeekStart
         ).length || 0;
-        const newVendorsLastWeek = vendors?.filter(v => 
+        const newMerchantsLastWeek = merchants?.filter(v => 
           new Date(v.created_at) >= lastWeekStart && new Date(v.created_at) < thisWeekStart
         ).length || 0;
 
@@ -239,9 +239,9 @@ const AdminOverview: React.FC = () => {
 
         // Recent activities
         const activities = [
-          ...vendors?.filter(v => v.status === 'pending').slice(0, 2).map(v => ({
-            type: 'vendor_application',
-            title: 'New vendor application',
+          ...merchants?.filter(v => v.status === 'pending').slice(0, 2).map(v => ({
+            type: 'merchant_application',
+            title: 'New merchant application',
             description: v.business_name,
             status: 'Pending',
             variant: 'outline' as const
@@ -265,9 +265,9 @@ const AdminOverview: React.FC = () => {
         ];
 
         setKpiData({
-          totalVendors,
-          activeVendors,
-          pendingVendors,
+          totalMerchants,
+          activeMerchants,
+          pendingMerchants,
           totalSales,
           todaySales,
           yesterdaySales,
@@ -284,12 +284,12 @@ const AdminOverview: React.FC = () => {
           commissionYesterday,
           commissionThisMonth,
           commissionLastMonth,
-          newVendorsThisWeek,
-          newVendorsLastWeek,
+          newMerchantsThisWeek,
+          newMerchantsLastWeek,
           newCustomersThisWeek,
           newCustomersLastWeek,
-          newVendorsThisMonth,
-          newVendorsLastMonth,
+          newMerchantsThisMonth,
+          newMerchantsLastMonth,
           totalReviews: reviews?.length || 0,
           flaggedProducts,
         });
@@ -312,13 +312,13 @@ const AdminOverview: React.FC = () => {
   }, [toast]);
 
   // Calculate all percentage changes
-  const vendorGrowth = calcPercentChange(kpiData.newVendorsThisMonth, kpiData.newVendorsLastMonth);
+  const merchantGrowth = calcPercentChange(kpiData.newMerchantsThisMonth, kpiData.newMerchantsLastMonth);
   const salesGrowth = calcPercentChange(kpiData.thisMonthSales, kpiData.lastMonthSales);
   const todayVsYesterday = calcPercentChange(kpiData.todaySales, kpiData.yesterdaySales);
   const commissionVsYesterday = calcPercentChange(kpiData.commissionToday, kpiData.commissionYesterday);
   const signupsGrowth = calcPercentChange(
-    kpiData.newVendorsThisWeek + kpiData.newCustomersThisWeek,
-    kpiData.newVendorsLastWeek + kpiData.newCustomersLastWeek
+    kpiData.newMerchantsThisWeek + kpiData.newCustomersThisWeek,
+    kpiData.newMerchantsLastWeek + kpiData.newCustomersLastWeek
   );
 
   // Calculate fulfillment rate
@@ -367,13 +367,13 @@ const AdminOverview: React.FC = () => {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <KPICard
-          title="Total Vendors"
-          value={kpiData.totalVendors}
-          description={`${kpiData.activeVendors} active, ${kpiData.pendingVendors} pending`}
+          title="Total Merchants"
+          value={kpiData.totalMerchants}
+          description={`${kpiData.activeMerchants} active, ${kpiData.pendingMerchants} pending`}
           icon={Store}
-          trend={`${kpiData.newVendorsThisMonth > 0 ? '+' : ''}${kpiData.newVendorsThisMonth} this month`}
-          trendValue={kpiData.newVendorsThisMonth}
-          trendColor={kpiData.newVendorsThisMonth > 0 ? "green" : "neutral"}
+          trend={`${kpiData.newMerchantsThisMonth > 0 ? '+' : ''}${kpiData.newMerchantsThisMonth} this month`}
+          trendValue={kpiData.newMerchantsThisMonth}
+          trendColor={kpiData.newMerchantsThisMonth > 0 ? "green" : "neutral"}
         />
         
         <KPICard
@@ -440,8 +440,8 @@ const AdminOverview: React.FC = () => {
         
         <KPICard
           title="New Signups (Week)"
-          value={kpiData.newVendorsThisWeek + kpiData.newCustomersThisWeek}
-          description={`${kpiData.newVendorsThisWeek} vendors, ${kpiData.newCustomersThisWeek} customers`}
+          value={kpiData.newMerchantsThisWeek + kpiData.newCustomersThisWeek}
+          description={`${kpiData.newMerchantsThisWeek} merchants, ${kpiData.newCustomersThisWeek} customers`}
           icon={UserCheck}
           trend={`${signupsGrowth.formatted} vs last week`}
           trendValue={signupsGrowth.value}
@@ -482,10 +482,10 @@ const AdminOverview: React.FC = () => {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-2 rounded bg-muted/50">
-                <span className="text-sm">Active vendor rate</span>
+                <span className="text-sm">Active merchant rate</span>
                 <Badge variant="outline">
-                  {kpiData.totalVendors > 0 
-                    ? `${((kpiData.activeVendors / kpiData.totalVendors) * 100).toFixed(1)}%` 
+                  {kpiData.totalMerchants > 0 
+                    ? `${((kpiData.activeMerchants / kpiData.totalMerchants) * 100).toFixed(1)}%` 
                     : '0%'}
                 </Badge>
               </div>
@@ -502,9 +502,9 @@ const AdminOverview: React.FC = () => {
                 <Badge variant="outline">{kpiData.totalReviews}</Badge>
               </div>
               <div className="flex items-center justify-between p-2 rounded bg-muted/50">
-                <span className="text-sm">Pending vendors to review</span>
-                <Badge variant={kpiData.pendingVendors > 0 ? "destructive" : "outline"}>
-                  {kpiData.pendingVendors}
+                <span className="text-sm">Pending merchants to review</span>
+                <Badge variant={kpiData.pendingMerchants > 0 ? "destructive" : "outline"}>
+                  {kpiData.pendingMerchants}
                 </Badge>
               </div>
             </div>

@@ -91,7 +91,7 @@ export const NewMessageDialog: React.FC<NewMessageDialogProps> = ({
         .insert([{
           conversation_id: conversation.id,
           sender_id: user.id,
-          sender_type: 'vendor',
+          sender_type: 'merchant',
           content: formData.message,
           read: false
         }]);

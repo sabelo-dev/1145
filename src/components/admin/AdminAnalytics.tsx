@@ -61,12 +61,12 @@ const AdminAnalytics: React.FC = () => {
     },
   });
 
-  // Fetch vendors data
-  const { data: vendors, isLoading: vendorsLoading } = useQuery({
-    queryKey: ["admin-vendors-analytics"],
+  // Fetch merchants data
+  const { data: merchants, isLoading: merchantsLoading } = useQuery({
+    queryKey: ["admin-merchants-analytics"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("vendors")
+        .from("merchants")
         .select(`
           *,
           stores(
@@ -89,7 +89,7 @@ const AdminAnalytics: React.FC = () => {
         .from("products")
         .select(`
           *,
-          stores(name, vendors(business_name)),
+          stores(name, merchants(business_name)),
           order_items(quantity, price)
         `)
         .eq("status", "approved")
@@ -111,7 +111,7 @@ const AdminAnalytics: React.FC = () => {
     },
   });
 
-  const isLoading = ordersLoading || vendorsLoading || productsLoading;
+  const isLoading = ordersLoading || merchantsLoading || productsLoading;
 
   // Calculate metrics
   const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
@@ -119,7 +119,7 @@ const AdminAnalytics: React.FC = () => {
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   const handleExport = () => {
-    if (!orders || !vendors || !products) {
+    if (!orders || !merchants || !products) {
       toast({
         title: "Export failed",
         description: "Data is still loading. Please try again.",
@@ -163,24 +163,24 @@ const AdminAnalytics: React.FC = () => {
       doc.text(`Total Registered Users: ${profilesCount || 0}`, 14, yPos);
       yPos += 12;
 
-      // Top Vendors Table
+      // Top Merchants Table
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("Top Performing Vendors", 14, yPos);
+      doc.text("Top Performing Merchants", 14, yPos);
       yPos += 7;
 
-      const vendorTableData = vendorPerformance.slice(0, 10).map((vendor, index) => [
+      const merchantTableData = merchantPerformance.slice(0, 10).map((merchant, index) => [
         `#${index + 1}`,
-        vendor.name,
-        formatCurrency(vendor.revenue),
-        vendor.orders.toString(),
-        vendor.products.toString()
+        merchant.name,
+        formatCurrency(merchant.revenue),
+        merchant.orders.toString(),
+        merchant.products.toString()
       ]);
 
       autoTable(doc, {
         startY: yPos,
-        head: [["Rank", "Vendor", "Revenue", "Orders", "Products"]],
-        body: vendorTableData,
+        head: [["Rank", "Merchant", "Revenue", "Orders", "Products"]],
+        body: merchantTableData,
         theme: "striped",
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
         styles: { fontSize: 9 },
@@ -204,7 +204,7 @@ const AdminAnalytics: React.FC = () => {
       const productTableData = productPerformance.slice(0, 10).map((product, index) => [
         `#${index + 1}`,
         product.name,
-        product.vendor,
+        product.merchant,
         product.category,
         product.sales.toString(),
         formatCurrency(product.revenue)
@@ -212,7 +212,7 @@ const AdminAnalytics: React.FC = () => {
 
       autoTable(doc, {
         startY: yPos,
-        head: [["Rank", "Product", "Vendor", "Category", "Sales", "Revenue"]],
+        head: [["Rank", "Product", "Merchant", "Category", "Sales", "Revenue"]],
         body: productTableData,
         theme: "striped",
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
@@ -268,16 +268,16 @@ const AdminAnalytics: React.FC = () => {
     }
   };
 
-  // Calculate vendor performance
-  const vendorPerformance = vendors?.map(vendor => {
-    const storeOrders = vendor.stores?.flatMap(store => store.orders || []) || [];
+  // Calculate merchant performance
+  const merchantPerformance = merchants?.map(merchant => {
+    const storeOrders = merchant.stores?.flatMap(store => store.orders || []) || [];
     const revenue = storeOrders.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
     const orderIds = new Set(storeOrders.map(item => item.order_id));
-    const productsCount = vendor.stores?.reduce((sum, store) => sum + (store.products?.length || 0), 0) || 0;
+    const productsCount = merchant.stores?.reduce((sum, store) => sum + (store.products?.length || 0), 0) || 0;
 
     return {
-      id: vendor.id,
-      name: vendor.business_name,
+      id: merchant.id,
+      name: merchant.business_name,
       revenue,
       orders: orderIds.size,
       products: productsCount,
@@ -289,12 +289,12 @@ const AdminAnalytics: React.FC = () => {
     const sales = product.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     const revenue = product.order_items?.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0) || 0;
     const storeName = product.stores?.name || "Unknown";
-    const vendorName = product.stores?.vendors?.business_name || "Unknown";
+    const merchantName = product.stores?.merchants?.business_name || "Unknown";
 
     return {
       id: product.id,
       name: product.name,
-      vendor: vendorName,
+      merchant: merchantName,
       store: storeName,
       category: product.category,
       sales,
@@ -407,7 +407,7 @@ const AdminAnalytics: React.FC = () => {
       <Tabs defaultValue="sales" className="space-y-6">
         <TabsList>
           <TabsTrigger value="sales">Sales Trends</TabsTrigger>
-          <TabsTrigger value="vendors">Vendor Performance</TabsTrigger>
+          <TabsTrigger value="merchants">Merchant Performance</TabsTrigger>
           <TabsTrigger value="products">Product Analytics</TabsTrigger>
           <TabsTrigger value="customer">Customer Insights</TabsTrigger>
         </TabsList>
@@ -475,11 +475,11 @@ const AdminAnalytics: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="vendors">
+        <TabsContent value="merchants">
           <Card>
               <CardHeader>
-                <CardTitle>Vendor Performance Ranking</CardTitle>
-                <CardDescription>Top performing vendors by revenue</CardDescription>
+                <CardTitle>Merchant Performance Ranking</CardTitle>
+                <CardDescription>Top performing merchants by revenue</CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -488,26 +488,26 @@ const AdminAnalytics: React.FC = () => {
                   </div>
                 ) : (
                   <Table>
-                    <TableCaption>Vendor performance metrics</TableCaption>
+                    <TableCaption>Merchant performance metrics</TableCaption>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Rank</TableHead>
-                        <TableHead>Vendor</TableHead>
+                        <TableHead>Merchant</TableHead>
                         <TableHead>Revenue</TableHead>
                         <TableHead>Orders</TableHead>
                         <TableHead>Products</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {vendorPerformance.map((vendor, index) => (
-                        <TableRow key={vendor.id}>
+                      {merchantPerformance.map((merchant, index) => (
+                        <TableRow key={merchant.id}>
                           <TableCell>
                             <Badge variant="outline">#{index + 1}</Badge>
                           </TableCell>
-                          <TableCell className="font-medium">{vendor.name}</TableCell>
-                          <TableCell>{formatCurrency(vendor.revenue)}</TableCell>
-                          <TableCell>{vendor.orders}</TableCell>
-                          <TableCell>{vendor.products}</TableCell>
+                          <TableCell className="font-medium">{merchant.name}</TableCell>
+                          <TableCell>{formatCurrency(merchant.revenue)}</TableCell>
+                          <TableCell>{merchant.orders}</TableCell>
+                          <TableCell>{merchant.products}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -535,7 +535,7 @@ const AdminAnalytics: React.FC = () => {
                       <TableRow>
                         <TableHead>Rank</TableHead>
                         <TableHead>Product</TableHead>
-                        <TableHead>Vendor</TableHead>
+                        <TableHead>Merchant</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Sales</TableHead>
                         <TableHead>Revenue</TableHead>
@@ -548,7 +548,7 @@ const AdminAnalytics: React.FC = () => {
                             <Badge variant="outline">#{index + 1}</Badge>
                           </TableCell>
                           <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>{product.vendor}</TableCell>
+                          <TableCell>{product.merchant}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{product.category}</Badge>
                           </TableCell>

@@ -239,7 +239,7 @@ export const generateInvoice = (data: InvoiceData) => {
   doc.setTextColor(...primaryColor);
   doc.text(`R${data.total.toFixed(2)}`, summaryX + summaryWidth, finalY + 47, { align: "right" });
 
-  // Vendor info
+  // Merchant info
   doc.setFontSize(9);
   doc.setTextColor(...grayColor);
   doc.setFont("helvetica", "normal");

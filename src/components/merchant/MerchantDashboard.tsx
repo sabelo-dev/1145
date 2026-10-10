@@ -24,25 +24,25 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import VendorOverview from "./dashboard/VendorOverview";
-import VendorShopfront from "./dashboard/VendorShopfront";
-import VendorProducts from "./dashboard/VendorProducts";
-import VendorOrders from "./dashboard/VendorOrders";
-import VendorReviews from "./dashboard/VendorReviews";
-import VendorInventory from "./dashboard/VendorInventory";
-import VendorPromotions from "./dashboard/VendorPromotions";
-import VendorPayouts from "./dashboard/VendorPayouts";
-import VendorMessages from "./dashboard/VendorMessages";
-import VendorSettings from "./dashboard/VendorSettings";
-import VendorSupport from "./dashboard/VendorSupport";
-import VendorAuctions from "./dashboard/VendorAuctions";
-import VendorAuctionAnalytics from "./dashboard/VendorAuctionAnalytics";
-import VendorSubscriptionPage from "./dashboard/VendorSubscriptionPage";
+import MerchantOverview from "./dashboard/MerchantOverview";
+import MerchantShopfront from "./dashboard/MerchantShopfront";
+import MerchantProducts from "./dashboard/MerchantProducts";
+import MerchantOrders from "./dashboard/MerchantOrders";
+import MerchantReviews from "./dashboard/MerchantReviews";
+import MerchantInventory from "./dashboard/MerchantInventory";
+import MerchantPromotions from "./dashboard/MerchantPromotions";
+import MerchantPayouts from "./dashboard/MerchantPayouts";
+import MerchantMessages from "./dashboard/MerchantMessages";
+import MerchantSettings from "./dashboard/MerchantSettings";
+import MerchantSupport from "./dashboard/MerchantSupport";
+import MerchantAuctions from "./dashboard/MerchantAuctions";
+import MerchantAuctionAnalytics from "./dashboard/MerchantAuctionAnalytics";
+import MerchantSubscriptionPage from "./dashboard/MerchantSubscriptionPage";
 import { SubscriptionStatusCard, SubscriptionUpgradeModal } from "./subscription";
-import VendorAdCredits from "./dashboard/VendorAdCredits";
-import VendorSubscriptionPayments from "./dashboard/VendorSubscriptionPayments";
-import VendorApiAccess from "./dashboard/VendorApiAccess";
-import VendorCustomDomain from "./dashboard/VendorCustomDomain";
+import MerchantAdCredits from "./dashboard/MerchantAdCredits";
+import MerchantSubscriptionPayments from "./dashboard/MerchantSubscriptionPayments";
+import MerchantApiAccess from "./dashboard/MerchantApiAccess";
+import MerchantCustomDomain from "./dashboard/MerchantCustomDomain";
 import MerchantLeases from "./dashboard/MerchantLeases";
 import MerchantLodging from "./dashboard/MerchantLodging";
 import MerchantRideAnalytics from "./dashboard/MerchantRideAnalytics";
@@ -79,11 +79,11 @@ import type { SubscriptionTier } from "@/services/subscription";
 import { normalizeTier } from "@/utils/subscriptionTier";
 import { useUrlTab } from "@/hooks/useUrlTab";
 
-const VendorDashboard = () => {
+const MerchantDashboard = () => {
   const { user, logout } = useAuth();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useUrlTab("overview");
-  const [vendorData, setVendorData] = useState<any>(null);
+  const [merchantData, setMerchantData] = useState<any>(null);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -96,37 +96,37 @@ const VendorDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchVendorData = async () => {
+    const fetchMerchantData = async () => {
       if (!user?.id) return;
 
       try {
-        const { data: vendor, error } = await supabase
-          .from('vendors')
+        const { data: merchant, error } = await supabase
+          .from('merchants')
           .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching vendor data:', error);
+          console.error('Error fetching merchant data:', error);
           return;
         }
 
-        if (vendor) {
-          setVendorData(vendor);
+        if (merchant) {
+          setMerchantData(merchant);
           
           // Check if trial has expired
-          if (vendor.subscription_tier === 'trial' && vendor.trial_end_date) {
-            const endDate = new Date(vendor.trial_end_date);
+          if (merchant.subscription_tier === 'trial' && merchant.trial_end_date) {
+            const endDate = new Date(merchant.trial_end_date);
             const now = new Date();
             setIsTrialExpired(now > endDate);
           }
         }
       } catch (error) {
-        console.error('Error fetching vendor data:', error);
+        console.error('Error fetching merchant data:', error);
       }
     };
 
-    fetchVendorData();
+    fetchMerchantData();
   }, [user?.id]);
 
   const sidebarItems = [
@@ -154,19 +154,19 @@ const VendorDashboard = () => {
     { id: "support", title: "Help / Support", icon: Headphones },
   ];
 
-  const refreshVendorData = async () => {
+  const refreshMerchantData = async () => {
     if (!user?.id) return;
     const { data: updated } = await supabase
-      .from('vendors')
+      .from('merchants')
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle();
-    if (updated) setVendorData(updated);
+    if (updated) setMerchantData(updated);
   };
 
   const { changePlan, cancelPlan } = useSubscriptionActions({
-    currentTier: normalizeTier(vendorData?.subscription_tier) as SubscriptionTier,
-    onChanged: refreshVendorData,
+    currentTier: normalizeTier(merchantData?.subscription_tier) as SubscriptionTier,
+    onChanged: refreshMerchantData,
   });
 
   const handleUpgrade = async (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => {
@@ -186,7 +186,7 @@ const VendorDashboard = () => {
     if (status === 'success') {
       toast.success('Payment received — your new plan activates within a minute.');
       setActiveTab('subscription');
-      setTimeout(() => { refreshVendorData(); }, 4000);
+      setTimeout(() => { refreshMerchantData(); }, 4000);
     } else if (status === 'cancelled') {
       toast.info('Subscription checkout cancelled.');
     }
@@ -197,14 +197,14 @@ const VendorDashboard = () => {
   return (
     <ProtectedRoute requireAuth requireMerchant>
       <SidebarProvider>
-        <VendorDashboardContent
+        <MerchantDashboardContent
           sidebarItems={sidebarItems}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           user={user}
           handleLogout={handleLogout}
           isTrialExpired={isTrialExpired}
-          vendorData={vendorData}
+          merchantData={merchantData}
           showUpgradeModal={showUpgradeModal}
           setShowUpgradeModal={setShowUpgradeModal}
           onUpgrade={handleUpgrade}
@@ -221,28 +221,28 @@ interface SidebarItem {
   icon: React.ForwardRefExoticComponent<any>;
 }
 
-interface VendorDashboardContentProps {
+interface MerchantDashboardContentProps {
   sidebarItems: SidebarItem[];
   activeTab: string;
   setActiveTab: (id: string) => void;
   user: any;
   handleLogout: () => void;
   isTrialExpired: boolean;
-  vendorData: any;
+  merchantData: any;
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
   onUpgrade: (tier: SubscriptionTier, billing: 'monthly' | 'yearly') => Promise<void>;
   onCancelSubscription: () => Promise<void>;
 }
 
-const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
+const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
   sidebarItems,
   activeTab,
   setActiveTab,
   user,
   handleLogout,
   isTrialExpired,
-  vendorData,
+  merchantData,
   showUpgradeModal,
   setShowUpgradeModal,
   onUpgrade,
@@ -337,9 +337,9 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </div>
           )}
           
-          {activeTab === 'overview' && vendorData && (
+          {activeTab === 'overview' && merchantData && (
             <SubscriptionStatusCard
-              vendorId={vendorData.id}
+              merchantId={merchantData.id}
               onUpgrade={() => setShowUpgradeModal(true)}
               onCancel={onCancelSubscription}
               className="mb-6"
@@ -349,7 +349,7 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
           <SubscriptionUpgradeModal
             isOpen={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
-            currentTier={normalizeTier(vendorData?.subscription_tier)}
+            currentTier={normalizeTier(merchantData?.subscription_tier)}
             onUpgrade={onUpgrade}
           />
           
@@ -363,12 +363,12 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
             </TabsList>
             
             <TabsContent value="overview" className="mt-0">
-              <VendorOverview onNavigate={setActiveTab} />
+              <MerchantOverview onNavigate={setActiveTab} />
             </TabsContent>
             <TabsContent value="subscription" className="mt-0">
-              <VendorSubscriptionPage 
-                vendorId={vendorData?.id}
-                currentTier={normalizeTier(vendorData?.subscription_tier)}
+              <MerchantSubscriptionPage 
+                merchantId={merchantData?.id}
+                currentTier={normalizeTier(merchantData?.subscription_tier)}
                 onUpgrade={(tier, billing) => {
                   if (tier && billing) {
                     return onUpgrade(tier, billing);
@@ -379,55 +379,55 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
               />
             </TabsContent>
             <TabsContent value="billing" className="mt-0">
-              <VendorSubscriptionPayments />
+              <MerchantSubscriptionPayments />
             </TabsContent>
             <TabsContent value="shopfront" className="mt-0">
-              <VendorShopfront />
+              <MerchantShopfront />
             </TabsContent>
             <TabsContent value="products" className="mt-0">
-              <VendorProducts />
+              <MerchantProducts />
             </TabsContent>
             <TabsContent value="auctions" className="mt-0">
-              <VendorAuctions />
+              <MerchantAuctions />
             </TabsContent>
             <TabsContent value="auction-analytics" className="mt-0">
-              <VendorAuctionAnalytics />
+              <MerchantAuctionAnalytics />
             </TabsContent>
             <TabsContent value="orders" className="mt-0">
-              <VendorOrders />
+              <MerchantOrders />
             </TabsContent>
             <TabsContent value="reviews" className="mt-0">
-              <VendorReviews />
+              <MerchantReviews />
             </TabsContent>
             <TabsContent value="inventory" className="mt-0">
-              <VendorInventory />
+              <MerchantInventory />
             </TabsContent>
             <TabsContent value="promotions" className="mt-0">
-              <VendorPromotions />
+              <MerchantPromotions />
             </TabsContent>
             <TabsContent value="ad-credits" className="mt-0">
-              <VendorAdCredits />
+              <MerchantAdCredits />
             </TabsContent>
             <TabsContent value="payouts" className="mt-0">
-              <VendorPayouts />
+              <MerchantPayouts />
             </TabsContent>
             <TabsContent value="ucoin" className="mt-0">
               <UCoinDashboard />
             </TabsContent>
             <TabsContent value="api-access" className="mt-0">
-              <VendorApiAccess />
+              <MerchantApiAccess />
             </TabsContent>
             <TabsContent value="custom-domain" className="mt-0">
-              <VendorCustomDomain />
+              <MerchantCustomDomain />
             </TabsContent>
             <TabsContent value="messages" className="mt-0">
-              <VendorMessages />
+              <MerchantMessages />
             </TabsContent>
             <TabsContent value="settings" className="mt-0">
-              <VendorSettings />
+              <MerchantSettings />
             </TabsContent>
             <TabsContent value="support" className="mt-0">
-              <VendorSupport />
+              <MerchantSupport />
             </TabsContent>
             <TabsContent value="leasing" className="mt-0">
               <MerchantLeases />
@@ -445,4 +445,4 @@ const VendorDashboardContent: React.FC<VendorDashboardContentProps> = ({
   );
 };
 
-export default VendorDashboard;
+export default MerchantDashboard;

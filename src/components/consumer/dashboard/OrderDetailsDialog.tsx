@@ -16,7 +16,7 @@ interface Order {
   status: string;
   total: number;
   items: number;
-  vendor: string;
+  merchant: string;
   trackingNumber: string | null;
   products: Array<{
     name: string;
@@ -81,9 +81,9 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <div className="space-y-1">
               <div className="text-sm text-muted-foreground flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Vendor
+                Merchant
               </div>
-              <div className="font-medium">{order.vendor}</div>
+              <div className="font-medium">{order.merchant}</div>
             </div>
           </div>
 

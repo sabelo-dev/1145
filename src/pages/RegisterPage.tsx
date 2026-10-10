@@ -27,7 +27,7 @@ const registerSchema = z
     email: z.string().trim().min(1, "Email is required").email("Enter a valid email").max(255),
     password: z.string().min(8, "Password must be at least 8 characters").max(72),
     confirmPassword: z.string(),
-    role: z.enum(["consumer", "vendor", "driver", "influencer", "restaurateur"]),
+    role: z.enum(["consumer", "merchant", "driver", "influencer", "restaurateur"]),
     terms: z.boolean().refine((v) => v, { message: "Please accept the terms to continue" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -182,8 +182,8 @@ const RegisterPage: React.FC = () => {
                       desc="Buy, ride and earn rewards"
                     />
                     <RoleCard
-                      active={role === "vendor"}
-                      onClick={() => field.onChange("vendor")}
+                      active={role === "merchant"}
+                      onClick={() => field.onChange("merchant")}
                       icon={<Store className="h-4 w-4" />}
                       title="Merchant"
                       desc="Sell products and services"

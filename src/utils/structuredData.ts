@@ -8,7 +8,7 @@ export const getOrganizationSchema = () => ({
   alternateName: ["1145", "1145lifestyle", "1145 SA", "1145 Shop"],
   url: getPlatformBaseUrl(),
   logo: `${getPlatformBaseUrl()}/uploads/logo.png`,
-  description: "1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables vendors to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.",
+  description: "1145  is a next-generation e-commerce ecosystem, designed to empower businesses of all sizes to sell online with ease and users across all walks of life to transact, shop, travel and monetize in one platform. Built for scalability, security, and performance, 1145 enables merchants to manage their storefronts independently while providing customers with a seamless and engaging shopping experience.",
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "Customer Service",
@@ -47,7 +47,7 @@ export const getProductSchema = (product: Product) => ({
   image: product.images?.[0] || "",
   brand: {
     "@type": "Brand",
-    name: product.vendorName || "1145 Lifestyle",
+    name: product.merchantName || "1145 Lifestyle",
   },
   offers: {
     "@type": "Offer",
@@ -57,7 +57,7 @@ export const getProductSchema = (product: Product) => ({
     availability: product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     seller: {
       "@type": "Organization",
-      name: product.vendorName || "1145 Lifestyle",
+      name: product.merchantName || "1145 Lifestyle",
     },
   },
   aggregateRating:

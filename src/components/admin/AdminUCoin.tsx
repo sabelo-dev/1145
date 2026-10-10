@@ -76,7 +76,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
   ad_boost_premium: <Rocket className="h-4 w-4" />,
   priority_listing: <Rocket className="h-4 w-4" />,
   cashout_driver: <Banknote className="h-4 w-4" />,
-  cashout_vendor: <Banknote className="h-4 w-4" />,
+  cashout_merchant: <Banknote className="h-4 w-4" />,
 };
 
 interface Stats {

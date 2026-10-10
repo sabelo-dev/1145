@@ -27,7 +27,7 @@ export interface VerifiedBankResult {
 }
 
 interface VerifiedBankFormProps {
-  /** Edge function that stores the account: "vendor-payout-method" or "fintech-link-bank". */
+  /** Edge function that stores the account: "merchant-payout-method" or "fintech-link-bank". */
   endpoint: string;
   /** Extra fields for the function, e.g. { destination: "transfers" }. */
   extraBody?: Record<string, unknown>;

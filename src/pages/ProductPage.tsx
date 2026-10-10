@@ -214,8 +214,8 @@ const ProductPage: React.FC = () => {
     <div className="bg-white">
       <SEO
         title={`${product.name} - ${product.category}`}
-        description={stripHtml(product.description).substring(0, 160) || `Buy ${product.name} from ${product.vendorName}. High quality products at great prices.`}
-        keywords={`${product.name}, ${product.category}, ${product.vendorName}, buy online, shop`}
+        description={stripHtml(product.description).substring(0, 160) || `Buy ${product.name} from ${product.merchantName}. High quality products at great prices.`}
+        keywords={`${product.name}, ${product.category}, ${product.merchantName}, buy online, shop`}
         image={product.images?.[0]}
         type="product"
         structuredData={{
@@ -380,10 +380,10 @@ const ProductPage: React.FC = () => {
             {/* Short Description */}
             <p className="text-foreground mt-2 whitespace-pre-line">{stripHtml(product.description)}</p>
 
-            {/* Vendor Info */}
+            {/* Merchant Info */}
             <div className="mt-2">
               <span className="text-sm text-text-secondary">
-                Brand: <span className="text-foreground font-medium">{product.vendorName}</span>
+                Brand: <span className="text-foreground font-medium">{product.merchantName}</span>
               </span>
             </div>
 
@@ -561,7 +561,7 @@ const ProductPage: React.FC = () => {
                   <h3 className="font-semibold mb-2">Product Information</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <span className="text-text-secondary">Brand</span>
-                    <span>{product.vendorName}</span>
+                    <span>{product.merchantName}</span>
                     <span className="text-text-secondary">Category</span>
                     <span>{product.subcategory || product.category}</span>
                     {selectedVariation?.sku && (

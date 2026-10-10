@@ -37,7 +37,7 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
   const [products, setProducts] = useState<Product[]>([]);
   const [store, setStore] = useState<any>(null);
   const [customization, setCustomization] = useState<any>(null);
-  const [vendorTier, setVendorTier] = useState<StorefrontTier>("starter");
+  const [merchantTier, setMerchantTier] = useState<StorefrontTier>("starter");
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -62,17 +62,17 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
         }
 
         if (storeData) {
-          const vendor = storeData.vendors;
-          if (vendor?.id) {
-            const { data: vendorData } = await supabase
-              .from("vendors")
+          const merchant = storeData.merchants;
+          if (merchant?.id) {
+            const { data: merchantData } = await supabase
+              .from("merchants")
               .select("subscription_tier")
-              .eq("id", vendor.id)
+              .eq("id", merchant.id)
               .maybeSingle();
-            if (vendorData) {
-              const tier = vendorData.subscription_tier as string;
+            if (merchantData) {
+              const tier = merchantData.subscription_tier as string;
               const validTiers: StorefrontTier[] = ["starter", "bronze", "silver", "gold"];
-              setVendorTier(validTiers.includes(tier as StorefrontTier) ? (tier as StorefrontTier) : "starter");
+              setMerchantTier(validTiers.includes(tier as StorefrontTier) ? (tier as StorefrontTier) : "starter");
             }
           }
 
@@ -123,8 +123,8 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
   }
 
   // Extract data
-  const capabilities = TIER_CAPABILITIES[vendorTier] || TIER_CAPABILITIES["starter"];
-  const vendor = store.vendors;
+  const capabilities = TIER_CAPABILITIES[merchantTier] || TIER_CAPABILITIES["starter"];
+  const merchant = store.merchants;
   const accentColor = customization?.accent_color || "#6366f1";
   const layoutType: StorefrontLayout = customization?.layout_type || "grid";
   const testimonials: Testimonial[] = (customization?.testimonials as unknown as Testimonial[]) || [];
@@ -150,7 +150,7 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
 
   const fontStyle = customFont ? { fontFamily: `"${customFont}", sans-serif` } : {};
   const showPlatformBranding = forceWhiteLabel ? false : !whiteLabel || !capabilities.whiteLabel;
-  const logoUrl = store.logo_url || vendor?.logo_url;
+  const logoUrl = store.logo_url || merchant?.logo_url;
 
   // Build section list for nav
   const activeSections: string[] = [];
@@ -177,7 +177,7 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
         {capabilities.customBanner && (
           <StorefrontHero
             storeName={store.name}
-            description={store.description || vendor?.description}
+            description={store.description || merchant?.description}
             bannerUrl={store.banner_url}
             videoUrl={videoBannerUrl}
             logoUrl={logoUrl}
@@ -194,11 +194,11 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
           storeName={store.name}
           logoUrl={logoUrl}
           accentColor={accentColor}
-          vendorTier={vendorTier}
+          merchantTier={merchantTier}
           sellerBadge={capabilities.sellerBadge}
           avgRating={avgRating}
           totalProducts={products.length}
-          description={store.description || vendor?.description}
+          description={store.description || merchant?.description}
           createdAt={store.created_at}
           hasContactForm={!!capabilities.contactForm}
           hasTrustIndicators={!!capabilities.trustIndicators}

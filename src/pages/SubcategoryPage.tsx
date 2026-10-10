@@ -65,7 +65,7 @@ const SubcategoryPage: React.FC = () => {
     <div className="bg-background">
       <SEO
         title={`${subcategory.name} - ${category.name} | 1145 Lifestyle`}
-        description={`Shop ${subcategory.name.toLowerCase()} in our ${category.name.toLowerCase()} category. Quality products from trusted vendors at competitive prices.`}
+        description={`Shop ${subcategory.name.toLowerCase()} in our ${category.name.toLowerCase()} category. Quality products from trusted merchants at competitive prices.`}
         keywords={`${subcategory.name}, ${category.name}, shop ${subcategory.name.toLowerCase()}, buy ${subcategory.name.toLowerCase()}`}
         structuredData={getBreadcrumbSchema(breadcrumbItems)}
       />
@@ -92,7 +92,7 @@ const SubcategoryPage: React.FC = () => {
             <h1 className="text-2xl md:text-4xl font-bold text-primary-foreground mb-2">{subcategory.name}</h1>
             <p className="text-primary-foreground/80 max-w-xl">
               {subcategory.description ||
-                `Explore our collection of ${subcategory.name.toLowerCase()} products. Quality items from trusted vendors at competitive prices.`}
+                `Explore our collection of ${subcategory.name.toLowerCase()} products. Quality items from trusted merchants at competitive prices.`}
             </p>
           </div>
         </div>

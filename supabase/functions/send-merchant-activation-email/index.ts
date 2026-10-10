@@ -31,21 +31,21 @@ serve(async (req) => {
     }
     const user = userData.user;
 
-    // Verify vendor is actually ACTIVE and belongs to caller
-    const { data: vendor } = await admin
-      .from("vendors")
-      .select("id, business_name, onboarding_status, user_id, vendor_financial_details(business_phone)")
+    // Verify merchant is actually ACTIVE and belongs to caller
+    const { data: merchant } = await admin
+      .from("merchants")
+      .select("id, business_name, onboarding_status, user_id, merchant_financial_details(business_phone)")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!vendor || vendor.onboarding_status !== "ACTIVE") {
-      return new Response(JSON.stringify({ error: "Vendor not active" }), {
+    if (!merchant || merchant.onboarding_status !== "ACTIVE") {
+      return new Response(JSON.stringify({ error: "Merchant not active" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const email = user.email;
-    const storeName = vendor.business_name || "your store";
+    const storeName = merchant.business_name || "your store";
     const dashboardUrl = "https://1145.io/merchant/dashboard";
 
     let emailStatus: "sent" | "skipped" | "failed" = "skipped";
@@ -93,7 +93,7 @@ serve(async (req) => {
       }
     }
 
-    const businessPhone = [vendor.vendor_financial_details].flat()[0]?.business_phone;
+    const businessPhone = [merchant.merchant_financial_details].flat()[0]?.business_phone;
 
     // Optional SMS via GatewayAPI (direct REST API) if configured
     const GATEWAYAPI_TOKEN = Deno.env.get("GATEWAYAPI_TOKEN");
@@ -128,7 +128,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      vendorStatus: "ACTIVE",
+      merchantStatus: "ACTIVE",
       email: { status: emailStatus, to: email, error: emailError },
       sms: { status: smsStatus, to: businessPhone ?? null, error: smsError },
     }), {

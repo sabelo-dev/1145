@@ -3,8 +3,8 @@
 // XIXLV branded).
 //
 // Creates (or updates, if they already exist):
-//   * auth user marketplace@1145.io with the vendor role
-//   * an approved, active vendor + store named "Marketplace" (slug: marketplace)
+//   * auth user marketplace@1145.io with the merchant role
+//   * an approved, active merchant + store named "Marketplace" (slug: marketplace)
 //   * one product per garment and brand, with a colour variation per manifest
 //     row, priced from the manifest (price_zar)
 //   * product images converted to WebP and uploaded to the product-images bucket
@@ -175,7 +175,7 @@ async function findUserByEmail(db, email) {
 export async function seed(db, { password, approve = false, dropDir = DROP_DIR, convert = toWebp, log = console.log } = {}) {
   const { catalogue } = loadDrop(dropDir);
 
-  // 1. Merchant login (the signup trigger adds profile + vendor role on create).
+  // 1. Merchant login (the signup trigger adds profile + merchant role on create).
   let user = await findUserByEmail(db, MARKETPLACE.email);
   if (!user) {
     if (!password) throw new Error("MARKETPLACE_PASSWORD is required to create the account");
@@ -183,7 +183,7 @@ export async function seed(db, { password, approve = false, dropDir = DROP_DIR, 
       email: MARKETPLACE.email,
       password,
       email_confirm: true,
-      user_metadata: { name: MARKETPLACE.name, full_name: MARKETPLACE.name, role: "vendor" },
+      user_metadata: { name: MARKETPLACE.name, full_name: MARKETPLACE.name, role: "merchant" },
     }), "Create user").user;
     log(`Created user ${MARKETPLACE.email}`);
   } else {
@@ -193,13 +193,13 @@ export async function seed(db, { password, approve = false, dropDir = DROP_DIR, 
 
   const profile = must(await db.from("profiles").select("id").eq("id", user.id).maybeSingle(), "Read profile");
   if (!profile) {
-    must(await db.from("profiles").insert({ id: user.id, email: MARKETPLACE.email, name: MARKETPLACE.name, role: "vendor" }), "Create profile");
+    must(await db.from("profiles").insert({ id: user.id, email: MARKETPLACE.email, name: MARKETPLACE.name, role: "merchant" }), "Create profile");
   }
-  must(await db.from("user_roles").upsert({ user_id: user.id, role: "vendor" }, { onConflict: "user_id,role" }), "Grant vendor role");
+  must(await db.from("user_roles").upsert({ user_id: user.id, role: "merchant" }, { onConflict: "user_id,role" }), "Grant merchant role");
 
-  // 2. Approved, active vendor.
+  // 2. Approved, active merchant.
   const now = new Date().toISOString();
-  const vendorFields = {
+  const merchantFields = {
     business_name: MARKETPLACE.name,
     description: MARKETPLACE.description,
     status: "approved",
@@ -207,16 +207,16 @@ export async function seed(db, { password, approve = false, dropDir = DROP_DIR, 
     onboarding_completed_at: now,
     approval_date: now,
   };
-  let vendor = must(await db.from("vendors").select("id").eq("user_id", user.id).maybeSingle(), "Read vendor");
-  if (vendor) {
-    must(await db.from("vendors").update(vendorFields).eq("id", vendor.id), "Update vendor");
+  let merchant = must(await db.from("merchants").select("id").eq("user_id", user.id).maybeSingle(), "Read merchant");
+  if (merchant) {
+    must(await db.from("merchants").update(merchantFields).eq("id", merchant.id), "Update merchant");
   } else {
-    vendor = must(await db.from("vendors").insert({ user_id: user.id, ...vendorFields }).select("id").single(), "Create vendor");
+    merchant = must(await db.from("merchants").insert({ user_id: user.id, ...merchantFields }).select("id").single(), "Create merchant");
   }
-  log(`Vendor ${vendor.id} ready`);
+  log(`Merchant ${merchant.id} ready`);
 
   // 3. Store.
-  let store = must(await db.from("stores").select("id, slug").eq("vendor_id", vendor.id).maybeSingle(), "Read store");
+  let store = must(await db.from("stores").select("id, slug").eq("merchant_id", merchant.id).maybeSingle(), "Read store");
   const storeFields = {
     name: MARKETPLACE.name,
     slug: MARKETPLACE.storeSlug,
@@ -228,7 +228,7 @@ export async function seed(db, { password, approve = false, dropDir = DROP_DIR, 
   } else {
     const taken = must(await db.from("stores").select("id").eq("slug", MARKETPLACE.storeSlug).maybeSingle(), "Check store slug");
     if (taken) throw new Error(`Store slug "${MARKETPLACE.storeSlug}" is already used by another store`);
-    store = must(await db.from("stores").insert({ vendor_id: vendor.id, ...storeFields }).select("id").single(), "Create store");
+    store = must(await db.from("stores").insert({ merchant_id: merchant.id, ...storeFields }).select("id").single(), "Create store");
   }
   log(`Store ${store.id} (/${MARKETPLACE.storeSlug}) ready`);
 
@@ -289,7 +289,7 @@ export async function seed(db, { password, approve = false, dropDir = DROP_DIR, 
     log(`  ✓ ${product.name} — R${productFields.price} (${product.variations.length} colours)`);
   }
 
-  return { userId: user.id, vendorId: vendor.id, storeId: store.id, products: summary };
+  return { userId: user.id, merchantId: merchant.id, storeId: store.id, products: summary };
 }
 
 // ---------------------------------------------------------------------------

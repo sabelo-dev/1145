@@ -1,5 +1,5 @@
 
-export type AppRole = 'consumer' | 'vendor' | 'admin' | 'driver' | 'influencer' | 'passenger' | 'fleet_manager' | 'service_provider';
+export type AppRole = 'consumer' | 'merchant' | 'admin' | 'driver' | 'influencer' | 'restaurateur' | 'passenger' | 'fleet_manager' | 'service_provider';
 
 export interface User {
   id: string;
@@ -46,9 +46,9 @@ export interface Product {
   rating: number;
   reviewCount: number;
   inStock: boolean;
-  vendorId: string;
-  vendorName: string;
-  vendorSlug?: string;
+  merchantId: string;
+  merchantName: string;
+  merchantSlug?: string;
   brand?: string;
   /** Out-of-stock items can be pre-ordered (XIXLV on the official Marketplace only). */
   allowPreorder?: boolean;

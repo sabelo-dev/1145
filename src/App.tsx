@@ -361,7 +361,7 @@ function AppRouter() {
         } />
         <Route path="merchant/dashboard" element={
           <ProtectedRoute requireAuth requireMerchant>
-            <RoleOnboardingGate role="vendor">
+            <RoleOnboardingGate role="merchant">
               <MerchantDashboardPage />
             </RoleOnboardingGate>
           </ProtectedRoute>
