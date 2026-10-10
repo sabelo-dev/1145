@@ -331,12 +331,6 @@ const AdminUsers = () => {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       if (newRole === 'driver' || newRole === 'merchant' || newRole === 'influencer' || newRole === 'restaurateur') {
-        await supabase
-          .from('user_roles')
-          .delete()
-          .eq('user_id', userId)
-          .eq('role', 'consumer');
-        
         const { data: existingRole } = await supabase
           .from('user_roles')
           .select('id')
@@ -350,6 +344,13 @@ const AdminUsers = () => {
             .insert({ user_id: userId, role: newRole });
           if (error) throw error;
         }
+
+        // Only once the new role is in place, so a failure never leaves the user without a role.
+        await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId)
+          .eq('role', 'consumer');
 
         if (newRole === 'influencer') {
           const { data: existingProfile } = await supabase
