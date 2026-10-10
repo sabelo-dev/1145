@@ -13,11 +13,22 @@ export async function initNative() {
 
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar');
-    await StatusBar.setStyle({ style: Style.Light });
-    if (platform() === 'android') {
-      await StatusBar.setBackgroundColor({ color: '#1e3a5f' });
-    }
-    await StatusBar.setOverlaysWebView({ overlay: false });
+    // The page draws behind the status bar on Android 15+ (edge-to-edge), so
+    // the icons must contrast with the app theme: dark icons on the light
+    // theme, light icons on the dark one. Older Android paints the bar itself,
+    // in the same colour as the page.
+    const root = document.documentElement;
+    const syncStatusBar = async () => {
+      const dark = root.classList.contains('dark');
+      await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light });
+      if (platform() === 'android') {
+        await StatusBar.setBackgroundColor({ color: dark ? '#0b1020' : '#ffffff' });
+      }
+    };
+    await syncStatusBar();
+    new MutationObserver(() => {
+      syncStatusBar().catch(() => {});
+    }).observe(root, { attributes: true, attributeFilter: ['class'] });
   } catch (e) {
     console.warn('[native] StatusBar init failed', e);
   }

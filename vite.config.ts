@@ -76,8 +76,10 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@tanstack/react-query')) return 'query-vendor';
           if (id.includes('@supabase/supabase-js')) return 'supabase-vendor';
           if (id.includes('framer-motion')) return 'motion-vendor';
-          if (id.includes('recharts')) return 'charts-vendor';
-          if (id.includes('jspdf')) return 'pdf-vendor';
+          // recharts and jspdf are deliberately not named here: a manual chunk
+          // also receives the helpers they share with the entry, which made
+          // every launch download and parse both libraries (~835 kB). Left to
+          // Rollup they stay behind the lazy dashboards that use them.
         },
       },
     },
