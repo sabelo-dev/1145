@@ -191,7 +191,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   // Bulk variation generation (legacy)
-  const [attributeTypes, setAttributeTypes] = useState<Array<{ name: string; values: string[] }>>([]);
+  const [attributeTypes, setAttributeTypes] = useState<Array<{ name: string; values: string[]; valuesText: string }>>([]);
   const [showBulkGenerator, setShowBulkGenerator] = useState(false);
   
   // Memoized callback for variation builder
@@ -556,7 +556,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
   // Bulk variation generation functions
   const addAttributeType = () => {
-    setAttributeTypes(prev => [...prev, { name: '', values: [] }]);
+    setAttributeTypes(prev => [...prev, { name: '', values: [], valuesText: '' }]);
   };
 
   const removeAttributeType = (index: number) => {
@@ -570,9 +570,11 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   };
 
   const updateAttributeTypeValues = (index: number, valuesString: string) => {
-    const values = valuesString.split(',').map(v => v.trim()).filter(Boolean);
+    // The typed text is kept as it is: rebuilding it from the parsed values
+    // removed a comma the moment it was typed. A semicolon separates too.
+    const values = valuesString.split(/[,;，、]/).map(v => v.trim()).filter(Boolean);
     setAttributeTypes(prev => 
-      prev.map((type, i) => i === index ? { ...type, values } : type)
+      prev.map((type, i) => i === index ? { ...type, values, valuesText: valuesString } : type)
     );
   };
 
@@ -1354,7 +1356,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                 <Label className="text-sm">Values (comma-separated)</Label>
                                 <Input
                                   placeholder="e.g., Red, Blue, Green"
-                                  value={type.values.join(', ')}
+                                  value={type.valuesText}
                                   onChange={(e) => updateAttributeTypeValues(index, e.target.value)}
                                 />
                               </div>
