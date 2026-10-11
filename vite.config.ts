@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
+import fs from 'fs'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => ({
@@ -55,6 +56,11 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
+  define: {
+    // Without google-services.json the Android push plugin crashes the app
+    // when asked to register, so the app only registers when the file exists.
+    __ANDROID_PUSH_CONFIGURED__: JSON.stringify(fs.existsSync(path.resolve(__dirname, 'android/app/google-services.json'))),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { isNative, navigateInApp, platform } from "@/lib/native";
+import { navigateInApp, platform, pushAvailable } from "@/lib/native";
 
 let listenersAdded = false;
 
@@ -11,7 +11,7 @@ let listenersAdded = false;
  */
 export function usePushNotifications(userId: string | null | undefined) {
   useEffect(() => {
-    if (!isNative() || !userId) return;
+    if (!pushAvailable() || !userId) return;
     let cancelled = false;
 
     (async () => {
@@ -42,7 +42,6 @@ export function usePushNotifications(userId: string | null | undefined) {
         if (cancelled || status.receive !== "granted") return;
         await PushNotifications.register();
       } catch (e) {
-        // Android without google-services.json throws here; the app keeps working.
         console.warn("[push] not available", e);
       }
     })();

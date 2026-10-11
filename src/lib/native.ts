@@ -89,9 +89,19 @@ export async function hapticTap() {
   }
 }
 
+declare const __ANDROID_PUSH_CONFIGURED__: boolean;
+
+/**
+ * Whether this build can register for push. An Android build without
+ * google-services.json cannot: the push plugin throws natively when asked to
+ * register, which closes the app (a try/catch here does not stop it).
+ */
+export const pushAvailable = () =>
+  isNative() && (Capacitor.getPlatform() !== 'android' || __ANDROID_PUSH_CONFIGURED__);
+
 /** Register for push notifications and return the device token. */
 export async function registerPush(): Promise<string | null> {
-  if (!isNative()) return null;
+  if (!pushAvailable()) return null;
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
     const perm = await PushNotifications.requestPermissions();
