@@ -26,19 +26,30 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const MerchantPayouts = () => {
+interface MerchantPayoutsProps {
+  /** Switches the dashboard tab (used to send the merchant to their bank details). */
+  onNavigate?: (tab: string) => void;
+}
+
+const MerchantPayouts = ({ onNavigate }: MerchantPayoutsProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [requesting, setRequesting] = useState(false);
+  // Worked out by the database (merchant_payout_summary), never in the browser.
   const [payoutData, setPayoutData] = useState({
     availableBalance: 0,
     pendingBalance: 0,
     totalEarnings: 0,
-    commissionRate: 10, // 10%
-    minimumPayout: 100.00,
-    nextPayoutDate: "2024-01-20"
+    grossSales: 0,
+    commission: 0,
+    commissionRate: 10,
+    minimumPayout: 100,
+    payoutDays: 7,
+    hasVerifiedBank: false,
+    hasOpenRequest: false,
   });
 
   useEffect(() => {
@@ -69,37 +80,22 @@ const MerchantPayouts = () => {
 
       if (payoutsError) throw payoutsError;
 
-      // Get merchant earnings from order items
-      const { data: stores, error: storesError } = await supabase
-        .from('stores')
-        .select('id')
-        .eq('merchant_id', merchant.id);
+      const { data: summary, error: summaryError } = await (supabase.rpc as any)('merchant_payout_summary');
 
-      if (storesError) throw storesError;
+      if (summaryError) throw summaryError;
 
-      if (stores.length > 0) {
-        const storeIds = stores.map(store => store.id);
-        
-        const { data: orderItems, error: orderItemsError } = await supabase
-          .from('order_items')
-          .select('price, quantity, merchant_status')
-          .in('store_id', storeIds);
-
-        if (orderItemsError) throw orderItemsError;
-
-        const totalRevenue = orderItems?.reduce((sum, item) => 
-          sum + (parseFloat(item.price?.toString() || '0') * item.quantity), 0) || 0;
-        
-        const availableBalance = totalRevenue * 0.9; // After 10% commission
-        const totalEarnings = totalRevenue;
-
-        setPayoutData(prev => ({
-          ...prev,
-          availableBalance,
-          totalEarnings,
-          pendingBalance: totalRevenue * 0.1 // Simulated pending
-        }));
-      }
+      setPayoutData({
+        availableBalance: Number(summary.available_balance) || 0,
+        pendingBalance: Number(summary.pending_balance) || 0,
+        totalEarnings: Number(summary.total_earnings) || 0,
+        grossSales: Number(summary.gross_sales) || 0,
+        commission: Number(summary.commission) || 0,
+        commissionRate: Number(summary.commission_rate) || 0,
+        minimumPayout: Number(summary.minimum_payout) || 100,
+        payoutDays: Number(summary.payout_days) || 7,
+        hasVerifiedBank: Boolean(summary.has_verified_bank),
+        hasOpenRequest: Boolean(summary.has_open_request),
+      });
 
       setPayouts(payoutsData || []);
     } catch (error) {
@@ -114,58 +110,47 @@ const MerchantPayouts = () => {
     }
   };
 
+  // Why a payout cannot be requested right now, or null when it can.
+  const payoutBlockedReason = !payoutData.hasVerifiedBank
+    ? "Add a verified bank account before requesting a payout."
+    : payoutData.hasOpenRequest
+      ? "You already have a payout request in progress."
+      : payoutData.availableBalance < payoutData.minimumPayout
+        ? `Minimum payout amount not reached. Need R${(payoutData.minimumPayout - payoutData.availableBalance).toFixed(2)} more.`
+        : null;
+  const canRequestPayout = !loading && payoutBlockedReason === null;
+
   const requestPayout = async () => {
-    if (!canRequestPayout) {
-      toast({
-        variant: "destructive",
-        title: "Cannot request payout",
-        description: "Your available balance is below the minimum payout threshold of R100."
-      });
-      return;
-    }
+    if (!canRequestPayout || requesting) return;
 
     try {
-      const { data: merchant } = await supabase
-        .from('merchants')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      const { error } = await supabase
-        .from('payouts')
-        .insert([
-          {
-            merchant_id: merchant.id,
-            amount: payoutData.availableBalance,
-            status: 'pending'
-          }
-        ]);
+      setRequesting(true);
+      // The database works out the amount and checks every rule again.
+      const { error } = await (supabase.rpc as any)('request_merchant_payout');
 
       if (error) throw error;
 
       toast({
         title: "Payout requested",
-        description: "Your payout request has been submitted successfully."
+        description: `Your payout request for R${payoutData.availableBalance.toFixed(2)} has been submitted.`
       });
-
-      fetchPayoutData();
     } catch (error) {
       console.error('Error requesting payout:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to request payout"
+        title: "Payout not requested",
+        description: (error as { message?: string })?.message || "Failed to request payout"
       });
+    } finally {
+      setRequesting(false);
+      fetchPayoutData();
     }
   };
 
-  const canRequestPayout = payoutData.availableBalance >= 100;
-
   const payoutHistory = payouts.map(payout => ({
     id: `PAY-${payout.id.slice(-3)}`,
+    // A payout is requested for the balance after commission.
     amount: parseFloat(payout.amount?.toString() || '0'),
-    commission: parseFloat(payout.amount?.toString() || '0') * 0.1,
-    netAmount: parseFloat(payout.amount?.toString() || '0') * 0.9,
     status: payout.status,
     requestDate: new Date(payout.created_at).toLocaleDateString(),
     paidDate: payout.payout_date ? new Date(payout.payout_date).toLocaleDateString() : null,
@@ -178,12 +163,10 @@ const MerchantPayouts = () => {
 
   const exportPayoutHistory = () => {
     const csvData = [
-      ['Payout ID', 'Gross Amount', 'Commission', 'Net Amount', 'Status', 'Request Date', 'Paid Date', 'Method'],
+      ['Payout ID', 'Amount', 'Status', 'Request Date', 'Paid Date', 'Method'],
       ...filteredPayouts.map(payout => [
         payout.id,
         payout.amount.toFixed(2),
-        payout.commission.toFixed(2),
-        payout.netAmount.toFixed(2),
         payout.status,
         payout.requestDate,
         payout.paidDate || 'N/A',
@@ -217,6 +200,8 @@ const MerchantPayouts = () => {
         return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Processing</Badge>;
       case "pending":
         return <Badge variant="outline"><AlertTriangle className="h-3 w-3 mr-1" />Pending</Badge>;
+      case "failed":
+        return <Badge variant="destructive">Failed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -232,7 +217,7 @@ const MerchantPayouts = () => {
           </p>
         </div>
         <Button 
-          disabled={!canRequestPayout}
+          disabled={!canRequestPayout || requesting}
           className="bg-green-600 hover:bg-green-700"
           onClick={requestPayout}
         >
@@ -253,7 +238,7 @@ const MerchantPayouts = () => {
               R{payoutData.availableBalance.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Ready for payout
+              Delivered orders, after commission and payouts
             </p>
           </CardContent>
         </Card>
@@ -268,7 +253,7 @@ const MerchantPayouts = () => {
               R{payoutData.pendingBalance.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Processing orders
+              Paid orders not delivered yet
             </p>
           </CardContent>
         </Card>
@@ -283,7 +268,7 @@ const MerchantPayouts = () => {
               R{payoutData.totalEarnings.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              All time earnings
+              Delivered orders, after commission
             </p>
           </CardContent>
         </Card>
@@ -319,21 +304,24 @@ const MerchantPayouts = () => {
               <span className="font-medium">R{payoutData.minimumPayout.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm">Next Scheduled Payout:</span>
-              <span className="font-medium">{payoutData.nextPayoutDate}</span>
+              <span className="text-sm">Processing Time:</span>
+              <span className="font-medium">Up to {payoutData.payoutDays} days after a request</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Payout Method:</span>
               <span className="font-medium flex items-center gap-1">
                 <CreditCard className="h-4 w-4" />
-                Bank Transfer
+                {payoutData.hasVerifiedBank ? "Bank Transfer" : "No verified bank account"}
               </span>
             </div>
-            <div className="pt-2">
-              {!canRequestPayout && (
-                <p className="text-sm text-orange-600">
-                  Minimum payout amount not reached. Need R{(payoutData.minimumPayout - payoutData.availableBalance).toFixed(2)} more.
-                </p>
+            <div className="pt-2 space-y-2">
+              {!loading && payoutBlockedReason && (
+                <p className="text-sm text-orange-600">{payoutBlockedReason}</p>
+              )}
+              {!loading && !payoutData.hasVerifiedBank && onNavigate && (
+                <Button variant="outline" size="sm" onClick={() => onNavigate('billing')}>
+                  Add bank account
+                </Button>
               )}
             </div>
           </CardContent>
@@ -350,18 +338,18 @@ const MerchantPayouts = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Gross Sales</span>
-                <span>R{(payoutData.availableBalance / (1 - payoutData.commissionRate / 100)).toFixed(2)}</span>
+                <span>R{payoutData.grossSales.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Platform Commission ({payoutData.commissionRate}%)</span>
                 <span className="text-red-600">
-                  -R{((payoutData.availableBalance / (1 - payoutData.commissionRate / 100)) * payoutData.commissionRate / 100).toFixed(2)}
+                  -R{payoutData.commission.toFixed(2)}
                 </span>
               </div>
               <div className="border-t pt-2">
                 <div className="flex justify-between font-medium">
                   <span>Net Earnings</span>
-                  <span className="text-green-600">R{payoutData.availableBalance.toFixed(2)}</span>
+                  <span className="text-green-600">R{payoutData.totalEarnings.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -410,9 +398,7 @@ const MerchantPayouts = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Payout ID</TableHead>
-                  <TableHead>Gross Amount</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Net Amount</TableHead>
+                  <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Request Date</TableHead>
                   <TableHead>Paid Date</TableHead>
@@ -423,11 +409,7 @@ const MerchantPayouts = () => {
                 {filteredPayouts.map((payout) => (
                   <TableRow key={payout.id}>
                     <TableCell className="font-medium">{payout.id}</TableCell>
-                    <TableCell>${payout.amount.toFixed(2)}</TableCell>
-                    <TableCell className="text-red-600">-${payout.commission.toFixed(2)}</TableCell>
-                    <TableCell className="font-medium text-green-600">
-                      ${payout.netAmount.toFixed(2)}
-                    </TableCell>
+                    <TableCell className="font-medium text-green-600">R{payout.amount.toFixed(2)}</TableCell>
                     <TableCell>{getStatusBadge(payout.status)}</TableCell>
                     <TableCell>{payout.requestDate}</TableCell>
                     <TableCell>{payout.paidDate || "-"}</TableCell>

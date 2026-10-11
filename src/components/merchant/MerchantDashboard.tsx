@@ -409,7 +409,7 @@ const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
               <MerchantAdCredits />
             </TabsContent>
             <TabsContent value="payouts" className="mt-0">
-              <MerchantPayouts />
+              <MerchantPayouts onNavigate={setActiveTab} />
             </TabsContent>
             <TabsContent value="ucoin" className="mt-0">
               <UCoinDashboard />
