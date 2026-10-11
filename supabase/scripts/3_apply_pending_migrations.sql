@@ -29,7 +29,7 @@ DECLARE
 BEGIN
   -- Only self-service roles are accepted here. Admins are granted manually.
   user_role := CASE NEW.raw_user_meta_data ->> 'role'
-    WHEN 'vendor' THEN 'vendor'::app_role
+    WHEN 'merchant' THEN 'merchant'::app_role
     WHEN 'driver' THEN 'driver'::app_role
     WHEN 'influencer' THEN 'influencer'::app_role
     ELSE 'consumer'::app_role
@@ -318,9 +318,9 @@ BEGIN
   DELETE FROM public.stores s
   WHERE s.slug = '1145-marketplace'
     AND NOT EXISTS (SELECT 1 FROM public.products p WHERE p.store_id = s.id);
-  DELETE FROM public.vendors v
+  DELETE FROM public.merchants v
   WHERE v.business_name = '1145 Marketplace'
-    AND NOT EXISTS (SELECT 1 FROM public.stores s WHERE s.vendor_id = v.id);
+    AND NOT EXISTS (SELECT 1 FROM public.stores s WHERE s.merchant_id = v.id);
 EXCEPTION WHEN foreign_key_violation THEN
   RAISE NOTICE 'The 1145 Marketplace dropship store is still referenced; left in place.';
 END $$;
