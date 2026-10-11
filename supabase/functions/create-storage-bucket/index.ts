@@ -39,7 +39,7 @@ serve(async (req) => {
 
     // Create a storage bucket for merchant documents if it doesn't exist
     const { data, error } = await supabaseClient.storage.createBucket(
-      "vendor-documents",
+      "merchant-documents",
       {
         public: true,
         fileSizeLimit: 10485760, // 10MB

@@ -188,7 +188,7 @@ const MerchantOnboarding: React.FC = () => {
     try {
       const filePath = `${user.id}/${merchantData.id}/${type}/${Date.now()}`;
       const { publicUrl } = await uploadFileToStorage({
-        bucket: "vendor-documents",
+        bucket: "merchant-documents",
         path: filePath,
         file,
         upsert: true,
@@ -261,7 +261,7 @@ const MerchantOnboarding: React.FC = () => {
   };
 
   // File upload helper — uploads to Supabase Storage
-  const handleFileUpload = async (file: File, setter: (url: string) => void, bucket: string = 'vendor-logos') => {
+  const handleFileUpload = async (file: File, setter: (url: string) => void, bucket: string = 'merchant-logos') => {
     if (!user || !merchantData) return;
     if (!file.type.startsWith('image/')) {
       toast({ variant: "destructive", title: "Invalid file type", description: "Please upload an image file." });
@@ -478,8 +478,8 @@ const MerchantOnboarding: React.FC = () => {
             bannerFile={bannerFile}
             onRegionsChange={setShippingRegions}
             onMethodsChange={setShippingMethods}
-            onLogoUpload={(f) => handleFileUpload(f, setLogoFile, 'vendor-logos')}
-            onBannerUpload={(f) => handleFileUpload(f, setBannerFile, 'vendor-banners')}
+            onLogoUpload={(f) => handleFileUpload(f, setLogoFile, 'merchant-logos')}
+            onBannerUpload={(f) => handleFileUpload(f, setBannerFile, 'merchant-banners')}
             onNext={handleStoreSetup}
             onBack={() => setStep(3)}
             isLoading={isLoading}

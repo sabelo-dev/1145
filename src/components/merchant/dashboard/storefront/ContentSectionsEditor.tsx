@@ -100,9 +100,9 @@ const ContentSectionsEditor: React.FC<ContentSectionsEditorProps> = ({
       setUploadingVideo(true);
       const ext = file.name.split('.').pop();
       const path = `videos/${userId}/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('vendor-videos').upload(path, file);
+      const { error } = await supabase.storage.from('merchant-videos').upload(path, file);
       if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from('vendor-videos').getPublicUrl(path);
+      const { data: { publicUrl } } = supabase.storage.from('merchant-videos').getPublicUrl(path);
       onVideoBannerUrlChange(publicUrl);
       toast({ title: "Video uploaded", description: "Your hero video is ready" });
     } catch (err) {
@@ -185,7 +185,7 @@ const ContentSectionsEditor: React.FC<ContentSectionsEditorProps> = ({
             {/* Video preview */}
             {videoBannerUrl && (
               <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-h-48">
-                {videoBannerUrl.includes('.mp4') || videoBannerUrl.includes('.webm') || videoBannerUrl.includes('.ogg') || videoBannerUrl.includes('vendor-videos') ? (
+                {videoBannerUrl.includes('.mp4') || videoBannerUrl.includes('.webm') || videoBannerUrl.includes('.ogg') || videoBannerUrl.includes('merchant-videos') ? (
                   <video src={videoBannerUrl} className="w-full h-full object-cover" muted loop playsInline controls />
                 ) : (
                   <iframe src={videoBannerUrl} className="w-full h-full" allowFullScreen />

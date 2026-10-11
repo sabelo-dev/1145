@@ -284,7 +284,7 @@ const MerchantShopfront = () => {
 
     try {
       setUploading(true);
-      const bucket = type === 'banner' ? 'vendor-banners' : 'vendor-logos';
+      const bucket = type === 'banner' ? 'merchant-banners' : 'merchant-logos';
       const path = `${type === 'banner' ? 'banners' : 'logos'}/${user.id}/${Date.now()}`;
       const { publicUrl } = await uploadFileToStorage({
         bucket,
