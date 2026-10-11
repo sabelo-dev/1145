@@ -137,5 +137,29 @@ npx cap open android   # Build → Generate Signed Bundle → .aab → Play Cons
 npx cap open ios       # Product → Archive → Distribute → App Store Connect (TestFlight first)
 ```
 
+### Android without Android Studio
+
+The release build signs itself when `android/keystore.properties` exists
+(`storeFile`, `storePassword`, `keyAlias`, `keyPassword`; the file is not in
+git). With `JAVA_HOME` and `ANDROID_HOME` set:
+
+```bash
+npm run build
+npx cap sync
+cd android
+./gradlew assembleRelease bundleRelease
+```
+
+- `android/app/build/outputs/apk/release/app-release.apk`: the installable
+  file for direct download (your own website).
+- `android/app/build/outputs/bundle/release/app-release.aab`: the upload for
+  Play Console.
+
+Both are signed with the same key. Phones only accept an update signed with
+the key of the installed app, so the website APK must always be signed with
+this keystore. On Play, enrol in Play App Signing with this key as the upload
+key; the Play copy is then re-signed by Google, so a phone cannot update a
+website install from Play (or the reverse) without uninstalling first.
+
 Keep the Android upload keystore and its passwords safe: losing them
 means you cannot update the app.

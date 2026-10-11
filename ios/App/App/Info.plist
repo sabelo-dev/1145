@@ -59,6 +59,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>1145 uses your location to show nearby stores, rides and deliveries.</string>
 	<key>NSCameraUsageDescription</key>
