@@ -123,7 +123,8 @@ const AdminDrivers = () => {
       console.error("Error updating driver status:", error);
       toast({
         title: "Error",
-        description: "Failed to update driver status",
+        // The database refuses to reactivate a driver frozen by an investigation, and says so.
+        description: (error as { message?: string })?.message || "Failed to update driver status",
         variant: "destructive",
       });
     }

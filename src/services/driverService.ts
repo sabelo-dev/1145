@@ -37,14 +37,6 @@ export interface VehicleData {
   capacity_kg?: number;
 }
 
-export interface VerificationStatus {
-  identity_verified: boolean;
-  license_verified: boolean;
-  vehicle_verified: boolean;
-  background_check: boolean;
-  overall_status: 'pending' | 'verified' | 'rejected' | 'expired';
-}
-
 export interface AvailabilitySchedule {
   day: number; // 0-6 (Sunday-Saturday)
   start_time: string; // HH:mm
@@ -113,41 +105,6 @@ export const driverService = {
         }
       )
       .subscribe();
-  },
-};
-
-// Verification Service (KYC)
-export const verificationService = {
-  // Check verification status (simulated - would connect to real KYC provider)
-  getVerificationStatus(driver: DriverProfile): VerificationStatus {
-    const hasLicense = !!driver.license_number;
-    const hasVehicle = !!driver.vehicle_registration;
-    const hasPhone = !!driver.phone;
-    
-    const allVerified = hasLicense && hasVehicle && hasPhone;
-    
-    return {
-      identity_verified: hasPhone,
-      license_verified: hasLicense,
-      vehicle_verified: hasVehicle,
-      background_check: driver.status !== 'pending',
-      overall_status: allVerified && driver.status !== 'pending' 
-        ? 'verified' 
-        : driver.status === 'suspended' 
-          ? 'rejected' 
-          : 'pending',
-    };
-  },
-
-  // Get verification progress percentage
-  getVerificationProgress(status: VerificationStatus): number {
-    const checks = [
-      status.identity_verified,
-      status.license_verified,
-      status.vehicle_verified,
-      status.background_check,
-    ];
-    return (checks.filter(Boolean).length / checks.length) * 100;
   },
 };
 

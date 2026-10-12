@@ -18,6 +18,7 @@ interface Driver {
   id: string;
   name: string;
   status: string;
+  suspension_reason?: string | null;
   rating: number;
   total_deliveries: number;
 }
@@ -25,9 +26,19 @@ interface Driver {
 interface DriverOverviewProps {
   driver: Driver | null;
   onRefresh: () => void;
+  /** Going online and offline run through the verified session (useDriverSession). */
+  onGoOnline: () => void;
+  onGoOffline: () => void;
+  sessionBusy: boolean;
 }
 
-const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) => {
+const SUSPENSION_MESSAGES: Record<string, string> = {
+  documents_expired: "One of your documents has expired. Upload the renewed document under Verification and you will be reinstated once it is approved.",
+  investigation: "Your account is on hold while we review it. You cannot go online or cash out until the review is finished.",
+  investigation_confirmed: "Your driver account has been closed following a review. Contact support if you want to appeal.",
+};
+
+const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh, onGoOnline, onGoOffline, sessionBusy }) => {
   const { user } = useAuth();
   const [todayStats, setTodayStats] = useState({
     deliveries: 0,
@@ -85,17 +96,6 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
     setAvailableJobs(available || 0);
   };
 
-  const toggleStatus = async (newStatus: string) => {
-    if (!driver) return;
-
-    await supabase
-      .from("drivers")
-      .update({ status: newStatus })
-      .eq("id", driver.id);
-
-    onRefresh();
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -133,18 +133,25 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
               </div>
             </div>
             <div className="flex gap-2">
-              {driver.status !== "available" && driver.status !== "pending" && (
-                <Button onClick={() => toggleStatus("available")} variant="default">
+              {!["available", "busy", "pending", "suspended"].includes(driver.status) && (
+                <Button onClick={onGoOnline} disabled={sessionBusy} variant="default">
                   Go Online
                 </Button>
               )}
-              {driver.status === "available" && (
-                <Button onClick={() => toggleStatus("offline")} variant="outline">
+              {(driver.status === "available" || driver.status === "busy") && (
+                <Button onClick={onGoOffline} disabled={sessionBusy} variant="outline">
                   Go Offline
                 </Button>
               )}
             </div>
           </div>
+          {driver.status === "suspended" && (
+            <div role="alert" className="mt-4 p-3 bg-destructive/10 rounded-lg">
+              <p className="text-sm text-destructive">
+                {SUSPENSION_MESSAGES[driver.suspension_reason ?? ""] ?? "Your driver account is suspended. Contact support for help."}
+              </p>
+            </div>
+          )}
           {driver.status === "pending" && (
             <div className="mt-4 p-3 bg-blue-500/10 rounded-lg">
               <p className="text-sm text-blue-600">

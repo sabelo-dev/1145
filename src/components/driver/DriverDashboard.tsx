@@ -41,6 +41,8 @@ import DriverRideHistory from "./DriverRideHistory";
 import DriverRideAnalytics from "./DriverRideAnalytics";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import ZoneComplianceIndicator from "./ZoneComplianceIndicator";
+import IdentityCheckDialog from "./IdentityCheckDialog";
+import { useDriverSession } from "@/hooks/useDriverSession";
 import { useUrlTab } from "@/hooks/useUrlTab";
 import {
   LayoutDashboard,
@@ -64,6 +66,7 @@ interface Driver {
   id: string;
   name: string;
   status: string;
+  suspension_reason?: string | null;
   rating: number;
   total_deliveries: number;
   phone: string | null;
@@ -175,6 +178,8 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
   onRefresh,
 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
+  // Lives here, not in a tab, so a selfie request reaches the driver on any screen.
+  const session = useDriverSession(driver?.status, onRefresh);
 
   const handleItemClick = (id: string) => {
     setActiveTab(id);
@@ -280,9 +285,16 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         </header>
 
         <main className="flex-1 p-4 md:p-4 md:p-6 bg-background overflow-auto">
-          <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} />
+          <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} session={session} />
         </main>
       </SidebarInset>
+
+      <IdentityCheckDialog
+        check={session.check}
+        userId={user.id}
+        onSubmitted={session.onCheckSubmitted}
+        onDecline={session.onCheckDeclined}
+      />
     </div>
   );
 };
@@ -291,12 +303,22 @@ interface TabContentProps {
   activeTab: string;
   driver: Driver | null;
   onRefresh: () => void;
+  session: ReturnType<typeof useDriverSession>;
 }
 
-const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh }) => {
+const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh, session }) => {
+  const overview = (
+    <DriverOverview
+      driver={driver}
+      onRefresh={onRefresh}
+      onGoOnline={session.goOnline}
+      onGoOffline={session.goOffline}
+      sessionBusy={session.busy}
+    />
+  );
   switch (activeTab) {
     case "overview":
-      return <DriverOverview driver={driver} onRefresh={onRefresh} />;
+      return overview;
     case "ride-requests":
       return <DriverRideRequests driver={driver} onRideAccepted={onRefresh} />;
     case "ride-history":
@@ -318,11 +340,11 @@ const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh })
     case "analytics":
       return <DriverAnalytics driver={driver} />;
     case "verification":
-      return <DriverVerification driver={driver} />;
+      return <DriverVerification driver={driver} onChange={onRefresh} />;
     case "settings":
       return <DriverSettings driver={driver} onUpdate={onRefresh} />;
     default:
-      return <DriverOverview driver={driver} onRefresh={onRefresh} />;
+      return overview;
   }
 };
 

@@ -1,33 +1,83 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { AlertTriangle, Car, FileCheck, Landmark, Loader2, Shield, Smartphone } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import DocumentUpload from "@/components/onboarding/DocumentUpload";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import {
-  CheckCircle,
-  XCircle,
-  Clock,
-  User,
-  Car,
-  FileCheck,
-  Shield,
-  AlertTriangle,
-} from "lucide-react";
-import { verificationService, type VerificationStatus } from "@/services/driverService";
+  DRIVER_DOCUMENTS,
+  GAUTENG_STATES,
+  driverVerification,
+  type DriverDocType,
+  type DriverVerificationStatus,
+  type GautengLicenceStatus,
+} from "@/services/driverVerificationService";
 
 interface DriverVerificationProps {
   driver: {
     id: string;
-    name: string;
-    phone: string | null;
-    license_number: string | null;
-    vehicle_registration: string | null;
     status: string;
+    vehicle_registration: string | null;
+    vehicle_make: string | null;
+    vehicle_model: string | null;
+    vehicle_year: number | null;
+    vehicle_color: string | null;
   } | null;
+  /** Called when something here may have changed the driver's status. */
+  onChange: () => void;
 }
 
-const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
-  if (!driver) {
+const KYC_BUCKET = "driver-kyc";
+
+const day = (value: string) => format(new Date(value), "d MMM yyyy");
+
+const ACCOUNT_STATES: Record<string, { label: string; tone: "ok" | "wait" | "stop"; text: string }> = {
+  pending: { label: "Awaiting approval", tone: "wait", text: "Your application is being reviewed. You can add your documents and vehicle now so they are ready." },
+  documents_expired: { label: "Suspended", tone: "stop", text: "A document has expired. Upload the renewed document below and you will be reinstated once it is approved." },
+  investigation: { label: "On hold", tone: "stop", text: "Your account is on hold while we review it. You cannot go online or cash out until the review is finished. Contact support if you have information to add." },
+  investigation_confirmed: { label: "Closed", tone: "stop", text: "Your driver account has been closed following a review. Contact support if you want to appeal." },
+  suspended: { label: "Suspended", tone: "stop", text: "Your driver account is suspended. Contact support for help." },
+  active: { label: "Active", tone: "ok", text: "Your account is in good standing." },
+};
+
+const TONE_CLASS = {
+  ok: "bg-green-600 text-white border-0",
+  wait: "bg-blue-600 text-white border-0",
+  stop: "bg-destructive text-destructive-foreground border-0",
+};
+
+const DOC_STATES: Record<string, { label: string; className: string }> = {
+  valid: { label: "Valid", className: "bg-green-600 text-white border-0" },
+  expired: { label: "Expired", className: "bg-destructive text-destructive-foreground border-0" },
+  pending: { label: "Being reviewed", className: "bg-blue-600 text-white border-0" },
+  missing: { label: "Not uploaded", className: "" },
+  transitional: { label: "Application pending", className: "bg-blue-600 text-white border-0" },
+};
+
+const DriverVerification: React.FC<DriverVerificationProps> = ({ driver, onChange }) => {
+  const { user } = useAuth();
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["driver-verification", driver?.id],
+    queryFn: () => driverVerification.status(),
+    enabled: !!driver,
+  });
+  const gauteng = useQuery({
+    queryKey: ["driver-gauteng-licence", driver?.id],
+    queryFn: () => driverVerification.gautengStatus(),
+    enabled: !!driver,
+  });
+  // A driver with a GPTRIS record files their operating licence through it.
+  const viaGptris = !!gauteng.data && gauteng.data.state !== "not_applied";
+
+  if (!driver || isLoading) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -37,182 +87,532 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver }) => {
     );
   }
 
-  const verificationStatus = verificationService.getVerificationStatus(driver as any);
-  const progress = verificationService.getVerificationProgress(verificationStatus);
-
-  const getStatusIcon = (verified: boolean) => {
-    return verified ? (
-      <CheckCircle className="h-5 w-5 text-green-500" />
-    ) : (
-      <Clock className="h-5 w-5 text-gold" />
+  if (isError || !data || !user) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p role="alert" className="text-center text-muted-foreground">
+            We couldn't load your verification status. Please try again in a moment.
+          </p>
+        </CardContent>
+      </Card>
     );
-  };
+  }
 
-  const getOverallStatusBadge = (status: VerificationStatus['overall_status']) => {
-    switch (status) {
-      case 'verified':
-        return <Badge className="bg-green-500">Verified</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
-      case 'expired':
-        return <Badge variant="outline" className="text-gold border-gold">Expired</Badge>;
-      default:
-        return <Badge variant="secondary">Pending Verification</Badge>;
-    }
+  const account =
+    ACCOUNT_STATES[data.status === "suspended" ? data.suspension_reason ?? "suspended" : data.status] ??
+    (data.status === "suspended" ? ACCOUNT_STATES.suspended : ACCOUNT_STATES.active);
+  const refresh = () => {
+    void refetch();
+    void gauteng.refetch();
+    onChange();
   };
-
-  const verificationItems = [
-    {
-      icon: User,
-      label: "Identity Verification",
-      description: "Phone number and profile verified",
-      verified: verificationStatus.identity_verified,
-    },
-    {
-      icon: FileCheck,
-      label: "Driver's License",
-      description: "Valid license number on file",
-      verified: verificationStatus.license_verified,
-    },
-    {
-      icon: Car,
-      label: "Vehicle Registration",
-      description: "Vehicle documents verified",
-      verified: verificationStatus.vehicle_verified,
-    },
-    {
-      icon: Shield,
-      label: "Background Check",
-      description: "Account approved by admin",
-      verified: verificationStatus.background_check,
-    },
-  ];
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Verification & KYC Status</h2>
-
-      {/* Overall Status Card */}
       <Card>
         <CardHeader>
           <div className="header-row">
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              Verification Status
+              Driver account
             </CardTitle>
-            {getOverallStatusBadge(verificationStatus.overall_status)}
+            <Badge className={TONE_CLASS[account.tone]}>{account.label}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Verification Progress</span>
-              <span className="font-medium">{Math.round(progress)}%</span>
+          <p className={account.tone === "stop" ? "flex items-start gap-2 text-sm text-destructive" : "text-sm text-muted-foreground"}>
+            {account.tone === "stop" && <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />}
+            {account.text}
+          </p>
+          <div className="flex items-start gap-3 rounded-lg border p-4">
+            <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="text-sm">
+              <p className="font-medium">Identity checks</p>
+              <p className="text-muted-foreground">
+                You take a selfie each time you go online, and we ask for another at random while you are online. Only
+                you may drive on this account.
+              </p>
+              <p className="mt-2 text-muted-foreground">
+                {data.device
+                  ? `Your account is linked to this device since ${day(data.device.first_seen_at)}. Going online from a different phone is flagged for review.`
+                  : "Your account will be linked to the device you first go online from."}
+              </p>
             </div>
-            <Progress value={progress} className="h-2" />
           </div>
-
-          {verificationStatus.overall_status !== 'verified' && (
-            <div className="flex items-start gap-3 p-3 bg-gold/10 dark:bg-gold/15 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-gold dark:text-gold">
-                  Complete Your Verification
-                </p>
-                <p className="text-sm text-gold dark:text-gold">
-                  Verified drivers get priority access to high-value deliveries and can earn up to 25% more.
-                </p>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Verification Checklist */}
       <Card>
         <CardHeader>
-          <CardTitle>Verification Checklist</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <FileCheck className="h-5 w-5" />
+            Documents
+          </CardTitle>
+          <CardDescription>
+            {data.compliance_enforced
+              ? "All four must be approved and in date before you can go online. If one expires, your account is suspended until the renewal is approved."
+              : "Keep these in date. If one expires, your account is suspended until the renewal is approved."}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {verificationItems.map((item, index) => (
-              <div
-                key={index}
-                className={`flex items-start gap-4 p-4 rounded-lg border ${
-                  item.verified
-                    ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
-                    : "bg-muted/50 border-border"
-                }`}
-              >
-                <div
-                  className={`p-2 rounded-full ${
-                    item.verified
-                      ? "bg-green-100 dark:bg-green-900"
-                      : "bg-muted"
-                  }`}
-                >
-                  <item.icon
-                    className={`h-5 w-5 ${
-                      item.verified ? "text-green-600" : "text-muted-foreground"
-                    }`}
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">{item.label}</h4>
-                    {getStatusIcon(item.verified)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        <CardContent className="space-y-3">
+          {DRIVER_DOCUMENTS.map((doc) => (
+            <DocumentRow
+              key={doc.type}
+              doc={doc}
+              state={data.documents.find((d) => d.doc_type === doc.type)}
+              userId={user.id}
+              onSubmitted={refresh}
+              managedNote={doc.type === "operating_licence" && viaGptris ? "Recorded through your GPTRIS application below." : undefined}
+            />
+          ))}
         </CardContent>
       </Card>
 
-      {/* Required Documents */}
-      {verificationStatus.overall_status !== 'verified' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Required Documents</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              To complete verification, please ensure the following information is provided in your profile settings:
+      {gauteng.data && <GautengLicenceCard status={gauteng.data} userId={user.id} onSubmitted={refresh} />}
+
+      <VehicleCard driver={driver} vehicle={data.vehicle} required={data.compliance_enforced} userId={user.id} onSubmitted={refresh} />
+    </div>
+  );
+};
+
+interface GautengLicenceCardProps {
+  status: GautengLicenceStatus;
+  userId: string;
+  onSubmitted: () => void;
+}
+
+const GautengLicenceCard: React.FC<GautengLicenceCardProps> = ({ status, userId, onSubmitted }) => {
+  const { toast } = useToast();
+  const [form, setForm] = useState<"application" | "licence" | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [reference, setReference] = useState("");
+  const [submittedOn, setSubmittedOn] = useState("");
+  const [receipt, setReceipt] = useState<string>();
+  const [licence, setLicence] = useState({ number: "", expiresOn: "", operatingArea: "" });
+  const [licenceFile, setLicenceFile] = useState<string>();
+
+  const { state, application, licence: issued } = status;
+  const badge = GAUTENG_STATES[state];
+  const open = application && application.status !== "rejected" ? application : null;
+
+  const finish = (result: { ok: boolean; message?: string }, done: string) => {
+    setSaving(false);
+    if (!result.ok) {
+      toast({ variant: "destructive", title: "Not submitted", description: result.message });
+      return;
+    }
+    toast({ title: done, description: "We'll let you know once it has been checked." });
+    setForm(null);
+    onSubmitted();
+  };
+
+  const submitApplication = async () => {
+    if (!reference.trim() || !submittedOn || !receipt) {
+      toast({ variant: "destructive", title: "Almost there", description: "Add the reference number, the date and the receipt." });
+      return;
+    }
+    setSaving(true);
+    finish(await driverVerification.submitGautengApplication(reference, receipt, submittedOn), "Application recorded");
+  };
+
+  const submitLicence = async () => {
+    if (!open || !licence.number.trim() || !licence.expiresOn || !licence.operatingArea.trim() || !licenceFile) {
+      toast({ variant: "destructive", title: "Almost there", description: "Add the licence number, expiry date, operating area and the licence itself." });
+      return;
+    }
+    setSaving(true);
+    finish(await driverVerification.submitGautengLicence(open.id, { ...licence, path: licenceFile }), "Licence submitted");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="header-row">
+          <CardTitle className="flex items-center gap-2">
+            <Landmark className="h-5 w-5" />
+            Gauteng operating licence (GPTRIS)
+          </CardTitle>
+          <Badge variant="outline" className={badge.className}>{badge.label}</Badge>
+        </div>
+        <CardDescription>
+          For drivers who operate in Gauteng. Record your GPTRIS application here, then the licence once it is issued.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {issued && (
+          <div className="space-y-1 text-sm">
+            <p className="font-medium">Licence {issued.licence_number}</p>
+            <p className="text-muted-foreground">
+              {state === "expired" ? "Expired" : "Valid until"} {day(issued.licence_expires_on)} · Approved area: {issued.operating_area}
             </p>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                {verificationStatus.identity_verified ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                Valid phone number
-              </li>
-              <li className="flex items-center gap-2">
-                {verificationStatus.license_verified ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                Driver's license number
-              </li>
-              <li className="flex items-center gap-2">
-                {verificationStatus.vehicle_verified ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                Vehicle registration number
-              </li>
-            </ul>
-            <Button variant="outline" className="w-full mt-4">
-              Update Profile Settings
+          </div>
+        )}
+
+        {application && (
+          <div className="space-y-1 text-sm">
+            <p className="font-medium">Application {application.gptris_reference}</p>
+            <p className="text-muted-foreground">
+              Submitted to GPTRIS on {day(application.submitted_on)} ·{" "}
+              {application.status === "submitted" && "we are checking your receipt"}
+              {application.status === "receipt_verified" && (application.licence_submitted ? "we are checking your licence" : "receipt confirmed, waiting for the licence")}
+              {application.status === "rejected" && "not accepted"}
+            </p>
+            {application.review_notes && application.status !== "submitted" && (
+              <p className={application.status === "rejected" ? "text-destructive" : "text-muted-foreground"}>{application.review_notes}</p>
+            )}
+          </div>
+        )}
+
+        {state === "application_pending" && (
+          <p className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            {status.may_operate && status.transitional_until
+              ? `A receipt is not a licence. You may drive on a confirmed receipt only until ${day(status.transitional_until)}, so add your licence as soon as it is issued.`
+              : "A receipt is not a licence. Your application does not count as an operating licence until the licence is issued and we have checked it."}
+          </p>
+        )}
+        {state === "expired" && (
+          <p className="text-sm text-destructive">Your operating licence has expired. Record your renewal application, then the renewed licence.</p>
+        )}
+
+        {form === null && (
+          <div className="flex flex-wrap gap-2">
+            {open && !open.licence_submitted && <Button onClick={() => setForm("licence")}>My licence has been issued</Button>}
+            <Button variant="outline" onClick={() => setForm("application")}>
+              {state === "not_applied" ? "Record my GPTRIS application" : open ? "Correct my application" : "Record a new application"}
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        )}
+
+        {form === "application" && (
+          <div className="space-y-4 border-t pt-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="gptris-ref">GPTRIS reference number</Label>
+                <Input id="gptris-ref" value={reference} onChange={(e) => setReference(e.target.value)} maxLength={60} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gptris-date">Date on the receipt</Label>
+                <Input id="gptris-date" type="date" value={submittedOn} onChange={(e) => setSubmittedOn(e.target.value)} />
+              </div>
+            </div>
+            <DocumentUpload label="Submission receipt" bucket={KYC_BUCKET} folder={`${userId}/gptris-receipt`} value={receipt} onChange={setReceipt} />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setForm(null)} disabled={saving}>Cancel</Button>
+              <Button onClick={submitApplication} disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Submit for checking
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {form === "licence" && (
+          <div className="space-y-4 border-t pt-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="gp-licence-number">Operating licence number</Label>
+                <Input id="gp-licence-number" value={licence.number} onChange={(e) => setLicence((l) => ({ ...l, number: e.target.value }))} maxLength={60} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gp-licence-expiry">Expiry date</Label>
+                <Input id="gp-licence-expiry" type="date" value={licence.expiresOn} onChange={(e) => setLicence((l) => ({ ...l, expiresOn: e.target.value }))} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="gp-licence-area">Approved operating area, as printed on the licence</Label>
+                <Input id="gp-licence-area" value={licence.operatingArea} onChange={(e) => setLicence((l) => ({ ...l, operatingArea: e.target.value }))} maxLength={200} />
+              </div>
+            </div>
+            <DocumentUpload label="Operating licence" bucket={KYC_BUCKET} folder={`${userId}/operating_licence`} value={licenceFile} onChange={setLicenceFile} />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setForm(null)} disabled={saving}>Cancel</Button>
+              <Button onClick={submitLicence} disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Submit for checking
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+interface DocumentRowProps {
+  doc: (typeof DRIVER_DOCUMENTS)[number];
+  state: DriverVerificationStatus["documents"][number] | undefined;
+  userId: string;
+  onSubmitted: () => void;
+  /** Set when this document is filed somewhere else on the page, so it is not uploaded here. */
+  managedNote?: string;
+}
+
+const DocumentRow: React.FC<DocumentRowProps> = ({ doc, state, userId, onSubmitted, managedNote }) => {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<string>();
+  const [expiresOn, setExpiresOn] = useState("");
+  const [number, setNumber] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const status = DOC_STATES[state?.state ?? "missing"];
+  const latest = state?.latest;
+  // A renewal sent in while the current document is still valid (or has expired).
+  const renewalPending = latest?.status === "pending" && state?.state !== "pending";
+
+  const submit = async () => {
+    if (!file || !expiresOn) {
+      toast({ variant: "destructive", title: "Almost there", description: "Add the file and its expiry date." });
+      return;
+    }
+    setSaving(true);
+    const result = await driverVerification.submitDocument(doc.type as DriverDocType, file, expiresOn, number);
+    setSaving(false);
+    if (!result.ok) {
+      toast({ variant: "destructive", title: "Not submitted", description: result.message });
+      return;
+    }
+    toast({ title: "Document submitted", description: "We'll let you know once it has been reviewed." });
+    setOpen(false);
+    setFile(undefined);
+    setExpiresOn("");
+    setNumber("");
+    onSubmitted();
+  };
+
+  return (
+    <div className="rounded-lg border p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium">{doc.label}</p>
+          <p className="text-sm text-muted-foreground">
+            {state?.expires_on
+              ? `${state.state === "expired" ? "Expired" : "Valid until"} ${day(state.expires_on)}`
+              : doc.hint}
+          </p>
+          {managedNote && <p className="mt-1 text-sm text-muted-foreground">{managedNote}</p>}
+          {renewalPending && <p className="mt-1 text-sm text-muted-foreground">Your renewal is being reviewed.</p>}
+          {latest?.status === "rejected" && (
+            <p className="mt-1 text-sm text-destructive">Last upload not accepted: {latest.review_notes}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className={status.className}>{status.label}</Badge>
+          {!open && !managedNote && (
+            <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+              {state?.state === "missing" ? "Upload" : state?.state === "pending" ? "Replace" : "Renew"}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {open && (
+        <div className="mt-4 space-y-4 border-t pt-4">
+          <DocumentUpload label={doc.label} bucket={KYC_BUCKET} folder={`${userId}/${doc.type}`} value={file} onChange={setFile} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`${doc.type}-expiry`}>Expiry date</Label>
+              <Input id={`${doc.type}-expiry`} type="date" value={expiresOn} onChange={(e) => setExpiresOn(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`${doc.type}-number`}>Document number (optional)</Label>
+              <Input id={`${doc.type}-number`} value={number} onChange={(e) => setNumber(e.target.value)} maxLength={60} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={submit} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Submit for review
+            </Button>
+          </div>
+        </div>
       )}
     </div>
+  );
+};
+
+interface VehicleCardProps {
+  driver: NonNullable<DriverVerificationProps["driver"]>;
+  vehicle: DriverVerificationStatus["vehicle"];
+  required: boolean;
+  userId: string;
+  onSubmitted: () => void;
+}
+
+const VEHICLE_STATES: Record<string, { label: string; className: string }> = {
+  approved: { label: "Verified", className: "bg-green-600 text-white border-0" },
+  pending: { label: "Being reviewed", className: "bg-blue-600 text-white border-0" },
+  rejected: { label: "Not accepted", className: "bg-destructive text-destructive-foreground border-0" },
+};
+
+const VehicleCard: React.FC<VehicleCardProps> = ({ driver, vehicle, required, userId, onSubmitted }) => {
+  const { toast } = useToast();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    licensePlate: driver.vehicle_registration ?? "",
+    make: driver.vehicle_make ?? "",
+    model: driver.vehicle_model ?? "",
+    year: driver.vehicle_year ? String(driver.vehicle_year) : "",
+    color: driver.vehicle_color ?? "",
+    ownerIsSelf: true,
+    ownerType: "individual" as "individual" | "company",
+    ownerName: "",
+    ownerIdNumber: "",
+    ownerPhone: "",
+  });
+  const [authorisation, setAuthorisation] = useState<string>();
+  const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((f) => ({ ...f, [key]: value }));
+
+  const submit = async () => {
+    setSaving(true);
+    const result = await driverVerification.declareVehicle({
+      ...form,
+      year: parseInt(form.year, 10),
+      authorisationDocPath: authorisation,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      toast({ variant: "destructive", title: "Not submitted", description: result.message });
+      return;
+    }
+    toast({ title: "Vehicle submitted", description: "We'll let you know once it has been verified." });
+    setEditing(false);
+    onSubmitted();
+  };
+
+  const state = vehicle ? VEHICLE_STATES[vehicle.status] : null;
+  const company = !form.ownerIsSelf && form.ownerType === "company";
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="header-row">
+          <CardTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Vehicle and owner
+          </CardTitle>
+          {state && <Badge className={state.className}>{state.label}</Badge>}
+        </div>
+        <CardDescription>
+          We keep the vehicle's owner on record separately from its driver.
+          {required ? " Your vehicle must be verified before you can go online." : ""}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {vehicle && !editing && (
+          <div className="space-y-1 text-sm">
+            <p className="font-medium">
+              {vehicle.year} {vehicle.make} {vehicle.model}, {vehicle.color} · {vehicle.license_plate}
+            </p>
+            <p className="text-muted-foreground">
+              {vehicle.relationship === "owner_driver"
+                ? `You are the owner (${vehicle.owner_name}).`
+                : `Owned by ${vehicle.owner_name}; you drive it with the owner's permission.`}
+            </p>
+            {vehicle.status === "rejected" && <p className="text-destructive">Not accepted: {vehicle.review_notes}</p>}
+          </div>
+        )}
+
+        {!editing ? (
+          <Button variant="outline" onClick={() => setEditing(true)}>
+            {vehicle ? "Change vehicle or owner" : "Add your vehicle"}
+          </Button>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="veh-plate">Number plate</Label>
+                <Input id="veh-plate" value={form.licensePlate} onChange={(e) => set("licensePlate", e.target.value)} maxLength={20} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="veh-year">Year</Label>
+                <Input id="veh-year" inputMode="numeric" value={form.year} onChange={(e) => set("year", e.target.value)} maxLength={4} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="veh-make">Make</Label>
+                <Input id="veh-make" value={form.make} onChange={(e) => set("make", e.target.value)} maxLength={40} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="veh-model">Model</Label>
+                <Input id="veh-model" value={form.model} onChange={(e) => set("model", e.target.value)} maxLength={40} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="veh-color">Colour</Label>
+                <Input id="veh-color" value={form.color} onChange={(e) => set("color", e.target.value)} maxLength={30} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Who owns this vehicle?</Label>
+              <RadioGroup
+                value={form.ownerIsSelf ? "self" : "other"}
+                onValueChange={(v) => set("ownerIsSelf", v === "self")}
+                className="flex flex-wrap gap-6"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="self" id="owner-self" />
+                  <Label htmlFor="owner-self" className="font-normal">I do</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="other" id="owner-other" />
+                  <Label htmlFor="owner-other" className="font-normal">Someone else, or a company</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {!form.ownerIsSelf && (
+                <div className="space-y-2">
+                  <Label>Owner type</Label>
+                  <Select value={form.ownerType} onValueChange={(v) => set("ownerType", v as "individual" | "company")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="individual">A person</SelectItem>
+                      <SelectItem value="company">A company</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="owner-name">{form.ownerIsSelf ? "Your full legal name" : company ? "Registered company name" : "Owner's full legal name"}</Label>
+                <Input id="owner-name" value={form.ownerName} onChange={(e) => set("ownerName", e.target.value)} maxLength={120} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="owner-id">{form.ownerIsSelf ? "Your ID number" : company ? "Company registration number" : "Owner's ID number"}</Label>
+                <Input id="owner-id" value={form.ownerIdNumber} onChange={(e) => set("ownerIdNumber", e.target.value)} maxLength={30} />
+              </div>
+              {!form.ownerIsSelf && (
+                <div className="space-y-2">
+                  <Label htmlFor="owner-phone">Owner's phone number</Label>
+                  <Input id="owner-phone" type="tel" value={form.ownerPhone} onChange={(e) => set("ownerPhone", e.target.value)} maxLength={20} />
+                </div>
+              )}
+            </div>
+
+            {!form.ownerIsSelf && (
+              <DocumentUpload
+                label="Owner's signed permission for you to drive this vehicle"
+                bucket={KYC_BUCKET}
+                folder={`${userId}/owner-permission`}
+                value={authorisation}
+                onChange={setAuthorisation}
+              />
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>
+              <Button onClick={submit} disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Submit for verification
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

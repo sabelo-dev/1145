@@ -41,6 +41,7 @@ import AdminSettings from "@/components/admin/AdminSettings";
 import { AdminShipping } from "@/components/admin/AdminShipping";
 import AdminAuctions from "@/components/admin/AdminAuctions";
 import AdminDrivers from "@/components/admin/AdminDrivers";
+import AdminDriverCompliance from "@/components/admin/AdminDriverCompliance";
 import AdminEateries from "@/components/admin/AdminEateries";
 import AdminServiceMarketplace from "@/components/admin/AdminServiceMarketplace";
 import AdminUCoin from "@/components/admin/AdminUCoin";
@@ -128,6 +129,7 @@ const AdminDashboard = () => {
     { id: "deletion-requests", title: "Deletion Requests", icon: UserX },
     { id: "merchants", title: "Merchant Management", icon: Store },
     { id: "drivers", title: "Driver Management", icon: Truck },
+    { id: "driver-compliance", title: "Driver Verification", icon: Shield },
     { id: "eateries", title: "Eateries (Food)", icon: Store },
     { id: "service-marketplace", title: "Service Marketplace", icon: Package },
     { id: "leases", title: "Lease Management", icon: FileText },
@@ -365,6 +367,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="drivers" className="mt-0">
               <AdminDrivers />
+            </TabsContent>
+            <TabsContent value="driver-compliance" className="mt-0">
+              <AdminDriverCompliance />
             </TabsContent>
             <TabsContent value="rides" className="mt-0">
               <AdminRideMonitoring />
