@@ -48,6 +48,7 @@ import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import AdminInbox from "@/components/admin/AdminInbox";
 import AdminDisputes from "@/components/admin/AdminDisputes";
+import AdminPromotions from "@/components/admin/AdminPromotions";
 import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
 import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
 import AdminRideAnalytics from "@/components/admin/AdminRideAnalytics";
@@ -86,6 +87,7 @@ import {
   AlertTriangle,
   UserX,
   Headphones,
+  Percent,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -134,6 +136,7 @@ const AdminDashboard = () => {
     { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
     { id: "products", title: "Products (All)", icon: Package },
+    { id: "promotions", title: "Promotions & Discounts", icon: Percent },
     { id: "auctions", title: "Auctions", icon: Gavel },
     { id: "auction-analytics", title: "Auction Analytics", icon: TrendingUp },
     { id: "gold-pricing", title: "Gold Pricing", icon: Coins },
@@ -287,6 +290,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             
             <TabsContent value="overview" className="mt-0">
               <AdminOverview />
+            </TabsContent>
+            <TabsContent value="promotions" className="mt-0">
+              <AdminPromotions />
             </TabsContent>
             <TabsContent value="support" className="mt-0">
               <AdminDisputes />
