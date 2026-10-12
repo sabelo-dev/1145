@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { AlertTriangle, Car, FileCheck, Landmark, Loader2, Shield, Smartphone } from "lucide-react";
+import { AlertTriangle, Car, FileCheck, Landmark, Loader2, Shield, Smartphone, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ interface DriverVerificationProps {
   /** Called when something here may have changed the driver's status. */
   onChange: () => void;
 }
+
+import { fleetService, type DriverFleetStatus } from "@/services/fleetService";
 
 const KYC_BUCKET = "driver-kyc";
 
@@ -76,6 +78,13 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver, onChang
   });
   // A driver with a GPTRIS record files their operating licence through it.
   const viaGptris = !!gauteng.data && gauteng.data.state !== "not_applied";
+  const fleet = useQuery({
+    queryKey: ["driver-fleet", driver?.id],
+    queryFn: () => fleetService.driverStatus(),
+    enabled: !!driver,
+  });
+  // On a fleet shift, the vehicle's documents are the fleet's to file.
+  const onFleetVehicle = !!fleet.data?.on_fleet_vehicle;
 
   if (!driver || isLoading) {
     return (
@@ -105,6 +114,7 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver, onChang
   const refresh = () => {
     void refetch();
     void gauteng.refetch();
+    void fleet.refetch();
     onChange();
   };
 
@@ -163,16 +173,92 @@ const DriverVerification: React.FC<DriverVerificationProps> = ({ driver, onChang
               state={data.documents.find((d) => d.doc_type === doc.type)}
               userId={user.id}
               onSubmitted={refresh}
-              managedNote={doc.type === "operating_licence" && viaGptris ? "Recorded through your GPTRIS application below." : undefined}
+              managedNote={
+                doc.type !== "prdp" && onFleetVehicle ? "Filed by your fleet for the vehicle you are driving."
+                  : doc.type === "operating_licence" && viaGptris ? "Recorded through your GPTRIS application below."
+                  : undefined
+              }
             />
           ))}
         </CardContent>
       </Card>
 
-      {gauteng.data && <GautengLicenceCard status={gauteng.data} userId={user.id} onSubmitted={refresh} />}
+      {fleet.data && fleet.data.memberships.length > 0 && <FleetCard status={fleet.data} driverId={driver.id} onChanged={refresh} />}
+
+      {gauteng.data && !onFleetVehicle && <GautengLicenceCard status={gauteng.data} userId={user.id} onSubmitted={refresh} />}
 
       <VehicleCard driver={driver} vehicle={data.vehicle} required={data.compliance_enforced} userId={user.id} onSubmitted={refresh} />
     </div>
+  );
+};
+
+const shiftTime = (value: string) => format(new Date(value), "EEE d MMM, HH:mm");
+
+/** The driver's fleets: invitations to answer, and the shifts they have been given. */
+const FleetCard: React.FC<{ status: DriverFleetStatus; driverId: string; onChanged: () => void }> = ({ status, driverId, onChanged }) => {
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+
+  const run = async (action: Promise<{ ok: boolean; message?: string }>, done: string) => {
+    setBusy(true);
+    const result = await action;
+    setBusy(false);
+    if (result.ok) toast({ title: done });
+    else toast({ variant: "destructive", title: "Not saved", description: result.message });
+    onChanged();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Fleets
+        </CardTitle>
+        <CardDescription>
+          A fleet gives you shifts in its vehicles. During a shift you go online in that vehicle, and the fleet looks after
+          its licence, roadworthy and insurance. Your PrDP and identity checks stay yours.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {status.memberships.map((m) => (
+          <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+            <div>
+              <p className="font-medium">{m.fleet_name}</p>
+              <p className="text-sm text-muted-foreground">{m.status === "invited" ? "Has invited you to drive its vehicles." : "You drive for this fleet."}</p>
+            </div>
+            {m.status === "invited" ? (
+              <div className="flex gap-2">
+                <Button variant="outline" disabled={busy} onClick={() => run(fleetService.respondToInvite(m.id, false), "Invitation declined")}>Decline</Button>
+                <Button disabled={busy} onClick={() => run(fleetService.respondToInvite(m.id, true), `You have joined ${m.fleet_name}`)}>Accept</Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" disabled={busy} onClick={() => run(fleetService.endDriver(m.fleet_id, driverId), `You have left ${m.fleet_name}`)}>
+                Leave fleet
+              </Button>
+            )}
+          </div>
+        ))}
+
+        {status.shifts.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Your shifts</p>
+            {status.shifts.map((s) => (
+              <div key={s.id} className="rounded-lg border p-3 text-sm">
+                <p className="font-medium">
+                  {s.license_plate} · {s.vehicle}
+                  {s.current && <Badge className="ml-2 bg-green-600 text-white border-0">Now</Badge>}
+                </p>
+                <p className="text-muted-foreground">
+                  {s.fleet_name} · {shiftTime(s.starts_at)} to {s.ends_at ? shiftTime(s.ends_at) : "further notice"}
+                </p>
+                {!s.vehicle_ready && <p className="text-muted-foreground">This vehicle has not been approved by 1145 yet, so the shift does not count.</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

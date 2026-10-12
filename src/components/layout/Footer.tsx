@@ -44,6 +44,7 @@ const partnerLinks = [
   { to: "/merchant/register", label: "Sell on 1145" },
   { to: "/driver/register", label: "Drive with 1145" },
   { to: "/eatery/dashboard", label: "List your eatery" },
+  { to: "/fleet/dashboard", label: "Run a fleet" },
   { to: "/hire/provider", label: "Offer a service" },
   { to: "/influencer/login", label: "Creator hub" },
 ];

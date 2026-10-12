@@ -105,7 +105,7 @@ $$;
 -- Adds one state to the operating licence: 'transitional', for a driver with
 -- no licence on file whose receipt staff have verified, while the transitional
 -- period runs. driver_go_online() lets 'valid' and 'transitional' through.
-CREATE OR REPLACE FUNCTION public.driver_document_state(p_driver_id uuid)
+CREATE OR REPLACE FUNCTION public.driver_document_state(p_driver_id uuid, p_own_only boolean DEFAULT false)
 RETURNS TABLE (doc_type text, expires_on date, state text)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT t.doc_type, held.expires_on,
@@ -329,6 +329,10 @@ BEGIN
   END IF;
 
   SELECT user_id INTO v_user FROM public.drivers WHERE id = v_app.driver_id;
+  -- A document filed for a fleet vehicle has no driver: tell the fleet operator.
+  IF v_user IS NULL THEN
+    SELECT f.owner_id INTO v_user FROM public.vehicles v JOIN public.fleets f ON f.id = v.fleet_id WHERE v.id = v_app.vehicle_id;
+  END IF;
   INSERT INTO public.user_notifications (user_id, type, title, message, data)
   VALUES (v_user, 'driver_verification', v_title, v_message, jsonb_build_object('url', '/driver/dashboard?tab=verification'));
 

@@ -69,12 +69,14 @@ const AdminGautengLicences: React.FC = () => {
   );
 
   const load = useCallback(async () => {
-    const [overview, settings] = await Promise.all([
+    // Drivers' own records, then fleet vehicles' (20261012180000_fleet_operators.sql).
+    const [overview, fleetVehicles, settings] = await Promise.all([
       db.rpc("gauteng_compliance_overview"),
+      db.rpc("gauteng_fleet_vehicle_overview"),
       db.from("driver_verification_settings").select("gauteng_transitional_until, gauteng_transitional_basis").maybeSingle(),
     ]);
     if (overview.error) fail("Gauteng licence records could not be loaded. " + overview.error.message);
-    setRows(overview.data ?? []);
+    setRows([...(overview.data ?? []), ...(fleetVehicles.data ?? [])]);
     const s = { until: settings.data?.gauteng_transitional_until ?? null, basis: settings.data?.gauteng_transitional_basis ?? null };
     setSaved(s);
     setUntil(s.until ?? "");
@@ -147,7 +149,7 @@ const AdminGautengLicences: React.FC = () => {
             <div>
               <CardTitle>Gauteng operating licences</CardTitle>
               <CardDescription>
-                Drivers with a GPTRIS record or a Gauteng home address. Check each reference against GPTRIS before
+                Drivers with a GPTRIS record or a Gauteng home address, and fleet vehicles with a GPTRIS record. Check each reference against GPTRIS before
                 confirming a receipt, and read the licence itself before recording it as issued.
               </CardDescription>
             </div>
@@ -160,7 +162,7 @@ const AdminGautengLicences: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Driver</TableHead>
+                <TableHead>Driver or vehicle</TableHead>
                 <TableHead>State</TableHead>
                 <TableHead>GPTRIS application</TableHead>
                 <TableHead>Licence</TableHead>

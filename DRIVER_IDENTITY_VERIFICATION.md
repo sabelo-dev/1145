@@ -53,6 +53,19 @@ If a transitional rule allows operators with a pending application to keep opera
 
 The operating-licence requirement only stops drivers going online once **Require documents and a verified vehicle to go online** is switched on under Settings. An expired licence suspends the driver either way.
 
+## Fleet operators
+
+A fleet is an owner who puts drivers in their vehicles. Review them under **Driver Verification → Fleets**.
+
+- **Verify the fleet.** Check the owner's company registration or ID. Nothing in a fleet goes on the road until the fleet is verified. Choose whether 1145 pays the operator (the default) or the driver for trips in its vehicles.
+- **Approve each vehicle.** Operators load vehicles in bulk. Check the plate and VIN against the registration papers before approving.
+- **Review the vehicle's documents.** For a fleet vehicle, the operating licence, roadworthy certificate and insurance are filed once by the operator and cover whoever is driving. They arrive in the same Documents and Gauteng licences queues, shown by number plate. The PrDP is still the driver's own.
+- **Confirm safety devices.** Operators declare what is fitted. Confirm a device once you have seen proof it is there and working.
+
+Fleet drivers are ordinary 1145 drivers: each signs up, passes identity checks and takes selfies like anyone else. The operator invites them, the driver accepts, and the operator gives them shifts. During a shift the driver goes online in that vehicle; when it ends they are taken offline once any trip is finished.
+
+An expired document on a fleet vehicle grounds the vehicle and alerts the operator. It does not suspend the driver, who can still drive another vehicle that is in order.
+
 ## Alerts and what they usually mean
 
 | Alert | Usual explanation | When to investigate |

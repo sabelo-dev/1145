@@ -252,6 +252,8 @@ export function offlineReason(reason?: string | null): string {
       return "Your account has been suspended.";
     case "device_revoked":
       return "This device has been blocked for your account.";
+    case "shift_ended":
+      return "Your shift on this vehicle is over.";
     case "replaced_by_new_device":
       return "Your account went online on another device.";
     default:

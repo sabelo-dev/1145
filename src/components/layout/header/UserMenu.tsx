@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Store, Shield, ChevronDown, Truck } from "lucide-react";
+import { User, Store, Shield, ChevronDown, Truck, Car } from "lucide-react";
 import { User as UserType } from "@/types";
 
 interface UserMenuProps {
@@ -116,6 +116,13 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, isMerchant, isDriver
             </Link>
           </DropdownMenuItem>
         )}
+
+        <DropdownMenuItem asChild>
+          <Link to="/fleet/dashboard" className="flex items-center">
+            <Car className="h-4 w-4 mr-2" />
+            Fleet Dashboard
+          </Link>
+        </DropdownMenuItem>
 
         {isInfluencer && (
           <DropdownMenuItem asChild>

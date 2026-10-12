@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { DRIVER_DOCUMENTS } from "@/services/driverVerificationService";
 import AdminGautengLicences from "./AdminGautengLicences";
+import AdminFleets from "./AdminFleets";
 
 // These tables and functions arrive with 20261012150000_driver_continuous_verification.sql
 // and are not in the generated database types yet.
@@ -102,7 +103,7 @@ const AdminDriverCompliance: React.FC = () => {
   const load = useCallback(async () => {
     const [c, d, a, al, dev, inv, drv, s] = await Promise.all([
       db.from("driver_identity_checks").select("*, drivers(name, user_id)").eq("status", "submitted").order("submitted_at").limit(100),
-      db.from("driver_documents").select("*, drivers(name)").eq("status", "pending").order("created_at").limit(100),
+      db.from("driver_documents").select("*, drivers(name), vehicles(license_plate)").eq("status", "pending").order("created_at").limit(100),
       db.from("vehicle_driver_assignments")
         .select("*, drivers(name), vehicles(license_plate, make, model, year, color, owner_id), vehicle_owners(legal_name, owner_type, id_number, phone, verified_at)")
         .eq("status", "pending").order("created_at").limit(100),
@@ -172,6 +173,7 @@ const AdminDriverCompliance: React.FC = () => {
           <TabsTrigger value="alerts">Alerts ({alerts.length + devices.length})</TabsTrigger>
           <TabsTrigger value="investigations">Investigations ({openInvestigations.length})</TabsTrigger>
           <TabsTrigger value="gauteng">Gauteng licences</TabsTrigger>
+          <TabsTrigger value="fleets">Fleets</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -224,7 +226,7 @@ const AdminDriverCompliance: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Driver</TableHead>
+                    <TableHead>Driver or vehicle</TableHead>
                     <TableHead>Document</TableHead>
                     <TableHead>Expiry date</TableHead>
                     <TableHead className="text-right">Action</TableHead>
@@ -233,7 +235,9 @@ const AdminDriverCompliance: React.FC = () => {
                 <TableBody>
                   {documents.length === 0 ? empty(4, "No documents are waiting.") : documents.map((doc) => (
                     <TableRow key={doc.id}>
-                      <TableCell className="font-medium">{doc.drivers?.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {doc.drivers?.name ?? `${doc.vehicles?.license_plate ?? "Vehicle"} (fleet vehicle)`}
+                      </TableCell>
                       <TableCell>
                         <p>{docLabel(doc.doc_type)}</p>
                         {doc.document_number && <p className="text-sm text-muted-foreground">No. {doc.document_number}</p>}
@@ -516,6 +520,10 @@ const AdminDriverCompliance: React.FC = () => {
 
         <TabsContent value="gauteng">
           <AdminGautengLicences />
+        </TabsContent>
+
+        <TabsContent value="fleets">
+          <AdminFleets />
         </TabsContent>
 
         <TabsContent value="settings">

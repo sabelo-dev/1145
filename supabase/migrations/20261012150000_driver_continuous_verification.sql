@@ -281,9 +281,20 @@ RETURNS text LANGUAGE sql IMMUTABLE AS $$
     ELSE p_doc_type END;
 $$;
 
+-- The vehicle a driver would be driving if they went online now.
+-- (20261012180000_fleet_operators.sql puts a fleet shift ahead of this.)
+CREATE OR REPLACE FUNCTION public.driver_current_vehicle(p_driver_id uuid)
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT a.vehicle_id FROM public.vehicle_driver_assignments a
+  WHERE a.driver_id = p_driver_id AND a.status = 'approved';
+$$;
+
 -- Where each required document stands for a driver, judged on the South
 -- African date. A document is good until the end of its expiry date.
-CREATE OR REPLACE FUNCTION public.driver_document_state(p_driver_id uuid)
+-- p_own_only looks only at documents the driver filed themselves, which is
+-- what suspension is based on; it makes a difference once fleets file
+-- documents for their vehicles.
+CREATE OR REPLACE FUNCTION public.driver_document_state(p_driver_id uuid, p_own_only boolean DEFAULT false)
 RETURNS TABLE (doc_type text, expires_on date, state text)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT t.doc_type, held.expires_on,
@@ -399,7 +410,7 @@ CREATE OR REPLACE FUNCTION public.driver_refresh_compliance(p_driver_id uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_user uuid;
 BEGIN
-  IF EXISTS (SELECT 1 FROM public.driver_document_state(p_driver_id) s WHERE s.state = 'expired') THEN
+  IF EXISTS (SELECT 1 FROM public.driver_document_state(p_driver_id, true) s WHERE s.state = 'expired') THEN
     RETURN;
   END IF;
   UPDATE public.drivers SET status = 'offline'
@@ -693,8 +704,7 @@ BEGIN
       'These documents are missing, expired or still being reviewed: ' || v_docs || '.');
   END IF;
 
-  SELECT a.vehicle_id INTO v_vehicle FROM public.vehicle_driver_assignments a
-  WHERE a.driver_id = v_driver.id AND a.status = 'approved';
+  v_vehicle := public.driver_current_vehicle(v_driver.id);
   IF v_vehicle IS NULL AND v_cfg.compliance_enforced THEN
     RETURN jsonb_build_object('ok', false, 'code', 'vehicle', 'message',
       'Your vehicle and its owner have not been verified yet. Add them under Verification.');
@@ -1019,7 +1029,7 @@ BEGIN
   END IF;
 
   IF v_driver.status = 'suspended' AND v_driver.suspension_reason IN ('investigation', 'investigation_confirmed') THEN
-    IF EXISTS (SELECT 1 FROM public.driver_document_state(v_driver.id) s WHERE s.state = 'expired') THEN
+    IF EXISTS (SELECT 1 FROM public.driver_document_state(v_driver.id, true) s WHERE s.state = 'expired') THEN
       UPDATE public.drivers SET suspension_reason = 'documents_expired' WHERE id = v_driver.id;
     ELSE
       UPDATE public.drivers SET status = 'offline' WHERE id = v_driver.id;
@@ -1160,6 +1170,10 @@ BEGIN
   WHERE id = v_doc.id;
 
   SELECT user_id INTO v_user FROM public.drivers WHERE id = v_doc.driver_id;
+  -- A document filed for a fleet vehicle has no driver: tell the fleet operator.
+  IF v_user IS NULL THEN
+    SELECT f.owner_id INTO v_user FROM public.vehicles v JOIN public.fleets f ON f.id = v.fleet_id WHERE v.id = v_doc.vehicle_id;
+  END IF;
   INSERT INTO public.user_notifications (user_id, type, title, message, data)
   VALUES (v_user, 'driver_verification',
           CASE WHEN p_approve THEN 'Document approved' ELSE 'Document rejected' END,
@@ -1190,7 +1204,7 @@ BEGIN
   FOR v_driver IN
     SELECT d.id, d.user_id,
            (SELECT string_agg(public.driver_document_label(s.doc_type), ', ')
-            FROM public.driver_document_state(d.id) s WHERE s.state = 'expired') AS expired_docs
+            FROM public.driver_document_state(d.id, true) s WHERE s.state = 'expired') AS expired_docs
     FROM public.drivers d
     WHERE d.status NOT IN ('suspended', 'pending')
       AND EXISTS (SELECT 1 FROM public.driver_documents x WHERE x.driver_id = d.id AND x.status = 'expired')
@@ -1387,7 +1401,8 @@ BEGIN
 
   -- Signed-in callers; each function checks who is asking.
   FOREACH f IN ARRAY ARRAY[
-    'driver_document_state(uuid)', 'driver_active_session_id(uuid)', 'driver_trip_in_flight(uuid)',
+    'driver_document_state(uuid, boolean)', 'driver_current_vehicle(uuid)',
+    'driver_active_session_id(uuid)', 'driver_trip_in_flight(uuid)',
     'driver_request_identity_check(text)', 'driver_submit_identity_check(uuid, text, text)',
     'driver_go_online(text, text, text, text)', 'driver_go_offline()', 'driver_session_heartbeat(text)',
     'open_driver_investigation(uuid, text, text, boolean, uuid, uuid)', 'add_driver_investigation_note(uuid, text)',
