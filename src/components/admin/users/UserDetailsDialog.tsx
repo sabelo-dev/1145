@@ -213,15 +213,16 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Two columns: the dialog is narrow whatever the screen width, and four made the amount wrap. */}
+                <div className="grid gap-4 grid-cols-2">
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
                     <ShoppingBag className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                     <p className="text-2xl font-bold">{user.totalOrders ?? 0}</p>
-                    <p className="text-xs text-muted-foreground">Total Orders</p>
+                    <p className="text-xs text-muted-foreground">Paid Orders</p>
                   </div>
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
                     <TrendingUp className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold whitespace-nowrap">
                       {formatCurrency(user.totalSpent ?? 0)}
                     </p>
                     <p className="text-xs text-muted-foreground">Total Spent</p>
@@ -241,7 +242,7 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
                 </div>
                 {user.lastOrderDate && (
                   <p className="text-sm text-muted-foreground mt-4 text-center">
-                    Last order: {formatDate(user.lastOrderDate)}
+                    Last paid order: {formatDate(user.lastOrderDate)}
                   </p>
                 )}
               </CardContent>

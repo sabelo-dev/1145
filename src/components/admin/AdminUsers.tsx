@@ -104,7 +104,9 @@ const AdminUsers = () => {
         supabase
           .from('orders')
           .select('user_id, total, created_at')
-          .in('user_id', userIds),
+          .in('user_id', userIds)
+          // An unpaid or abandoned checkout is not an order the user made.
+          .eq('payment_status', 'paid'),
         supabase
           .from('reviews')
           .select('user_id, rating')
