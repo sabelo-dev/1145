@@ -171,7 +171,7 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
             tab: 'shopfront',
           },
           { label: 'List your first product', done: totalProducts > 0, tab: 'products' },
-          { label: 'Add a verified bank account for payouts', done: (verifiedBankAccounts ?? 0) > 0, tab: 'billing' },
+          { label: 'Add a verified bank account for payouts', done: (verifiedBankAccounts ?? 0) > 0, tab: 'settings' },
         ];
         setProfileSteps(steps);
         

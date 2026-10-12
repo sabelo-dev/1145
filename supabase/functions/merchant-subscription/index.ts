@@ -113,7 +113,14 @@ serve(async (req) => {
     const billing: "monthly" | "yearly" = body.billing_period === "yearly" ? "yearly" : "monthly";
 
     if (!TIERS.includes(targetTier)) return json({ error: "Invalid tier" }, 400);
-    if (targetTier === currentTier && merchant.subscription_status === "active") {
+    // Asking for the plan you are on is a renewal. It is only possible once the
+    // paid period has run out or the plan is no longer active, and it is paid
+    // for like an upgrade (it used to be re-applied for free).
+    const isRenewal = targetTier === currentTier;
+    const lapsed = merchant.subscription_expires_at
+      ? new Date(merchant.subscription_expires_at).getTime() < Date.now()
+      : false;
+    if (isRenewal && merchant.subscription_status === "active" && !lapsed) {
       return json({ error: "You are already on this plan" }, 400);
     }
 
@@ -121,7 +128,7 @@ serve(async (req) => {
     const amount = PRICING[targetTier][billing];
 
     // Free tier or downgrade → apply immediately, no payment
-    if (!isUpgrade || amount === 0) {
+    if (!(isUpgrade || isRenewal) || amount === 0) {
       const expiresAt =
         targetTier === "starter"
           ? null

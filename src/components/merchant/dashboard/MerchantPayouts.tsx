@@ -319,7 +319,7 @@ const MerchantPayouts = ({ onNavigate }: MerchantPayoutsProps) => {
                 <p className="text-sm text-orange-600">{payoutBlockedReason}</p>
               )}
               {!loading && !payoutData.hasVerifiedBank && onNavigate && (
-                <Button variant="outline" size="sm" onClick={() => onNavigate('billing')}>
+                <Button variant="outline" size="sm" onClick={() => onNavigate('settings')}>
                   Add bank account
                 </Button>
               )}

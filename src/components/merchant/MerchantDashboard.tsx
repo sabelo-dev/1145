@@ -379,7 +379,7 @@ const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
               />
             </TabsContent>
             <TabsContent value="billing" className="mt-0">
-              <MerchantSubscriptionPayments />
+              <MerchantSubscriptionPayments onNavigate={setActiveTab} />
             </TabsContent>
             <TabsContent value="shopfront" className="mt-0">
               <MerchantShopfront />
