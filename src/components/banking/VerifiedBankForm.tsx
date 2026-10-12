@@ -147,7 +147,7 @@ export const VerifiedBankForm: React.FC<VerifiedBankFormProps> = ({
         ) : (
           <>
             <p className="text-sm text-muted-foreground">
-              Enter your card number on PayFast's secure page. Your bank confirms it with a R1.00 payment. We never
+              Enter your card number on PayFast's secure page. Your bank asks you to confirm it; nothing is charged. We never
               see or store the card number, only its last 4 digits.
             </p>
             <Button type="button" onClick={verifyCard} disabled={loading}>

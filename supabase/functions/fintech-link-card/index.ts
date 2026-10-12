@@ -1,4 +1,4 @@
-// Link a card by initiating a PayFast tokenization verification payment (R1 hold).
+// Link a card by initiating a PayFast tokenization request (3-D Secure check, nothing charged).
 // Returns a PayFast redirect. The ITN callback (payfast-itn) creates the payment_instruments row from the returned token.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -32,7 +32,9 @@ serve(async (req) => {
     const payfast = getPayFastConfig();
     if (!payfast) return json({ success: false, error: "Payment gateway not configured properly" }, 500);
 
-    // Subscription type 2 = tokenization (recurring/adhoc). Amount R1.00 verification.
+    // Subscription type 2 = tokenization. PayFast accepts R0.00 (the card goes
+    // through 3-D Secure and is stored, nothing is charged) or R5.00 and up;
+    // any amount in between is refused with a 400 page.
     const formData: Record<string, any> = {
       merchant_id: payfast.merchantId,
       merchant_key: payfast.merchantKey,
@@ -43,9 +45,9 @@ serve(async (req) => {
       name_last: (user.user_metadata?.last_name as string) || "Member",
       email_address: user.email || "",
       m_payment_id: `LINKCARD-${user.id}-${Date.now()}`,
-      amount: "1.00",
+      amount: "0.00",
       item_name: "1145 Card Verification",
-      item_description: "R1.00 verification to link your card to 1145 Wallet",
+      item_description: "Card verification to link your card to 1145. Nothing is charged.",
       custom_str1: "link_card",
       custom_str2: user.id,
       subscription_type: 2,
