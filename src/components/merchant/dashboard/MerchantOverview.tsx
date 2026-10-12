@@ -65,6 +65,8 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
     activePromotions: 0,
     pendingPayouts: 0
   });
+  // What "Complete your profile" is made of: each step, whether it is done, and where to do it.
+  const [profileSteps, setProfileSteps] = useState<Array<{ label: string; done: boolean; tab: string }>>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
 
@@ -140,22 +142,40 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
 
         const pendingPayoutsCount = payouts?.filter(p => p.status === 'pending').length || 0;
 
-        // Calculate comprehensive profile completion
-        let completionScore = 0;
-        const checks = [
-          merchant.business_name,           // Business name (10%)
-          merchant.description,             // Merchant description (10%)
-          store.name,                     // Store name (10%)
-          store.description,              // Store description (10%)
-          store.logo_url,                 // Store logo (15%)
-          store.banner_url,               // Store banner (15%)
-          store.shipping_policy,          // Shipping policy (10%)
-          store.return_policy,            // Return policy (10%)
-          totalProducts > 0,              // Has products (10%)
-          merchant.status === 'approved'    // Approved status (10%)
+        // Payouts need a verified bank account, so it is part of the profile.
+        const { count: verifiedBankAccounts } = await supabase
+          .from('merchant_payment_methods')
+          .select('id', { count: 'exact', head: true })
+          .eq('merchant_id', merchant.id)
+          .not('verified_at', 'is', null);
+
+        // Profile completion: only steps the merchant can do themselves, each
+        // with the tab where it is done. Onboarding saves the return policy and
+        // shipping methods on the merchant, the Shopfront tab on the store.
+        const filled = (value: unknown) => typeof value === 'string' && value.trim().length > 0;
+        const steps = [
+          { label: 'Add your business name', done: filled(merchant.business_name), tab: 'settings' },
+          { label: 'Describe your business', done: filled(merchant.description), tab: 'settings' },
+          { label: 'Name your store', done: filled(store.name), tab: 'shopfront' },
+          { label: 'Describe your store', done: filled(store.description), tab: 'shopfront' },
+          { label: 'Upload a store logo', done: filled(store.logo_url), tab: 'shopfront' },
+          { label: 'Upload a store banner', done: filled(store.banner_url), tab: 'shopfront' },
+          {
+            label: 'Add a shipping policy',
+            done: filled(store.shipping_policy) || (merchant.shipping_methods?.length ?? 0) > 0,
+            tab: 'shopfront',
+          },
+          {
+            label: 'Add a return policy',
+            done: filled(store.return_policy) || filled(merchant.return_policy),
+            tab: 'shopfront',
+          },
+          { label: 'List your first product', done: totalProducts > 0, tab: 'products' },
+          { label: 'Add a verified bank account for payouts', done: (verifiedBankAccounts ?? 0) > 0, tab: 'billing' },
         ];
+        setProfileSteps(steps);
         
-        completionScore = checks.filter(Boolean).length * 10;
+        const completionScore = Math.round((steps.filter(step => step.done).length / steps.length) * 100);
 
         // Get recent orders with customer info
         const recentOrdersData = orders?.slice(0, 3).map(order => ({
@@ -300,8 +320,15 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
                 <div>
                   <h3 className="font-medium">Complete your profile</h3>
                   <p className="text-sm text-muted-foreground">
-                    Complete your profile to start listing products
+                    {profileSteps.filter(step => step.done).length} of {profileSteps.length} steps done. Still to do:
                   </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {profileSteps.filter(step => !step.done).map(step => (
+                      <Button key={step.label} variant="outline" size="sm" onClick={() => onNavigate(step.tab)}>
+                        {step.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="text-right">
