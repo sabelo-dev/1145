@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateCatalogueCache } from "@/services/products";
 import { PaymentMethodDialog } from "./dialogs/PaymentMethodDialog";
+import { ChangePasswordDialog } from "./dialogs/ChangePasswordDialog";
 import { 
   Store, 
   User, 
@@ -30,6 +31,7 @@ const MerchantSettings = () => {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(
     () => new URLSearchParams(window.location.search).has("linked"),
   );
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [storeData, setStoreData] = useState({
     id: '',
     name: '',
@@ -409,14 +411,13 @@ const MerchantSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>
             Change Password
-          </Button>
-          <Button variant="outline">
-            Enable Two-Factor Authentication
           </Button>
         </CardContent>
       </Card>
+
+      <ChangePasswordDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
 
       {merchantId && (
         <PaymentMethodDialog
