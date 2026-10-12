@@ -24,6 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { API_EXAMPLES } from "./apiExamples";
 import {
   Key,
   Copy,
@@ -374,9 +375,30 @@ const MerchantApiAccess = () => {
 
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <h4 className="font-medium mb-2">Example: List Products</h4>
-                  <code className="block bg-background p-3 rounded text-xs font-mono whitespace-pre">{`curl -X GET "${window.location.origin}/api/v1/products" \\
-  -H "Authorization: Bearer mk_live_xxxxx" \\
-  -H "Content-Type: application/json"`}</code>
+                  <Tabs defaultValue={API_EXAMPLES[0].id}>
+                    <TabsList className="flex-wrap h-auto">
+                      {API_EXAMPLES.map((example) => (
+                        <TabsTrigger key={example.id} value={example.id}>{example.label}</TabsTrigger>
+                      ))}
+                    </TabsList>
+                    {API_EXAMPLES.map((example) => {
+                      const code = example.code(`${window.location.origin}/api/v1/products`);
+                      return (
+                        <TabsContent key={example.id} value={example.id} className="relative">
+                          <code className="block bg-background p-3 pr-12 rounded text-xs font-mono whitespace-pre overflow-x-auto">{code}</code>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-1 right-1"
+                            aria-label={`Copy ${example.label} example`}
+                            onClick={() => copyToClipboard(code)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </TabsContent>
+                      );
+                    })}
+                  </Tabs>
                 </div>
               </div>
             </CardContent>
