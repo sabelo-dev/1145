@@ -1,4 +1,5 @@
 /// <reference types="google.maps" />
+import { ridePricing, type RideQuote } from "@/services/ridePricingService";
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -66,6 +67,8 @@ const RideRequestPage: React.FC = () => {
   const [step, setStep] = useState<"location" | "vehicle" | "confirm">("location");
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card" | "cash">("wallet");
   const [surgeMultiplier, setSurgeMultiplier] = useState(1.0);
+  // Fares from the database, by vehicle type. Empty until they load, or if pricing is unavailable.
+  const [quotes, setQuotes] = useState<Record<string, RideQuote>>({});
   const [demandLevel, setDemandLevel] = useState<string>("low");
   const { destinations: frequentDestinations } = useFrequentDestinations(6);
 
@@ -136,6 +139,18 @@ const RideRequestPage: React.FC = () => {
       setDemandLevel(result.demandLevel);
     }).catch(() => {});
   }, [pickupCoords]);
+
+  // The database works out the fare, including the fuel adjustment and its limits.
+  useEffect(() => {
+    if (!pickupCoords || !estimatedDistance || !estimatedDuration) return;
+    let cancelled = false;
+    ridePricing.quotes(pickupCoords, estimatedDistance, estimatedDuration, surgeMultiplier).then((result) => {
+      if (cancelled) return;
+      setQuotes(result);
+      if (selectedType && result[selectedType]) setEstimatedFare(result[selectedType].total);
+    });
+    return () => { cancelled = true; };
+  }, [pickupCoords, estimatedDistance, estimatedDuration, surgeMultiplier]);
 
   const fetchVehicleTypes = async () => {
     const { data } = await supabase.from("vehicle_types").select("*").eq("is_active", true).order("base_fare", { ascending: true });
@@ -267,6 +282,8 @@ const RideRequestPage: React.FC = () => {
 
   const calculateFare = (type: VehicleOption) => {
     if (!estimatedDistance || !estimatedDuration) return type.minimum_fare;
+    if (quotes[type.id]) return quotes[type.id].total;
+    // Shown only until the quote arrives.
     const baseFare = type.base_fare + estimatedDistance * type.per_km_rate + estimatedDuration * type.per_minute_rate;
     const surgedFare = baseFare * surgeMultiplier;
     return Math.max(surgedFare, type.minimum_fare);
@@ -712,8 +729,16 @@ const RideRequestPage: React.FC = () => {
                     <div className="flex justify-between"><span className="text-muted-foreground">Time ({estimatedDuration} min × R{selectedVehicle.per_minute_rate})</span><span className="font-medium text-foreground">R{((estimatedDuration || 0) * selectedVehicle.per_minute_rate).toFixed(2)}</span></div>
                     {surgeMultiplier > 1.0 && (
                       <div className="flex justify-between text-orange-500">
-                        <span>⚡ Surge ({surgeMultiplier}x)</span>
-                        <span className="font-medium">+R{((estimatedFare || 0) - (estimatedFare || 0) / surgeMultiplier).toFixed(2)}</span>
+                        <span>⚡ Surge ({quotes[selectedVehicle.id]?.surge_multiplier ?? surgeMultiplier}x)</span>
+                        <span className="font-medium">+R{(quotes[selectedVehicle.id]?.surge_amount ?? (estimatedFare || 0) - (estimatedFare || 0) / surgeMultiplier).toFixed(2)}</span>
+                      </div>
+                    )}
+                    {!!quotes[selectedVehicle.id]?.fuel_surcharge && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fuel adjustment</span>
+                        <span className="font-medium text-foreground">
+                          {quotes[selectedVehicle.id].fuel_surcharge > 0 ? "+" : "−"}R{Math.abs(quotes[selectedVehicle.id].fuel_surcharge).toFixed(2)}
+                        </span>
                       </div>
                     )}
                     <Separator />

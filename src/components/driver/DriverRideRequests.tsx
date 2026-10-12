@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import GoogleMap from "@/components/maps/GoogleMap";
+import { ridePricing, type DriverEarningsEstimate } from "@/services/ridePricingService";
 
 interface Driver {
   id: string;
@@ -23,12 +24,63 @@ interface DriverRideRequestsProps {
   onRideAccepted: () => void;
 }
 
+const rand = (value: number) => `R${value.toFixed(2)}`;
+
+/** Expected net earnings for one request, shown before the driver accepts. */
+const EarningsEstimate: React.FC<{ estimate: DriverEarningsEstimate }> = ({ estimate }) => {
+  const { net_earnings: net, fuel_cost: fuel } = estimate;
+  return (
+    <div className="rounded-xl bg-muted/50 p-3 text-sm">
+      {net === null || fuel === null ? (
+        <>
+          <p className="font-semibold">You are paid {rand(estimate.driver_payout)}</p>
+          <p className="text-xs text-muted-foreground">Fuel cost is not shown: no fuel price is on record for this area yet.</p>
+        </>
+      ) : (
+        <>
+          <p className={net > 0 ? "font-semibold text-emerald-700 dark:text-emerald-400" : "font-semibold text-destructive"}>
+            About {rand(net)} after fuel
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {rand(estimate.driver_payout)} paid to you, less about {rand(fuel)} fuel ({estimate.fuel_litres.toFixed(1)} L at{" "}
+            {rand(estimate.fuel_price!)}/L).{" "}
+            {estimate.pickup_km === null
+              ? "Excludes the drive to the pickup: turn on location to include it."
+              : `Includes ${estimate.pickup_km.toFixed(1)} km to the pickup`}
+            {estimate.pickup_km === null ? "" : ` and about ${estimate.idle_minutes} min idling.`}
+          </p>
+        </>
+      )}
+    </div>
+  );
+};
+
 const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideAccepted }) => {
   const [rides, setRides] = useState<any[]>([]);
   const [activeRide, setActiveRide] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const { toast } = useToast();
+  // What each open request should leave the driver after fuel.
+  const [estimates, setEstimates] = useState<Record<string, DriverEarningsEstimate>>({});
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => setPosition({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { maximumAge: 60_000, timeout: 10_000 },
+    );
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    ridePricing.driverEstimates(rides.map((r) => r.id), position).then((result) => {
+      if (!cancelled) setEstimates(result);
+    });
+    return () => { cancelled = true; };
+  }, [rides, position]);
 
   const fetchRideRequests = useCallback(async () => {
     setLoading(true);
@@ -339,6 +391,8 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
                         </div>
                       </div>
                     </div>
+
+                    {estimates[ride.id] && <EarningsEstimate estimate={estimates[ride.id]} />}
 
                     <Separator />
 

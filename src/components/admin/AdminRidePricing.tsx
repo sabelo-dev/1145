@@ -1,3 +1,4 @@
+import AdminFuelPricing from "./AdminFuelPricing";
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -157,6 +158,8 @@ const AdminRidePricing: React.FC = () => {
           <Plus className="h-4 w-4" /> Add Vehicle Type
         </Button>
       </div>
+
+      <AdminFuelPricing />
 
       {/* Surge & Time-Based Pricing Card */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

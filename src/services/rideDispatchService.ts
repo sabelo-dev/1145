@@ -41,10 +41,12 @@ export const rideDispatchService = {
   async requestRide(request: RideRequest): Promise<RideDispatchResult> {
     const startTime = Date.now();
 
-    // 1. Get surge for pickup location (parallel with ride creation)
-    const surgePromise = surgeEngine.getSurgeForLocation(request.pickup);
+    // 1. Get surge for pickup location
+    const surge = await surgeEngine.getSurgeForLocation(request.pickup);
 
-    // 2. Create the ride record
+    // 2. Create the ride record. The database prices it from the distance, time,
+    //    surge and fuel index (20261012170000_ride_fuel_index.sql); estimated_fare
+    //    here is only what the rider was shown.
     const { data: ride, error } = await (supabase.from("rides") as any).insert({
       passenger_id: request.passengerId,
       vehicle_type_id: request.vehicleTypeId,
@@ -57,10 +59,11 @@ export const rideDispatchService = {
       estimated_distance_km: request.estimatedDistance,
       estimated_duration_minutes: request.estimatedDuration,
       estimated_fare: request.estimatedFare,
+      surge_multiplier: surge.multiplier,
       status: "searching",
       payment_method: request.paymentMethod,
       notes: request.notes,
-    }).select("id").single();
+    }).select("id, estimated_fare").single();
 
     if (error || !ride) {
       return {
@@ -78,17 +81,8 @@ export const rideDispatchService = {
       };
     }
 
-    // 3. Get surge result
-    const surge = await surgePromise;
-    const adjustedFare = Math.round(request.estimatedFare * surge.multiplier * 100) / 100;
-
-    // Update fare if surge applied
-    if (surge.multiplier > 1.0) {
-      await supabase.from("rides").update({
-        estimated_fare: adjustedFare,
-        surge_multiplier: surge.multiplier,
-      }).eq("id", ride.id);
-    }
+    // 3. The fare the ride was priced at. Surge is already in it, so it is not applied again.
+    const adjustedFare = Number(ride.estimated_fare ?? request.estimatedFare);
 
     // 4. Dispatch to drivers via the engine
     const dispatchRequest: DispatchRequest = {
