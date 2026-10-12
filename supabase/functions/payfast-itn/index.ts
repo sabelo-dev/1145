@@ -511,6 +511,34 @@ serve(async (req) => {
       return ok();
     }
 
+    // Handle ad credit packs — ADC-{purchaseId}
+    if (customStr2 === "ad_credits" && customStr1 && paymentId === `ADC-${customStr1}`) {
+      if (paymentStatus === "COMPLETE") {
+        // The database function checks the amount and is safe to call again for a repeated ITN.
+        const { data: outcome, error: creditError } = await supabaseAdmin.rpc("ad_credit_purchase_complete", {
+          p_purchase_id: customStr1,
+          p_payfast_payment_id: pfPaymentId,
+          p_amount: amountGross,
+        });
+        if (creditError) {
+          console.error("Failed to add ad credits:", creditError);
+          return new Response("Database error", { status: 500, headers: corsHeaders });
+        }
+        if (outcome === "amount_mismatch" || outcome === "not_found") {
+          console.error(`Ad credit purchase ${customStr1}: ${outcome} (paid R${amountGross})`);
+        } else {
+          console.log(`Ad credit purchase ${customStr1}: ${outcome}`);
+        }
+      } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
+        await supabaseAdmin
+          .from("ad_credit_purchases")
+          .update({ status: paymentStatus.toLowerCase(), payfast_payment_id: pfPaymentId })
+          .eq("id", customStr1)
+          .eq("status", "pending");
+      }
+      return ok();
+    }
+
     // Handle card linking — LINKCARD-{userId}-{ts}
     if (paymentId.startsWith("LINKCARD-") && customStr1 === "link_card" && customStr2
         && paymentId.startsWith(`LINKCARD-${customStr2}-`)) {

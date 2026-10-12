@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { submitPayFastForm } from "@/lib/payments";
 import {
   Coins,
   TrendingUp,
@@ -90,6 +91,35 @@ const MerchantAdCredits = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [monthlyAllowance, setMonthlyAllowance] = useState(0);
   const [merchantTier, setMerchantTier] = useState("starter");
+  const [packs, setPacks] = useState<Array<{ id: string; credits: number; price: number }>>([]);
+  const [buyingPack, setBuyingPack] = useState<string | null>(null);
+
+  // Back from PayFast after buying credits. The balance updates when PayFast
+  // confirms the payment, which can take a moment.
+  useEffect(() => {
+    const outcome = new URLSearchParams(window.location.search).get("credits");
+    if (outcome === "success") {
+      toast({ title: "Payment received", description: "Your credits are added as soon as PayFast confirms the payment. Refresh if the balance has not changed in a minute." });
+    } else if (outcome === "cancelled") {
+      toast({ title: "Payment cancelled", description: "No credits were bought." });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const buyPack = async (packId: string) => {
+    setBuyingPack(packId);
+    try {
+      const { data, error } = await supabase.functions.invoke("ad-credits-purchase", {
+        body: { pack_id: packId, origin: window.location.origin },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      await submitPayFastForm(data.paymentUrl, data.formData);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Purchase not started", description: error?.message || "Something went wrong" });
+      setBuyingPack(null);
+    }
+  };
 
   // Campaign form
   const [campaignForm, setCampaignForm] = useState({
@@ -144,6 +174,13 @@ const MerchantAdCredits = () => {
         .eq("merchant_id", merchant.id)
         .order("created_at", { ascending: false });
       setCampaigns(campData || []);
+
+      // Credit packs on sale
+      const { data: packData } = await (supabase.from as any)("ad_credit_packs")
+        .select("id, credits, price")
+        .eq("is_active", true)
+        .order("credits");
+      setPacks((packData || []).map((p: any) => ({ id: p.id, credits: p.credits, price: Number(p.price) })));
     } catch (error) {
       console.error("Error fetching ad credits data:", error);
     } finally {
@@ -301,7 +338,26 @@ const MerchantAdCredits = () => {
             products are listed ahead of others and marked Sponsored. The budget leaves your balance straight away and is used
             in equal parts each day; pausing or deleting a campaign returns the part it has not used.
           </p>
-          <p>Extra credits cannot be bought yet.</p>
+          {packs.length > 0 && (
+            <div className="pt-1">
+              <p>
+                <strong>Buying more:</strong> pay once by card through PayFast; the credits are added to your balance when the payment is confirmed and do not expire.
+              </p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {packs.map((pack) => (
+                  <Button
+                    key={pack.id}
+                    variant="outline"
+                    size="sm"
+                    disabled={buyingPack !== null}
+                    onClick={() => buyPack(pack.id)}
+                  >
+                    {buyingPack === pack.id ? "Opening PayFast..." : `${pack.credits} credits for R${pack.price.toFixed(2)}`}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.merchant-payout-method]
 verify_jwt = true
+
+[functions.ad-credits-purchase]
+verify_jwt = true
