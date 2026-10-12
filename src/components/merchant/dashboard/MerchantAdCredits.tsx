@@ -121,24 +121,11 @@ const MerchantAdCredits = () => {
         merchant.subscription_tier === "bronze" ? 100 : 0;
       setMonthlyAllowance(allowance);
 
-      // Fetch promo credits
-      const { data: creditData } = await supabase
-        .from("promo_credits")
-        .select("*")
-        .eq("merchant_id", merchant.id)
-        .maybeSingle();
-
-      if (creditData) {
-        setCredits(creditData);
-      } else {
-        // Create initial credit record
-        const { data: newCredits } = await supabase
-          .from("promo_credits")
-          .insert({ merchant_id: merchant.id, balance: 0, lifetime_earned: 0, lifetime_spent: 0 })
-          .select()
-          .single();
-        setCredits(newCredits);
-      }
+      // The database adds this month's plan allowance to the balance if it has
+      // not been added yet, and returns the balance.
+      const { data: creditData, error: creditError } = await (supabase.rpc as any)("merchant_ad_credits_sync");
+      if (creditError) throw creditError;
+      setCredits(creditData);
 
       // Fetch transactions
       const { data: txData } = await supabase
@@ -176,46 +163,16 @@ const MerchantAdCredits = () => {
     }
 
     try {
-      // Get store
-      const { data: store } = await supabase
-        .from("stores")
-        .select("id")
-        .eq("merchant_id", merchantId)
-        .single();
-
-      const { error } = await supabase.from("auto_campaigns").insert({
-        merchant_id: merchantId,
-        store_id: store?.id || null,
-        campaign_type: campaignForm.type,
-        trigger_conditions: {
-          duration_days: parseInt(campaignForm.duration),
-          keywords: campaignForm.keywords ? campaignForm.keywords.split(",").map(k => k.trim()) : [],
-          product_id: campaignForm.targetProduct || null,
-        },
-        action_config: {
-          boost_type: campaignForm.type,
-          started_at: new Date().toISOString(),
-        },
-        credit_budget: budget,
-        credits_used: 0,
-        is_active: true,
+      // The database takes the budget from the balance and creates the campaign together.
+      const { error } = await (supabase.rpc as any)("merchant_ad_campaign_create", {
+        p_type: campaignForm.type,
+        p_budget: budget,
+        p_duration_days: parseInt(campaignForm.duration),
+        p_keywords: campaignForm.keywords ? campaignForm.keywords.split(",").map(k => k.trim()).filter(Boolean) : [],
+        p_product_id: campaignForm.targetProduct || "",
       });
 
       if (error) throw error;
-
-      // Deduct credits
-      await supabase.from("promo_credits")
-        .update({ balance: (credits?.balance || 0) - budget, lifetime_spent: (credits?.lifetime_spent || 0) + budget })
-        .eq("merchant_id", merchantId);
-
-      // Log transaction
-      await supabase.from("promo_credit_transactions").insert({
-        merchant_id: merchantId,
-        amount: -budget,
-        type: "spend",
-        category: campaignForm.type,
-        description: `Campaign: ${CAMPAIGN_TYPES.find(c => c.value === campaignForm.type)?.label || campaignForm.type}`,
-      });
 
       toast({ title: "Campaign created", description: `${budget} credits allocated to your new campaign.` });
       setCreateDialogOpen(false);
@@ -228,59 +185,35 @@ const MerchantAdCredits = () => {
 
   const toggleCampaign = async (campaign: AdCampaign) => {
     try {
-      await supabase.from("auto_campaigns")
-        .update({ is_active: !campaign.is_active })
-        .eq("id", campaign.id);
-
-      if (campaign.is_active) {
-        // Refund remaining credits
-        const refund = campaign.credit_budget - campaign.credits_used;
-        if (refund > 0) {
-          await supabase.from("promo_credits")
-            .update({ balance: (credits?.balance || 0) + refund })
-            .eq("merchant_id", merchantId!);
-
-          await supabase.from("promo_credit_transactions").insert({
-            merchant_id: merchantId!,
-            amount: refund,
-            type: "refund",
-            category: campaign.campaign_type,
-            description: `Refund: Paused ${campaign.campaign_type} campaign`,
-          });
-        }
-      }
+      // Pausing returns the unused budget to the balance; resuming takes it back.
+      const { error } = await (supabase.rpc as any)("merchant_ad_campaign_update", {
+        p_campaign_id: campaign.id,
+        p_action: campaign.is_active ? "pause" : "resume",
+      });
+      if (error) throw error;
 
       toast({ title: campaign.is_active ? "Campaign paused" : "Campaign resumed" });
       await fetchData();
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to update campaign" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error?.message || "Failed to update campaign" });
     }
   };
 
   const deleteCampaign = async (campaign: AdCampaign) => {
     try {
-      const refund = campaign.credit_budget - campaign.credits_used;
+      // A paused campaign's unused budget was already returned when it was paused.
+      const refund = campaign.is_active ? campaign.credit_budget - campaign.credits_used : 0;
 
-      await supabase.from("auto_campaigns").delete().eq("id", campaign.id);
-
-      if (refund > 0) {
-        await supabase.from("promo_credits")
-          .update({ balance: (credits?.balance || 0) + refund })
-          .eq("merchant_id", merchantId!);
-
-        await supabase.from("promo_credit_transactions").insert({
-          merchant_id: merchantId!,
-          amount: refund,
-          type: "refund",
-          category: campaign.campaign_type,
-          description: `Refund: Deleted ${campaign.campaign_type} campaign`,
-        });
-      }
+      const { error } = await (supabase.rpc as any)("merchant_ad_campaign_update", {
+        p_campaign_id: campaign.id,
+        p_action: "delete",
+      });
+      if (error) throw error;
 
       toast({ title: "Campaign deleted", description: refund > 0 ? `${refund} credits refunded.` : undefined });
       await fetchData();
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to delete campaign" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error?.message || "Failed to delete campaign" });
     }
   };
 
@@ -323,7 +256,12 @@ const MerchantAdCredits = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{monthlyAllowance}</div>
-            <p className="text-xs text-muted-foreground capitalize">{merchantTier} tier</p>
+            <p className="text-xs text-muted-foreground">
+              <span className="capitalize">{merchantTier}</span> plan
+              {monthlyAllowance > 0 && credits?.last_monthly_grant
+                ? `, added ${new Date(credits.last_monthly_grant).toLocaleDateString()}`
+                : ""}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -348,15 +286,22 @@ const MerchantAdCredits = () => {
         </Card>
       </div>
 
-      {merchantTier === "starter" && (
-        <Card className="border-dashed border-primary/30 bg-primary/5">
-          <CardContent className="py-4">
-            <p className="text-sm text-muted-foreground">
-              <strong>Tip:</strong> Upgrade your subscription to receive monthly ad credits. Bronze gets 100/mo, Silver gets 250/mo, and Gold gets 500/mo.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="border-dashed border-primary/30 bg-primary/5">
+        <CardContent className="py-4 space-y-2 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">How ad credits work</p>
+          <p>
+            <strong>Getting credits:</strong> your plan adds credits to your balance once a month: Bronze 100, Silver 250, Gold 500.
+            {monthlyAllowance > 0
+              ? ` Your ${monthlyAllowance} credits are added automatically, and unused credits carry over to the next month.`
+              : " Your current plan has no monthly credits; upgrade your subscription to receive them."}
+          </p>
+          <p>
+            <strong>Using credits:</strong> choose Create Campaign and set a budget. The budget leaves your balance straight away;
+            pausing or deleting a campaign returns the part it has not used.
+          </p>
+          <p>Extra credits cannot be bought yet.</p>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="campaigns">
         <TabsList>
