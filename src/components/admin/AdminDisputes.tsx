@@ -63,9 +63,21 @@ const AdminDisputes: React.FC = () => {
 
       if (error) throw error;
 
-      // Enrich with user profile info
-      const userIds = [...new Set((ticketsData || []).map(t => t.user_id).filter(Boolean))];
+      // A merchant's ticket has no user_id: its sender is the merchant's account.
       const merchantIds = [...new Set((ticketsData || []).map(t => t.merchant_id).filter(Boolean))];
+      const merchantOwnerMap: Record<string, string> = {};
+      if (merchantIds.length > 0) {
+        const { data: merchantRows } = await supabase
+          .from("merchants")
+          .select("id, user_id")
+          .in("id", merchantIds);
+        (merchantRows || []).forEach(m => { if (m.user_id) merchantOwnerMap[m.id] = m.user_id; });
+      }
+      const senderOf = (t: { user_id: string | null; merchant_id: string | null }) =>
+        t.user_id || (t.merchant_id ? merchantOwnerMap[t.merchant_id] : undefined) || "";
+
+      // Enrich with user profile info
+      const userIds = [...new Set((ticketsData || []).map(senderOf).filter(Boolean))];
 
       let profilesMap: Record<string, any> = {};
       let rolesMap: Record<string, string> = {};
@@ -102,9 +114,9 @@ const AdminDisputes: React.FC = () => {
 
       const enriched: Ticket[] = (ticketsData || []).map(t => ({
         ...t,
-        user_name: profilesMap[t.user_id]?.name || "Unknown",
-        user_email: profilesMap[t.user_id]?.email || "",
-        user_role: rolesMap[t.user_id] || "consumer",
+        user_name: profilesMap[senderOf(t)]?.name || "Unknown",
+        user_email: profilesMap[senderOf(t)]?.email || "",
+        user_role: t.merchant_id ? "merchant" : rolesMap[senderOf(t)] || "consumer",
         store_name: t.merchant_id ? merchantStoreMap[t.merchant_id] : undefined,
       }));
 
@@ -129,7 +141,7 @@ const AdminDisputes: React.FC = () => {
       if (selectedTicket?.id === ticketId) {
         setSelectedTicket(prev => prev ? { ...prev, status: newStatus } : null);
       }
-      toast({ title: "Status updated", description: `Ticket marked as ${newStatus.replace("_", " ")}` });
+      toast({ title: "Status updated", description: `Ticket marked as ${statusLabel(newStatus)}` });
     } catch {
       toast({ variant: "destructive", title: "Error", description: "Failed to update ticket status" });
     }
@@ -145,33 +157,22 @@ const AdminDisputes: React.FC = () => {
           admin_response: responseText,
           responded_by: user.id,
           responded_at: new Date().toISOString(),
-          status: "in_progress",
+          status: "pending",
           updated_at: new Date().toISOString(),
         })
         .eq("id", selectedTicket.id);
       if (error) throw error;
-
-      // Notify the user who created the ticket
-      if (selectedTicket.user_id) {
-        await supabase.from("user_notifications").insert({
-          user_id: selectedTicket.user_id,
-          type: "message",
-          title: "Support Response",
-          message: `Your ticket "${selectedTicket.subject}" has received a response from support.`,
-          read: false,
-          data: { ticket_id: selectedTicket.id },
-        });
-      }
+      // The database notifies the person who opened the ticket.
 
       setSelectedTicket(prev => prev ? {
         ...prev,
         admin_response: responseText,
         responded_by: user.id,
         responded_at: new Date().toISOString(),
-        status: "in_progress",
+        status: "pending",
       } : null);
       setTickets(prev => prev.map(t => t.id === selectedTicket.id ? {
-        ...t, admin_response: responseText, status: "in_progress",
+        ...t, admin_response: responseText, status: "pending",
       } : t));
       setResponseText("");
       toast({ title: "Response sent", description: "User has been notified." });
@@ -200,10 +201,13 @@ const AdminDisputes: React.FC = () => {
     }
   };
 
+  // The table stores "pending" for a ticket that is being handled.
+  const statusLabel = (status: string) => (status === "pending" ? "in progress" : status);
+
   const getStatusColor = (status: string): "destructive" | "outline" | "default" | "secondary" => {
     switch (status) {
       case "open": return "destructive";
-      case "in_progress": return "secondary";
+      case "pending": return "secondary";
       case "resolved": return "default";
       default: return "outline";
     }
@@ -221,7 +225,7 @@ const AdminDisputes: React.FC = () => {
   };
 
   const openCount = tickets.filter(t => t.status === "open").length;
-  const inProgressCount = tickets.filter(t => t.status === "in_progress").length;
+  const inProgressCount = tickets.filter(t => t.status === "pending").length;
   const resolvedCount = tickets.filter(t => t.status === "resolved").length;
   const highPriorityCount = tickets.filter(t => t.priority === "high" || t.priority === "urgent").length;
 
@@ -236,7 +240,7 @@ const AdminDisputes: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold">Support & Dispute Management</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">Support Tickets</h2>
         <Button variant="outline" onClick={fetchTickets}>
           <RefreshCw className="h-4 w-4 mr-2" /> Refresh
         </Button>
@@ -292,9 +296,9 @@ const AdminDisputes: React.FC = () => {
           <Input placeholder="Search by subject, user name, email, or ticket ID..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
         <div className="flex flex-wrap gap-2">
-          {["all", "open", "in_progress", "resolved", "closed"].map(s => (
+          {["all", "open", "pending", "resolved", "closed"].map(s => (
             <Button key={s} variant={statusFilter === s ? "default" : "outline"} size="sm" onClick={() => setStatusFilter(s)}>
-              {s === "all" ? "All" : s.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+              {s === "all" ? "All" : statusLabel(s).replace(/\b\w/g, l => l.toUpperCase())}
             </Button>
           ))}
         </div>
@@ -325,7 +329,7 @@ const AdminDisputes: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="font-mono text-xs">{ticket.id.slice(0, 8).toUpperCase()}</span>
-                        <Badge variant={getStatusColor(ticket.status)}>{ticket.status.replace("_", " ")}</Badge>
+                        <Badge variant={getStatusColor(ticket.status)}>{statusLabel(ticket.status)}</Badge>
                         <Badge variant={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
                         {getRoleBadge(ticket.user_role || "consumer")}
                       </div>
@@ -356,7 +360,7 @@ const AdminDisputes: React.FC = () => {
                     <CardTitle className="text-lg">{selectedTicket.subject}</CardTitle>
                     <div className="flex gap-2">
                       <Badge variant={getPriorityColor(selectedTicket.priority)}>{selectedTicket.priority}</Badge>
-                      <Badge variant={getStatusColor(selectedTicket.status)}>{selectedTicket.status.replace("_", " ")}</Badge>
+                      <Badge variant={getStatusColor(selectedTicket.status)}>{statusLabel(selectedTicket.status)}</Badge>
                     </div>
                   </div>
                   <CardDescription>
@@ -393,11 +397,11 @@ const AdminDisputes: React.FC = () => {
                   {/* Status actions */}
                   <div className="flex flex-wrap gap-2">
                     {selectedTicket.status === "open" && (
-                      <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(selectedTicket.id, "in_progress")}>
+                      <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(selectedTicket.id, "pending")}>
                         Mark In Progress
                       </Button>
                     )}
-                    {(selectedTicket.status === "open" || selectedTicket.status === "in_progress") && (
+                    {(selectedTicket.status === "open" || selectedTicket.status === "pending") && (
                       <Button size="sm" onClick={() => handleUpdateStatus(selectedTicket.id, "resolved")}>
                         Resolve
                       </Button>

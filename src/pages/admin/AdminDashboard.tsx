@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import {
@@ -46,6 +47,7 @@ import AdminUCoin from "@/components/admin/AdminUCoin";
 import { AdminSocialMining } from "@/components/admin/AdminSocialMining";
 import AdminGoldPricing from "@/components/admin/AdminGoldPricing";
 import AdminInbox from "@/components/admin/AdminInbox";
+import AdminDisputes from "@/components/admin/AdminDisputes";
 import AdminSocialMedia from "@/components/admin/AdminSocialMedia";
 import AdminRideMonitoring from "@/components/admin/AdminRideMonitoring";
 import AdminRideAnalytics from "@/components/admin/AdminRideAnalytics";
@@ -83,6 +85,7 @@ import {
   Car,
   AlertTriangle,
   UserX,
+  Headphones,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -90,6 +93,22 @@ const AdminDashboard = () => {
   const [urlTab, setActiveTab] = useUrlTab("overview");
   // Old links and bookmarks still say ?tab=vendors.
   const activeTab = urlTab === "vendors" ? "merchants" : urlTab;
+
+  // Tickets nobody has answered yet, shown on the sidebar.
+  const [openTickets, setOpenTickets] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("support_tickets")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open")
+      .then(({ count }) => {
+        if (!cancelled) setOpenTickets(count ?? 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
 
   const handleLogout = async () => {
     try {
@@ -102,6 +121,7 @@ const AdminDashboard = () => {
   const sidebarItems = [
     { id: "overview", title: "Overview", icon: LayoutDashboard },
     { id: "inbox", title: "Email Inbox", icon: Inbox },
+    { id: "support", title: "Support Tickets", icon: Headphones },
     { id: "users", title: "User Management", icon: Users },
     { id: "deletion-requests", title: "Deletion Requests", icon: UserX },
     { id: "merchants", title: "Merchant Management", icon: Store },
@@ -143,6 +163,7 @@ const AdminDashboard = () => {
           sidebarItems={sidebarItems}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          openTickets={openTickets}
           user={user}
           handleLogout={handleLogout}
         />
@@ -161,6 +182,7 @@ interface AdminDashboardContentProps {
   sidebarItems: SidebarItem[];
   activeTab: string;
   setActiveTab: (id: string) => void;
+  openTickets: number;
   user: any;
   handleLogout: () => void;
 }
@@ -169,6 +191,7 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
   sidebarItems,
   activeTab,
   setActiveTab,
+  openTickets,
   user,
   handleLogout,
 }) => {
@@ -201,6 +224,11 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
                 >
                   <item.icon className="h-4 w-4" />
                   <span>{item.title}</span>
+                  {item.id === "support" && openTickets > 0 && (
+                    <span className="ml-auto rounded-full bg-destructive px-2 text-xs font-medium text-destructive-foreground">
+                      {openTickets}
+                    </span>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
@@ -259,6 +287,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             
             <TabsContent value="overview" className="mt-0">
               <AdminOverview />
+            </TabsContent>
+            <TabsContent value="support" className="mt-0">
+              <AdminDisputes />
             </TabsContent>
             <TabsContent value="inbox" className="mt-0">
               <AdminInbox />

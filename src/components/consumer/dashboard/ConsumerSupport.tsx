@@ -22,6 +22,8 @@ interface SupportTicket {
   status: string;
   created_at: string;
   updated_at: string;
+  admin_response: string | null;
+  responded_at: string | null;
 }
 
 const ConsumerSupport: React.FC = () => {
@@ -145,13 +147,13 @@ const ConsumerSupport: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const config: Record<string, string> = {
       open: "bg-blue-100 text-blue-800",
-      in_progress: "bg-gold/10 text-gold",
+      pending: "bg-gold/10 text-gold",
       resolved: "bg-green-100 text-green-800",
       closed: "bg-gray-100 text-gray-800",
     };
     return (
       <Badge variant="outline" className={config[status] || ""}>
-        {status.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+        {(status === "pending" ? "in progress" : status).replace(/\b\w/g, l => l.toUpperCase())}
       </Badge>
     );
   };
@@ -381,6 +383,17 @@ const ConsumerSupport: React.FC = () => {
                 <label className="text-sm font-medium text-muted-foreground">Description</label>
                 <p className="text-sm whitespace-pre-wrap">{selectedTicket.description}</p>
               </div>
+              {selectedTicket.admin_response && (
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <label className="text-sm font-medium">Reply from support</label>
+                  <p className="text-sm whitespace-pre-wrap">{selectedTicket.admin_response}</p>
+                  {selectedTicket.responded_at && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(selectedTicket.responded_at), "PPp")}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="text-xs text-muted-foreground">
                 Created: {format(new Date(selectedTicket.created_at), "PPp")}
               </div>
