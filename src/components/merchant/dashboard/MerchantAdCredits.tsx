@@ -71,11 +71,12 @@ interface AdCampaign {
 }
 
 const CAMPAIGN_TYPES = [
-  { value: "product_boost", label: "Product Boost", icon: TrendingUp, description: "Boost product visibility in search results", cost: 10 },
-  { value: "featured_listing", label: "Featured Listing", icon: Star, description: "Feature a product on the homepage or category page", cost: 25 },
-  { value: "search_promotion", label: "Search Promotion", icon: Search, description: "Promote products in search results for specific keywords", cost: 15 },
-  { value: "banner_ad", label: "Banner Ad", icon: Eye, description: "Display a banner ad on high-traffic pages", cost: 50 },
-  { value: "flash_promotion", label: "Flash Promotion", icon: Zap, description: "Short-term high-visibility promotion", cost: 30 },
+  { value: "product_boost", label: "Store Boost", icon: TrendingUp, description: "Your products are listed ahead of others in the shop and in search, marked Sponsored", cost: 10 },
+  { value: "featured_listing", label: "Featured Listing", icon: Star, description: "Store Boost, plus your products lead the Featured section on the home page", cost: 25 },
+  { value: "flash_promotion", label: "Flash Promotion", icon: Zap, description: "The same as Featured Listing; choose a short duration for a burst", cost: 30 },
+  // Older campaigns of these types still run as a Store Boost.
+  { value: "search_promotion", label: "Search Promotion", icon: Search, description: "Runs as a Store Boost", cost: 15, retired: true },
+  { value: "banner_ad", label: "Banner Ad", icon: Eye, description: "Runs as a Store Boost", cost: 50, retired: true },
 ];
 
 const MerchantAdCredits = () => {
@@ -296,8 +297,9 @@ const MerchantAdCredits = () => {
               : " Your current plan has no monthly credits; upgrade your subscription to receive them."}
           </p>
           <p>
-            <strong>Using credits:</strong> choose Create Campaign and set a budget. The budget leaves your balance straight away;
-            pausing or deleting a campaign returns the part it has not used.
+            <strong>Using credits:</strong> choose Create Campaign and set a budget and a number of days. While it runs, your
+            products are listed ahead of others and marked Sponsored. The budget leaves your balance straight away and is used
+            in equal parts each day; pausing or deleting a campaign returns the part it has not used.
           </p>
           <p>Extra credits cannot be bought yet.</p>
         </CardContent>
@@ -367,7 +369,7 @@ const MerchantAdCredits = () => {
                       <Progress value={budgetUsedPercent} />
                       <div className="grid grid-cols-3 gap-2 sm:gap-4 text-sm">
                         <div>
-                          <p className="text-muted-foreground">Triggers</p>
+                          <p className="text-muted-foreground">Days run</p>
                           <p className="font-medium">{campaign.trigger_count}</p>
                         </div>
                         <div>
@@ -441,7 +443,7 @@ const MerchantAdCredits = () => {
               <Select value={campaignForm.type} onValueChange={(v) => setCampaignForm({ ...campaignForm, type: v })}>
                 <SelectTrigger><SelectValue placeholder="Select campaign type" /></SelectTrigger>
                 <SelectContent>
-                  {CAMPAIGN_TYPES.map((type) => (
+                  {CAMPAIGN_TYPES.filter((type) => !type.retired).map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       <div className="flex items-center gap-2">
                         <span>{type.label}</span>

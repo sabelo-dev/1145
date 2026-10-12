@@ -52,6 +52,10 @@ export interface Product {
   brand?: string;
   /** Out-of-stock items can be pre-ordered (XIXLV on the official Marketplace only). */
   allowPreorder?: boolean;
+  /** Promoted by a running ad campaign: listed ahead of other products and labelled "Sponsored". */
+  sponsored?: boolean;
+  /** Its campaign also puts it first in the home page's featured products. */
+  sponsoredFeatured?: boolean;
   createdAt: string;
   variations?: ProductVariation[];
   productType?: string;

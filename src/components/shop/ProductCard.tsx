@@ -143,6 +143,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
 
       {/* Info */}
       <div className="flex flex-1 flex-col gap-1.5 p-3 md:p-4">
+        {product.sponsored && (
+          <span className="w-fit text-[10px] font-medium uppercase tracking-wide text-text-secondary">Sponsored</span>
+        )}
         {product.merchantName && product.merchantSlug ? (
           <button
             type="button"

@@ -88,18 +88,45 @@ export const fetchDatabaseProducts = async (): Promise<Product[]> => {
       return [];
     }
 
-    return (products || []).map(product => 
+    return applyAdBoosts((products || []).map(product => 
       mapDatabaseProduct(
         product, 
         product.product_images || [],
         product.product_variations || []
       )
-    );
+    ));
   } catch (error) {
     console.error('Error fetching database products:', error);
     return [];
   }
 };
+
+/**
+ * Marks the products of running ad campaigns as sponsored and lists them
+ * first, keeping the order within each group. A campaign promotes one product
+ * when it names one, otherwise its whole store. If the lookup fails the
+ * catalogue is returned as it was.
+ */
+async function applyAdBoosts(products: Product[]): Promise<Product[]> {
+  try {
+    const { data, error } = await (supabase.rpc as any)('active_ad_boosts');
+    if (error || !Array.isArray(data) || data.length === 0) return products;
+
+    const boosts = data as Array<{ store_id: string; product_id: string | null; featured: boolean }>;
+    const boostFor = (product: Product) =>
+      boosts.find(b => b.product_id === product.id) ??
+      boosts.find(b => !b.product_id && b.store_id === product.merchantId);
+
+    const marked = products.map(product => {
+      const boost = boostFor(product);
+      return boost ? { ...product, sponsored: true, sponsoredFeatured: boost.featured } : product;
+    });
+    return [...marked.filter(p => p.sponsored), ...marked.filter(p => !p.sponsored)];
+  } catch (error) {
+    console.error('Error applying ad boosts:', error);
+    return products;
+  }
+}
 
 /**
  * Fetches products by merchant store slug
@@ -320,7 +347,8 @@ export const fetchFeaturedProducts = async (limit: number = 4): Promise<Product[
     // Get top-rated and in-stock products
     const featuredProducts = allProducts
       .filter(product => product.inStock)
-      .sort((a, b) => b.rating - a.rating)
+      // Featured ad campaigns lead, then the best rated.
+      .sort((a, b) => Number(!!b.sponsoredFeatured) - Number(!!a.sponsoredFeatured) || b.rating - a.rating)
       .slice(0, limit);
 
     return featuredProducts;

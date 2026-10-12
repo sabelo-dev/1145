@@ -141,28 +141,17 @@ export function useBrandGrowth(merchantId?: string) {
       return false;
     }
 
-    const { error: updateError } = await supabase
-      .from('promo_credits')
-      .update({
-        balance: promoCredits.balance - amount,
-        lifetime_spent: promoCredits.lifetime_spent + amount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('merchant_id', merchantId);
+    // The database takes the credits and records the spend; the balance cannot be written from here.
+    const { error: updateError } = await (supabase.rpc as any)('merchant_ad_credits_spend', {
+      p_amount: amount,
+      p_category: category,
+      p_description: referenceId ? `${description} (${referenceId})` : description,
+    });
 
     if (updateError) {
-      toast({ title: 'Failed to spend credits', variant: 'destructive' });
+      toast({ title: 'Failed to spend credits', description: updateError.message, variant: 'destructive' });
       return false;
     }
-
-    await supabase.from('promo_credit_transactions').insert([{
-      merchant_id: merchantId,
-      amount: -amount,
-      type: 'spend',
-      category,
-      description,
-      reference_id: referenceId
-    }]);
 
     await fetchMerchantData();
     toast({ title: `Spent ${amount} promo credits` });
@@ -217,18 +206,14 @@ export function useBrandGrowth(merchantId?: string) {
   ) => {
     if (!merchantId) return null;
 
-    const { data, error } = await supabase
-      .from('auto_campaigns')
-      .insert([{
-        merchant_id: merchantId,
-        store_id: storeId || null,
-        campaign_type: campaignType,
-        trigger_conditions: JSON.parse(JSON.stringify(triggerConditions)),
-        action_config: JSON.parse(JSON.stringify(actionConfig)),
-        credit_budget: creditBudget
-      }])
-      .select()
-      .single();
+    // Campaigns are created by the database, which takes the budget from the balance.
+    const { data, error } = await (supabase.rpc as any)('merchant_ad_campaign_create', {
+      p_type: campaignType,
+      p_budget: creditBudget,
+      p_duration_days: Number(triggerConditions.duration_days) || 7,
+      p_keywords: [],
+      p_product_id: '',
+    });
 
     if (error) {
       toast({ title: 'Failed to create campaign', variant: 'destructive' });
