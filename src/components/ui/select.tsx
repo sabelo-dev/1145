@@ -81,7 +81,10 @@ const SelectContent = React.forwardRef<
       position={position}
       {...props}
     >
-      <SelectScrollUpButton />
+      {/* In popper mode the viewport scrolls natively. The scroll buttons are
+          left out because each time one mounts it scrolls the highlighted item
+          back into view, which stops a long list from scrolling back up. */}
+      {position !== "popper" && <SelectScrollUpButton />}
       <SelectPrimitive.Viewport
         className={cn(
           "p-1",
@@ -91,7 +94,7 @@ const SelectContent = React.forwardRef<
       >
         {children}
       </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
+      {position !== "popper" && <SelectScrollDownButton />}
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
 ))
