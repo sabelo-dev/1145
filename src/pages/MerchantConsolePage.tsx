@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import MerchantOrderConsole from "@/components/merchant/dashboard/MerchantOrderConsole";
+import ConsoleShell from "@/components/merchant/console/ConsoleShell";
 import ConsoleSignIn from "@/components/merchant/console/ConsoleSignIn";
 import SEO from "@/components/SEO";
 import { useConsoleApp } from "@/hooks/useConsoleApp";
@@ -20,7 +20,7 @@ const MerchantConsolePage = () => {
   return (
     <>
       <SEO title="1145 Orders" description="Order console for 1145 stores" />
-      {user ? <MerchantOrderConsole standalone app={app} /> : <ConsoleSignIn />}
+      {user ? <ConsoleShell app={app} /> : <ConsoleSignIn />}
     </>
   );
 };

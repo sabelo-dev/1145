@@ -53,6 +53,15 @@ interface MerchantOrderConsoleProps {
   standalone?: boolean;
   /** Install controls when running as the "1145 Orders" app (see useConsoleApp). */
   app?: { canInstall: boolean; showIosHint: boolean; install: () => Promise<void> };
+  /** Inside the console app menu, which shows the store, switcher, install and sign-out itself. */
+  inShell?: boolean;
+  /**
+   * False while another menu tab is open: the board is hidden but orders are
+   * still checked, and the new-order alert and alarm still appear.
+   */
+  boardVisible?: boolean;
+  /** Reports how many paid orders are waiting to be accepted (for the menu badge). */
+  onWaitingChange?: (count: number) => void;
 }
 
 /**
@@ -60,7 +69,7 @@ interface MerchantOrderConsoleProps {
  * one step at a time through the database (merchant_order_advance); nothing
  * changes here until the server confirms it, and nothing can be done offline.
  */
-const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone = false, app }) => {
+const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone = false, app, inShell = false, boardVisible = true, onWaitingChange }) => {
   const { logout } = useAuth();
   const { stores, current, setStoreId, isLoading: accessLoading } = useMerchantAccess();
   const queryClient = useQueryClient();
@@ -101,6 +110,10 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
     [queue.data, orders],
   );
   const alarm = useOrderAlarm(waitingIds);
+  const waitingCount = waitingIds?.length ?? 0;
+  useEffect(() => { onWaitingChange?.(waitingCount); }, [waitingCount, onWaitingChange]);
+  // In the app menu the shell owns the store name, switcher, install and sign-out.
+  const appControls = standalone && !inShell;
   const { soundOn, toggleSound } = alarm;
   const alertOrders = alarm.alerting
     .map((id) => orders.find((o) => o.order_id === id))
@@ -139,10 +152,11 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
   };
 
   return (
-    <div className={standalone ? "min-h-screen bg-background p-3 md:p-5" : ""}>
+    <div className={appControls ? "min-h-screen bg-background p-3 md:p-5" : ""}>
+      {boardVisible && <>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {standalone && <h1 className="mr-2 text-xl font-semibold">{current.store_name}</h1>}
-        <StoreSwitcher stores={stores} current={current} onChange={setStoreId} />
+        {appControls && <h1 className="mr-2 text-xl font-semibold">{current.store_name}</h1>}
+        {!inShell && <StoreSwitcher stores={stores} current={current} onChange={setStoreId} />}
         <div className="ml-auto flex items-center gap-2">
           {!online ? (
             <Badge variant="destructive" className="gap-1 px-3 py-1 text-sm"><WifiOff className="h-4 w-4" /> Offline</Badge>
@@ -157,30 +171,32 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
           <Button variant="outline" size="lg" onClick={toggleSound} aria-label={soundOn ? "Turn order sound off" : "Turn order sound on"}>
             {soundOn ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
           </Button>
-          {!standalone && (
+          {!standalone && !inShell && (
             <Button variant="outline" size="lg" asChild>
               <a href="/merchant/console" target="_blank" rel="noreferrer" aria-label="Open full-screen console">
                 <Maximize2 className="h-5 w-5" />
               </a>
             </Button>
           )}
-          {standalone && app?.canInstall && (
+          {appControls && app?.canInstall && (
             <Button variant="outline" size="lg" className="gap-2" onClick={() => void app.install()}>
               <Download className="h-5 w-5" /> Install app
             </Button>
           )}
-          {standalone && (
+          {appControls && (
             <Button variant="outline" size="lg" onClick={() => void logout()} aria-label="Sign out">
               <LogOut className="h-5 w-5" />
             </Button>
           )}
         </div>
-        {standalone && app?.showIosHint && (
+        {appControls && app?.showIosHint && (
           <p className="w-full text-xs text-muted-foreground">
             To install 1145 Orders on this iPad or iPhone: tap Share, then “Add to Home Screen”.
           </p>
         )}
       </div>
+
+      </>}
 
       {soundOn && alarm.soundBlocked && (
         <button type="button" onClick={alarm.unlockSound}
@@ -189,7 +205,7 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
           Tap here to turn on new-order alerts. Your browser keeps the console silent until the screen has been tapped once.
         </button>
       )}
-      {!online && (
+      {boardVisible && !online && (
         <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
           You are offline. Orders shown may be out of date, and changes are paused until the connection is back.
         </p>
@@ -208,6 +224,7 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
           onLater={() => { alarm.silence(); alarm.dismiss(); }}
         />
       )}
+      {boardVisible && <>
       {!current.pickup_address && <PickupAddressCard storeId={current.store_id} canEdit={canUse(current, "settings")} />}
       {queue.error && (
         <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
@@ -253,6 +270,7 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
           Some orders have items at different steps. Update those from the Orders page.
         </p>
       )}
+      </>}
     </div>
   );
 };
