@@ -28,6 +28,7 @@ import AdminOverview from "@/components/admin/AdminOverview";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminDeletionRequests from "@/components/admin/AdminDeletionRequests";
 import AdminMerchants from "@/components/admin/AdminMerchants";
+import AdminMerchantAI from "@/components/admin/AdminMerchantAI";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminOrders from "@/components/admin/AdminOrders";
 import AdminCategories from "@/components/admin/AdminCategories";
@@ -89,6 +90,7 @@ import {
   UserX,
   Headphones,
   Percent,
+  Sparkles,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -128,6 +130,7 @@ const AdminDashboard = () => {
     { id: "users", title: "User Management", icon: Users },
     { id: "deletion-requests", title: "Deletion Requests", icon: UserX },
     { id: "merchants", title: "Merchant Management", icon: Store },
+    { id: "merchant-ai", title: "Merchant AI", icon: Sparkles },
     { id: "drivers", title: "Driver Management", icon: Truck },
     { id: "driver-compliance", title: "Driver Verification", icon: Shield },
     { id: "eateries", title: "Eateries (Food)", icon: Store },
@@ -316,6 +319,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="merchants" className="mt-0">
               <AdminMerchants />
+            </TabsContent>
+            <TabsContent value="merchant-ai" className="mt-0">
+              <AdminMerchantAI />
             </TabsContent>
             <TabsContent value="products" className="mt-0">
               <AdminProducts />

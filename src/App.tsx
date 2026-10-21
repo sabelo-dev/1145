@@ -59,6 +59,7 @@ const MerchantLoginPage = lazyWithRetry(() => import("@/pages/MerchantLoginPage"
 const MerchantRegisterPage = lazyWithRetry(() => import("@/pages/MerchantRegisterPage"));
 const MerchantOnboardingPage = lazyWithRetry(() => import("@/pages/MerchantOnboardingPage"));
 const MerchantDashboardPage = lazyWithRetry(() => import("@/pages/MerchantDashboardPage"));
+const MerchantConsolePage = lazyWithRetry(() => import("@/pages/MerchantConsolePage"));
 
 // Driver
 const DriverLoginPage = lazyWithRetry(() => import("@/pages/driver/DriverLoginPage"));
@@ -97,6 +98,7 @@ const AuthConfirmPage = lazyWithRetry(() => import("@/pages/AuthConfirmPage"));
 const VerifyEmailPage = lazyWithRetry(() => import("@/pages/VerifyEmailPage"));
 const AuthCallbackPage = lazyWithRetry(() => import("@/pages/AuthCallbackPage"));
 const PayBridgePage = lazyWithRetry(() => import("@/pages/PayBridgePage"));
+const PayRequestPage = lazyWithRetry(() => import("@/pages/PayRequestPage"));
 const AppReturnPage = lazyWithRetry(() => import("@/pages/AppReturnPage"));
 
 // Super App
@@ -180,6 +182,7 @@ function AppRouter() {
         <Route path="install" element={<InstallPage />} />
         <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="pay" element={<PayBridgePage />} />
+        <Route path="pay/:token" element={<PayRequestPage />} />
         <Route path="app-return" element={<AppReturnPage />} />
         <Route path="store/:storeSlug" element={<StorefrontPage />} />
         
@@ -357,6 +360,12 @@ function AppRouter() {
         <Route path="merchant/onboarding" element={
           <ProtectedRoute requireAuth>
             <MerchantOnboardingPage />
+          </ProtectedRoute>
+        } />
+        {/* Staff are not merchants, so this checks sign-in only; the console checks store access. */}
+        <Route path="merchant/console" element={
+          <ProtectedRoute requireAuth>
+            <MerchantConsolePage />
           </ProtectedRoute>
         } />
         <Route path="merchant/dashboard" element={

@@ -46,6 +46,12 @@ import MerchantCustomDomain from "./dashboard/MerchantCustomDomain";
 import MerchantLeases from "./dashboard/MerchantLeases";
 import MerchantLodging from "./dashboard/MerchantLodging";
 import MerchantRideAnalytics from "./dashboard/MerchantRideAnalytics";
+import MerchantOrderConsole from "./dashboard/MerchantOrderConsole";
+import MerchantPaymentRequests from "./dashboard/MerchantPaymentRequests";
+import MerchantAssistant from "./dashboard/MerchantAssistant";
+import MerchantTeam from "./dashboard/MerchantTeam";
+import { useMerchantAccess } from "@/hooks/useMerchantAccess";
+import { canUse } from "@/services/merchantAi";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
@@ -71,6 +77,10 @@ import {
   Globe,
   CreditCard,
   Building2,
+  MonitorSmartphone,
+  QrCode,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
@@ -129,8 +139,19 @@ const MerchantDashboard = () => {
     fetchMerchantData();
   }, [user?.id]);
 
+  // Merchant AI tabs appear once an admin switches the feature on (see AdminMerchantAI).
+  const { current: storeAccess } = useMerchantAccess();
+  const merchantAiItems = [
+    canUse(storeAccess, "orders", "order_console") && { id: "order-console", title: "Order Console", icon: MonitorSmartphone },
+    canUse(storeAccess, "payments", "payment_requests") && { id: "payment-requests", title: "Payment Links", icon: QrCode },
+    storeAccess?.features.includes("ai_assistant") && (canUse(storeAccess, "insights") || canUse(storeAccess, "catalog"))
+      && { id: "assistant", title: "Ask 1145 AI", icon: Sparkles },
+    canUse(storeAccess, "settings") && (storeAccess?.features.length ?? 0) > 0 && { id: "team", title: "Team", icon: Users },
+  ].filter(Boolean) as Array<{ id: string; title: string; icon: typeof LayoutDashboard }>;
+
   const sidebarItems = [
     { id: "overview", title: "Dashboard Home", icon: LayoutDashboard },
+    ...merchantAiItems,
     { id: "subscription", title: "Subscription", icon: Crown },
     { id: "billing", title: "Billing & Payments", icon: CreditCard },
     { id: "shopfront", title: "Shopfront", icon: Store },
@@ -437,6 +458,18 @@ const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="delivery-analytics" className="mt-0">
               <MerchantRideAnalytics />
+            </TabsContent>
+            <TabsContent value="order-console" className="mt-0">
+              <MerchantOrderConsole />
+            </TabsContent>
+            <TabsContent value="payment-requests" className="mt-0">
+              <MerchantPaymentRequests />
+            </TabsContent>
+            <TabsContent value="assistant" className="mt-0">
+              <MerchantAssistant />
+            </TabsContent>
+            <TabsContent value="team" className="mt-0">
+              <MerchantTeam />
             </TabsContent>
           </Tabs>
         </main>

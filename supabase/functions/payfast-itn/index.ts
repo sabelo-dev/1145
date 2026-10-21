@@ -80,6 +80,44 @@ serve(async (req) => {
       return ok();
     }
 
+    // Merchant payment requests (links / QR codes) — PREQ-{requestId}
+    if (customStr2 === "payment_request" && customStr1 && paymentId === `PREQ-${customStr1}`) {
+      // Kept with the event so a payment can be traced to the exact notification.
+      const digestBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(
+        entries.filter(([key]) => key !== "signature").map(([key, value]) => `${key}=${value}`).join("&"),
+      ));
+      const payloadDigest = Array.from(new Uint8Array(digestBytes)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+      if (paymentStatus === "COMPLETE") {
+        // The database function checks the amount and is safe to call again for a repeated ITN.
+        const { data: outcome, error: paidError } = await supabaseAdmin.rpc("payment_request_mark_paid", {
+          p_request_id: customStr1,
+          p_pf_payment_id: pfPaymentId,
+          p_amount_minor: Math.round(amountGross * 100),
+          p_payload_digest: payloadDigest,
+        });
+        if (paidError) {
+          console.error("Failed to confirm payment request:", paidError);
+          return new Response("Database error", { status: 500, headers: corsHeaders });
+        }
+        if (outcome === "amount_mismatch" || outcome === "not_found" || outcome === "paid_after_cancellation") {
+          console.error(`Payment request ${customStr1}: ${outcome} (paid R${amountGross})`);
+        } else {
+          console.log(`Payment request ${customStr1}: ${outcome}`);
+        }
+      } else {
+        // A failed or abandoned payment leaves the request open; the customer can try again.
+        const { error: eventError } = await supabaseAdmin.rpc("payment_request_record_event", {
+          p_request_id: customStr1,
+          p_pf_payment_id: pfPaymentId ?? "",
+          p_event_type: paymentStatus || "UNKNOWN",
+          p_payload_digest: payloadDigest,
+        });
+        if (eventError) console.error("Failed to record payment request event:", eventError);
+      }
+      return ok();
+    }
+
     // Handle service marketplace orders — SVC-{serviceOrderId}
     if (customStr2 === "service_order" && customStr1 && paymentId === `SVC-${customStr1}`) {
       if (paymentStatus === "COMPLETE") {

@@ -30,3 +30,7 @@ amplifyconfiguration*
 
 # AI builder workspace folders
 .lovable/
+merchant-ai-eval-results.json
+
+# Local secrets: never commit. Function secrets are set with `supabase secrets set --env-file supabase/.env.secrets`.
+supabase/.env.secrets
