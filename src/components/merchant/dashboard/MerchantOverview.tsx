@@ -9,18 +9,15 @@ import { getAppUrl } from "@/lib/appUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import MerchantInsights from "./MerchantInsights";
+import MerchantStoreAnalytics from "./MerchantStoreAnalytics";
 import { 
   Package, 
   ShoppingCart, 
   DollarSign, 
   TrendingUp,
-  Eye,
-  Users,
   AlertTriangle,
   Clock,
-  CheckCircle,
   Star,
-  Target,
   Bell,
   MessageSquare,
   Percent,
@@ -339,110 +336,8 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
         </Card>
       )}
 
-      {/* Enhanced Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R{stats.todayRevenue.toFixed(2)}</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-              <span>7d: R{stats.weeklyRevenue.toFixed(2)}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.newOrders}</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <span>{stats.pendingOrders} pending • {stats.processingOrders} processing</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.conversionRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              R{stats.avgOrderValue} avg order
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Store Views</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.todayViews}</div>
-            <p className="text-xs text-muted-foreground flex items-center">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              {stats.weeklyViews} this week
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Alerts and Notifications */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inventory Alerts</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm">Low Stock</span>
-                <span className="font-medium text-orange-600">{stats.lowStockItems} items</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Out of Stock</span>
-                <span className="font-medium text-red-600">{stats.outOfStockItems} items</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Promotions</CardTitle>
-            <Percent className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activePromotions}</div>
-            <p className="text-xs text-muted-foreground">
-              Black Friday ends in 5 days
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingPayouts}</div>
-            <p className="text-xs text-muted-foreground">
-              Next: R{(stats.revenue * 0.85).toFixed(2)} on Jan 30
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Sales, customers, products and stock for all stores, worked out in the database */}
+      <MerchantStoreAnalytics onNavigate={onNavigate} />
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Recent Orders */}

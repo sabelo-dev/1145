@@ -306,6 +306,25 @@ SELECT mai_test.expect_error('suspended staff lose access',
 SELECT mai_test.act_as(mai_test.id('consumer'));
 SELECT mai_test.check('consumer has no stores', public.merchant_my_access() = '[]'::jsonb);
 
+-- ------------------------------------------------ dashboard analytics
+SELECT mai_test.act_as(mai_test.id('owner_a'));
+CREATE TABLE mai_test.dash AS SELECT public.merchant_store_analytics(30) AS d;
+SELECT mai_test.check('dashboard gross sales in cents', (SELECT (d -> 'kpis' -> 'gross_sales_minor' ->> 'current')::bigint FROM mai_test.dash) = 10000);
+SELECT mai_test.check('dashboard orders, units and new customer',
+  (SELECT (d -> 'kpis' -> 'orders' ->> 'current')::int = 1 AND (d -> 'kpis' -> 'units' ->> 'current')::int = 2
+      AND (d -> 'kpis' -> 'customers' ->> 'new')::int = 1 FROM mai_test.dash));
+SELECT mai_test.check('dashboard 1145 Pay takings', (SELECT (d -> 'kpis' -> 'pay_collected_minor' ->> 'current')::int FROM mai_test.dash) = 12900);
+SELECT mai_test.check('dashboard daily series covers 30 days', (SELECT jsonb_array_length(d -> 'daily') FROM mai_test.dash) = 30);
+SELECT mai_test.check('dashboard weekday series has 7 days', (SELECT jsonb_array_length(d -> 'by_weekday') FROM mai_test.dash) = 7);
+SELECT mai_test.check('dashboard top product is store A''s', (SELECT (d -> 'top_products' -> 0 ->> 'product_id')::uuid FROM mai_test.dash) = mai_test.id('product_a'));
+SELECT mai_test.check('dashboard stock health', (SELECT (d -> 'stock' ->> 'low_stock')::int = 1 AND (d -> 'stock' ->> 'listed')::int = 1 FROM mai_test.dash));
+SELECT mai_test.check('unknown period falls back to 30 days', (public.merchant_store_analytics(12) -> 'period' ->> 'days')::int = 30);
+SELECT mai_test.act_as(mai_test.id('owner_b'));
+SELECT mai_test.check('other merchant sees only their own sales',
+  (public.merchant_store_analytics(30) -> 'kpis' -> 'gross_sales_minor' ->> 'current')::bigint = 9900);
+SELECT mai_test.act_as(mai_test.id('consumer'));
+SELECT mai_test.expect_error('a shopper has no store analytics', 'SELECT public.merchant_store_analytics(30)', 'No merchant account');
+
 -- -------------------------------------------------------- pilot metrics
 SELECT mai_test.expect_error('only admins see pilot metrics',
   'SELECT public.admin_merchant_ai_pilot_metrics(''mbombela-pilot'', current_date - 7, current_date)', 'Admins only');

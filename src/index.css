@@ -672,3 +672,22 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Chart colours (validated with the dataviz palette checker; see MerchantStoreAnalytics).
+   Series colours carry identity only; status colours are reserved for state and
+   always appear with an icon and a label. */
+:root {
+  --viz-series-1: #2a78d6;
+  --viz-series-2: #eb6834;
+  --viz-grid: #e7e6e2;
+  --viz-axis: #6b6a66;
+  --viz-good: #0ca30c;
+  --viz-warning: #fab219;
+  --viz-critical: #d03b3b;
+}
+.dark {
+  --viz-series-1: #3987e5;
+  --viz-series-2: #d95926;
+  --viz-grid: #2e2e2c;
+  --viz-axis: #a3a29b;
+}

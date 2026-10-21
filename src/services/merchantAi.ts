@@ -342,3 +342,36 @@ export interface PilotMetrics {
 
 export const fetchPilotMetrics = (cohort: string | null, from: string, to: string) =>
   rpc<PilotMetrics>("admin_merchant_ai_pilot_metrics", { p_cohort: cohort, p_from: from, p_to: to });
+
+// ------------------------------------------------------ dashboard analytics
+
+interface PeriodPair { current: number; previous: number }
+
+export interface StoreAnalytics {
+  period: { days: number; from: string; to: string; previous_from: string; previous_to: string };
+  timezone: string;
+  as_of: string;
+  definition: string;
+  kpis: {
+    gross_sales_minor: PeriodPair;
+    orders: PeriodPair;
+    average_order_minor: PeriodPair;
+    units: PeriodPair;
+    customers: PeriodPair & { new: number; returning: number };
+    refund_rate: PeriodPair;
+    pay_collected_minor: PeriodPair;
+  };
+  daily: Array<{ date: string; gross_minor: number; orders: number }>;
+  by_weekday: Array<{ weekday: number; gross_minor: number; orders: number }>;
+  top_products: Array<{ product_id: string; name: string; units: number; gross_minor: number }>;
+  by_category: Array<{ category: string; gross_minor: number; units: number }>;
+  fulfilment: Record<string, number>;
+  stock: {
+    listed: number; pending_approval: number; in_stock: number; low_stock: number; out_of_stock: number;
+    rating: number | null; reviews: number;
+  };
+}
+
+/** Sales, customers, products and stock for every store the signed-in merchant owns. */
+export const fetchStoreAnalytics = (days: 7 | 30 | 90 | 365) =>
+  rpc<StoreAnalytics>("merchant_store_analytics", { p_days: days });
