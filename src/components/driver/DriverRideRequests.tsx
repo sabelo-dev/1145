@@ -84,13 +84,8 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
 
   const fetchRideRequests = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("rides")
-      .select("*")
-      .eq("status", "requested")
-      .is("driver_id", null)
-      .order("created_at", { ascending: false });
-    if (data) setRides(data);
+    // Nearby requests are displayed by the dashboard offer panel.
+    setRides([]);
     setLoading(false);
   }, []);
 
@@ -100,7 +95,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
       .from("rides")
       .select("*")
       .eq("driver_id", driver.id)
-      .in("status", ["accepted", "arriving", "in_progress"])
+      .in("status", ["accepted", "arriving", "arrived", "in_progress"])
       .maybeSingle();
     setActiveRide(data || null);
   }, [driver]);
@@ -144,7 +139,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
   const updateRideStatus = async (rideId: string, newStatus: string) => {
     setActionLoading(rideId);
     const updateData: Record<string, any> = { status: newStatus };
-    if (newStatus === "arriving") updateData.arrived_at = new Date().toISOString();
+    if (newStatus === "arrived") updateData.arrived_at = new Date().toISOString();
     if (newStatus === "in_progress") updateData.started_at = new Date().toISOString();
     if (newStatus === "completed") updateData.completed_at = new Date().toISOString();
     if (newStatus === "cancelled") { updateData.cancelled_at = new Date().toISOString(); updateData.cancelled_by = "driver"; }
@@ -154,7 +149,8 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
       toast({ variant: "destructive", title: "Error", description: "Could not update ride." });
     } else {
       const msg: Record<string, string> = {
-        arriving: "Passenger notified you're arriving.",
+        arriving: "Passenger notified you're on the way.",
+        arrived: "Passenger notified you are at the pickup.",
         in_progress: "Trip started!",
         completed: "Trip completed!",
         cancelled: "Ride cancelled.",
@@ -189,7 +185,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
     ? { origin: { lat: Number(activeRide.pickup_lat), lng: Number(activeRide.pickup_lng) }, destination: { lat: Number(activeRide.dropoff_lat), lng: Number(activeRide.dropoff_lng) } }
     : undefined;
 
-  const statusSteps = ["accepted", "arriving", "in_progress", "completed"];
+  const statusSteps = ["accepted", "arriving", "arrived", "in_progress", "completed"];
   const currentStepIndex = activeRide ? statusSteps.indexOf(activeRide.status) : -1;
 
   return (
@@ -225,7 +221,8 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
             </div>
             <div className="flex justify-between text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
               <span>Accepted</span>
-              <span>Arriving</span>
+              <span>On the way</span>
+              <span>At pickup</span>
               <span>In Trip</span>
             </div>
           </div>
@@ -298,10 +295,15 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
             <div className="flex gap-2.5">
               {activeRide.status === "accepted" && (
                 <Button className="flex-1 h-11 rounded-xl font-semibold" onClick={() => updateRideStatus(activeRide.id, "arriving")} disabled={!!actionLoading}>
-                  <Navigation className="h-4 w-4 mr-2" />Arriving at Pickup
+                  <Navigation className="h-4 w-4 mr-2" />Drive to Pickup
                 </Button>
               )}
               {activeRide.status === "arriving" && (
+                <Button className="flex-1 h-11 rounded-xl font-semibold" onClick={() => updateRideStatus(activeRide.id, "arrived")} disabled={!!actionLoading}>
+                  <MapPin className="h-4 w-4 mr-2" />At Pickup
+                </Button>
+              )}
+              {activeRide.status === "arrived" && (
                 <Button className="flex-1 h-11 rounded-xl font-semibold" onClick={() => updateRideStatus(activeRide.id, "in_progress")} disabled={!!actionLoading}>
                   <Car className="h-4 w-4 mr-2" />Start Trip
                 </Button>
@@ -343,7 +345,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
             <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-muted mb-4">
               <Car className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="font-semibold mb-1.5 text-lg">No Ride Requests</h3>
+            <h3 className="font-semibold mb-1.5 text-lg">Nearby offers appear above</h3>
             <p className="text-sm text-muted-foreground max-w-xs mx-auto">New ride requests will appear here in real-time. Stay online to receive requests.</p>
           </CardContent>
         </Card>

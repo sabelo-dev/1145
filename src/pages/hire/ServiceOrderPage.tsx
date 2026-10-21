@@ -1,3 +1,5 @@
+import FullUCoinPayment from "@/components/checkout/FullUCoinPayment";
+import { payPurchaseWithUcoin } from "@/services/ucoinPayments";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -181,7 +183,11 @@ const ServiceOrderPage: React.FC = () => {
         <div className="mt-5 flex flex-wrap items-start gap-3">
           {role === "customer" && order.state === "pending_payment" && (
             <>
-              {!justPaid && <Button variant="cta" className="rounded-full" disabled={busy} onClick={() => run(() => payForServiceOrder(order.id, { email: user.email, name: user.name }))}>Pay {formatMinor(order.gross_amount_minor)}</Button>}
+              {!justPaid && <FullUCoinPayment total={order.gross_amount_minor / 100} disabled={busy} onBusyChange={setBusy} pay={async () => {
+                  await payPurchaseWithUcoin("service", order.id, order.gross_amount_minor / 100);
+                  window.location.reload();
+                }} />}
+                {!justPaid && <Button variant="cta" className="rounded-full" disabled={busy} onClick={() => run(() => payForServiceOrder(order.id, { email: user.email, name: user.name }))}>Pay {formatMinor(order.gross_amount_minor)}</Button>}
               <Button variant="outline" className="rounded-full" disabled={busy} onClick={() => run(() => customerOrderAction(order.id, "cancel"), "Order cancelled")}>Cancel order</Button>
             </>
           )}

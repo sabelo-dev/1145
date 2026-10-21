@@ -37,3 +37,7 @@ supabase/.env.secrets
 
 # Standalone "1145 Orders" app build (vite.orders.config.ts)
 dist-orders/
+
+# Standalone driver app and local dependency cache
+dist-driver/
+.npm-driver-cache/

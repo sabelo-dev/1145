@@ -1,3 +1,5 @@
+import FullUCoinPayment from "@/components/checkout/FullUCoinPayment";
+import { payPurchaseWithUcoin } from "@/services/ucoinPayments";
 import React, { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -62,8 +64,8 @@ const FoodCheckoutPage: React.FC = () => {
     return !first;
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (e?: React.FormEvent, withUcoin = false) => {
+    e?.preventDefault();
     setFailure(null);
     if (!validate()) return;
     const street = address.street.trim();
@@ -111,7 +113,10 @@ const FoodCheckoutPage: React.FC = () => {
     basket.clear();
     try {
       const [firstName, ...rest] = address.name.trim().split(/\s+/);
-      await payForFoodOrder(orderId, { email: user?.email, firstName, lastName: rest.join(" ") });
+      if (withUcoin) {
+        await payPurchaseWithUcoin("food", orderId, total);
+        navigate(`/food/orders/${orderId}`, { replace: true });
+      } else await payForFoodOrder(orderId, { email: user?.email, firstName, lastName: rest.join(" ") });
     } catch {
       navigate(`/food/orders/${orderId}`, { replace: true });
     }
@@ -201,6 +206,8 @@ const FoodCheckoutPage: React.FC = () => {
                 <div className="flex justify-between"><dt className="text-text-secondary">Delivery</dt><dd>{eatery.delivery_fee > 0 ? formatCurrency(eatery.delivery_fee) : "Free"}</dd></div>
                 <div className="flex justify-between pt-1 text-base font-semibold"><dt>Total</dt><dd>{formatCurrency(total)}</dd></div>
               </dl>
+
+              <FullUCoinPayment total={total} disabled={!!submitting || loadingEatery} pay={() => onSubmit(undefined, true)} />
 
               {failure && <p role="alert" className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{failure}</p>}
 

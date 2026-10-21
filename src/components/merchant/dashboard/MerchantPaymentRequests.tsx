@@ -116,7 +116,7 @@ const MerchantPaymentRequests: React.FC = () => {
         <CardHeader>
           <CardTitle>New 1145 Pay request</CardTitle>
           <CardDescription>
-            The customer scans the QR code or opens the link and pays securely on PayFast. Card details never reach 1145.
+            Customers scan with their smartphone camera and confirm payment with UCoin, a saved card, or PayFast.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -208,7 +208,7 @@ const MerchantPaymentRequests: React.FC = () => {
               <DialogDescription>{live.description}</DialogDescription>
             </DialogHeader>
             {effectiveStatus(live) === "paid" ? (
-              <p className="rounded-md bg-primary/10 p-6 text-center text-lg font-semibold">Paid. PayFast confirmed the payment.</p>
+              <p className="rounded-md bg-primary/10 p-6 text-center text-lg font-semibold">Paid. 1145 confirmed the payment.</p>
             ) : effectiveStatus(live) === "pending" ? (
               <div className="space-y-4">
                 <div className="flex justify-center rounded-md bg-white p-4">

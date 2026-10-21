@@ -1,3 +1,5 @@
+import FullUCoinPayment from "@/components/checkout/FullUCoinPayment";
+import { payPurchaseWithUcoin } from "@/services/ucoinPayments";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +28,7 @@ interface AuctionWinDetails {
   registration: {
     id: string;
     registration_fee_paid: number;
+    payment_status: string;
     deposit_applied: boolean;
   };
 }
@@ -211,7 +214,7 @@ const AuctionCheckoutPage: React.FC = () => {
   }
 
   const { auction, registration } = winDetails;
-  const depositAmount = registration.registration_fee_paid;
+  const depositAmount = registration.payment_status === "paid" ? Number(registration.registration_fee_paid || 0) : 0;
   const remainingAmount = auction.winning_bid - depositAmount;
   const productImage = auction.product?.product_images?.[0]?.image_url;
 
@@ -308,6 +311,10 @@ const AuctionCheckoutPage: React.FC = () => {
               <CardTitle>Payment Method</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <FullUCoinPayment total={remainingAmount} disabled={processing} onBusyChange={setProcessing} pay={async () => {
+                await payPurchaseWithUcoin("auction", auction.id, remainingAmount);
+                navigate(`/auction-checkout/success?auctionId=${auction.id}`);
+              }} />
               <RadioGroup
                 value={paymentMethod}
                 onValueChange={(v) => setPaymentMethod(v as "card" | "eft")}

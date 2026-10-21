@@ -1,3 +1,4 @@
+import RideArrivalEstimate from "@/components/rides/RideArrivalEstimate";
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -376,6 +377,7 @@ const RideTrackingPage: React.FC = () => {
           </Card>
         )}
 
+        <RideArrivalEstimate rideId={ride.id} status={ride.status} />
         {/* Trip Details */}
         <Card>
           <CardContent className="p-4 space-y-3">

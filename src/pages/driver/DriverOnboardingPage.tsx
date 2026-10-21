@@ -421,6 +421,7 @@ const DriverOnboardingPage: React.FC = () => {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="car">Car</SelectItem>
+                        <SelectItem value="scooter">Scooter (deliveries only)</SelectItem>
                         <SelectItem value="motorcycle">Motorcycle</SelectItem>
                         <SelectItem value="bicycle">Bicycle</SelectItem>
                         <SelectItem value="van">Van</SelectItem>

@@ -1,3 +1,5 @@
+import FullUCoinPayment from "@/components/checkout/FullUCoinPayment";
+import { payPurchaseWithUcoin } from "@/services/ucoinPayments";
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -140,6 +142,11 @@ const FoodOrderPage: React.FC = () => {
           </div>
         )}
 
+        {awaitingPayment && !justPaid && <FullUCoinPayment total={order.total} disabled={!!busy}
+          onBusyChange={value => setBusy(value ? "pay" : null)} pay={async () => {
+            await payPurchaseWithUcoin("food", order.id, order.total);
+            await queryClient.invalidateQueries({ queryKey });
+          }} />}
         {/* Summary */}
         <section className="mt-10 rounded-2xl border border-border bg-card p-5" aria-labelledby="order-summary">
           <h2 id="order-summary" className="type-title">Order summary</h2>

@@ -54,4 +54,15 @@ const ordersConfig: CapacitorConfig = {
   },
 };
 
-export default process.env.CAP_APP === 'orders' ? ordersConfig : config;
+const driverConfig: CapacitorConfig = {
+  appId: 'io.lifestyle1145.driver', appName: '1145 Driver', webDir: 'dist-driver',
+  android: { path: 'android-driver', allowMixedContent: false, useLegacyBridge: true },
+  ios: { path: 'ios-driver' },
+  plugins: {
+    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#1e3a5f' },
+    PushNotifications: { presentationOptions: ['badge', 'sound', 'alert'] },
+    CapacitorHttp: { enabled: true },
+    Keyboard: { resize: 'body', resizeOnFullScreen: true },
+  },
+};
+export default process.env.CAP_APP === 'driver' ? driverConfig : process.env.CAP_APP === 'orders' ? ordersConfig : config;

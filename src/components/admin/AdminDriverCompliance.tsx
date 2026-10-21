@@ -84,6 +84,7 @@ const AdminDriverCompliance: React.FC = () => {
   const [checks, setChecks] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
+  const [vehicleModes, setVehicleModes] = useState<Record<string, string>>({});
   const [alerts, setAlerts] = useState<any[]>([]);
   const [devices, setDevices] = useState<any[]>([]);
   const [investigations, setInvestigations] = useState<any[]>([]);
@@ -105,7 +106,7 @@ const AdminDriverCompliance: React.FC = () => {
       db.from("driver_identity_checks").select("*, drivers(name, user_id)").eq("status", "submitted").order("submitted_at").limit(100),
       db.from("driver_documents").select("*, drivers(name), vehicles(license_plate)").eq("status", "pending").order("created_at").limit(100),
       db.from("vehicle_driver_assignments")
-        .select("*, drivers(name), vehicles(license_plate, make, model, year, color, owner_id), vehicle_owners(legal_name, owner_type, id_number, phone, verified_at)")
+        .select("*, drivers(name, vehicle_type), vehicles(license_plate, make, model, year, color, owner_id, transport_mode), vehicle_owners(legal_name, owner_type, id_number, phone, verified_at)")
         .eq("status", "pending").order("created_at").limit(100),
       db.from("driver_security_alerts").select("*, drivers(name)").eq("status", "open").order("created_at", { ascending: false }).limit(100),
       db.from("driver_devices").select("*, drivers(name)").eq("status", "pending_approval").order("first_seen_at"),
@@ -316,6 +317,12 @@ const AdminDriverCompliance: React.FC = () => {
                         <p className="text-sm text-muted-foreground">
                           {a.vehicles?.year} {a.vehicles?.make} {a.vehicles?.model}, {a.vehicles?.color}
                         </p>
+                        <Label htmlFor={`vehicle-mode-${a.id}`}>Confirm physical vehicle type</Label>
+                        <select id={`vehicle-mode-${a.id}`} className="mt-1 block w-full rounded-md border bg-background p-2" value={vehicleModes[a.id] ?? a.vehicles?.transport_mode ?? ""} onChange={e => setVehicleModes(current => ({ ...current, [a.id]: e.target.value }))}>
+                          <option value="">Select vehicle type</option>
+                          {["car", "van", "scooter", "motorcycle", "bicycle", "truck"].map(mode => <option key={mode} value={mode}>{mode}</option>)}
+                        </select>
+                        <p className="text-xs text-muted-foreground">Scooters cannot carry passengers. Verify against the vehicle papers.</p>
                       </TableCell>
                       <TableCell>
                         <p>{a.vehicle_owners?.legal_name} ({a.vehicle_owners?.owner_type === "company" ? "company" : "person"})</p>
@@ -337,7 +344,7 @@ const AdminDriverCompliance: React.FC = () => {
                               <ExternalLink className="mr-1 h-4 w-4" /> Permission
                             </Button>
                           )}
-                          <Button size="sm" onClick={() => act(db.rpc("review_vehicle_assignment", { p_assignment_id: a.id, p_approve: true }), "Vehicle verified")}>
+                          <Button size="sm" disabled={!(vehicleModes[a.id] ?? a.vehicles?.transport_mode)} onClick={() => act(db.rpc("review_vehicle_assignment_services", { p_assignment_id: a.id, p_approve: true, p_mode: vehicleModes[a.id] ?? a.vehicles?.transport_mode }), "Vehicle verified")}>
                             Verify
                           </Button>
                           <Button

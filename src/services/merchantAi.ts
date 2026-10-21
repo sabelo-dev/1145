@@ -1,3 +1,4 @@
+import { getPlatformBaseUrl } from "@/lib/appUrl";
 // Merchant AI: store access, the order console, payment requests and the
 // 1145 AI assistant. Every call here is checked again by the database or the
 // edge function; nothing in the browser decides access or amounts.
@@ -179,7 +180,7 @@ export interface PublicPaymentRequest {
 export const effectiveStatus = (r: Pick<PaymentRequest, "status" | "expires_at">): PaymentRequest["status"] =>
   r.status === "pending" && new Date(r.expires_at).getTime() <= Date.now() ? "expired" : r.status;
 
-export const paymentLink = (token: string) => `${window.location.origin}/pay/${token}`;
+export const paymentLink = (token: string) => `${getPlatformBaseUrl()}/pay/${token}`;
 
 export const fetchPaymentRequests = async (storeId: string) => {
   const { data, error } = await db

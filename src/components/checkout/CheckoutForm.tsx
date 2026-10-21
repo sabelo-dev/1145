@@ -179,7 +179,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   // Display-only: the edge function prices the order itself.
   const orderTotal = Math.max((cart?.subtotal || 0) * 1.15 + shippingCost - (promo?.savings ?? 0), 0);
   // A promo can shrink the total below UCoin already entered.
-  const ucoinApplied = Math.min(ucoinToApply, Math.floor(orderTotal / UCOIN_RAND_VALUE));
+  const ucoinApplied = Math.min(ucoinToApply, Math.ceil(Math.round(orderTotal * 100) / (UCOIN_RAND_VALUE * 100)));
 
   const onSubmit = async (values: CheckoutFormValues) => {
     if (!cart?.items?.length) {

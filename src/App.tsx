@@ -1,3 +1,4 @@
+import ScanPayPage from "@/pages/ScanPayPage";
 import React, { Suspense } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
@@ -183,7 +184,8 @@ function AppRouter() {
         <Route path="install" element={<InstallPage />} />
         <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="pay" element={<PayBridgePage />} />
-        <Route path="pay/:token" element={<PayRequestPage />} />
+        <Route path="scan-pay" element={<ScanPayPage />} />
+          <Route path="pay/:token" element={<PayRequestPage />} />
         <Route path="app-return" element={<AppReturnPage />} />
         <Route path="store/:storeSlug" element={<StorefrontPage />} />
         

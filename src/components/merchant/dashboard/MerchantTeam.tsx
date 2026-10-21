@@ -22,8 +22,7 @@ import StoreSwitcher from "./StoreSwitcher";
 const ROLE_HELP: Record<StoreMember["role"], string> = {
   manager: "Orders, products, 1145 Pay and insights",
   cashier: "Orders and 1145 Pay",
-  catalog_editor: "Products and AI drafts",
-  finance: "1145 Pay and insights",
+  operator: "Orders, stock, deliveries, 1145 Pay and insights",
 };
 
 /**

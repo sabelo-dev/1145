@@ -600,6 +600,18 @@ serve(async (req) => {
       await supabaseAdmin.from("orders").update({ payment_gateway: "payfast" }).eq("id", orderId);
     }
 
+    // Reserve the route under a row lock (UPDATE). A concurrent UCoin
+    // transaction either sees this reservation or finishes first and blocks it.
+    const routeTable = ({ food_order: "food_orders", auction_winner_payment: "auctions", service_order: "service_orders" } as Record<string, string>)[paymentData.customStr2 || ""];
+    if (routeTable) {
+      let claim = supabaseAdmin.from(routeTable).update({ payment_route: "payfast" })
+        .eq("id", paymentData.customStr1).or("payment_route.is.null,payment_route.eq.payfast");
+      claim = routeTable === "food_orders" ? claim.eq("payment_status", "pending").eq("status", "pending_payment")
+        : routeTable === "auctions" ? claim.eq("status", "sold") : claim.eq("state", "pending_payment");
+      const { data: reserved, error: reserveError } = await claim.select("id");
+      if (reserveError || !reserved?.length) return json({ success: false, error: "This purchase is already paid or has another payment in progress" }, 409);
+    }
+
     if (!(amountDue > 0)) {
       return json({ success: false, error: "Nothing to pay for this request" }, 400);
     }

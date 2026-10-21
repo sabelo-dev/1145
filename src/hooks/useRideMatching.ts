@@ -38,12 +38,9 @@ export function useRideMatching({ rideId, enabled = true }: UseRideMatchingOptio
     setDriversNotified(result.driversNotified);
 
     if (result.status === "no_drivers") {
-      toast({
-        title: "All drivers are currently busy",
-        description: "We're still searching. Please wait...",
-      });
-      // Start retry cycle
-      scheduleRetry(rideId, 1);
+      setNoDriversAvailable(true);
+      setIsSearching(false);
+      toast({ title: "No nearby drivers available", description: "No eligible drivers were found within 15 km. You can try again shortly." });
     } else if (result.driversNotified > 0) {
       toast({
         title: `${result.driversNotified} driver${result.driversNotified > 1 ? "s" : ""} notified`,
@@ -82,12 +79,12 @@ export function useRideMatching({ rideId, enabled = true }: UseRideMatchingOptio
         if (result.driversFound === 0 && nextAttempt >= 2) {
           toast({
             title: "Drivers are busy in your area",
-            description: `Still searching (attempt ${nextAttempt}/5)...`,
+            description: "Checking nearby drivers within a maximum of 15 km...",
           });
         } else if (result.driversNotified > 0) {
           toast({
             title: `${result.driversNotified} more driver${result.driversNotified > 1 ? "s" : ""} notified`,
-            description: "Expanding search area...",
+            description: "Checking available drivers within 5, 10 or 15 km...",
           });
         }
 

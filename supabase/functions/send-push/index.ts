@@ -77,7 +77,7 @@ async function sendFcm(token: string, title: string, body: string, data: Record<
         token,
         notification: { title, body },
         data,
-        android: { priority: "HIGH", notification: { sound: "default" } },
+        android: { priority: "HIGH", ...(data.assignment_id ? { ttl: "45s" } : {}), notification: { sound: "default" } },
       },
     }),
   });
@@ -145,9 +145,24 @@ Deno.serve(async (req) => {
   // Push data values must be strings; "url" is where a tap opens the app.
   const data: Record<string, string> = {};
   for (const [k, v] of Object.entries(input?.data ?? {})) data[k] = typeof v === "string" ? v : JSON.stringify(v);
+  if (data.expires_at && Date.parse(data.expires_at) <= Date.now()) return respond({ success: true, skipped: "expired" });
   if (!data.url) data.url = DEFAULT_LINKS[data.type] ?? "/dashboard";
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
+  // Settings may have changed after the notification trigger queued this push.
+  // Only deliver an offer that is still live for this driver.
+  if (data.assignment_id) {
+    const { data: offer, error: offerError } = await supabase.from("dispatch_assignments")
+      .select("driver_id, status, expires_at").eq("id", data.assignment_id).maybeSingle();
+    if (offerError) return respond({ error: "Could not check the offer" }, 503);
+    if (!offer || offer.status !== "offered" || !offer.expires_at || Date.parse(offer.expires_at) <= Date.now()) {
+      return respond({ success: true, skipped: "inactive_offer" });
+    }
+    const { data: driver, error: driverError } = await supabase.from("drivers")
+      .select("user_id, status").eq("id", offer.driver_id).maybeSingle();
+    if (driverError) return respond({ error: "Could not check the driver" }, 503);
+    if (driver?.user_id !== userId || driver?.status !== "available") return respond({ success: true, skipped: "driver_unavailable" });
+  }
   const { data: tokens } = await supabase.from("push_tokens").select("id, token, platform").eq("user_id", userId);
 
   const result = { sent: 0, removed: 0, failed: 0 };

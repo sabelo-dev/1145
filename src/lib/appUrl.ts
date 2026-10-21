@@ -3,7 +3,7 @@ import { Capacitor } from "@capacitor/core";
 const DEFAULT_PLATFORM_BASE_URL = "https://1145.io";
 
 /** Custom URL scheme of the iOS / Android app (capacitor.config.ts appId). */
-export const APP_SCHEME = "io.lifestyle1145.app";
+export const APP_SCHEME = import.meta.env.VITE_NATIVE_APP_SCHEME || "io.lifestyle1145.app";
 /** Base for links that open the native app, e.g. io.lifestyle1145.app://app/wallet */
 export const APP_LINK_BASE = `${APP_SCHEME}://app`;
 

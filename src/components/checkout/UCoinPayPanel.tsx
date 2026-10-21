@@ -20,12 +20,12 @@ const UCoinPayPanel: React.FC<UCoinPayPanelProps> = ({ total, ucoinToApply, onCh
   const balance = wallet?.balance ?? 0;
 
   const maxUcoin = useMemo(
-    () => Math.max(0, Math.min(balance, Math.floor(total / UCOIN_RAND_VALUE))),
+    () => Math.max(0, Math.min(balance, Math.ceil(Math.round(total * 100) / (UCOIN_RAND_VALUE * 100)))),
     [balance, total],
   );
 
   const applied = Math.min(ucoinToApply, maxUcoin);
-  const discount = applied * UCOIN_RAND_VALUE;
+  const discount = Math.min(total, applied * UCOIN_RAND_VALUE);
   const due = Math.max(total - discount, 0);
 
   if (isLoading || balance <= 0) return null;

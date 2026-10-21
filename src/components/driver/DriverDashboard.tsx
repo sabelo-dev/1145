@@ -1,3 +1,6 @@
+import DriverServices from "./DriverServices";
+import DriverNearbyOffers from "./DriverNearbyOffers";
+import { driverVerification } from "@/services/driverVerificationService";
 import React from "react";
 import { useAuthReady } from "@/hooks/useAuthReady";
 import PanicButton from "@/components/emergency/PanicButton";
@@ -29,13 +32,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import DriverOverview from "./DriverOverview";
-import DriverAvailableJobs from "./DriverAvailableJobs";
 import DriverActiveDeliveries from "./DriverActiveDeliveries";
 import DriverAnalytics from "./DriverAnalytics";
 import DriverSettings from "./DriverSettings";
 import DriverVerification from "./DriverVerification";
-import DriverLiveTracking from "./DriverLiveTracking";
-import DriverJobMatching from "./DriverJobMatching";
 import DriverRideRequests from "./DriverRideRequests";
 import DriverRideHistory from "./DriverRideHistory";
 import DriverRideAnalytics from "./DriverRideAnalytics";
@@ -82,6 +82,8 @@ interface Driver {
 
 const SIDEBAR_ITEMS = [
   { id: "overview", title: "Overview", icon: LayoutDashboard },
+  { id: "nearby", title: "Nearby requests", icon: MapPin },
+  { id: "services", title: "Services I accept", icon: Settings },
   { id: "ride-requests", title: "Ride Requests", icon: Car },
   { id: "ride-history", title: "Ride History", icon: History },
   { id: "ride-analytics", title: "Ride Analytics", icon: PieChart },
@@ -114,6 +116,7 @@ const DriverDashboard: React.FC = () => {
     },
     enabled: isReady && !!user,
     staleTime: 30_000,
+    refetchInterval: 15_000,
   });
 
   if (!isReady) {
@@ -129,7 +132,7 @@ const DriverDashboard: React.FC = () => {
   }
 
   const handleLogout = async () => {
-    try { await logout(); } catch (e) { console.error(e); }
+    try { await driverVerification.goOffline(); await logout(); } catch (e) { console.error(e); }
   };
 
   return (
@@ -285,6 +288,8 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         </header>
 
         <main className="flex-1 p-4 md:p-4 md:p-6 bg-background overflow-auto">
+          <DriverNearbyOffers driver={driver} userId={user.id} onAccepted={kind => { onRefresh(); setActiveTab(kind === "ride" ? "ride-requests" : "active-deliveries"); }} />
+          <div className="mt-4" />
           <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} session={session} />
         </main>
       </SidebarInset>
@@ -319,6 +324,8 @@ const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh, s
   switch (activeTab) {
     case "overview":
       return overview;
+    case "services":
+      return <DriverServices />;
     case "ride-requests":
       return <DriverRideRequests driver={driver} onRideAccepted={onRefresh} />;
     case "ride-history":
@@ -326,13 +333,14 @@ const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh, s
     case "ride-analytics":
       return <DriverRideAnalytics driver={driver} />;
     case "smart-matching":
-      return <DriverJobMatching driver={driver} onJobClaimed={onRefresh} />;
+    case "nearby":
+      return <p className="text-sm text-muted-foreground">Nearby trip and delivery offers appear above while you are online.</p>;
     case "available-jobs":
-      return <DriverAvailableJobs driver={driver} onJobClaimed={onRefresh} />;
+      return <p className="text-sm text-muted-foreground">Nearby delivery offers appear above. Accept an offer to start a delivery.</p>;
     case "active-deliveries":
       return <DriverActiveDeliveries driver={driver} onStatusUpdate={onRefresh} />;
     case "live-tracking":
-      return <DriverLiveTracking driver={driver} />;
+      return <p className="text-sm text-muted-foreground">Your location is detected automatically while online. Go offline to stop sharing.</p>;
     case "zone-compliance":
       return <ZoneComplianceIndicator driverId={driver?.id || ""} currentLat={null} currentLng={null} />;
     case "ucoin":

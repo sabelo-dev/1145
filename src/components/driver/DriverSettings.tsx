@@ -1,3 +1,4 @@
+import DriverServices from "./DriverServices";
 import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -207,6 +208,7 @@ const DriverSettings: React.FC<DriverSettingsProps> = ({ driver, onUpdate }) => 
     <div className="space-y-6 max-w-2xl">
       <h2 className="text-xl font-semibold">Profile Settings</h2>
 
+      <DriverServices />
       {/* Account Info */}
       <Card>
         <CardHeader>

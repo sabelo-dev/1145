@@ -1,4 +1,4 @@
-import { getAppUrl } from "@/lib/appUrl";
+import { APP_SCHEME, getAppUrl } from "@/lib/appUrl";
 import { isNative, openExternal } from "@/lib/native";
 
 /** Hosts we are willing to post a payment form to from the /pay bridge. */
@@ -14,7 +14,7 @@ export const PAYFAST_PROCESS_URLS = [
  */
 export function paymentReturnUrl(path: string): string {
   if (!isNative()) return getAppUrl(path);
-  return getAppUrl(`/app-return?to=${encodeURIComponent(path)}`);
+  return getAppUrl(`/app-return?to=${encodeURIComponent(path)}${APP_SCHEME === "io.lifestyle1145.driver" ? "&app=driver" : ""}`);
 }
 
 const toBase64Url = (text: string) =>

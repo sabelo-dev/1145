@@ -17,6 +17,7 @@ const everyday: Service[] = [
   { name: "Wallet", description: "Pay, top up, withdraw and hold value in gold.", icon: Wallet, route: "/wallet" },
   { name: "Lease", description: "Rent-to-own electronics, vehicles and equipment.", icon: KeyRound, route: "/lease/marketplace", tag: "New" },
   { name: "Stay", description: "Book hotels, lodges and holiday rentals.", icon: Building2, route: "/stays", tag: "New" },
+  { name: "1145 Pay", description: "Scan a merchant QR code and pay with your phone.", icon: Wallet, route: "/scan-pay" },
   { name: "UCoin", description: "Spend and trade the rewards you earn on 1145.", icon: Coins, route: "/ucoin-market" },
 ];
 

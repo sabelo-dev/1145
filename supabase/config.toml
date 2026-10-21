@@ -104,3 +104,6 @@ verify_jwt = false
 # Team invitations: adds staff by email, creating and emailing an account if needed. Store owners only; checked inside.
 [functions.store-member-invite]
 verify_jwt = true
+
+[functions.ride-arrival]
+verify_jwt = false # JWT is verified inside the function before reading any trip data.

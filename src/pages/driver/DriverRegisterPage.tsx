@@ -233,6 +233,7 @@ const DriverRegisterPage: React.FC = () => {
                               Car
                             </div>
                           </SelectItem>
+                          <SelectItem value="scooter">Scooter (deliveries only)</SelectItem>
                           <SelectItem value="motorcycle">
                             <div className="flex items-center gap-2">
                               <Bike className="h-4 w-4" />
