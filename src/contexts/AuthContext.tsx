@@ -334,7 +334,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (userRole === 'consumer' && !isDriverUser && !isInfluencerUser && (userRoles.includes('restaurateur') || data.user.user_metadata?.joining_as === 'restaurateur')) {
           redirectPath = '/eatery/dashboard';
         }
-        
+        // Store staff (added to someone else's store) go to that store's order console.
+        if (userRole === 'consumer' && redirectPath !== '/eatery/dashboard' && !isDriverUser && !isInfluencerUser) {
+          const { data: storeAccess } = await (supabase as unknown as { rpc: (fn: string) => PromiseLike<{ data: unknown }> })
+            .rpc('merchant_my_access');
+          if (Array.isArray(storeAccess) && storeAccess.length > 0) redirectPath = '/merchant/console';
+        }
+
         toast({
           title: "Login Successful",
           description: "Welcome back!",

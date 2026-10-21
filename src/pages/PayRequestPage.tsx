@@ -51,7 +51,7 @@ const PayRequestPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <SEO title="Pay" description="Secure payment on 1145 Lifestyle" />
+      <SEO title="1145 Pay" description="Secure payment with 1145 Pay" />
       <Card className="w-full max-w-sm">
         {request.isLoading ? (
           <CardContent className="flex justify-center p-10"><Loader2 className="h-6 w-6 animate-spin" /></CardContent>
@@ -61,6 +61,7 @@ const PayRequestPage: React.FC = () => {
           <>
             <CardHeader className="text-center">
               {data.store_logo_url && <img src={data.store_logo_url} alt="" className="mx-auto mb-2 h-14 w-14 rounded-full object-cover" />}
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">1145 Pay</p>
               <CardDescription>{data.store_name}</CardDescription>
               <CardTitle className="text-3xl">{formatMinor(data.amount_minor)}</CardTitle>
               <p className="text-sm">{data.description}{data.reference ? ` · Ref ${data.reference}` : ""}</p>

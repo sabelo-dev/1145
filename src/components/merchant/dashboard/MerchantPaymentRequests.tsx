@@ -102,7 +102,7 @@ const MerchantPaymentRequests: React.FC = () => {
     return (
       <Card>
         <CardContent className="p-8 text-center text-muted-foreground">
-          Payment links are not switched on for this store, or your role does not include payments.
+          1145 Pay is not switched on for this store, or your role does not include payments.
         </CardContent>
       </Card>
     );
@@ -114,7 +114,7 @@ const MerchantPaymentRequests: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>New payment link</CardTitle>
+          <CardTitle>New 1145 Pay request</CardTitle>
           <CardDescription>
             The customer scans the QR code or opens the link and pays securely on PayFast. Card details never reach 1145.
           </CardDescription>
@@ -163,14 +163,14 @@ const MerchantPaymentRequests: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent payment links</CardTitle>
+          <CardTitle>Recent 1145 Pay requests</CardTitle>
           <CardDescription>
             Money collected here is recorded for your store. How and when it is paid out to you is confirmed separately by 1145.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {list.isLoading && <Loader2 className="mx-auto h-5 w-5 animate-spin" />}
-          {list.data?.length === 0 && <p className="text-sm text-muted-foreground">No payment links yet.</p>}
+          {list.data?.length === 0 && <p className="text-sm text-muted-foreground">No 1145 Pay requests yet.</p>}
           {list.data?.map((r) => {
             const status = effectiveStatus(r);
             return (

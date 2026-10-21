@@ -156,6 +156,11 @@ export default {
 				'out-soft': 'cubic-bezier(0.16, 1, 0.3, 1)'
 			},
 			keyframes: {
+				// New-order alert on the merchant order console.
+				flash: {
+					'0%, 100%': { opacity: '0.95' },
+					'50%': { opacity: '0.35' }
+				},
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -215,6 +220,7 @@ export default {
 				}
 			},
 			animation: {
+				flash: 'flash 1s ease-in-out infinite',
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',

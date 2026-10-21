@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Bell, BellOff, Loader2, Maximize2, RefreshCw, Truck, WifiOff } from "lucide-react";
+import { Bell, BellOff, BellRing, Loader2, Maximize2, RefreshCw, Truck, VolumeX, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMerchantAccess } from "@/hooks/useMerchantAccess";
-import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
+import { useOrderAlarm } from "@/hooks/useOrderAlarm";
 import { formatMinor } from "@/services/serviceMarketplace";
 import {
   advanceOrder,
@@ -30,7 +30,7 @@ const COLUMNS: Array<{ status: ConsoleStatus; title: string }> = [
   { status: "ready", title: "Ready" },
 ];
 
-const POLL_MS = 15_000;
+const POLL_MS = 10_000;
 
 function useOnline() {
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -96,8 +96,11 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
     () => (queue.data ? orders.filter((o) => o.status === "pending").map((o) => o.order_id) : undefined),
     [queue.data, orders],
   );
-  const { soundOn, toggleSound } = useNewOrderAlert(waitingIds, (count) =>
-    toast.info(count === 1 ? "New order" : `${count} new orders`));
+  const alarm = useOrderAlarm(waitingIds);
+  const { soundOn, toggleSound } = alarm;
+  const alertOrders = alarm.alerting
+    .map((id) => orders.find((o) => o.order_id === id))
+    .filter((o): o is ConsoleOrder => !!o && o.status === "pending");
 
   if (accessLoading) {
     return <div className="flex justify-center p-12"><Loader2 className="h-6 w-6 animate-spin" /></div>;
@@ -156,10 +159,31 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
         </div>
       </div>
 
+      {soundOn && alarm.soundBlocked && (
+        <button type="button" onClick={alarm.unlockSound}
+          className="mb-4 flex w-full items-center gap-2 rounded-md border border-amber-400 bg-amber-50 p-3 text-left text-sm font-medium text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          <Bell className="h-5 w-5 shrink-0" />
+          Tap here to turn on new-order alerts. Your browser keeps the console silent until the screen has been tapped once.
+        </button>
+      )}
       {!online && (
         <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
           You are offline. Orders shown may be out of date, and changes are paused until the connection is back.
         </p>
+      )}
+      {alertOrders.length > 0 && (
+        <NewOrderAlert
+          orders={alertOrders}
+          ringing={alarm.ringing}
+          disabled={!online || advance.isPending}
+          busyId={busyId}
+          onAccept={(order) => {
+            alarm.silence();
+            advance.mutate({ order, to: "accepted" }, { onSuccess: () => alarm.dismiss(order.order_id) });
+          }}
+          onSilence={alarm.silence}
+          onLater={() => { alarm.silence(); alarm.dismiss(); }}
+        />
       )}
       {!current.pickup_address && <PickupAddressCard storeId={current.store_id} canEdit={canUse(current, "settings")} />}
       {queue.error && (
@@ -252,6 +276,70 @@ const PickupAddressCard: React.FC<{ storeId: string; canEdit: boolean }> = ({ st
     </Card>
   );
 };
+
+/**
+ * Full-screen new-order alert: the screen flashes green while the alarm rings
+ * (30 seconds), then stays green until someone accepts the order or chooses
+ * "View later". Accepting goes through the same server check as the board.
+ */
+const NewOrderAlert: React.FC<{
+  orders: ConsoleOrder[];
+  ringing: boolean;
+  disabled: boolean;
+  busyId?: string;
+  onAccept: (order: ConsoleOrder) => void;
+  onSilence: () => void;
+  onLater: () => void;
+}> = ({ orders, ringing, disabled, busyId, onAccept, onSilence, onLater }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="alertdialog" aria-modal="true"
+    aria-labelledby="new-order-title">
+    <div className={`absolute inset-0 bg-green-500 ${ringing ? "animate-flash" : "opacity-80"}`} />
+    <Card className="relative z-10 w-full max-w-lg shadow-2xl">
+      <CardHeader className="pb-2">
+        <CardTitle id="new-order-title" className="flex items-center gap-2 text-2xl">
+          <BellRing className={`h-7 w-7 text-green-600 ${ringing ? "animate-bounce" : ""}`} />
+          {orders.length === 1 ? "New order!" : `${orders.length} new orders!`}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="max-h-[50vh] space-y-3 overflow-y-auto">
+          {orders.map((order) => (
+            <div key={order.order_id} className="space-y-2 rounded-lg border p-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="font-semibold">#{order.order_id.slice(0, 8).toUpperCase()}</span>
+                <span className="text-lg font-semibold">{formatMinor(order.store_total_minor)}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {[order.customer_first_name, order.customer_city, order.shipping_method].filter(Boolean).join(" · ")}
+              </p>
+              <ul className="text-[15px]">
+                {order.items.map((item) => (
+                  <li key={item.item_id}><strong>{item.quantity}×</strong> {item.name ?? "Item"}</li>
+                ))}
+              </ul>
+              {order.notes && <p className="rounded bg-muted p-2 text-sm">{order.notes}</p>}
+              <Button className="h-14 w-full bg-green-600 text-lg hover:bg-green-700" disabled={disabled}
+                onClick={() => onAccept(order)}>
+                {busyId === order.order_id ? <Loader2 className="h-5 w-5 animate-spin" /> : "Accept order"}
+              </Button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          {ringing && (
+            <Button variant="outline" className="h-12 flex-1 gap-2" onClick={onSilence}>
+              <VolumeX className="h-5 w-5" /> Silence
+            </Button>
+          )}
+          <Button variant="outline" className="h-12 flex-1" onClick={onLater}>View later</Button>
+        </div>
+        {!navigator.onLine && (
+          <p className="text-center text-sm text-muted-foreground">Waiting for the connection before orders can be accepted.</p>
+        )}
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const DELIVERY_LABELS: Record<string, string> = {
   pending: "Finding a driver",

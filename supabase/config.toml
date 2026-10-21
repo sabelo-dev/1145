@@ -100,3 +100,7 @@ verify_jwt = true
 # Merchant payment links: starts PayFast checkout from a link's token. Public (payers may have no account).
 [functions.merchant-payment-request]
 verify_jwt = false
+
+# Team invitations: adds staff by email, creating and emailing an account if needed. Store owners only; checked inside.
+[functions.store-member-invite]
+verify_jwt = true

@@ -19,6 +19,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
+import PasswordChangeGate from "@/components/auth/PasswordChangeGate";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleDashboardRedirect from "@/components/auth/RoleDashboardRedirect";
 import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
@@ -441,6 +442,7 @@ function App() {
                     <Router>
                       <ScrollToTop />
                       <AppRouter />
+                      <PasswordChangeGate />
                       <Toaster />
                       <Sonner />
                       <UpdatePrompt />

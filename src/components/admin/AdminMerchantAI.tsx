@@ -16,7 +16,7 @@ const db = supabase as unknown as SupabaseClient;
 
 const FEATURES: Array<{ key: MerchantFeature; label: string }> = [
   { key: "order_console", label: "Order console" },
-  { key: "payment_requests", label: "Payment links" },
+  { key: "payment_requests", label: "1145 Pay" },
   { key: "ai_assistant", label: "1145 AI" },
 ];
 

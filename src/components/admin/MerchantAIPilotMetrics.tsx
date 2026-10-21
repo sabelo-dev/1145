@@ -36,7 +36,7 @@ const MerchantAIPilotMetrics: React.FC<{ cohort: string }> = ({ cohort }) => {
         <CardTitle>Pilot measurement</CardTitle>
         <CardDescription>
           Cohort "{cohort.trim() || "all"}", South Africa dates. A merchant is active on a day when its stores moved an
-          order in the console, created a payment link or asked 1145 AI.
+          order in the console, created a 1145 Pay request or asked 1145 AI.
         </CardDescription>
         <div className="flex flex-wrap gap-2 pt-2">
           <Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} className="w-44" aria-label="From" />
@@ -56,7 +56,7 @@ const MerchantAIPilotMetrics: React.FC<{ cohort: string }> = ({ cohort }) => {
                 hint={m.weekly_active_merchants.map((w) => w.merchants).join(" · ") || "No activity"} />
               <Stat label="Orders accepted in console" value={m.orders_accepted_in_console}
                 hint={`median ${m.median_minutes_to_accept ?? "–"} min to accept · ${m.orders_dispatched_in_console} dispatched`} />
-              <Stat label="Payment links paid" value={`${m.payment_links_paid} / ${m.payment_links_created}`}
+              <Stat label="1145 Pay requests paid" value={`${m.payment_links_paid} / ${m.payment_links_created}`}
                 hint={`${pct(m.payment_link_completion_rate)} · ${formatMinor(m.payment_links_paid_minor)}`} />
               <Stat label="Reconciliation exceptions" value={exceptions}
                 hint={exceptions ? Object.entries(m.reconciliation_exceptions).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(", ") : "None"} />

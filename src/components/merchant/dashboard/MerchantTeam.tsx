@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, Mail, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,25 @@ import { useMerchantAccess } from "@/hooks/useMerchantAccess";
 import {
   canUse,
   fetchStoreMembers,
+  inviteStoreMember,
+  resendStoreInvite,
   ROLE_LABELS,
   setStoreMemberStatus,
-  upsertStoreMember,
   type StoreMember,
 } from "@/services/merchantAi";
 import StoreSwitcher from "./StoreSwitcher";
 
 const ROLE_HELP: Record<StoreMember["role"], string> = {
-  manager: "Orders, products, payment links and insights",
-  cashier: "Orders and payment links",
+  manager: "Orders, products, 1145 Pay and insights",
+  cashier: "Orders and 1145 Pay",
   catalog_editor: "Products and AI drafts",
-  finance: "Payment links and insights",
+  finance: "1145 Pay and insights",
 };
 
-/** The store owner adds staff with a role; staff sign in with their own 1145 account. */
+/**
+ * The store owner adds staff with a role. Someone without a 1145 account gets
+ * one, with a temporary password emailed to them that they replace at first sign-in.
+ */
 const MerchantTeam: React.FC = () => {
   const { stores, current, setStoreId } = useMerchantAccess();
   const queryClient = useQueryClient();
@@ -42,10 +46,27 @@ const MerchantTeam: React.FC = () => {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["store-members", storeId] });
 
   const add = useMutation({
-    mutationFn: () => upsertStoreMember(storeId!, email.trim(), role),
-    onSuccess: () => {
+    mutationFn: () => inviteStoreMember(storeId!, email.trim(), role),
+    onSuccess: (result) => {
+      const who = email.trim();
       setEmail("");
-      toast.success("Team member added. They can sign in with their own account.");
+      if (!result.email_sent) {
+        toast.warning(`${who} was added, but the email could not be sent. Use “Resend invite” to try again.`);
+      } else if (result.status === "invited") {
+        toast.success(`Invitation sent. ${who} has been emailed a temporary password to sign in with.`);
+      } else {
+        toast.success(`${who} already has a 1145 account and has been added. We have let them know by email.`);
+      }
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const resend = useMutation({
+    mutationFn: (memberId: string) => resendStoreInvite(memberId),
+    onSuccess: (result) => {
+      if (result.email_sent) toast.success("A new invitation with a fresh temporary password has been sent.");
+      else toast.warning("The email could not be sent. Please try again later.");
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -68,7 +89,9 @@ const MerchantTeam: React.FC = () => {
         <CardHeader>
           <CardTitle>Add a team member</CardTitle>
           <CardDescription>
-            They need a 1145 account. Staff use the order console at /merchant/console and see only what their role allows.
+            If they don't have a 1145 account yet, we create one and email them a temporary password, which they replace
+            with their own when they first sign in. Staff use the order console at /merchant/console and see only what
+            their role allows.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -104,6 +127,17 @@ const MerchantTeam: React.FC = () => {
               </div>
               <Badge variant="outline">{ROLE_LABELS[m.role]}</Badge>
               {m.status === "suspended" && <Badge variant="secondary">Suspended</Badge>}
+              {m.invite_pending && (
+                <>
+                  <Badge variant="secondary" title={m.invited_at ? `Invited ${new Date(m.invited_at).toLocaleString()}` : undefined}>
+                    Invite pending
+                  </Badge>
+                  <Button variant="ghost" size="sm" className="gap-1" disabled={resend.isPending}
+                    onClick={() => resend.mutate(m.id)}>
+                    <Mail className="h-4 w-4" /> Resend invite
+                  </Button>
+                </>
+              )}
               <Button variant="outline" size="sm" disabled={setStatus.isPending}
                 onClick={() => setStatus.mutate({ id: m.id, status: m.status === "active" ? "suspended" : "active" })}>
                 {m.status === "active" ? "Suspend" : "Restore"}

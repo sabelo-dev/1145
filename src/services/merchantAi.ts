@@ -63,6 +63,10 @@ export interface StoreMember {
   name: string | null;
   email: string | null;
   created_at: string;
+  /** When the last invitation email was sent (missing before migration 20261021110000). */
+  invited_at?: string | null;
+  /** The account was created by an invitation and its owner hasn't set a password yet. */
+  invite_pending?: boolean;
 }
 
 export const ROLE_LABELS: Record<StoreRole, string> = {
@@ -77,6 +81,30 @@ export const fetchStoreMembers = (storeId: string) => rpc<StoreMember[]>("store_
 
 export const upsertStoreMember = (storeId: string, email: string, role: StoreMember["role"]) =>
   rpc("store_member_upsert", { p_store_id: storeId, p_email: email, p_role: role });
+
+/** Calls an edge function and surfaces its own error message (quota, access, validation). */
+async function invokeFunction<T>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (error) {
+    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new Error(detail?.error || error.message || fallback);
+  }
+  return data as T;
+}
+
+export interface InviteResult {
+  /** invited: a new account was created and emailed; added: they already had one; resent: new password emailed. */
+  status: "invited" | "added" | "resent";
+  email_sent: boolean;
+}
+
+/** Adds someone by email, creating and emailing a new account (with a one-time password) if they have none. */
+export const inviteStoreMember = (storeId: string, email: string, role: StoreMember["role"]) =>
+  invokeFunction<InviteResult>("store-member-invite", { action: "invite", store_id: storeId, email, role }, "Could not add that team member");
+
+/** Emails a fresh temporary password to someone who hasn't signed in and set their own yet. */
+export const resendStoreInvite = (memberId: string) =>
+  invokeFunction<InviteResult>("store-member-invite", { action: "resend", member_id: memberId }, "Could not resend the invitation");
 
 export const setStoreMemberStatus = (memberId: string, status: StoreMember["status"]) =>
   rpc("store_member_set_status", { p_member_id: memberId, p_status: status });
