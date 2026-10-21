@@ -88,7 +88,8 @@ function layout(body: string) {
 
 function inviteEmail(storeName: string, role: string, email: string, password: string) {
   const store = escapeHtml(storeName);
-  const loginUrl = `${siteUrl()}/login`;
+  // The console signs people in itself (and asks for a new password first), so new staff land straight in it.
+  const consoleUrl = `${siteUrl()}/merchant/console`;
   return {
     subject: `You've been invited to ${storeName} on 1145`,
     html: layout(`
@@ -101,8 +102,8 @@ function inviteEmail(storeName: string, role: string, email: string, password: s
       <p style="margin:0"><span style="display:inline-block;font-family:Consolas,Menlo,monospace;font-size:20px;letter-spacing:1px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px">${escapeHtml(password)}</span></p>
       <p style="color:#666;font-size:13px">Copy only the password itself, without spaces before or after it.</p>
       <p>When you first sign in you'll be asked to choose your own password. The temporary one stops working after that.</p>
-      <p style="margin:24px 0"><a href="${loginUrl}" style="background:#0f2a4d;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Sign in to 1145</a></p>
-      <p style="color:#666;font-size:13px">After signing in you'll find the store's order console at ${escapeHtml(siteUrl())}/merchant/console.</p>`),
+      <p style="margin:24px 0"><a href="${consoleUrl}" style="background:#0f2a4d;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Open the order console</a></p>
+      <p style="color:#666;font-size:13px">The button opens ${escapeHtml(siteUrl())}/merchant/console, where you sign in with the details above. Bookmark it, or install it as the 1145 Orders app.</p>`),
   };
 }
 

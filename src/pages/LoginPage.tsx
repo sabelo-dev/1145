@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import AuthShell from "@/components/auth/AuthShell";
 import OAuthButtons from "@/components/auth/OAuthButtons";
+import { useMerchantAccess } from "@/hooks/useMerchantAccess";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,6 +36,8 @@ const LoginPage: React.FC = () => {
   const returnTo = requested && requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : null;
   const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer, isRestaurateur, login } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  // Store staff (added to someone else's store) have no role dashboard: they work in the order console.
+  const { stores: staffStores, isLoading: staffLoading } = useMerchantAccess();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -59,6 +62,10 @@ const LoginPage: React.FC = () => {
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
     if (isMerchant) return <Navigate to="/merchant/dashboard" replace />;
     if (isRestaurateur) return <Navigate to="/eatery/dashboard" replace />;
+    if (staffLoading) {
+      return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+    if (staffStores.length > 0) return <Navigate to="/merchant/console" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
