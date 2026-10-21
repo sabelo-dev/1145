@@ -104,7 +104,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                   <ShoppingBag className="h-4 w-4 mr-2" />
                   Add to Cart
                 </Button>
-                <Link to={`/product/${hero.id}`}>
+                <Link to={`/product/${hero.slug}`}>
                   <Button variant="outline" className="rounded-full">
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -160,7 +160,7 @@ const StorefrontProductSpotlight: React.FC<StorefrontProductSpotlightProps> = ({
                     >
                       Add to Cart
                     </Button>
-                    <Link to={`/product/${product.id}`}>
+                    <Link to={`/product/${product.slug}`}>
                       <Button size="sm" variant="ghost" className="rounded-full text-xs h-8">
                         View
                       </Button>

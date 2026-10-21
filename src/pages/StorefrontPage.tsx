@@ -19,6 +19,7 @@ import StorefrontHero from "@/components/storefront/StorefrontHero";
 import StorefrontBrandStory from "@/components/storefront/StorefrontBrandStory";
 import StorefrontCollections from "@/components/storefront/StorefrontCollections";
 import StorefrontProductSpotlight from "@/components/storefront/StorefrontProductSpotlight";
+import PolicyText from "@/components/storefront/PolicyText";
 import StorefrontSocialProof from "@/components/storefront/StorefrontSocialProof";
 import StorefrontStickyNav from "@/components/storefront/StorefrontStickyNav";
 import StorefrontNewsletter from "@/components/storefront/StorefrontNewsletter";
@@ -396,7 +397,7 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
                   <Card className="border-0 shadow-sm">
                     <CardContent className="p-5">
                       <h4 className="font-semibold text-foreground mb-2 text-sm">Shipping Policy</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{store.shipping_policy}</p>
+                      <PolicyText text={store.shipping_policy} title="shipping policy" />
                     </CardContent>
                   </Card>
                 )}
@@ -404,7 +405,7 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ domainStoreSlug, forceW
                   <Card className="border-0 shadow-sm">
                     <CardContent className="p-5">
                       <h4 className="font-semibold text-foreground mb-2 text-sm">Return Policy</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{store.return_policy}</p>
+                      <PolicyText text={store.return_policy} title="return policy" />
                     </CardContent>
                   </Card>
                 )}

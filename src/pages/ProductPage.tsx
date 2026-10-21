@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { callRewardRpc } from "@/lib/ucRewards";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { Star, Truck, ShieldCheck, Heart, Calendar, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
@@ -28,6 +28,7 @@ import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 
 const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const [product, setProduct] = useState<Product | null>(null);
@@ -48,6 +49,7 @@ const ProductPage: React.FC = () => {
 
   useEffect(() => {
     const loadProduct = async () => {
+      let redirected = false;
       if (!slug) return;
       
       try {
@@ -55,7 +57,14 @@ const ProductPage: React.FC = () => {
         setColorImage(null); // Reset color image when loading new product
         
         const productData = await fetchProductBySlug(slug);
-        
+
+        // Reached by an old id link: show the product under its slug address.
+        if (productData?.slug && productData.slug !== slug) {
+          navigate(`/product/${productData.slug}`, { replace: true });
+          redirected = true;
+          return;
+        }
+
         if (productData) {
           setProduct(productData);
           
@@ -72,12 +81,12 @@ const ProductPage: React.FC = () => {
       } catch (error) {
         console.error('Error loading product:', error);
       } finally {
-        setLoading(false);
+        if (!redirected) setLoading(false);
       }
     };
 
     loadProduct();
-  }, [slug]);
+  }, [slug, navigate]);
 
   // Get unique attribute types and values - filter out empty/invalid and internal attributes
   const attributeTypes = React.useMemo(() => {

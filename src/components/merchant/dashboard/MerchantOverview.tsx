@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAppUrl } from "@/lib/appUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import MerchantInsights from "./MerchantInsights";
 import { 
   Package, 
   ShoppingCart, 
@@ -20,8 +21,6 @@ import {
   CheckCircle,
   Star,
   Target,
-  Zap,
-  Calendar,
   Bell,
   MessageSquare,
   Percent,
@@ -591,87 +590,8 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
         </CardContent>
       </Card>
 
-      {/* AI Insights & Recommendations */}
-      <Card className="border-purple-200 bg-purple-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-purple-600" />
-            AI-Powered Insights
-          </CardTitle>
-          <CardDescription>Actionable recommendations to grow your business</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-              <TrendingUp className="h-5 w-5 text-green-600 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-medium">Demand Spike Detected</h4>
-                <p className="text-sm text-muted-foreground">
-                  Your trending products need more inventory. Consider restocking to meet demand.
-                </p>
-              </div>
-              <Button 
-                size="sm"
-                onClick={() => {
-                  onNavigate('inventory');
-                  toast({
-                    title: "Navigating to Inventory",
-                    description: "Review and update your stock levels."
-                  });
-                }}
-              >
-                Act Now
-              </Button>
-            </div>
-            
-            <div className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-              <Percent className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-medium">Dynamic Pricing Opportunity</h4>
-                <p className="text-sm text-muted-foreground">
-                  Optimize your pricing strategy with promotions to increase revenue.
-                </p>
-              </div>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => {
-                  onNavigate('products');
-                  toast({
-                    title: "Navigating to Products",
-                    description: "Review and adjust your product pricing."
-                  });
-                }}
-              >
-                Review
-              </Button>
-            </div>
-
-            <div className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-              <Calendar className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-medium">Seasonal Preparation</h4>
-                <p className="text-sm text-muted-foreground">
-                  Plan ahead with seasonal promotions and product bundles to boost sales.
-                </p>
-              </div>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => {
-                  onNavigate('promotions');
-                  toast({
-                    title: "Navigating to Promotions",
-                    description: "Create seasonal promotions and bundles."
-                  });
-                }}
-              >
-                Plan
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Store insights from the figures above, and 1145 AI when it is enabled */}
+      <MerchantInsights stats={stats} onNavigate={onNavigate} />
     </div>
   );
 };

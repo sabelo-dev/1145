@@ -501,8 +501,11 @@ export const fetchDealsProducts = async (limit: number = 20): Promise<Product[]>
   }
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
- * Fetches a single product by slug
+ * Fetches a single product by slug. Older links used the product id, so a
+ * UUID is looked up by id; the page then redirects to the slug URL.
  */
 export const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   try {
@@ -533,7 +536,7 @@ export const fetchProductBySlug = async (slug: string): Promise<Product | null> 
           )
         )
       `)
-      .eq('slug', slug)
+      .eq(UUID_PATTERN.test(slug) ? 'id' : 'slug', slug)
       .eq('status', 'approved')
       .maybeSingle();
 
