@@ -30,9 +30,9 @@ const rpc = async <T = void>(name: string, args: Record<string, unknown> = {}): 
   return data as T;
 };
 
-export type StorePermission = "orders" | "catalog" | "payments" | "insights" | "settings";
+export type StorePermission = "orders" | "catalog" | "payments" | "insights" | "operations" | "settings";
 export type MerchantFeature = "order_console" | "payment_requests" | "ai_assistant";
-export type StoreRole = "owner" | "manager" | "cashier" | "catalog_editor" | "finance";
+export type StoreRole = "owner" | "manager" | "operator" | "cashier";
 
 export interface StoreAccess {
   store_id: string;
@@ -73,8 +73,7 @@ export const ROLE_LABELS: Record<StoreRole, string> = {
   owner: "Owner",
   manager: "Manager",
   cashier: "Cashier",
-  catalog_editor: "Catalogue editor",
-  finance: "Finance",
+  operator: "Operator",
 };
 
 export const fetchStoreMembers = (storeId: string) => rpc<StoreMember[]>("store_member_list", { p_store_id: storeId });
@@ -373,8 +372,8 @@ export interface StoreAnalytics {
 }
 
 /** Sales, customers, products and stock for every store the signed-in merchant owns. */
-export const fetchStoreAnalytics = (days: 7 | 30 | 90 | 365) =>
-  rpc<StoreAnalytics>("merchant_store_analytics", { p_days: days });
+export const fetchStoreAnalytics = (days: 7 | 30 | 90 | 365, storeId?: string) =>
+  rpc<StoreAnalytics>("merchant_store_analytics", storeId ? { p_days: days, p_store_id: storeId } : { p_days: days });
 
 // ------------------------------------------- 1145 Pay: saved card / UCoin
 
@@ -397,3 +396,57 @@ export const payWithUcoin = (token: string) =>
 export const payWithSavedCard = (token: string, instrumentId: string) =>
   invokeFunction<{ success: true; status: "paid"; card: string }>(
     "merchant-payment-request", { action: "pay_card", token, instrument_id: instrumentId }, "The card payment did not go through");
+
+// ---------------------------------------------------------- stock control
+
+export interface StockItem {
+  product_id: string;
+  name: string;
+  sku: string | null;
+  status: string;
+  quantity: number;
+  total: number;
+  variations: Array<{ variation_id: string; sku: string | null; attributes: Record<string, unknown> | null; quantity: number }>;
+  last_adjusted_at: string | null;
+}
+
+export type StockReason = "received" | "count" | "damaged" | "returned" | "other";
+
+export const STOCK_REASONS: Record<StockReason, string> = {
+  received: "Delivery received",
+  count: "Stock count",
+  damaged: "Damaged or lost",
+  returned: "Customer return",
+  other: "Other",
+};
+
+export interface StockChange {
+  id: string;
+  created_at: string;
+  old_quantity: number;
+  new_quantity: number;
+  reason: StockReason;
+  note: string | null;
+  product_name: string;
+  variation_sku: string | null;
+  variation_attributes: Record<string, unknown> | null;
+  changed_by: string | null;
+}
+
+export const fetchStock = (storeId: string, query?: string) =>
+  rpc<StockItem[]>("merchant_stock_list", { p_store_id: storeId, p_query: query?.trim() || null });
+
+export const setStock = (storeId: string, productId: string, variationId: string | null, quantity: number, reason: StockReason, note?: string) =>
+  rpc("merchant_stock_set", {
+    p_store_id: storeId, p_product_id: productId, p_variation_id: variationId,
+    p_quantity: quantity, p_reason: reason, p_note: note?.trim() || null,
+  });
+
+export const fetchStockHistory = (storeId: string) =>
+  rpc<StockChange[]>("merchant_stock_history", { p_store_id: storeId, p_limit: 50 });
+
+/** "Size: M · Colour: Black" from a variant's attributes. */
+export const variationLabel = (attributes: Record<string, unknown> | null, sku: string | null) => {
+  const parts = Object.entries(attributes ?? {}).filter(([, v]) => v !== null && v !== "").map(([k, v]) => `${k}: ${String(v)}`);
+  return parts.length ? parts.join(" · ") : sku || "Variant";
+};

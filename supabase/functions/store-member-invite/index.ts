@@ -20,17 +20,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Must match store_role_permissions() in the database (20261022100000_staff_roles_v2).
 const ROLES: Record<string, string> = {
   manager: "Manager",
+  operator: "Operator",
   cashier: "Cashier",
-  catalog_editor: "Catalogue editor",
-  finance: "Finance",
 };
 const ROLE_ACCESS: Record<string, string> = {
-  manager: "orders, products, 1145 Pay and insights",
+  manager: "orders, products and AI drafts, stock, 1145 Pay and store insights",
+  operator: "orders, stock, deliveries, 1145 Pay and store insights",
   cashier: "orders and 1145 Pay",
-  catalog_editor: "products and AI drafts",
-  finance: "1145 Pay and insights",
 };
 
 const DAILY_INVITES_PER_STORE = 20;

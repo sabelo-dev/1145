@@ -8,7 +8,8 @@
 -- Who is who:
 --   owner_a    owns merchant A / store A
 --   cashier_a  cashier in store A (orders, payments)
---   editor_a   catalog editor in store A
+--   editor_a   manager in store A (runs the catalogue)
+--   operator_a operator in store A (operations, no catalogue)
 --   owner_b    owns merchant B / store B (the other tenant)
 --   consumer   a shopper with no store
 --   admin      platform admin
@@ -66,7 +67,7 @@ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA mai_test TO PUBLIC;
 CREATE TABLE mai_test.ids (k text PRIMARY KEY, v uuid);
 GRANT SELECT ON mai_test.ids TO PUBLIC;
 INSERT INTO mai_test.ids VALUES
-  ('owner_a', gen_random_uuid()), ('cashier_a', gen_random_uuid()), ('editor_a', gen_random_uuid()),
+  ('owner_a', gen_random_uuid()), ('cashier_a', gen_random_uuid()), ('editor_a', gen_random_uuid()), ('operator_a', gen_random_uuid()),
   ('owner_b', gen_random_uuid()), ('consumer', gen_random_uuid()), ('admin', gen_random_uuid()),
   ('merchant_a', gen_random_uuid()), ('merchant_b', gen_random_uuid()),
   ('store_a', gen_random_uuid()), ('store_b', gen_random_uuid()),
@@ -78,11 +79,11 @@ GRANT EXECUTE ON FUNCTION mai_test.id(text) TO PUBLIC;
 
 INSERT INTO auth.users (id, email)
 SELECT v, k || '@merchant-ai-test.invalid' FROM mai_test.ids
- WHERE k IN ('owner_a', 'cashier_a', 'editor_a', 'owner_b', 'consumer', 'admin');
+ WHERE k IN ('owner_a', 'cashier_a', 'editor_a', 'operator_a', 'owner_b', 'consumer', 'admin');
 
 INSERT INTO public.profiles (id, email, name, role)
 SELECT v, k || '@merchant-ai-test.invalid', k, (CASE WHEN k = 'admin' THEN 'admin' ELSE 'consumer' END)::public.app_role
-  FROM mai_test.ids WHERE k IN ('owner_a', 'cashier_a', 'editor_a', 'owner_b', 'consumer', 'admin')
+  FROM mai_test.ids WHERE k IN ('owner_a', 'cashier_a', 'editor_a', 'operator_a', 'owner_b', 'consumer', 'admin')
 ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = EXCLUDED.role;
 
 INSERT INTO public.user_roles (user_id, role) VALUES (mai_test.id('admin'), 'admin') ON CONFLICT DO NOTHING;
@@ -110,7 +111,10 @@ INSERT INTO public.order_items (order_id, product_id, store_id, quantity, price,
 -- ------------------------------------------------- staff and feature flags
 SELECT mai_test.act_as(mai_test.id('owner_a'));
 SELECT public.store_member_upsert(mai_test.id('store_a'), 'cashier_a@merchant-ai-test.invalid', 'cashier');
-SELECT public.store_member_upsert(mai_test.id('store_a'), 'editor_a@merchant-ai-test.invalid', 'catalog_editor');
+SELECT public.store_member_upsert(mai_test.id('store_a'), 'editor_a@merchant-ai-test.invalid', 'manager');
+SELECT public.store_member_upsert(mai_test.id('store_a'), 'operator_a@merchant-ai-test.invalid', 'operator');
+SELECT mai_test.expect_error('old role names are refused',
+  format('SELECT public.store_member_upsert(%L, ''consumer@merchant-ai-test.invalid'', ''catalog_editor'')', mai_test.id('store_a')), 'Unknown role');
 SELECT mai_test.check('owner sees own store in access list',
   (SELECT jsonb_array_length(public.merchant_my_access())) = 1);
 SELECT mai_test.check('owner role resolves', public.store_role(mai_test.id('store_a')) = 'owner');
@@ -158,8 +162,8 @@ SELECT mai_test.expect_error('cannot move store B order as store B',
   format('SELECT public.merchant_order_advance(%L, %L, ''accepted'', ''key-cross-0002'')', mai_test.id('store_b'), mai_test.id('order_b')), 'access');
 
 SELECT mai_test.act_as(mai_test.id('editor_a'));
-SELECT mai_test.expect_error('catalog editor cannot work orders',
-  format('SELECT public.merchant_order_queue(%L)', mai_test.id('store_a')), 'access');
+SELECT mai_test.check('a manager (who also runs the catalogue) can work orders',
+  public.merchant_order_queue(mai_test.id('store_a')) IS NOT NULL);
 
 SELECT mai_test.reset_actor();
 SELECT mai_test.check('one action and one customer event recorded',
@@ -301,9 +305,9 @@ VALUES (mai_test.id('store_a'), 'product_description', mai_test.id('product_a'),
        (mai_test.id('store_b'), 'product_description', mai_test.id('product_b'), 'Store B draft.', mai_test.id('owner_b'));
 
 SELECT mai_test.act_as(mai_test.id('editor_a'));
-SELECT mai_test.check('editor sees only store A drafts',
+SELECT mai_test.check('manager sees only store A drafts',
   (SELECT count(*) FROM public.merchant_ai_drafts) = 1);
-SELECT mai_test.expect_error('editor cannot approve store B draft',
+SELECT mai_test.expect_error('manager cannot approve store B draft',
   format('SELECT public.merchant_ai_draft_decide(%L, ''approve'')',
     (SELECT id FROM public.merchant_ai_drafts WHERE store_id = mai_test.id('store_b') LIMIT 1)), '');
 SELECT public.merchant_ai_draft_decide(
@@ -410,6 +414,47 @@ SELECT mai_test.check('amount mismatch reported as an exception',
 SELECT mai_test.check('draft approval rate', (SELECT (k -> 'ai_drafts' ->> 'approval_rate')::numeric FROM mai_test.kpi) = 1);
 SELECT mai_test.check('unknown cohort is empty',
   (public.admin_merchant_ai_pilot_metrics('nobody', current_date - 7, current_date) ->> 'merchants_in_cohort')::int = 0);
+
+-- ------------------------------------------- operator: operations and more
+SELECT mai_test.act_as_service();
+INSERT INTO public.merchant_ai_drafts (store_id, target_type, product_id, content, created_by)
+VALUES (mai_test.id('store_a'), 'product_description', mai_test.id('product_a'), 'Operator draft.', mai_test.id('owner_a'));
+
+SELECT mai_test.act_as(mai_test.id('operator_a'));
+SELECT mai_test.check('operator has operations but not the catalogue',
+  public.store_has_permission(mai_test.id('store_a'), 'operations') AND NOT public.store_has_permission(mai_test.id('store_a'), 'catalog'));
+SELECT mai_test.expect_error('operator cannot approve AI drafts',
+  format('SELECT public.merchant_ai_draft_decide(%L, ''approve'')',
+    (SELECT id FROM public.merchant_ai_drafts WHERE content = 'Operator draft.')), 'access');
+SELECT mai_test.check('operator can set the pickup address',
+  (public.store_set_pickup_address(mai_test.id('store_a'), '2 Brown St', 'Mbombela', 'Mpumalanga', NULL) ->> 'street') = '2 Brown St');
+SELECT mai_test.check('operator sees the store stock',
+  (public.merchant_stock_list(mai_test.id('store_a')) -> 0 ->> 'product_id')::uuid = mai_test.id('product_a'));
+SELECT public.merchant_stock_set(mai_test.id('store_a'), mai_test.id('product_a'), NULL, 12, 'received', 'Weekly delivery');
+SELECT mai_test.expect_error('negative stock refused',
+  format('SELECT public.merchant_stock_set(%L, %L, NULL, -1, ''count'')', mai_test.id('store_a'), mai_test.id('product_a')), 'from 0');
+SELECT mai_test.expect_error('store B product cannot be changed from store A',
+  format('SELECT public.merchant_stock_set(%L, %L, NULL, 5, ''count'')', mai_test.id('store_a'), mai_test.id('product_b')), 'not found');
+SELECT mai_test.check('stock history records who changed what',
+  (SELECT h -> 0 ->> 'old_quantity' = '3' AND h -> 0 ->> 'new_quantity' = '12' AND h -> 0 ->> 'reason' = 'received'
+     FROM (SELECT public.merchant_stock_history(mai_test.id('store_a')) AS h) x));
+SELECT mai_test.check('operator gets store insights',
+  (public.merchant_store_analytics(30, mai_test.id('store_a')) -> 'kpis' -> 'gross_sales_minor' ->> 'current')::bigint = 10000);
+SELECT mai_test.expect_error('operator gets no insights for another store',
+  format('SELECT public.merchant_store_analytics(30, %L)', mai_test.id('store_b')), 'access');
+
+SELECT mai_test.reset_actor();
+SELECT mai_test.check('product stock updated', (SELECT quantity FROM public.products WHERE id = mai_test.id('product_a')) = 12);
+
+SELECT mai_test.act_as(mai_test.id('owner_b'));
+SELECT mai_test.expect_error('another merchant cannot change store A stock',
+  format('SELECT public.merchant_stock_set(%L, %L, NULL, 0, ''count'')', mai_test.id('store_a'), mai_test.id('product_a')), 'access');
+SELECT mai_test.act_as(mai_test.id('cashier_a'));
+SELECT mai_test.expect_error('a cashier has no stock control',
+  format('SELECT public.merchant_stock_list(%L)', mai_test.id('store_a')), 'access');
+SELECT mai_test.act_as(mai_test.id('owner_a'));
+SELECT mai_test.check('owner analytics (all stores) still work',
+  (public.merchant_store_analytics(30) -> 'kpis' -> 'orders' ->> 'current')::int = 1);
 
 SELECT mai_test.reset_actor();
 SELECT 'merchant ai tests passed' AS result;
