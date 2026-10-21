@@ -13,6 +13,7 @@ interface MerchantSubscriptionPageProps {
   merchantId?: string;
   currentTier?: TierType;
   onUpgrade: (tier?: TierType, billing?: 'monthly' | 'yearly') => void | Promise<void>;
+  onCancel?: () => void | Promise<void>;
 }
 
 const tierOrder: TierType[] = ['starter', 'bronze', 'silver', 'gold'];
@@ -44,6 +45,7 @@ const MerchantSubscriptionPage: React.FC<MerchantSubscriptionPageProps> = ({
   merchantId,
   currentTier: propTier,
   onUpgrade,
+  onCancel,
 }) => {
   const { loading, subscription } = useMerchantSubscription(merchantId);
   const [pendingTier, setPendingTier] = useState<TierType | null>(null);
@@ -80,6 +82,7 @@ const MerchantSubscriptionPage: React.FC<MerchantSubscriptionPageProps> = ({
       <SubscriptionStatusCard
         merchantId={merchantId}
         onUpgrade={onUpgrade}
+        onCancel={onCancel ? () => void onCancel() : undefined}
       />
 
       {/* Upgrade Prompt (for non-Gold users) */}

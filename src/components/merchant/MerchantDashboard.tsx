@@ -38,7 +38,7 @@ import MerchantSupport from "./dashboard/MerchantSupport";
 import MerchantAuctions from "./dashboard/MerchantAuctions";
 import MerchantAuctionAnalytics from "./dashboard/MerchantAuctionAnalytics";
 import MerchantSubscriptionPage from "./dashboard/MerchantSubscriptionPage";
-import { SubscriptionStatusCard, SubscriptionUpgradeModal } from "./subscription";
+import { SubscriptionUpgradeModal } from "./subscription";
 import MerchantAdCredits from "./dashboard/MerchantAdCredits";
 import MerchantSubscriptionPayments from "./dashboard/MerchantSubscriptionPayments";
 import MerchantApiAccess from "./dashboard/MerchantApiAccess";
@@ -358,15 +358,6 @@ const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
             </div>
           )}
           
-          {activeTab === 'overview' && merchantData && (
-            <SubscriptionStatusCard
-              merchantId={merchantData.id}
-              onUpgrade={() => setShowUpgradeModal(true)}
-              onCancel={onCancelSubscription}
-              className="mb-6"
-            />
-          )}
-          
           <SubscriptionUpgradeModal
             isOpen={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
@@ -387,8 +378,9 @@ const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
               <MerchantOverview onNavigate={setActiveTab} />
             </TabsContent>
             <TabsContent value="subscription" className="mt-0">
-              <MerchantSubscriptionPage 
+              <MerchantSubscriptionPage
                 merchantId={merchantData?.id}
+                onCancel={onCancelSubscription}
                 currentTier={normalizeTier(merchantData?.subscription_tier)}
                 onUpgrade={(tier, billing) => {
                   if (tier && billing) {
