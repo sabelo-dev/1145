@@ -50,7 +50,8 @@ const escapeHtml = (s: string) =>
 
 /** 14 characters with upper, lower, digit and symbol; no look-alike characters. */
 function temporaryPassword(): string {
-  const sets = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnpqrstuvwxyz", "23456789", "!@#$%*?"];
+  const sets = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnpqrstuvwxyz", "23456789", "!$%*?"];
+  // No @ or #: some email apps turn text around them into links, which breaks copying.
   const all = sets.join("");
   const pick = (chars: string) => chars[crypto.getRandomValues(new Uint32Array(1))[0] % chars.length];
   const chars = [...sets.map(pick), ...Array.from({ length: 10 }, () => pick(all))];
@@ -94,10 +95,11 @@ function inviteEmail(storeName: string, role: string, email: string, password: s
       <h1 style="font-size:22px">You're on the team at ${store}</h1>
       <p>${store} has added you as <strong>${ROLES[role]}</strong> on 1145 Lifestyle, so you can work with ${ROLE_ACCESS[role]}.</p>
       <p>An account has been created for you. Sign in with:</p>
-      <table style="border-collapse:collapse;margin:12px 0">
-        <tr><td style="padding:4px 12px 4px 0;color:#666">Email</td><td style="padding:4px 0"><strong>${escapeHtml(email)}</strong></td></tr>
-        <tr><td style="padding:4px 12px 4px 0;color:#666">Temporary password</td><td style="padding:4px 0;font-family:monospace;font-size:16px"><strong>${escapeHtml(password)}</strong></td></tr>
-      </table>
+      <p style="margin:12px 0 4px;color:#666">Email</p>
+      <p style="margin:0;font-size:16px"><strong>${escapeHtml(email)}</strong></p>
+      <p style="margin:16px 0 4px;color:#666">Temporary password (exactly ${password.length} characters)</p>
+      <p style="margin:0"><span style="display:inline-block;font-family:Consolas,Menlo,monospace;font-size:20px;letter-spacing:1px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px">${escapeHtml(password)}</span></p>
+      <p style="color:#666;font-size:13px">Copy only the password itself, without spaces before or after it.</p>
       <p>When you first sign in you'll be asked to choose your own password. The temporary one stops working after that.</p>
       <p style="margin:24px 0"><a href="${loginUrl}" style="background:#0f2a4d;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Sign in to 1145</a></p>
       <p style="color:#666;font-size:13px">After signing in you'll find the store's order console at ${escapeHtml(siteUrl())}/merchant/console.</p>`),

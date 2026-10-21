@@ -301,11 +301,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadingManager.startLoading('login');
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+      let { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password
       });
-      
+      // A password pasted from an email often brings a trailing space, tab or line
+      // break with it. Only after a failed attempt, try once without them.
+      if (error && password !== password.trim() && password.trim().length > 0) {
+        ({ data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: password.trim() }));
+      }
+
       if (error) {
         loadingManager.stopLoading('login');
         toast({
