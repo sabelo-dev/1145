@@ -155,6 +155,72 @@ export async function cancelPayFastSubscription(
   }
 }
 
+export type TokenChargeResult =
+  | { outcome: "succeeded"; reference: string | null }
+  | { outcome: "failed"; error: string }
+  | { outcome: "unknown"; error: string };
+
+/**
+ * Charges a saved card (a tokenization token, subscription_type 2) once:
+ * POST https://api.payfast.co.za/subscriptions/{token}/adhoc with a JSON body.
+ * As in PayFast's PHP SDK, the signature is the MD5 of the merchant-id,
+ * version and timestamp headers plus every body field and the passphrase,
+ * sorted by name and URL-encoded; the testing flag is a query parameter and
+ * is not signed. The amount is in cents.
+ *
+ * "unknown" means PayFast gave no clear answer (timeout, network error, 5xx):
+ * the card may or may not have been charged, so callers must not retry
+ * automatically.
+ */
+export async function chargePayFastToken(
+  token: string,
+  amountCents: number,
+  itemName: string,
+  config: PayFastConfig,
+): Promise<TokenChargeResult> {
+  const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
+  const headers: Record<string, string> = { "merchant-id": config.merchantId, version: "v1", timestamp };
+  const body: Record<string, string | number> = { amount: amountCents, item_name: itemName.slice(0, 100) };
+  const signed: Record<string, string> = { ...headers, passphrase: config.passphrase };
+  for (const [key, value] of Object.entries(body)) signed[key] = String(value);
+  const signature = await md5Hash(
+    Object.keys(signed).sort().map((key) => `${key}=${phpUrlencode(signed[key])}`).join("&"),
+  );
+
+  const url = `https://api.payfast.co.za/subscriptions/${encodeURIComponent(token)}/adhoc${config.sandbox ? "?testing=true" : ""}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 25_000);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { ...headers, signature, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const text = await res.text();
+    let parsed: any = null;
+    try { parsed = JSON.parse(text); } catch { /* not JSON */ }
+
+    if (res.status >= 500 || !parsed) {
+      return { outcome: "unknown", error: `PayFast returned ${res.status}` };
+    }
+    if (res.ok && parsed.status === "success") {
+      const data = parsed.data ?? {};
+      const reference = data.pf_payment_id ?? data.response?.pf_payment_id ?? null;
+      // Some responses carry the result in data.response (true / false).
+      if (data.response === false) {
+        return { outcome: "failed", error: String(data.message ?? "The card was declined") };
+      }
+      return { outcome: "succeeded", reference: reference ? String(reference) : null };
+    }
+    return { outcome: "failed", error: String(parsed.data?.message ?? parsed.message ?? "The card was declined") };
+  } catch (e) {
+    return { outcome: "unknown", error: e instanceof Error ? e.message : String(e) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Origins of the iOS / Android app's web view (Capacitor). */
 const NATIVE_APP_ORIGINS = ["https://localhost", "capacitor://localhost"];
 

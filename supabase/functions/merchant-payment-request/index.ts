@@ -1,11 +1,12 @@
-// Starts PayFast checkout for a merchant payment request (link / QR code).
+// 1145 Pay: starts PayFast checkout for a payment request (link / QR code),
+// or, with action "pay_card", charges a signed-in payer's saved card.
 // Public: the payer may not have a 1145 account. The link's token is the only
 // input; the amount, description and store come from the database, and the
 // return address is built here from an allowlist, never taken from the request.
 // Payment is confirmed only by payfast-itn.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
+import { chargePayFastToken, getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,7 +46,7 @@ serve(async (req) => {
   }
 
   try {
-    const { token } = await req.json().catch(() => ({}));
+    const { token, action, instrument_id: instrumentId } = await req.json().catch(() => ({}));
     if (typeof token !== "string" || !TOKEN_PATTERN.test(token)) {
       return json({ success: false, error: "This payment link is not valid" }, 400);
     }
@@ -59,6 +60,50 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
+
+    // ------------------------------------------------ pay with a saved card
+    // The payer must be signed in and own the card; the database opens one
+    // attempt per request (so a double tap can't charge twice) and settles it
+    // from PayFast's server-to-server answer.
+    if (action === "pay_card") {
+      const userDb = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
+        global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+      });
+      const { data: { user } } = await userDb.auth.getUser();
+      if (!user) return json({ success: false, error: "Sign in to pay with a saved card" }, 401);
+      if (typeof instrumentId !== "string" || !/^[0-9a-f-]{36}$/i.test(instrumentId)) {
+        return json({ success: false, error: "Choose a card" }, 400);
+      }
+
+      const { data: begun, error: beginError } = await supabaseAdmin.rpc("payment_request_begin_card_charge", {
+        p_token: token, p_instrument_id: instrumentId, p_payer: user.id,
+      });
+      if (beginError || !begun) {
+        return json({ success: false, error: beginError?.message ?? "Could not start the payment" }, 400);
+      }
+
+      const itemName = `${begun.store_name}: ${begun.description}`;
+      const charge = await chargePayFastToken(begun.provider_token, begun.amount_minor, itemName, payfast);
+      const { data: outcome, error: finishError } = await supabaseAdmin.rpc("payment_request_finish_card_charge", {
+        p_attempt_id: begun.attempt_id,
+        p_result: charge.outcome,
+        p_provider_reference: charge.outcome === "succeeded" ? charge.reference : null,
+        p_error: charge.outcome === "succeeded" ? null : charge.error,
+      });
+      if (finishError) {
+        // The charge result is known but could not be saved: never tell the payer to try again.
+        console.error(`merchant-payment-request: could not record attempt ${begun.attempt_id} (${charge.outcome})`, finishError);
+        return json({ success: false, error: "We could not confirm your payment. Please don't pay again; contact support@1145.io." }, 500);
+      }
+
+      console.log(`Saved-card payment for request ${begun.request_id}: ${charge.outcome} (${outcome})`);
+      if (charge.outcome === "succeeded") return json({ success: true, status: "paid", card: begun.card });
+      if (charge.outcome === "failed") return json({ success: false, error: `${begun.card}: ${charge.error}. Try another card or pay with PayFast.` }, 402);
+      return json({
+        success: false,
+        error: "We couldn't confirm the payment with your bank. Please don't pay again yet; 1145 will check it and the store will see it if it went through.",
+      }, 502);
+    }
 
     const { data: request, error } = await supabaseAdmin
       .from("merchant_payment_requests")

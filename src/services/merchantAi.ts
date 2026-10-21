@@ -375,3 +375,25 @@ export interface StoreAnalytics {
 /** Sales, customers, products and stock for every store the signed-in merchant owns. */
 export const fetchStoreAnalytics = (days: 7 | 30 | 90 | 365) =>
   rpc<StoreAnalytics>("merchant_store_analytics", { p_days: days });
+
+// ------------------------------------------- 1145 Pay: saved card / UCoin
+
+export interface PayOptions {
+  signed_in: boolean;
+  ucoin?: { needed: number; balance: number; rate_zar: number; allowed: boolean; enough: boolean };
+  cards?: Array<{ id: string; brand: string | null; last4: string | null; exp_month: number | null; exp_year: number | null; is_default: boolean }>;
+  /** A card payment for this request is in progress or being checked. */
+  pending_attempt?: boolean;
+}
+
+/** What the signed-in payer can use: their UCoin and saved cards (never card tokens). */
+export const fetchPayOptions = (token: string) => rpc<PayOptions | null>("payment_request_pay_options", { p_token: token });
+
+/** Pays in full with UCoin at R0.10 each, in one database transaction. */
+export const payWithUcoin = (token: string) =>
+  rpc<{ status: "paid"; ucoin_spent: number; ucoin_balance: number }>("payment_request_pay_with_ucoin", { p_token: token });
+
+/** Charges a saved card on the server; the card token never reaches the browser. */
+export const payWithSavedCard = (token: string, instrumentId: string) =>
+  invokeFunction<{ success: true; status: "paid"; card: string }>(
+    "merchant-payment-request", { action: "pay_card", token, instrument_id: instrumentId }, "The card payment did not go through");

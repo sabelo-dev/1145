@@ -207,6 +207,75 @@ SELECT mai_test.check('exactly one ledger credit',
 SELECT mai_test.expect_error('ledger is append-only',
   format('DELETE FROM public.merchant_payment_ledger WHERE request_id = %L', (SELECT r ->> 'id' FROM mai_test.req)), 'cannot be changed');
 
+-- ------------------------------------- 1145 Pay with saved card or UCoin
+SELECT mai_test.reset_actor();
+INSERT INTO public.ucoin_wallets (user_id, balance) VALUES (mai_test.id('consumer'), 2000), (mai_test.id('cashier_a'), 5000);
+INSERT INTO public.payment_instruments (id, user_id, provider_token, brand, last4, exp_month, exp_year, status)
+VALUES (mai_test.id('order_b'), mai_test.id('consumer'), 'tok-consumer', 'Visa', '4242', 12, 2099, 'active');
+
+SELECT mai_test.act_as(mai_test.id('cashier_a'));
+CREATE TABLE mai_test.req2 AS SELECT
+  public.merchant_payment_request_create(mai_test.id('store_a'), 12900, 'Gift voucher', NULL, 60, 'pay-key-ucoin1') AS u,
+  public.merchant_payment_request_create(mai_test.id('store_a'), 9000, 'Alterations', NULL, 60, 'pay-key-card01') AS c,
+  public.merchant_payment_request_create(mai_test.id('store_a'), 9500, 'Delivery fee', NULL, 60, 'pay-key-card02') AS c2;
+GRANT SELECT ON mai_test.req2 TO PUBLIC;
+SELECT mai_test.expect_error('store staff cannot pay their own store with UCoin',
+  format('SELECT public.payment_request_pay_with_ucoin(%L)', (SELECT u ->> 'public_token' FROM mai_test.req2)), 'own store');
+
+SELECT mai_test.act_as(mai_test.id('consumer'));
+SELECT mai_test.check('pay options: UCoin needed at R0.10 each, card listed',
+  (SELECT (o -> 'ucoin' ->> 'needed')::int = 1290 AND (o -> 'ucoin' ->> 'enough')::boolean AND jsonb_array_length(o -> 'cards') = 1
+     FROM (SELECT public.payment_request_pay_options((SELECT u ->> 'public_token' FROM mai_test.req2)) AS o) x));
+SELECT mai_test.check('pay options never expose the card token',
+  public.payment_request_pay_options((SELECT u ->> 'public_token' FROM mai_test.req2))::text NOT LIKE '%tok-consumer%');
+SELECT public.payment_request_pay_with_ucoin((SELECT u ->> 'public_token' FROM mai_test.req2));
+SELECT mai_test.expect_error('a paid request cannot be paid again',
+  format('SELECT public.payment_request_pay_with_ucoin(%L)', (SELECT u ->> 'public_token' FROM mai_test.req2)), 'no longer open');
+SELECT mai_test.expect_error('not enough UCoin is refused',
+  format('SELECT public.payment_request_pay_with_ucoin(%L)', (SELECT c ->> 'public_token' FROM mai_test.req2)), 'You need');
+SELECT mai_test.expect_error('a shopper cannot start a card charge directly',
+  format('SELECT public.payment_request_begin_card_charge(%L, %L, %L)', (SELECT c ->> 'public_token' FROM mai_test.req2),
+         mai_test.id('order_b'), mai_test.id('consumer')), 'permission denied');
+
+SELECT mai_test.reset_actor();
+SELECT mai_test.check('UCoin payment: wallet debited 1290, request paid with UCoin, one ledger credit',
+  (SELECT balance FROM public.ucoin_wallets WHERE user_id = mai_test.id('consumer')) = 710
+  AND (SELECT status = 'paid' AND paid_with = 'ucoin' AND payer_user_id = mai_test.id('consumer')
+         FROM public.merchant_payment_requests WHERE id = (SELECT (u ->> 'id')::uuid FROM mai_test.req2))
+  AND (SELECT count(*) FROM public.merchant_payment_ledger WHERE request_id = (SELECT (u ->> 'id')::uuid FROM mai_test.req2)) = 1
+  AND (SELECT count(*) FROM public.ucoin_transactions WHERE user_id = mai_test.id('consumer') AND amount = 1290) = 1);
+SELECT mai_test.check('failed UCoin attempt changed nothing',
+  (SELECT status FROM public.merchant_payment_requests WHERE id = (SELECT (c ->> 'id')::uuid FROM mai_test.req2)) = 'pending');
+
+SELECT mai_test.act_as_service();
+SELECT mai_test.expect_error('someone else''s card cannot be charged',
+  format('SELECT public.payment_request_begin_card_charge(%L, %L, %L)', (SELECT c ->> 'public_token' FROM mai_test.req2),
+         mai_test.id('order_b'), mai_test.id('cashier_a')), 'not available');
+CREATE TABLE mai_test.charge AS SELECT public.payment_request_begin_card_charge(
+  (SELECT c ->> 'public_token' FROM mai_test.req2), mai_test.id('order_b'), mai_test.id('consumer')) AS a;
+SELECT mai_test.check('card charge gets the token server-side', (SELECT a ->> 'provider_token' FROM mai_test.charge) = 'tok-consumer');
+SELECT mai_test.expect_error('a second charge while one is processing is refused',
+  format('SELECT public.payment_request_begin_card_charge(%L, %L, %L)', (SELECT c ->> 'public_token' FROM mai_test.req2),
+         mai_test.id('order_b'), mai_test.id('consumer')), 'already being processed');
+SELECT mai_test.check('PayFast success settles the request',
+  public.payment_request_finish_card_charge((SELECT (a ->> 'attempt_id')::uuid FROM mai_test.charge), 'succeeded', 'pf-adhoc-1', NULL) = 'paid');
+-- A separate statement: a statement's snapshot can't see changes made by functions it calls.
+SELECT mai_test.check('the request is recorded as paid by card, with one ledger credit',
+  (SELECT status = 'paid' AND paid_with = 'card' FROM public.merchant_payment_requests WHERE id = (SELECT (c ->> 'id')::uuid FROM mai_test.req2))
+  AND (SELECT count(*) FROM public.merchant_payment_ledger WHERE request_id = (SELECT (c ->> 'id')::uuid FROM mai_test.req2)) = 1);
+SELECT mai_test.check('the same result reported twice changes nothing',
+  public.payment_request_finish_card_charge((SELECT (a ->> 'attempt_id')::uuid FROM mai_test.charge), 'succeeded', 'pf-adhoc-1', NULL) = 'not_processing');
+
+CREATE TABLE mai_test.charge2 AS SELECT public.payment_request_begin_card_charge(
+  (SELECT c2 ->> 'public_token' FROM mai_test.req2), mai_test.id('order_b'), mai_test.id('consumer')) AS a;
+SELECT mai_test.check('a timeout is kept for review',
+  public.payment_request_finish_card_charge((SELECT (a ->> 'attempt_id')::uuid FROM mai_test.charge2), 'unknown', NULL, 'timeout') = 'needs_review');
+SELECT mai_test.expect_error('an attempt under review blocks charging again (no double charge)',
+  format('SELECT public.payment_request_begin_card_charge(%L, %L, %L)', (SELECT c2 ->> 'public_token' FROM mai_test.req2),
+         mai_test.id('order_b'), mai_test.id('consumer')), 'already being processed');
+SELECT mai_test.check('the request under review is still unpaid',
+  (SELECT status FROM public.merchant_payment_requests WHERE id = (SELECT (c2 ->> 'id')::uuid FROM mai_test.req2)) = 'pending');
+
 -- ------------------------------------------------------- insights and AI
 SELECT mai_test.act_as(mai_test.id('owner_a'));
 SELECT mai_test.check('sales summary counts store A line in cents',
@@ -214,7 +283,7 @@ SELECT mai_test.check('sales summary counts store A line in cents',
      (now() AT TIME ZONE 'Africa/Johannesburg')::date) ->> 'gross_sales_minor')::bigint = 10000);
 SELECT mai_test.check('sales summary includes payment-request takings',
   (public.merchant_sales_summary(mai_test.id('store_a'), (now() AT TIME ZONE 'Africa/Johannesburg')::date - 7,
-     (now() AT TIME ZONE 'Africa/Johannesburg')::date) ->> 'payment_requests_paid_minor')::bigint = 12900);
+     (now() AT TIME ZONE 'Africa/Johannesburg')::date) ->> 'payment_requests_paid_minor')::bigint = 34800);
 SELECT mai_test.check('low stock product flagged',
   (public.merchant_stock_alerts(mai_test.id('store_a')) -> 'items' -> 0 ->> 'product_id')::uuid = mai_test.id('product_a'));
 SELECT mai_test.expect_error('owner A cannot read store B sales',
@@ -313,7 +382,7 @@ SELECT mai_test.check('dashboard gross sales in cents', (SELECT (d -> 'kpis' -> 
 SELECT mai_test.check('dashboard orders, units and new customer',
   (SELECT (d -> 'kpis' -> 'orders' ->> 'current')::int = 1 AND (d -> 'kpis' -> 'units' ->> 'current')::int = 2
       AND (d -> 'kpis' -> 'customers' ->> 'new')::int = 1 FROM mai_test.dash));
-SELECT mai_test.check('dashboard 1145 Pay takings', (SELECT (d -> 'kpis' -> 'pay_collected_minor' ->> 'current')::int FROM mai_test.dash) = 12900);
+SELECT mai_test.check('dashboard 1145 Pay takings (checkout, UCoin and card)', (SELECT (d -> 'kpis' -> 'pay_collected_minor' ->> 'current')::int FROM mai_test.dash) = 34800);
 SELECT mai_test.check('dashboard daily series covers 30 days', (SELECT jsonb_array_length(d -> 'daily') FROM mai_test.dash) = 30);
 SELECT mai_test.check('dashboard weekday series has 7 days', (SELECT jsonb_array_length(d -> 'by_weekday') FROM mai_test.dash) = 7);
 SELECT mai_test.check('dashboard top product is store A''s', (SELECT (d -> 'top_products' -> 0 ->> 'product_id')::uuid FROM mai_test.dash) = mai_test.id('product_a'));
@@ -335,7 +404,7 @@ SELECT mai_test.check('both pilot merchants counted', (SELECT (k ->> 'merchants_
 SELECT mai_test.check('one merchant active', (SELECT (k ->> 'active_merchants')::int FROM mai_test.kpi) = 1);
 SELECT mai_test.check('console acceptance counted', (SELECT (k ->> 'orders_accepted_in_console')::int FROM mai_test.kpi) = 1);
 SELECT mai_test.check('paid link counted with amount',
-  (SELECT (k ->> 'payment_links_paid')::int = 1 AND (k ->> 'payment_links_paid_minor')::int = 12900 FROM mai_test.kpi));
+  (SELECT (k ->> 'payment_links_paid')::int = 3 AND (k ->> 'payment_links_paid_minor')::int = 34800 FROM mai_test.kpi));
 SELECT mai_test.check('amount mismatch reported as an exception',
   (SELECT (k -> 'reconciliation_exceptions' ->> 'amount_mismatch')::int FROM mai_test.kpi) = 1);
 SELECT mai_test.check('draft approval rate', (SELECT (k -> 'ai_drafts' ->> 'approval_rate')::numeric FROM mai_test.kpi) = 1);

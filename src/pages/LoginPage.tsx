@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,6 +29,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const LoginPage: React.FC = () => {
   useFrameBreakout();
   const navigate = useNavigate();
+  // Where to go back to after signing in (e.g. a 1145 Pay link). Only paths inside this site.
+  const [searchParams] = useSearchParams();
+  const requested = searchParams.get("redirect");
+  const returnTo = requested && requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : null;
   const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer, isRestaurateur, login } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,6 +53,7 @@ const LoginPage: React.FC = () => {
   }
 
   if (user) {
+    if (returnTo) return <Navigate to={returnTo} replace />;
     if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
     if (isInfluencer) return <Navigate to="/influencer/dashboard" replace />;
     if (isDriver) return <Navigate to="/driver/dashboard" replace />;
@@ -61,7 +66,7 @@ const LoginPage: React.FC = () => {
     setSubmitting(true);
     try {
       const result = await login(values.email, values.password);
-      navigate(result?.redirectPath || "/dashboard", { replace: true });
+      navigate(returnTo || result?.redirectPath || "/dashboard", { replace: true });
     } catch (err) {
       // handled in AuthContext toast
     } finally {
