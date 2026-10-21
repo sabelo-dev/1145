@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "build:dev": "vite build --mode development",
-    "seed:marketplace": "node scripts/seed-marketplace.mjs"
+    "seed:marketplace": "node scripts/seed-marketplace.mjs",
+    "build:orders": "vite build --config vite.orders.config.ts",
+    "orders:sync": "npm run build:orders && node scripts/cap-orders.mjs sync android",
+    "orders:open": "node scripts/cap-orders.mjs open android"
   },
   "overrides": {
     "@opentelemetry/core": "2.8.0",

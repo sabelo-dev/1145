@@ -1,0 +1,20 @@
+{
+  "id": "/merchant/console",
+  "name": "1145 Orders",
+  "short_name": "1145 Orders",
+  "description": "The 1145 order console for store counters and tablets: new-order alerts, accept, prepare and dispatch.",
+  "start_url": "/merchant/console?source=orders-app",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#0f2a4d",
+  "theme_color": "#0f2a4d",
+  "lang": "en-ZA",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "/pwa-icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

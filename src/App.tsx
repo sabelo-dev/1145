@@ -363,12 +363,8 @@ function AppRouter() {
             <MerchantOnboardingPage />
           </ProtectedRoute>
         } />
-        {/* Staff are not merchants, so this checks sign-in only; the console checks store access. */}
-        <Route path="merchant/console" element={
-          <ProtectedRoute requireAuth>
-            <MerchantConsolePage />
-          </ProtectedRoute>
-        } />
+        {/* The "1145 Orders" app: signs people in itself and checks store access in the database. */}
+        <Route path="merchant/console" element={<MerchantConsolePage />} />
         <Route path="merchant/dashboard" element={
           <ProtectedRoute requireAuth requireMerchant>
             <RoleOnboardingGate role="merchant">

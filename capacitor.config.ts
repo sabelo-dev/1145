@@ -28,4 +28,30 @@ const config: CapacitorConfig = {
   },
 };
 
-export default config;
+// The "1145 Orders" app: the order console on its own, for shop tablets.
+// Selected with CAP_APP=orders (scripts/cap-orders.mjs); its Android project
+// is android-orders/ and its web build dist-orders/ (vite.orders.config.ts).
+// Like the main app's, this app ID can never change after the first store upload.
+const ordersConfig: CapacitorConfig = {
+  appId: 'io.lifestyle1145.orders',
+  appName: '1145 Orders',
+  webDir: 'dist-orders',
+  android: {
+    path: 'android-orders',
+    allowMixedContent: false,
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 800,
+      launchAutoHide: true,
+      backgroundColor: '#0f2a4d',
+      showSpinner: false,
+    },
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
+    },
+  },
+};
+
+export default process.env.CAP_APP === 'orders' ? ordersConfig : config;

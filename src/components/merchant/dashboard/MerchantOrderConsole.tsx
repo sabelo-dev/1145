@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Bell, BellOff, BellRing, Loader2, Maximize2, RefreshCw, Truck, VolumeX, WifiOff } from "lucide-react";
+import { Bell, BellOff, BellRing, Download, Loader2, LogOut, Maximize2, RefreshCw, Truck, VolumeX, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMerchantAccess } from "@/hooks/useMerchantAccess";
 import { useOrderAlarm } from "@/hooks/useOrderAlarm";
+import { useAuth } from "@/contexts/AuthContext";
 import { formatMinor } from "@/services/serviceMarketplace";
 import {
   advanceOrder,
@@ -50,6 +51,8 @@ function useOnline() {
 interface MerchantOrderConsoleProps {
   /** Standalone tablet mode (/merchant/console) rather than a dashboard tab. */
   standalone?: boolean;
+  /** Install controls when running as the "1145 Orders" app (see useConsoleApp). */
+  app?: { canInstall: boolean; showIosHint: boolean; install: () => Promise<void> };
 }
 
 /**
@@ -57,7 +60,8 @@ interface MerchantOrderConsoleProps {
  * one step at a time through the database (merchant_order_advance); nothing
  * changes here until the server confirms it, and nothing can be done offline.
  */
-const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone = false }) => {
+const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone = false, app }) => {
+  const { logout } = useAuth();
   const { stores, current, setStoreId, isLoading: accessLoading } = useMerchantAccess();
   const queryClient = useQueryClient();
   const online = useOnline();
@@ -106,15 +110,19 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
     return <div className="flex justify-center p-12"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   }
   if (!current || !allowed) {
-    return (
+    const message = (
       <Card>
-        <CardContent className="p-8 text-center text-muted-foreground">
-          {stores.length === 0
-            ? "Your account is not linked to a store."
-            : "The order console is not switched on for this store, or your role does not include orders."}
+        <CardContent className="space-y-4 p-8 text-center text-muted-foreground">
+          <p>
+            {stores.length === 0
+              ? "This account is not linked to a store. Ask the store owner to add you under Team."
+              : "The order console is not switched on for this store, or your role does not include orders."}
+          </p>
+          {standalone && <Button variant="outline" onClick={() => void logout()}>Sign in with another account</Button>}
         </CardContent>
       </Card>
     );
+    return standalone ? <div className="flex min-h-screen items-center justify-center p-4">{message}</div> : message;
   }
 
   const busyId = advance.isPending ? advance.variables?.order.order_id : undefined;
@@ -156,7 +164,22 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
               </a>
             </Button>
           )}
+          {standalone && app?.canInstall && (
+            <Button variant="outline" size="lg" className="gap-2" onClick={() => void app.install()}>
+              <Download className="h-5 w-5" /> Install app
+            </Button>
+          )}
+          {standalone && (
+            <Button variant="outline" size="lg" onClick={() => void logout()} aria-label="Sign out">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          )}
         </div>
+        {standalone && app?.showIosHint && (
+          <p className="w-full text-xs text-muted-foreground">
+            To install 1145 Orders on this iPad or iPhone: tap Share, then “Add to Home Screen”.
+          </p>
+        )}
       </div>
 
       {soundOn && alarm.soundBlocked && (

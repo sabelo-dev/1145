@@ -34,3 +34,6 @@ merchant-ai-eval-results.json
 
 # Local secrets: never commit. Function secrets are set with `supabase secrets set --env-file supabase/.env.secrets`.
 supabase/.env.secrets
+
+# Standalone "1145 Orders" app build (vite.orders.config.ts)
+dist-orders/
