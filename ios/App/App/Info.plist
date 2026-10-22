@@ -64,7 +64,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>1145 uses your location to show nearby stores, rides and deliveries.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>1145 uses the camera so you can take photos for your profile, product listings, social posts and identity verification.</string>
+	<string>1145 uses the camera so you can scan 1145 Pay QR codes and take photos for your profile, product listings, social posts and identity verification.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>1145 saves receipts and images you choose to download to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
