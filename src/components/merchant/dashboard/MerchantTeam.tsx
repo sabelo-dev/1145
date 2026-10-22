@@ -19,10 +19,11 @@ import {
 } from "@/services/merchantAi";
 import StoreSwitcher from "./StoreSwitcher";
 
+// Must match store_role_permissions() in the database (20261022100000_staff_roles_v2).
 const ROLE_HELP: Record<StoreMember["role"], string> = {
-  manager: "Orders, products, 1145 Pay and insights",
-  cashier: "Orders and 1145 Pay",
+  manager: "Orders, products and AI drafts, stock, 1145 Pay and insights",
   operator: "Orders, stock, deliveries, 1145 Pay and insights",
+  cashier: "Orders and 1145 Pay",
 };
 
 /**

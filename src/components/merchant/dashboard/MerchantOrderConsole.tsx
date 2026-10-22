@@ -225,7 +225,7 @@ const MerchantOrderConsole: React.FC<MerchantOrderConsoleProps> = ({ standalone 
         />
       )}
       {boardVisible && <>
-      {!current.pickup_address && <PickupAddressCard storeId={current.store_id} canEdit={canUse(current, "settings")} />}
+      {!current.pickup_address && <PickupAddressCard storeId={current.store_id} canEdit={canUse(current, "operations")} />}
       {queue.error && (
         <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
           {(queue.error as Error).message}
@@ -290,7 +290,7 @@ const PickupAddressCard: React.FC<{ storeId: string; canEdit: boolean }> = ({ st
   if (!canEdit) {
     return (
       <p className="mb-4 rounded-md border p-3 text-sm text-muted-foreground">
-        Drivers can't be requested until the store owner adds a pickup address.
+        Drivers can't be requested until a manager or operator adds the store's pickup address.
       </p>
     );
   }

@@ -16,6 +16,30 @@
 
 BEGIN;
 
+-- 20261022100000 staff roles v2 (stock control, staff insights)
+DROP FUNCTION IF EXISTS public.merchant_stock_history(uuid, integer);
+DROP FUNCTION IF EXISTS public.merchant_stock_set(uuid, uuid, uuid, integer, text, text);
+DROP FUNCTION IF EXISTS public.merchant_stock_list(uuid, text);
+DROP TABLE IF EXISTS public.merchant_stock_adjustments;
+DROP FUNCTION IF EXISTS public.merchant_store_analytics(integer, uuid);
+DROP FUNCTION IF EXISTS public.merchant_analytics_for_stores(uuid[], integer);
+
+-- 20261022090000 1145 Pay with saved card or UCoin (UCoin spent stays spent;
+-- export merchant_payment_attempts first if any card payment needs review)
+DROP FUNCTION IF EXISTS public.payment_request_finish_card_charge(uuid, text, text, text);
+DROP FUNCTION IF EXISTS public.payment_request_begin_card_charge(text, uuid, uuid);
+DROP FUNCTION IF EXISTS public.payment_request_pay_with_ucoin(text);
+DROP FUNCTION IF EXISTS public.payment_request_lock_payable(text);
+DROP FUNCTION IF EXISTS public.payment_request_pay_options(text);
+DROP FUNCTION IF EXISTS public.payment_request_ucoin_needed(integer);
+DROP TABLE IF EXISTS public.merchant_payment_attempts;
+DROP FUNCTION IF EXISTS public.payment_request_settle(uuid, text, text, integer, text, text, uuid);
+
+-- 20261021120000 dashboard analytics
+DROP FUNCTION IF EXISTS public.merchant_store_analytics(integer);
+
+-- 20261021110000 invites (store_members itself is dropped below)
+
 -- 20261021090600 pilot metrics
 DROP FUNCTION IF EXISTS public.admin_merchant_ai_pilot_metrics(text, date, date);
 

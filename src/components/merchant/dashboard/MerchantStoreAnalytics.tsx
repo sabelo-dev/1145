@@ -109,12 +109,16 @@ const RankedBars: React.FC<{ data: Array<{ name: string; value: number; detail: 
   );
 };
 
-const MerchantStoreAnalytics: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavigate }) => {
+/**
+ * Owners see all their stores (dashboard home); staff with insights see the one
+ * store given in storeId (the console's Insights tab).
+ */
+const MerchantStoreAnalytics: React.FC<{ onNavigate: (tab: string) => void; storeId?: string }> = ({ onNavigate, storeId }) => {
   const [days, setDays] = useState<Days>(30);
   const [showTable, setShowTable] = useState(false);
   const analytics = useQuery({
-    queryKey: ["merchant-store-analytics", days],
-    queryFn: () => fetchStoreAnalytics(days),
+    queryKey: ["merchant-store-analytics", days, storeId ?? "all"],
+    queryFn: () => fetchStoreAnalytics(days, storeId),
     retry: (n, error) => !isNotInstalled(error) && n < 2,
     staleTime: 60_000,
   });
@@ -146,7 +150,7 @@ const MerchantStoreAnalytics: React.FC<{ onNavigate: (tab: string) => void }> = 
         <div>
           <h2 id="store-analytics-title" className="text-xl font-semibold">Store analytics</h2>
           <p className="text-sm text-muted-foreground">
-            All your stores · {data ? `${format(parseISO(data.period.from), "d MMM yyyy")} – ${format(parseISO(data.period.to), "d MMM yyyy")}` : "…"} · South Africa time
+            {storeId ? "This store" : "All your stores"} · {data ? `${format(parseISO(data.period.from), "d MMM yyyy")} – ${format(parseISO(data.period.to), "d MMM yyyy")}` : "…"} · South Africa time
           </p>
         </div>
         <ToggleGroup type="single" value={String(days)} onValueChange={(v) => v && setDays(Number(v) as Days)}
