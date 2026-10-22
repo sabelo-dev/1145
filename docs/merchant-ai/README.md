@@ -4,16 +4,16 @@ What exists on `feature/merchant-ai`, how to deploy it, and what is still to dec
 [../audits/merchant-ai-discovery.md](../audits/merchant-ai-discovery.md).
 
 Everything is **off by default**. A platform admin switches features on per merchant under
-**Admin → Merchant AI**: order console, payment links and 1145 AI.
+**Admin → Merchant AI**: order console, 1145 Pay and 1145 AI.
 
 ## What it does
 
 | Area | Merchant sees | Built from |
 |---|---|---|
-| Staff and permissions (MAI-004) | Dashboard **Team** tab: the owner adds existing 1145 accounts as manager, cashier, catalogue editor or finance. | `store_members`, `store_role()`, `store_has_permission()`, `merchant_my_access()` |
+| Staff and permissions (MAI-004) | Dashboard **Team** tab: the owner invites people by email as **manager** (orders, catalogue and AI drafts, stock, 1145 Pay, insights), **operator** (orders, stock, deliveries, 1145 Pay, insights) or **cashier** (orders, 1145 Pay). New accounts get an emailed one-time password. | `store_members`, `store_role_permissions()` (roles v2, `20261022100000`), `store_has_permission()`, `merchant_my_access()`, `store-member-invite` function |
 | Feature flags (MAI-004) | New tabs appear only when switched on | `merchant_feature_flags`, `admin_set_merchant_feature()`, `AdminMerchantAI.tsx` |
-| Order console (MAI-005) | **Order Console** tab and full-screen `/merchant/console` for tablets. Columns New → Accepted → Preparing → Ready → Dispatched, a chime for new orders, large buttons, offline banner, polling every 15 s. **Request driver** on Ready orders, collecting from the store's pickup address. | `merchant_order_queue()`, `merchant_order_advance()`, `merchant_order_request_delivery()` + `stores.pickup_address` (one step at a time, row locks, request keys, `order_events` for the customer timeline), `merchant_order_actions` |
-| Payment links (MAI-006) | **Payment Links** tab: amount, description, reference, expiry, then a QR code and link. The payer opens `/pay/<token>` and pays on PayFast. | `merchant_payment_requests`, `merchant_payment_events` (one per PayFast payment), `merchant_payment_ledger` (append-only), the `merchant-payment-request` function, the `PREQ-` branch in `payfast-itn` |
+| Order console (MAI-005) | **1145 Orders**: `/merchant/console` (installable web app) and the Android app in `android-orders/`. A left menu shows the tabs the person may use: **Orders** (New → Accepted → Preparing → Ready → Dispatched, green flash and 30 s alarm on new orders, **Request driver**), **Stock** (set stock with a reason, audit trail), **1145 Pay**, **Insights**, **Ask 1145 AI**, **Team**. | `merchant_order_queue()`, `merchant_order_advance()`, `merchant_order_request_delivery()`, `merchant_stock_set()` / `merchant_stock_adjustments`, `merchant_store_analytics(days, store)` |
+| 1145 Pay (MAI-006) | **1145 Pay** tab: amount, description, reference, expiry, then a QR code and link. The payer opens `/pay/<token>` and pays on PayFast, or (signed in) in one tap with a saved card or UCoin at R0.10 each. | `merchant_payment_requests`, `merchant_payment_attempts` (one live attempt per request), `merchant_payment_events`, `merchant_payment_ledger` (append-only), `payment_request_settle()`, the `merchant-payment-request` function and the `PREQ-` branch in `payfast-itn` |
 | Insights (MAI-007) | Used by the assistant, and callable from future reports | `merchant_sales_summary`, `merchant_top_products`, `merchant_stock_alerts`, `merchant_fulfillment_metrics`, `merchant_find_products` |
 | 1145 AI (MAI-008/009) | **Ask 1145 AI** tab: questions about the store, plus drafted product descriptions and promotion copy, which wait under **AI drafts** for approval | the `merchant-ai` function (Claude Opus 5.5 with a fixed tool list), `merchant_ai_*` tables, `merchant_ai_draft_decide()` |
 
@@ -89,7 +89,7 @@ Realtime can be added later through a narrow per-store channel.
 | MAI-001 to 003 discovery | Done: see the audit. Live DB, Amplify and PayFast account still to **verify**. |
 | MAI-004 permissions and flags | Built and tested (PGlite) |
 | MAI-005 tablet console | Built. Not yet tried on real tablet hardware. |
-| MAI-006 payment links | Built. Needs a PayFast sandbox end-to-end run. |
+| MAI-006 1145 Pay | Built: PayFast checkout, saved card (PayFast ad hoc charge) and UCoin. Needs a live R5 test of the saved-card path. |
 | MAI-007 analytics | Built and tested (PGlite) |
 | MAI-008 read-only AI | Built. Eval harness `scripts/merchant-ai-eval.mjs` (traceable amounts, isolation, drafts) written, not yet run. |
 | MAI-009 AI drafts | Built (product descriptions publish on approval; promotions are copy only) |

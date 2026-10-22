@@ -9,7 +9,9 @@ import { getAppUrl } from "@/lib/appUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import MerchantInsights from "./MerchantInsights";
-import MerchantStoreAnalytics from "./MerchantStoreAnalytics";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
+// The charts (recharts) load on their own, so the rest of the home page shows first.
+const MerchantStoreAnalytics = lazyWithRetry(() => import("./MerchantStoreAnalytics"));
 import { 
   Package, 
   ShoppingCart, 
@@ -337,7 +339,9 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
       )}
 
       {/* Sales, customers, products and stock for all stores, worked out in the database */}
-      <MerchantStoreAnalytics onNavigate={onNavigate} />
+      <React.Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-muted" aria-label="Loading store analytics" />}>
+        <MerchantStoreAnalytics onNavigate={onNavigate} />
+      </React.Suspense>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Recent Orders */}

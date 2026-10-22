@@ -23,16 +23,8 @@ const many = async <T>(query: PromiseLike<{ data: unknown; error: { message: str
   return (data ?? []) as T[];
 };
 
-/** Cents → "R 1 499,00". Display only; arithmetic stays in integer cents. */
-export const formatMinor = (minor: number, currency = "ZAR") =>
-  new Intl.NumberFormat("en-ZA", { style: "currency", currency }).format(minor / 100);
-
-/** "12.50" → 1250, or null when it isn't a valid amount. Avoids floating-point maths on money. */
-export const parseMinor = (input: string): number | null => {
-  const match = /^\s*(\d{1,7})(?:[.,](\d{1,2}))?\s*$/.exec(input);
-  if (!match) return null;
-  return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0") || 0);
-};
+// Kept as re-exports so existing imports keep working; new code imports from @/lib/money.
+export { formatMinor, parseMinor } from "@/lib/money";
 
 export const makeSlug = (text: string) => {
   const base = text.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "service";

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useMerchantAccess } from "@/hooks/useMerchantAccess";
 import { useOrderAlarm } from "@/hooks/useOrderAlarm";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatMinor } from "@/services/serviceMarketplace";
+import { formatMinor } from "@/lib/money";
 import {
   advanceOrder,
   canUse,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -25,31 +25,8 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import MerchantOverview from "./dashboard/MerchantOverview";
-import MerchantShopfront from "./dashboard/MerchantShopfront";
-import MerchantProducts from "./dashboard/MerchantProducts";
-import MerchantOrders from "./dashboard/MerchantOrders";
-import MerchantReviews from "./dashboard/MerchantReviews";
-import MerchantInventory from "./dashboard/MerchantInventory";
-import MerchantPromotions from "./dashboard/MerchantPromotions";
-import MerchantPayouts from "./dashboard/MerchantPayouts";
-import MerchantMessages from "./dashboard/MerchantMessages";
-import MerchantSettings from "./dashboard/MerchantSettings";
-import MerchantSupport from "./dashboard/MerchantSupport";
-import MerchantAuctions from "./dashboard/MerchantAuctions";
-import MerchantAuctionAnalytics from "./dashboard/MerchantAuctionAnalytics";
-import MerchantSubscriptionPage from "./dashboard/MerchantSubscriptionPage";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { SubscriptionUpgradeModal } from "./subscription";
-import MerchantAdCredits from "./dashboard/MerchantAdCredits";
-import MerchantSubscriptionPayments from "./dashboard/MerchantSubscriptionPayments";
-import MerchantApiAccess from "./dashboard/MerchantApiAccess";
-import MerchantCustomDomain from "./dashboard/MerchantCustomDomain";
-import MerchantLeases from "./dashboard/MerchantLeases";
-import MerchantLodging from "./dashboard/MerchantLodging";
-import MerchantRideAnalytics from "./dashboard/MerchantRideAnalytics";
-import MerchantOrderConsole from "./dashboard/MerchantOrderConsole";
-import MerchantPaymentRequests from "./dashboard/MerchantPaymentRequests";
-import MerchantAssistant from "./dashboard/MerchantAssistant";
-import MerchantTeam from "./dashboard/MerchantTeam";
 import { useMerchantAccess } from "@/hooks/useMerchantAccess";
 import { canUse } from "@/services/merchantAi";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,14 +57,42 @@ import {
   MonitorSmartphone,
   QrCode,
   Sparkles,
+  Loader2,
   Users,
 } from "lucide-react";
-import { UCoinDashboard } from "@/components/ucoin/UCoinDashboard";
 import { toast } from "sonner";
 import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
 import type { SubscriptionTier } from "@/services/subscription";
 import { normalizeTier } from "@/utils/subscriptionTier";
 import { useUrlTab } from "@/hooks/useUrlTab";
+
+// Tabs load the first time they are opened (Radix only renders the active tab),
+// so the dashboard home does not download every tab up front.
+const MerchantShopfront = lazyWithRetry(() => import("./dashboard/MerchantShopfront"));
+const MerchantProducts = lazyWithRetry(() => import("./dashboard/MerchantProducts"));
+const MerchantOrders = lazyWithRetry(() => import("./dashboard/MerchantOrders"));
+const MerchantReviews = lazyWithRetry(() => import("./dashboard/MerchantReviews"));
+const MerchantInventory = lazyWithRetry(() => import("./dashboard/MerchantInventory"));
+const MerchantPromotions = lazyWithRetry(() => import("./dashboard/MerchantPromotions"));
+const MerchantPayouts = lazyWithRetry(() => import("./dashboard/MerchantPayouts"));
+const MerchantMessages = lazyWithRetry(() => import("./dashboard/MerchantMessages"));
+const MerchantSettings = lazyWithRetry(() => import("./dashboard/MerchantSettings"));
+const MerchantSupport = lazyWithRetry(() => import("./dashboard/MerchantSupport"));
+const MerchantAuctions = lazyWithRetry(() => import("./dashboard/MerchantAuctions"));
+const MerchantAuctionAnalytics = lazyWithRetry(() => import("./dashboard/MerchantAuctionAnalytics"));
+const MerchantSubscriptionPage = lazyWithRetry(() => import("./dashboard/MerchantSubscriptionPage"));
+const MerchantAdCredits = lazyWithRetry(() => import("./dashboard/MerchantAdCredits"));
+const MerchantSubscriptionPayments = lazyWithRetry(() => import("./dashboard/MerchantSubscriptionPayments"));
+const MerchantApiAccess = lazyWithRetry(() => import("./dashboard/MerchantApiAccess"));
+const MerchantCustomDomain = lazyWithRetry(() => import("./dashboard/MerchantCustomDomain"));
+const MerchantLeases = lazyWithRetry(() => import("./dashboard/MerchantLeases"));
+const MerchantLodging = lazyWithRetry(() => import("./dashboard/MerchantLodging"));
+const MerchantRideAnalytics = lazyWithRetry(() => import("./dashboard/MerchantRideAnalytics"));
+const MerchantOrderConsole = lazyWithRetry(() => import("./dashboard/MerchantOrderConsole"));
+const MerchantPaymentRequests = lazyWithRetry(() => import("./dashboard/MerchantPaymentRequests"));
+const MerchantAssistant = lazyWithRetry(() => import("./dashboard/MerchantAssistant"));
+const MerchantTeam = lazyWithRetry(() => import("./dashboard/MerchantTeam"));
+const UCoinDashboard = lazyWithRetry(() => import("@/components/ucoin/UCoinDashboard").then((m) => ({ default: m.UCoinDashboard })));
 
 const MerchantDashboard = () => {
   const { user, logout } = useAuth();
@@ -365,6 +370,7 @@ const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
             onUpgrade={onUpgrade}
           />
           
+          <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
             <TabsList className="hidden">
               {sidebarItems.map((item) => (
@@ -464,6 +470,7 @@ const MerchantDashboardContent: React.FC<MerchantDashboardContentProps> = ({
               <MerchantTeam />
             </TabsContent>
           </Tabs>
+          </Suspense>
         </main>
       </SidebarInset>
     </div>

@@ -79,9 +79,6 @@ export const ROLE_LABELS: Record<StoreRole, string> = {
 
 export const fetchStoreMembers = (storeId: string) => rpc<StoreMember[]>("store_member_list", { p_store_id: storeId });
 
-export const upsertStoreMember = (storeId: string, email: string, role: StoreMember["role"]) =>
-  rpc("store_member_upsert", { p_store_id: storeId, p_email: email, p_role: role });
-
 /** Calls an edge function and surfaces its own error message (quota, access, validation). */
 async function invokeFunction<T>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
   const { data, error } = await supabase.functions.invoke(name, { body });
@@ -236,17 +233,8 @@ export interface AssistantReply {
   timezone: string;
 }
 
-export async function askAssistant(storeId: string, question: string, conversationId: string | null) {
-  const { data, error } = await supabase.functions.invoke("merchant-ai", {
-    body: { store_id: storeId, question, conversation_id: conversationId },
-  });
-  if (error) {
-    // The function's own message (quota, access) is in the response body.
-    const body = await (error as { context?: Response }).context?.json?.().catch(() => null);
-    throw new Error(body?.error || error.message || "1145 AI could not answer");
-  }
-  return data as AssistantReply;
-}
+export const askAssistant = (storeId: string, question: string, conversationId: string | null) =>
+  invokeFunction<AssistantReply>("merchant-ai", { store_id: storeId, question, conversation_id: conversationId }, "1145 AI could not answer");
 
 export interface AiDraft {
   id: string;

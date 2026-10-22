@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMerchantAccess } from "@/hooks/useMerchantAccess";
-import { formatMinor, parseMinor } from "@/services/serviceMarketplace";
+import { formatMinor, parseMinor } from "@/lib/money";
 import {
   cancelPaymentRequest,
   canUse,

@@ -9,12 +9,16 @@ import { cn } from "@/lib/utils";
 import { useMerchantAccess } from "@/hooks/useMerchantAccess";
 import { canUse, ROLE_LABELS, type StoreAccess } from "@/services/merchantAi";
 import MerchantOrderConsole from "@/components/merchant/dashboard/MerchantOrderConsole";
-import MerchantPaymentRequests from "@/components/merchant/dashboard/MerchantPaymentRequests";
-import MerchantAssistant from "@/components/merchant/dashboard/MerchantAssistant";
-import MerchantTeam from "@/components/merchant/dashboard/MerchantTeam";
-import MerchantStoreAnalytics from "@/components/merchant/dashboard/MerchantStoreAnalytics";
-import ConsoleStock from "./ConsoleStock";
 import StoreSwitcher from "@/components/merchant/dashboard/StoreSwitcher";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
+
+// Orders loads with the app (it carries the new-order alert); other tabs load
+// when first opened, so a cashier's tablet doesn't download charts it never shows.
+const ConsoleStock = lazyWithRetry(() => import("./ConsoleStock"));
+const MerchantPaymentRequests = lazyWithRetry(() => import("@/components/merchant/dashboard/MerchantPaymentRequests"));
+const MerchantStoreAnalytics = lazyWithRetry(() => import("@/components/merchant/dashboard/MerchantStoreAnalytics"));
+const MerchantAssistant = lazyWithRetry(() => import("@/components/merchant/dashboard/MerchantAssistant"));
+const MerchantTeam = lazyWithRetry(() => import("@/components/merchant/dashboard/MerchantTeam"));
 
 type TabId = "orders" | "stock" | "pay" | "insights" | "assistant" | "team";
 
@@ -184,6 +188,7 @@ const ConsoleShell: React.FC<ConsoleShellProps> = ({ app }) => {
         {hasOrders && (
           <MerchantOrderConsole standalone inShell boardVisible={active === "orders"} onWaitingChange={setWaiting} />
         )}
+        <React.Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
         {active === "stock" && <ConsoleStock storeId={current.store_id} />}
         {active === "pay" && <MerchantPaymentRequests />}
         {active === "insights" && (
@@ -192,6 +197,7 @@ const ConsoleShell: React.FC<ConsoleShellProps> = ({ app }) => {
         )}
         {active === "assistant" && <MerchantAssistant />}
         {active === "team" && <MerchantTeam />}
+        </React.Suspense>
       </main>
     </div>
   );

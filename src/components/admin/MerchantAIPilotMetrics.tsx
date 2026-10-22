@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatMinor } from "@/services/serviceMarketplace";
+import { formatMinor } from "@/lib/money";
 import { fetchPilotMetrics } from "@/services/merchantAi";
 
 const pct = (rate: number | null) => (rate == null ? "–" : `${Math.round(rate * 100)}%`);

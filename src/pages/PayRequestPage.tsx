@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEO from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatMinor } from "@/services/serviceMarketplace";
+import { formatMinor } from "@/lib/money";
 import {
   fetchPayOptions, fetchPublicPaymentRequest, payPaymentRequest, payWithSavedCard, payWithUcoin,
 } from "@/services/merchantAi";
