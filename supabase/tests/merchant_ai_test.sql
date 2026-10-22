@@ -456,6 +456,14 @@ SELECT mai_test.act_as(mai_test.id('owner_a'));
 SELECT mai_test.check('owner analytics (all stores) still work',
   (public.merchant_store_analytics(30) -> 'kpis' -> 'orders' ->> 'current')::int = 1);
 
+-- ------------------------------------------------ 1145 Pay for shoppers
+SELECT mai_test.act_as(mai_test.id('consumer'));
+SELECT mai_test.check('a shopper sees their own 1145 Pay payments (UCoin and card)',
+  (SELECT jsonb_array_length(public.my_1145_pay_payments())) = 2
+  AND (SELECT string_agg(x ->> 'paid_with', ',' ORDER BY x ->> 'paid_with') FROM jsonb_array_elements(public.my_1145_pay_payments()) x) = 'card,ucoin');
+SELECT mai_test.act_as(mai_test.id('owner_b'));
+SELECT mai_test.check('nobody else sees them', public.my_1145_pay_payments() = '[]'::jsonb);
+
 SELECT mai_test.reset_actor();
 SELECT 'merchant ai tests passed' AS result;
 

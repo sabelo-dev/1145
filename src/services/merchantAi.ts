@@ -439,3 +439,42 @@ export const variationLabel = (attributes: Record<string, unknown> | null, sku: 
   const parts = Object.entries(attributes ?? {}).filter(([, v]) => v !== null && v !== "").map(([k, v]) => `${k}: ${String(v)}`);
   return parts.length ? parts.join(" · ") : sku || "Variant";
 };
+
+// ------------------------------------------------- 1145 Pay for shoppers
+
+export interface MyPayPayment {
+  token: string;
+  store_name: string;
+  store_logo_url: string | null;
+  description: string;
+  amount_minor: number;
+  paid_with: "payfast" | "card" | "ucoin" | null;
+  paid_at: string;
+  status: "paid" | "refund_due";
+}
+
+/** The signed-in member's own 1145 Pay payments, newest first. */
+export const fetchMyPayPayments = () => rpc<MyPayPayment[]>("my_1145_pay_payments", { p_limit: 20 });
+
+/** UCoin balance and active saved cards (both readable only by their owner). */
+export async function fetchPayWallet(userId: string) {
+  const [wallet, cards] = await Promise.all([
+    db.from("ucoin_wallets").select("balance").eq("user_id", userId).maybeSingle(),
+    db.from("payment_instruments").select("id, brand, last4").eq("user_id", userId).eq("status", "active"),
+  ]);
+  return {
+    ucoin: Number(wallet.data?.balance ?? 0),
+    cards: (cards.data ?? []) as Array<{ id: string; brand: string | null; last4: string | null }>,
+  };
+}
+
+/**
+ * The pay code in a 1145 Pay link or QR code ("https://1145.io/pay/<code>"),
+ * or a code typed on its own. Null when there isn't one.
+ */
+export function parsePayCode(input: string): string | null {
+  const text = input.trim();
+  const fromLink = /\/pay\/([0-9a-f]{36})(?:[/?#]|$)/i.exec(text);
+  if (fromLink) return fromLink[1].toLowerCase();
+  return /^[0-9a-f]{36}$/i.test(text) ? text.toLowerCase() : null;
+}

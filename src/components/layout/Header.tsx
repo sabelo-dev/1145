@@ -29,6 +29,7 @@ const primaryNav = [
   { label: "Food Court", path: "/food" },
   { label: "Ride", path: "/rides/request" },
   { label: "Stays", path: "/stays" },
+  { label: "1145 Pay", path: "/1145pay" },
 ];
 
 /** Secondary destinations, grouped under "More" so the bar stays calm. */

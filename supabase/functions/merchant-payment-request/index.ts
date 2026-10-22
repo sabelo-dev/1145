@@ -132,6 +132,20 @@ serve(async (req) => {
       return json({ success: false, error: "This payment link has expired" }, 400);
     }
 
+    // A signed-in member paying by checkout: remember them so the payment shows in
+    // their 1145 Pay history. Never blocks the payment.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (authHeader && !authHeader.endsWith(Deno.env.get("SUPABASE_ANON_KEY") ?? "\u0000")) {
+      const payerDb = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user: payer } } = await payerDb.auth.getUser();
+      if (payer) {
+        await supabaseAdmin.from("merchant_payment_requests").update({ payer_user_id: payer.id })
+          .eq("id", request.id).eq("status", "pending");
+      }
+    }
+
     const storeName = String((request as any).stores?.name ?? "1145 store");
     const itemName = `${storeName}: ${request.description}`.slice(0, 100);
     const returnPath = `/pay/${token}`;

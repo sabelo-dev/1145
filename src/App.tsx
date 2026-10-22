@@ -101,6 +101,7 @@ const VerifyEmailPage = lazyWithRetry(() => import("@/pages/VerifyEmailPage"));
 const AuthCallbackPage = lazyWithRetry(() => import("@/pages/AuthCallbackPage"));
 const PayBridgePage = lazyWithRetry(() => import("@/pages/PayBridgePage"));
 const PayRequestPage = lazyWithRetry(() => import("@/pages/PayRequestPage"));
+const PayHubPage = lazyWithRetry(() => import("@/pages/PayHubPage"));
 const AppReturnPage = lazyWithRetry(() => import("@/pages/AppReturnPage"));
 
 // Super App
@@ -191,6 +192,7 @@ function AppRouter() {
         
         <Route path="/" element={<Layout />}>
           <Route path="shop" element={<ShopPage />} />
+          <Route path="1145pay" element={<PayHubPage />} />
           <Route path="product/:slug" element={<ProductPage />} />
           <Route path="marketplace" element={<Navigate to={OFFICIAL_STORE_PATH} replace />} />
           <Route path="ucoin-market" element={<UCoinMarketPage />} />

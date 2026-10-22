@@ -28,6 +28,7 @@ const serviceLinks = [
   { to: "/package/send", label: "Send a parcel" },
   { to: "/stays", label: "Stays" },
   { to: "/lease/marketplace", label: "Lease" },
+  { to: "/1145pay", label: "1145 Pay" },
   { to: "/wallet", label: "Wallet" },
 ];
 

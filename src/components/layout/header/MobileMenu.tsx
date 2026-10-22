@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  QrCode,
   Briefcase, Building2, Car, CircleHelp, Gavel, Grid2x2, Grid3X3, LayoutDashboard, LogOut, MessageCircle, PackageSearch, Percent, Search,
   Shield, ShoppingBag, ShoppingCart, Sparkles, Store, TrendingUp, Truck, UtensilsCrossed, Wallet, type LucideIcon,
 } from "lucide-react";
@@ -25,6 +26,7 @@ type Item = { label: string; path: string; icon: LucideIcon };
 /** Same destinations as the desktop bar and its "More" menu. */
 const shopItems: Item[] = [
   { label: "Get a ride", path: "/rides/request", icon: Car },
+  { label: "1145 Pay", path: "/1145pay", icon: QrCode },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
   { label: "Food Court", path: "/food", icon: UtensilsCrossed },
   { label: "Hire a pro", path: "/hire", icon: Briefcase },

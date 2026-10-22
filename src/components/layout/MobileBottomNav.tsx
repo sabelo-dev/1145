@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   CarFront,
-  BedDouble,
+  QrCode,
   House,
   UserRound,
   ShoppingBag,
@@ -17,11 +17,14 @@ const items: Array<{
   icon: LucideIcon;
   authRequired?: boolean;
   exact?: boolean;
+  /** The raised centre button. */
+  featured?: boolean;
 }> = [
   { label: "Home", path: "/", icon: House, exact: true },
   { label: "Ride", path: "/rides/request", icon: CarFront },
+  // 1145 Pay sits in the middle, one tap from anywhere (Stays is in the menu).
+  { label: "Pay", path: "/1145pay", icon: QrCode, featured: true },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
-  { label: "Stays", path: "/stays", icon: BedDouble },
   { label: "Account", path: "/dashboard", icon: UserRound, authRequired: true },
 ] as const;
 
@@ -58,7 +61,17 @@ const MobileBottomNav: React.FC = () => {
       aria-label="Primary mobile navigation"
     >
       <ul className="grid grid-cols-5" style={{ height: "calc(var(--bottom-nav-h) + 0.2rem)" }}>
-        {items.map(({ label, path, icon: Icon, authRequired, exact }) => (
+        {items.map(({ label, path, icon: Icon, authRequired, exact, featured }) => featured ? (
+          <li key={path} className="relative flex min-w-0 justify-center">
+            <NavLink to={path} onClick={tap} aria-label="1145 Pay"
+              className={({ isActive }) => `${itemClass} ${isActive ? "text-brand font-semibold" : "text-text-secondary"}`}>
+              <span className="absolute -top-5 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#0f2a4d] to-[#2a78d6] text-white shadow-lg ring-4 ring-background">
+                <Icon className="h-6 w-6" aria-hidden />
+              </span>
+              <span className="mt-8 leading-none">{label}</span>
+            </NavLink>
+          </li>
+        ) : (
           <li key={path} className="flex min-w-0">
             <NavLink
               to={path}

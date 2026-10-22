@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CheckCircle2, Coins, CreditCard, Loader2, Lock } from "lucide-react";
+import { CheckCircle2, Coins, CreditCard, Loader2, Lock, QrCode, ShieldCheck } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -95,23 +95,32 @@ const PayRequestPage: React.FC = () => {
   const busy = starting || paying;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gradient-to-b from-[#0f2a4d]/10 via-background to-background p-4">
       <SEO title="1145 Pay" description="Secure payment with 1145 Pay" />
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm overflow-hidden border-0 shadow-xl">
         {request.isLoading ? (
           <CardContent className="flex justify-center p-10"><Loader2 className="h-6 w-6 animate-spin" /></CardContent>
         ) : !data ? (
           <CardContent className="p-8 text-center text-muted-foreground">This payment link is not valid.</CardContent>
         ) : (
           <>
-            <CardHeader className="text-center">
-              {data.store_logo_url && <img src={data.store_logo_url} alt="" className="mx-auto mb-2 h-14 w-14 rounded-full object-cover" />}
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">1145 Pay</p>
-              <CardDescription>{data.store_name}</CardDescription>
-              <CardTitle className="text-3xl">{formatMinor(data.amount_minor)}</CardTitle>
-              <p className="text-sm">{data.description}{data.reference ? ` · Ref ${data.reference}` : ""}</p>
+            {/* Branded band: who you are paying and how much */}
+            <CardHeader className="relative space-y-2 bg-gradient-to-br from-[#0f2a4d] via-[#173d6e] to-[#2a78d6] pb-8 pt-6 text-center text-white">
+              <p className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-white/80">
+                <QrCode className="h-3.5 w-3.5" aria-hidden /> 1145 Pay
+              </p>
+              {data.store_logo_url ? (
+                <img src={data.store_logo_url} alt="" className="mx-auto h-16 w-16 rounded-full border-4 border-white/30 object-cover" />
+              ) : (
+                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-2xl font-bold">
+                  {data.store_name.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <CardDescription className="text-base font-medium text-white">{data.store_name}</CardDescription>
+              <CardTitle className="text-4xl font-bold tracking-tight">{formatMinor(data.amount_minor)}</CardTitle>
+              <p className="text-sm text-white/85">{data.description}{data.reference ? ` · Ref ${data.reference}` : ""}</p>
             </CardHeader>
-            <CardContent className="space-y-4 text-center">
+            <CardContent className="space-y-4 pt-6 text-center">
               {status === "paid" || status === "refund_due" ? (
                 <div className="space-y-2">
                   <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
@@ -206,6 +215,9 @@ const PayRequestPage: React.FC = () => {
           </>
         )}
       </Card>
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Secured by PayFast · <Link to="/1145pay" className="hover:underline">What is 1145 Pay?</Link>
+      </p>
 
       <AlertDialog open={!!confirm} onOpenChange={(open) => !open && setConfirm(null)}>
         <AlertDialogContent>
