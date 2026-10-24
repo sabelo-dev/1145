@@ -19,6 +19,7 @@ import { loadGoogleMaps } from "@/components/maps/GoogleMap";
 import { rideDispatchService } from "@/services/rideDispatchService";
 import { useFrequentDestinations } from "@/hooks/useFrequentDestinations";
 import { isNative } from "@/lib/native";
+import { type LatLng, LOCAL_RADIUS_KM, searchAddresses } from "@/lib/addressSearch";
 
 /**
  * The rider's position for the pickup field. A quick network fix first, then
@@ -109,6 +110,8 @@ const RideRequestPage: React.FC = () => {
   const [pickup, setPickup] = useState(() => requestedPickup);
   const [dropoff, setDropoff] = useState(() => requestedDropoff);
   const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null);
+  // Where the phone was last found; centres address searches even after the pickup field is edited.
+  const [deviceCoords, setDeviceCoords] = useState<LatLng | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [vehicleTypes, setVehicleTypes] = useState<VehicleOption[]>([]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -141,6 +144,7 @@ const RideRequestPage: React.FC = () => {
     setIsLocating(true);
     try {
       const coords = await currentPickupPosition();
+      setDeviceCoords(coords);
       setPickupCoords(coords);
       // Show a street address, not coordinates. Google first, then the same
       // OpenStreetMap geocoder the address fields use; coordinates only if both fail.
@@ -216,36 +220,24 @@ const RideRequestPage: React.FC = () => {
       }
     }
 
+    const near = pickupCoords ?? deviceCoords;
     try {
       await loadGoogleMaps();
       const geocoder = new google.maps.Geocoder();
-      const result = await geocoder.geocode({ address });
+      const bounds = near
+        ? new google.maps.Circle({ center: near, radius: LOCAL_RADIUS_KM * 1000 }).getBounds() ?? undefined
+        : undefined;
+      const result = await geocoder.geocode({ address, componentRestrictions: { country: "ZA" }, bounds });
       const loc = result.results?.[0]?.geometry?.location;
       if (loc) return { lat: loc.lat(), lng: loc.lng() };
     } catch {}
 
     // Google geocoding is unavailable when the optional Maps key is not
-    // configured. Use the same South Africa-scoped geocoder as the address
-    // fields so a destination that was typed (rather than tapped) still works.
+    // configured. Use the same search as the address fields so a destination
+    // that was typed (rather than tapped) still resolves near the rider.
     try {
-      const params = new URLSearchParams({
-        q: address.trim(),
-        format: "jsonv2",
-        limit: "1",
-        countrycodes: "za",
-      });
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
-        headers: { Accept: "application/json" },
-      });
-      if (!response.ok) return null;
-
-      const results: Array<{ lat: string; lon: string }> = await response.json();
-      const result = results[0];
-      if (result) {
-        const lat = Number(result.lat);
-        const lng = Number(result.lon);
-        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
-      }
+      const [match] = await searchAddresses(address, near, { limit: 1 });
+      if (match) return { lat: match.lat, lng: match.lng };
     } catch {}
 
     return null;
@@ -461,6 +453,7 @@ const RideRequestPage: React.FC = () => {
                     <PlacesAutocomplete
                       value={pickup}
                       onChange={handlePickupChange}
+                      near={deviceCoords}
                       onPlaceSelect={(p) => { setPickup(p.address); setPickupCoords({ lat: p.lat, lng: p.lng }); }}
                       placeholder={isLocating ? "Detecting location..." : "Pickup location"}
                     />
@@ -478,6 +471,7 @@ const RideRequestPage: React.FC = () => {
                 <PlacesAutocomplete
                   value={dropoff}
                   onChange={handleDropoffChange}
+                  near={pickupCoords ?? deviceCoords}
                   onPlaceSelect={(p) => { setDropoff(p.address); setDropoffCoords({ lat: p.lat, lng: p.lng }); }}
                   placeholder="Where to?"
                 />

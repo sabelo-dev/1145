@@ -1,12 +1,8 @@
 /// <reference types="google.maps" />
 import React, { forwardRef, useEffect, useRef, useState } from "react";
+import { type AddressResult, type LatLng, LOCAL_RADIUS_KM, formatDistance, searchAddresses } from "@/lib/addressSearch";
 
-interface AddressSuggestion {
-  id: string;
-  address: string;
-  lat: number;
-  lng: number;
-}
+type AddressSuggestion = AddressResult;
 
 interface PlacesAutocompleteProps {
   value: string;
@@ -15,6 +11,8 @@ interface PlacesAutocompleteProps {
   placeholder?: string;
   className?: string;
   icon?: React.ReactNode;
+  /** Rank suggestions near this point first and show how far each one is. */
+  near?: LatLng | null;
 }
 
 const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>(({ 
@@ -24,6 +22,7 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
   placeholder = "Search location...",
   className = "",
   icon,
+  near,
 }, ref) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedAddressRef = useRef<string | null>(null);
@@ -60,31 +59,7 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
       setIsSearching(true);
 
       try {
-        const params = new URLSearchParams({
-          q: value.trim(),
-          format: "jsonv2",
-          addressdetails: "1",
-          limit: "5",
-          countrycodes: "za",
-        });
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
-          signal: controller.signal,
-          headers: { Accept: "application/json" },
-        });
-
-        if (!response.ok) throw new Error("Address search failed");
-
-        const results: Array<{ place_id: number; display_name: string; lat: string; lon: string }> = await response.json();
-        setSuggestions(
-          results
-            .map((place) => ({
-              id: String(place.place_id),
-              address: place.display_name,
-              lat: Number(place.lat),
-              lng: Number(place.lon),
-            }))
-            .filter((place) => Number.isFinite(place.lat) && Number.isFinite(place.lng)),
-        );
+        setSuggestions(await searchAddresses(value, near, { signal: controller.signal }));
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           setSuggestions([]);
@@ -98,6 +73,8 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
       window.clearTimeout(timeout);
       controller.abort();
     };
+    // near is read when the user types; a moving centre shouldn't re-run the search.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const selectSuggestion = (suggestion: AddressSuggestion) => {
@@ -150,7 +127,15 @@ const PlacesAutocomplete = forwardRef<HTMLDivElement, PlacesAutocompleteProps>((
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => selectSuggestion(suggestion)}
                   >
-                    {suggestion.address}
+                    <span className="block font-medium">{suggestion.title}</span>
+                    <span className="flex justify-between gap-2 text-xs text-muted-foreground">
+                      <span>{suggestion.area}</span>
+                      {suggestion.distanceKm !== null && (
+                        <span className={suggestion.distanceKm > LOCAL_RADIUS_KM ? "font-semibold text-destructive" : ""}>
+                          {formatDistance(suggestion.distanceKm)} away
+                        </span>
+                      )}
+                    </span>
                   </button>
                 </li>
               ))}
