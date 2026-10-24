@@ -18,6 +18,60 @@ import PlacesAutocomplete from "@/components/maps/PlacesAutocomplete";
 import { loadGoogleMaps } from "@/components/maps/GoogleMap";
 import { rideDispatchService } from "@/services/rideDispatchService";
 import { useFrequentDestinations } from "@/hooks/useFrequentDestinations";
+import { isNative } from "@/lib/native";
+
+/**
+ * The rider's position for the pickup field. A quick network fix first, then
+ * GPS, because network location is often off or unavailable indoors. In the
+ * native apps this goes through the Capacitor plugin, which asks for the
+ * permission itself. Errors carry a message the rider can act on.
+ */
+async function currentPickupPosition(): Promise<{ lat: number; lng: number }> {
+  const attempts = [
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
+  ];
+  if (isNative()) {
+    const { Geolocation } = await import("@capacitor/geolocation");
+    let permission = await Geolocation.checkPermissions().catch(() => null);
+    if (permission?.location !== "granted" && permission?.coarseLocation !== "granted") {
+      permission = await Geolocation.requestPermissions().catch(() => null);
+    }
+    if (permission?.location === "denied" && permission?.coarseLocation !== "granted") {
+      throw new Error("Location access is off for 1145. Turn it on in your phone's Settings, or type your pickup address.");
+    }
+    let lastError: unknown;
+    for (const options of attempts) {
+      try {
+        const p = await Geolocation.getCurrentPosition(options);
+        return { lat: p.coords.latitude, lng: p.coords.longitude };
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    const message = lastError instanceof Error ? lastError.message : "";
+    throw new Error(/disabled|services/i.test(message)
+      ? "Your phone's location is switched off. Turn on Location, then try again."
+      : "We couldn't get a fix on your location. Move near a window or type your pickup address.");
+  }
+
+  if (!("geolocation" in navigator)) throw new Error("This browser can't share your location. Type your pickup address.");
+  let lastError: GeolocationPositionError | undefined;
+  for (const options of attempts) {
+    try {
+      const p = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, options));
+      return { lat: p.coords.latitude, lng: p.coords.longitude };
+    } catch (e) {
+      lastError = e as GeolocationPositionError;
+      if (lastError?.code === 1) break; // Denied: asking again won't help.
+    }
+  }
+  if (lastError?.code === 1) {
+    throw new Error("Location access is blocked for this site. Allow it from the lock icon in the address bar, or type your pickup address.");
+  }
+  throw new Error("We couldn't find your location. Check that location is switched on, or type your pickup address.");
+}
 
 
 interface VehicleOption {
@@ -86,18 +140,7 @@ const RideRequestPage: React.FC = () => {
   const detectAndSetPickup = useCallback(async () => {
     setIsLocating(true);
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false, timeout: 15000, maximumAge: 300000,
-        });
-      }).catch(() => {
-        return new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false, timeout: 20000, maximumAge: 600000,
-          });
-        });
-      });
-      const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+      const coords = await currentPickupPosition();
       setPickupCoords(coords);
       // Show a street address, not coordinates. Google first, then the same
       // OpenStreetMap geocoder the address fields use; coordinates only if both fail.
@@ -116,15 +159,19 @@ const RideRequestPage: React.FC = () => {
         } catch {}
       }
       setPickup(address || `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
-    } catch {
-      toast({ title: "Location unavailable", description: "Please enter your pickup location manually.", variant: "destructive" });
+    } catch (e) {
+      toast({
+        title: "Location unavailable",
+        description: e instanceof Error ? e.message : "Please enter your pickup location manually.",
+        variant: "destructive",
+      });
     } finally {
       setIsLocating(false);
     }
   }, [toast]);
 
   useEffect(() => {
-    if (!requestedPickup && "geolocation" in navigator && !pickupCoords) detectAndSetPickup();
+    if (!requestedPickup && (isNative() || "geolocation" in navigator) && !pickupCoords) detectAndSetPickup();
   }, []);
 
   useEffect(() => {
