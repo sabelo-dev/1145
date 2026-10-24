@@ -6007,6 +6007,77 @@ export type Database = {
           },
         ]
       }
+      order_refund_requests: {
+        Row: {
+          amount_approved: number | null
+          amount_requested: number
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          items: Json
+          kind: string
+          note: string | null
+          order_id: string
+          reason: string
+          refund_reference: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_approved?: number | null
+          amount_requested: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          items?: Json
+          kind: string
+          note?: string | null
+          order_id: string
+          reason: string
+          refund_reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_approved?: number | null
+          amount_requested?: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          items?: Json
+          kind?: string
+          note?: string | null
+          order_id?: string
+          reason?: string
+          refund_reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_refund_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           courier_company: string | null
@@ -10372,6 +10443,19 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: Json
       }
+      customer_request_refund: {
+        Args: {
+          p_item_ids?: string[]
+          p_note?: string
+          p_order_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      customer_withdraw_refund_request: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
       debit_wallet: {
         Args: {
           p_amount: number
@@ -10556,6 +10640,19 @@ export type Database = {
       }
       redeem_ucoin_for_order: {
         Args: { p_order_id: string; p_ucoin: number }
+        Returns: Json
+      }
+      refund_request_complete: {
+        Args: { p_reference: string; p_request_id: string }
+        Returns: Json
+      }
+      refund_request_decide: {
+        Args: {
+          p_amount?: number
+          p_approve: boolean
+          p_note?: string
+          p_request_id: string
+        }
         Returns: Json
       }
       request_ucoin_cashout: {

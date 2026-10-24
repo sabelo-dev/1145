@@ -44,6 +44,8 @@ import autoTable from "jspdf-autotable";
 import OrderTrackingDialog from "./OrderTrackingDialog";
 import OrderDetailsModal from "./OrderDetailsModal";
 import WriteReviewDialog from "./WriteReviewDialog";
+import RefundRequestDialog from "./RefundRequestDialog";
+import { REFUND_STATUS_LABELS, type RefundRequest, canRequestRefund, listRefundRequests } from "@/services/refunds";
 
 interface OrderProduct {
   id: string;
@@ -91,6 +93,9 @@ const ConsumerOrders: React.FC = () => {
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  // Latest refund / return request per order id.
+  const [refundRequests, setRefundRequests] = useState<Record<string, RefundRequest>>({});
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -216,6 +221,11 @@ const ConsumerOrders: React.FC = () => {
       });
 
       setOrders(ordersWithItems);
+
+      const requests = await listRefundRequests({ orderIds: ordersWithItems.map((o) => o.id) });
+      const latest: Record<string, RefundRequest> = {};
+      for (const r of requests) if (!latest[r.order_id]) latest[r.order_id] = r;
+      setRefundRequests(latest);
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast({
@@ -733,11 +743,25 @@ const ConsumerOrders: React.FC = () => {
                             <Star className="h-3.5 w-3.5" />
                             Review
                           </Button>
-                          <Button variant="outline" size="sm" className="gap-1.5">
-                            <RotateCcw className="h-3.5 w-3.5" />
-                            Return
-                          </Button>
                         </>
+                      )}
+                      {canRequestRefund(order.status, order.payment_status) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setRefundDialogOpen(true);
+                          }}
+                          className="gap-1.5"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          {refundRequests[order.id] && !["rejected", "withdrawn"].includes(refundRequests[order.id].status)
+                            ? REFUND_STATUS_LABELS[refundRequests[order.id].status]
+                            : order.status === "delivered"
+                              ? "Return"
+                              : "Request refund"}
+                        </Button>
                       )}
                       {canCancel(order) && (
                         <Button
@@ -790,6 +814,14 @@ const ConsumerOrders: React.FC = () => {
           )}
         </div>
       )}
+
+      <RefundRequestDialog
+        open={refundDialogOpen}
+        onOpenChange={setRefundDialogOpen}
+        order={selectedOrder}
+        request={selectedOrder ? refundRequests[selectedOrder.id] ?? null : null}
+        onChanged={fetchOrders}
+      />
 
       <OrderTrackingDialog
         order={selectedOrder}

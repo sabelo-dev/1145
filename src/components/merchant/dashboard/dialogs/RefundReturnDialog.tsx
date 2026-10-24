@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,16 +11,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  REFUND_STATUS_LABELS,
+  type RefundRequest,
+  decideRefundRequest,
+  formatRand,
+  listRefundRequests,
+  reasonLabel,
+} from "@/services/refunds";
 
 interface RefundReturnDialogProps {
   order: any;
@@ -29,86 +30,48 @@ interface RefundReturnDialogProps {
   onOrderUpdated: () => void;
 }
 
-const RefundReturnDialog: React.FC<RefundReturnDialogProps> = ({
-  order,
-  open,
-  onOpenChange,
-  onOrderUpdated,
-}) => {
+/**
+ * The customer's refund or return request for this order. Store owners and
+ * managers approve or decline it; 1145 then refunds the payment. Merchants
+ * cannot start a refund themselves.
+ */
+const RefundReturnDialog: React.FC<RefundReturnDialogProps> = ({ order, open, onOpenChange, onOrderUpdated }) => {
   const { toast } = useToast();
+  const [request, setRequest] = useState<RefundRequest | null>(null);
   const [loading, setLoading] = useState(false);
-  const [refundData, setRefundData] = useState({
-    amount: order?.total || "",
-    reason: "",
-    status: "approved",
-  });
-  const [returnData, setReturnData] = useState({
-    reason: "",
-    status: "approved",
-  });
+  const [busy, setBusy] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
 
-  const handleRefund = async () => {
+  useEffect(() => {
+    if (!open || !order?.id) return;
     setLoading(true);
+    setNote("");
+    listRefundRequests({ orderIds: [order.id] })
+      .then((rows) => {
+        setRequest(rows[0] ?? null);
+        setAmount(String(rows[0]?.amount_requested ?? ""));
+      })
+      .catch(() => setRequest(null))
+      .finally(() => setLoading(false));
+  }, [open, order?.id]);
+
+  const decide = async (approve: boolean) => {
+    if (!request) return;
+    setBusy(true);
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({
-          refund_status: refundData.status,
-          refund_amount: parseFloat(refundData.amount),
-          refund_reason: refundData.reason,
-        })
-        .eq("id", order.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Refund Processed",
-        description: `Refund of R${refundData.amount} has been ${refundData.status}.`,
-      });
-
+      await decideRefundRequest(request.id, approve, note, approve ? Number(amount) : undefined);
+      toast({ title: approve ? "Request approved" : "Request declined" });
       onOrderUpdated();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error processing refund:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to process refund.",
+        title: "Update failed",
+        description: error instanceof Error ? error.message : "Please try again.",
       });
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReturn = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("orders")
-        .update({
-          return_status: returnData.status,
-          return_reason: returnData.reason,
-        })
-        .eq("id", order.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Return Processed",
-        description: `Return request has been ${returnData.status}.`,
-      });
-
-      onOrderUpdated();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error processing return:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to process return.",
-      });
-    } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
@@ -116,133 +79,78 @@ const RefundReturnDialog: React.FC<RefundReturnDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Refunds & Returns</DialogTitle>
-          <DialogDescription>
-            Process refund or return requests for order {order?.id}
-          </DialogDescription>
+          <DialogTitle>Refunds &amp; Returns</DialogTitle>
+          <DialogDescription>Order #{String(order?.id ?? "").slice(0, 8).toUpperCase()}</DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="refund" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="refund">Refund</TabsTrigger>
-            <TabsTrigger value="return">Return</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="refund" className="space-y-4">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="refund-amount">Refund Amount</Label>
-                <Input
-                  id="refund-amount"
-                  type="number"
-                  step="0.01"
-                  value={refundData.amount}
-                  onChange={(e) =>
-                    setRefundData({ ...refundData, amount: e.target.value })
-                  }
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="refund-status">Status</Label>
-                <Select
-                  value={refundData.status}
-                  onValueChange={(value) =>
-                    setRefundData({ ...refundData, status: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="approved">Approve</SelectItem>
-                    <SelectItem value="rejected">Reject</SelectItem>
-                    <SelectItem value="completed">Complete</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="refund-reason">Reason</Label>
-                <Textarea
-                  id="refund-reason"
-                  value={refundData.reason}
-                  onChange={(e) =>
-                    setRefundData({ ...refundData, reason: e.target.value })
-                  }
-                  placeholder="Explain the reason for this refund..."
-                  rows={4}
-                  required
-                />
-              </div>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : !request ? (
+          <p className="text-sm text-muted-foreground">
+            The customer hasn't asked for a refund or return on this order. Customers request one from My Orders, and
+            it appears here for you to review.
+          </p>
+        ) : (
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Request</span>
+              <span className="capitalize">
+                {request.kind} · <Badge variant="secondary">{REFUND_STATUS_LABELS[request.status] ?? request.status}</Badge>
+              </span>
             </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleRefund} disabled={loading}>
-                {loading ? "Processing..." : "Process Refund"}
-              </Button>
-            </DialogFooter>
-          </TabsContent>
-
-          <TabsContent value="return" className="space-y-4">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="return-status">Status</Label>
-                <Select
-                  value={returnData.status}
-                  onValueChange={(value) =>
-                    setReturnData({ ...returnData, status: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="approved">Approve</SelectItem>
-                    <SelectItem value="rejected">Reject</SelectItem>
-                    <SelectItem value="completed">Complete</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="return-reason">Reason</Label>
-                <Textarea
-                  id="return-reason"
-                  value={returnData.reason}
-                  onChange={(e) =>
-                    setReturnData({ ...returnData, reason: e.target.value })
-                  }
-                  placeholder="Explain the reason for this return..."
-                  rows={4}
-                  required
-                />
-              </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Reason</span>
+              <span>{reasonLabel(request.reason)}</span>
             </div>
+            {request.note && <p className="rounded-md bg-muted p-3">{request.note}</p>}
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Amount</span>
+              <span className="font-medium">{formatRand(request.amount_approved ?? request.amount_requested)}</span>
+            </div>
+            {request.decision_note && <p>Decision: {request.decision_note}</p>}
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleReturn} disabled={loading}>
-                {loading ? "Processing..." : "Process Return"}
-              </Button>
-            </DialogFooter>
-          </TabsContent>
-        </Tabs>
+            {request.status === "requested" && (
+              <>
+                <div className="space-y-1">
+                  <Label htmlFor="merchant-refund-amount">Amount to refund (R)</Label>
+                  <Input
+                    id="merchant-refund-amount"
+                    type="number"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="merchant-refund-note">Note to the customer (needed to decline)</Label>
+                  <Textarea
+                    id="merchant-refund-note"
+                    value={note}
+                    maxLength={1000}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Only the store owner or a manager can decide. Approved refunds are left out of your payouts.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {request?.status === "requested" && (
+          <DialogFooter>
+            <Button variant="outline" onClick={() => decide(false)} disabled={busy || !note.trim()}>
+              Decline
+            </Button>
+            <Button onClick={() => decide(true)} disabled={busy || !(Number(amount) > 0)}>
+              {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Approve
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

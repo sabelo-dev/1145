@@ -31,6 +31,7 @@ import AdminMerchants from "@/components/admin/AdminMerchants";
 import AdminMerchantAI from "@/components/admin/AdminMerchantAI";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminOrders from "@/components/admin/AdminOrders";
+import AdminRefunds from "@/components/admin/AdminRefunds";
 import AdminCategories from "@/components/admin/AdminCategories";
 import AdminReviews from "@/components/admin/AdminReviews";
 import AdminCMS from "@/components/admin/AdminCMS";
@@ -67,7 +68,8 @@ import {
   Users,
   Store,
   Package, 
-  ShoppingCart, 
+  ShoppingCart,
+  RotateCcw,
   MessageSquare,
   DollarSign,
   FileText,
@@ -140,6 +142,7 @@ const AdminDashboard = () => {
     { id: "ucoin", title: "UCoin Management", icon: Coins },
     { id: "shipping", title: "Shipping Management", icon: Truck },
     { id: "orders", title: "Orders (All)", icon: ShoppingCart },
+    { id: "refunds", title: "Refunds & Returns", icon: RotateCcw },
     { id: "products", title: "Products (All)", icon: Package },
     { id: "promotions", title: "Promotions & Discounts", icon: Percent },
     { id: "auctions", title: "Auctions", icon: Gavel },
@@ -346,6 +349,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="orders" className="mt-0">
               <AdminOrders />
+            </TabsContent>
+            <TabsContent value="refunds" className="mt-0">
+              <AdminRefunds />
             </TabsContent>
             <TabsContent value="categories" className="mt-0">
               <AdminCategories />
