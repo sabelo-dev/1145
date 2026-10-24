@@ -236,3 +236,37 @@ export function payfastReturnUrl(origin: string | null | undefined, path: string
   }
   return `${origin.replace(/\/$/, "")}${path}`;
 }
+
+/** Origins PayFast may send the payer back to; anything else goes to SITE_URL. */
+export function allowedReturnOrigin(origin: string | null | undefined): string | null {
+  if (!origin) return null;
+  const site = (Deno.env.get("SITE_URL") || "https://1145.io").replace(/\/$/, "");
+  const allowed = new Set([
+    site,
+    "https://1145.io",
+    "https://www.1145.io",
+    ...NATIVE_APP_ORIGINS,
+    ...(Deno.env.get("PAYMENT_RETURN_ORIGINS") ?? "").split(",").map((o) => o.trim()).filter(Boolean),
+  ]);
+  return allowed.has(origin) ? origin : null;
+}
+
+/**
+ * A return / cancel URL sent by the client, kept only if it points at an
+ * allowed origin. Otherwise its path is moved onto SITE_URL, so an unlisted
+ * host still lands the payer on the right page and the URL cannot be used as
+ * an open redirect.
+ */
+export function safeReturnUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return undefined;
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return undefined;
+  if (allowedReturnOrigin(url.origin)) return url.toString();
+  const site = (Deno.env.get("SITE_URL") || "https://1145.io").replace(/\/$/, "");
+  return `${site}${url.pathname}${url.search}`;
+}

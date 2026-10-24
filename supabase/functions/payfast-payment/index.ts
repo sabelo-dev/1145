@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getPayFastConfig, signPayFast } from "../_shared/payfast.ts";
+import { getPayFastConfig, safeReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,16 +64,6 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
-
-function safeUrl(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 /** Prices every cart line from the database; client-sent prices are ignored. */
@@ -620,8 +610,8 @@ serve(async (req) => {
     const formData: Record<string, string | number> = {
       merchant_id: payfast.merchantId,
       merchant_key: payfast.merchantKey,
-      return_url: safeUrl(paymentData.returnUrl) ?? "",
-      cancel_url: safeUrl(paymentData.cancelUrl) ?? "",
+      return_url: safeReturnUrl(paymentData.returnUrl) ?? "",
+      cancel_url: safeReturnUrl(paymentData.cancelUrl) ?? "",
       notify_url: payfast.notifyUrl,
       name_first: paymentData.customerFirstName || "",
       name_last: paymentData.customerLastName || "",

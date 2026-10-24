@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getAppUrl } from "@/lib/appUrl";
 import {
   Table,
   TableBody,
@@ -165,19 +164,10 @@ const AdminOrders: React.FC = () => {
     return `ADM-TRK-${timestamp}-${random}`;
   };
 
-  const sendOrderStatusEmail = async (order: Order, status: string, tracking?: string) => {
+  const sendOrderStatusEmail = async (order: Order) => {
     try {
       const { error } = await supabase.functions.invoke('send-order-status-email', {
-        body: {
-          orderId: order.fullId,
-          newStatus: status,
-          customerEmail: order.customerEmail,
-          customerName: order.customerName,
-          trackingNumber: tracking || order.trackingNumber,
-          courierCompany: courierCompany || order.courierCompany,
-          estimatedDelivery: order.estimatedDelivery,
-          siteUrl: getAppUrl("/")
-        }
+        body: { orderId: order.fullId },
       });
 
       if (error) {
@@ -221,7 +211,7 @@ const AdminOrders: React.FC = () => {
       if (error) throw error;
 
       // Send email notification
-      const emailSent = await sendOrderStatusEmail(selectedOrder, newStatus, finalTrackingNumber);
+      const emailSent = await sendOrderStatusEmail(selectedOrder);
 
       // Update local state
       setOrders(orders.map((order) =>

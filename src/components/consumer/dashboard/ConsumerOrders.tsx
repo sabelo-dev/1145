@@ -285,7 +285,8 @@ const ConsumerOrders: React.FC = () => {
     );
   };
 
-  const canCancel = (status: string) => ["pending", "processing"].includes(status);
+  // Only unpaid orders can be cancelled here; paid orders need a refund.
+  const canCancel = (order: Order) => order.status === "pending" && order.payment_status !== "paid";
   const canReturn = (status: string) => status === "delivered";
   const canTrack = (status: string) =>
     ["processing", "shipped", "in_transit", "delivered"].includes(status);
@@ -449,61 +450,29 @@ const ConsumerOrders: React.FC = () => {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!confirm("Are you sure you want to cancel this order? This will permanently remove the order.")) return;
+    if (!confirm("Are you sure you want to cancel this order?")) return;
 
     try {
-      // Delete order items first (foreign key dependency)
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .delete()
-        .eq("order_id", orderId);
+      const { data, error } = await supabase.rpc("customer_cancel_order", { p_order_id: orderId });
+      if (error) throw error;
 
-      if (itemsError) throw itemsError;
-
-      // Delete any related order history
-      await supabase
-        .from("order_history")
-        .delete()
-        .eq("order_id", orderId);
-
-      // Delete any related order insurance
-      await supabase
-        .from("order_insurance")
-        .delete()
-        .eq("order_id", orderId);
-
-      // Delete any related delivery tips
-      await supabase
-        .from("delivery_tips")
-        .delete()
-        .eq("order_id", orderId);
-
-      // Delete any related delivery jobs
-      await supabase
-        .from("delivery_jobs")
-        .delete()
-        .eq("order_id", orderId);
-
-      // Delete the order itself
-      const { error: orderError } = await supabase
-        .from("orders")
-        .delete()
-        .eq("id", orderId);
-
-      if (orderError) throw orderError;
-
+      const refunded = Number((data as { ucoin_refunded?: number } | null)?.ucoin_refunded ?? 0);
       toast({
         title: "Order Cancelled",
-        description: "Your order has been removed successfully",
+        description: refunded > 0
+          ? `Your order was cancelled and ${refunded} UCoin was returned to your wallet.`
+          : "Your order was cancelled.",
       });
 
-      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: "cancelled", payment_status: "cancelled" } : o)),
+      );
     } catch (error) {
-      console.error("Error deleting order:", error);
+      console.error("Error cancelling order:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to cancel order",
+        title: "Could not cancel",
+        description: error instanceof Error ? error.message : "Failed to cancel order",
       });
     }
   };
@@ -770,7 +739,7 @@ const ConsumerOrders: React.FC = () => {
                           </Button>
                         </>
                       )}
-                      {canCancel(order.status) && (
+                      {canCancel(order) && (
                         <Button
                           variant="destructive"
                           size="sm"

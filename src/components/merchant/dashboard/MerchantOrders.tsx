@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getAppUrl } from "@/lib/appUrl";
 import { 
   Search, 
   MoreHorizontal, 
@@ -168,19 +167,10 @@ const MerchantOrders = () => {
     return `WWE-TRK-${timestamp}-${random}`;
   };
 
-  const sendOrderStatusEmail = async (order: any, newStatus: string, trackingNumber?: string) => {
+  const sendOrderStatusEmail = async (order: any) => {
     try {
       const { error } = await supabase.functions.invoke('send-order-status-email', {
-        body: {
-          orderId: order.id,
-          newStatus,
-          customerEmail: order.email,
-          customerName: order.customer,
-          trackingNumber: trackingNumber || order.trackingNumber,
-          courierCompany: order.courierCompany,
-          estimatedDelivery: order.estimatedDelivery,
-          siteUrl: getAppUrl("/")
-        }
+        body: { orderId: order.id },
       });
 
       if (error) {
@@ -241,7 +231,7 @@ const MerchantOrders = () => {
 
       // Send email notification for shipped, out_for_delivery, and delivered statuses
       if (['shipped', 'out_for_delivery', 'delivered'].includes(newStatus) && order) {
-        sendOrderStatusEmail(order, newStatus, trackingNumber || undefined);
+        sendOrderStatusEmail(order);
       }
 
       toast({

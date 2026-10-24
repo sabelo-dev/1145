@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { verifyWebhookSignature } from "../_shared/webhookSignature.ts";
 
 const resendApiKey = Deno.env.get("RESEND_API_KEY");
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
@@ -7,7 +8,7 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, webhook-id, webhook-timestamp, webhook-signature",
 };
 
 interface AuthEmailRequest {
@@ -243,9 +244,30 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only Supabase Auth may call this hook: it signs each request (Standard
+  // Webhooks) with the secret shown when the Send Email hook is configured.
+  // Unsigned requests could otherwise send 1145-branded mail with any link.
+  const body = await req.text();
+  const secret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
+  if (!secret) {
+    console.error("SEND_EMAIL_HOOK_SECRET is not set; refusing unverified request.");
+    return new Response(JSON.stringify({ error: "Hook not configured" }), {
+      status: 503,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+  const problem = await verifyWebhookSignature(secret, req.headers, body, "webhook");
+  if (problem) {
+    console.error("Rejected auth email hook request:", problem);
+    return new Response(JSON.stringify({ error: "Invalid signature" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
   try {
-    const payload: AuthEmailRequest = await req.json();
-    console.log("Auth email hook received:", JSON.stringify(payload, null, 2));
+    const payload: AuthEmailRequest = JSON.parse(body);
+    console.log(`Auth email hook received: ${payload?.email_data?.email_action_type ?? "probe"}`);
 
     const { user, email_data } = payload || {} as AuthEmailRequest;
 

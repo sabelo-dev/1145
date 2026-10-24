@@ -16,7 +16,8 @@
     "build:driver": "vite build --config vite.driver.config.ts",
     "driver:sync": "npm run build:driver && node scripts/cap-driver.mjs sync android",
     "driver:open": "node scripts/cap-driver.mjs open android",
-    "test:dispatch": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts"
+    "test:dispatch": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts",
+    "test": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts tests/customer-cancel.test.ts tests/webhook-signature.test.ts"
   },
   "overrides": {
     "@opentelemetry/core": "2.8.0",

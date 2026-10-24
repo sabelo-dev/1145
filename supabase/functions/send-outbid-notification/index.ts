@@ -11,9 +11,6 @@ const corsHeaders = {
 
 interface OutbidNotificationRequest {
   auctionId: string;
-  newBidAmount: number;
-  newBidderId: string;
-  productName: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -28,7 +25,43 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { auctionId, newBidAmount, newBidderId, productName }: OutbidNotificationRequest = await req.json();
+    // The caller must be the bidder who just bid. The product name and the
+    // amount come from the database, not the request.
+    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+    });
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const { auctionId }: OutbidNotificationRequest = await req.json();
+    const newBidderId = user.id;
+
+    const { data: latestBid } = await supabase
+      .from("auction_bids")
+      .select("user_id, bid_amount")
+      .eq("auction_id", auctionId)
+      .order("bid_amount", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!latestBid || latestBid.user_id !== newBidderId) {
+      return new Response(JSON.stringify({ message: "Caller is not the highest bidder" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const newBidAmount = Number(latestBid.bid_amount);
+
+    const { data: auction } = await supabase
+      .from("auctions")
+      .select("products(name)")
+      .eq("id", auctionId)
+      .maybeSingle();
+    const productName = (auction?.products as { name?: string } | null)?.name || "Auction Item";
     
     console.log(`Processing outbid notification for auction ${auctionId}`);
 

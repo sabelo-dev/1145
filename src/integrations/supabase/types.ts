@@ -10368,6 +10368,10 @@ export type Database = {
         Args: { p_amount: number; p_currency_code: string }
         Returns: number
       }
+      customer_cancel_order: {
+        Args: { p_order_id: string }
+        Returns: Json
+      }
       debit_wallet: {
         Args: {
           p_amount: number

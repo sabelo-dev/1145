@@ -6,7 +6,7 @@
 // Payment is confirmed only by payfast-itn.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { chargePayFastToken, getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
+import { allowedReturnOrigin, chargePayFastToken, getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,21 +20,6 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
-
-/** Origins PayFast may send the payer back to; anything else goes to SITE_URL. */
-function allowedOrigin(origin: string | null): string | null {
-  if (!origin) return null;
-  const site = (Deno.env.get("SITE_URL") || "https://1145.io").replace(/\/$/, "");
-  const allowed = new Set([
-    site,
-    "https://1145.io",
-    "https://www.1145.io",
-    "https://localhost",
-    "capacitor://localhost",
-    ...(Deno.env.get("PAYMENT_RETURN_ORIGINS") ?? "").split(",").map((o) => o.trim()).filter(Boolean),
-  ]);
-  return allowed.has(origin) ? origin : null;
 }
 
 serve(async (req) => {
@@ -149,7 +134,7 @@ serve(async (req) => {
     const storeName = String((request as any).stores?.name ?? "1145 store");
     const itemName = `${storeName}: ${request.description}`.slice(0, 100);
     const returnPath = `/pay/${token}`;
-    const origin = allowedOrigin(req.headers.get("origin"));
+    const origin = allowedReturnOrigin(req.headers.get("origin"));
 
     const formData: Record<string, string | number> = {
       merchant_id: payfast.merchantId,

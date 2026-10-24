@@ -9,16 +9,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Only the order id is used from the request. The recipient, status and
+// tracking details are read from the database, so callers cannot choose who
+// is emailed or what the email says. Callers: the notify_order_status_change
+// trigger, and the admin and merchant order screens.
 interface OrderStatusEmailRequest {
   orderId: string;
-  newStatus: string;
-  customerEmail: string;
-  customerName?: string;
-  trackingNumber?: string;
-  courierCompany?: string;
-  estimatedDelivery?: string;
-  siteUrl?: string;
 }
+
+// The trigger and the order screens can both ask for the same email.
+const DUPLICATE_WINDOW_MINUTES = 10;
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const getStatusDetails = (status: string) => {
   switch (status) {
@@ -124,24 +126,57 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const {
-      orderId,
-      newStatus,
-      customerEmail,
-      customerName,
-      trackingNumber,
-      courierCompany,
-      estimatedDelivery,
-    }: OrderStatusEmailRequest = await req.json();
+    const { orderId }: OrderStatusEmailRequest = await req.json();
+    if (typeof orderId !== "string" || !UUID_PATTERN.test(orderId)) {
+      return new Response(JSON.stringify({ success: false, error: "orderId is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     // Links always point at our own site; never trust a caller-supplied URL.
     const siteUrl = Deno.env.get("SITE_URL") || "https://1145.io";
 
+    const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: order } = await db
+      .from("orders")
+      .select("id, user_id, status, tracking_number, courier_company, estimated_delivery")
+      .eq("id", orderId)
+      .maybeSingle();
+    if (!order) {
+      return new Response(JSON.stringify({ success: false, error: "Order not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const { data: profile } = await db.from("profiles").select("email, name").eq("id", order.user_id).maybeSingle();
+    const customerEmail = profile?.email;
+    const customerName = profile?.name;
+    const newStatus = order.status;
+    const trackingNumber = order.tracking_number ?? undefined;
+    const courierCompany = order.courier_company ?? undefined;
+    const estimatedDelivery = order.estimated_delivery ?? undefined;
+    const template = `order_status:${newStatus}`;
+
     console.log(`Processing email for order ${orderId} with status ${newStatus}`);
-    console.log(`Tracking Number: ${trackingNumber}`);
 
     if (!customerEmail) {
       throw new Error("Customer email is required");
+    }
+
+    const since = new Date(Date.now() - DUPLICATE_WINDOW_MINUTES * 60_000).toISOString();
+    const { count: recent } = await db
+      .from("notification_log")
+      .select("id", { count: "exact", head: true })
+      .eq("order_id", orderId)
+      .eq("channel", "email")
+      .eq("template", template)
+      .gte("created_at", since);
+    if ((recent ?? 0) > 0) {
+      return new Response(JSON.stringify({ success: true, skipped: "duplicate" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const statusDetails = getStatusDetails(newStatus);
@@ -161,6 +196,19 @@ const handler = async (req: Request): Promise<Response> => {
       to: [customerEmail],
       subject: statusDetails.subject,
       html,
+    });
+
+    await db.from("notification_log").insert({
+      user_id: order.user_id,
+      order_id: orderId,
+      channel: "email",
+      provider: "resend",
+      recipient: customerEmail,
+      template,
+      status: emailResponse.error ? "failed" : "sent",
+      provider_message_id: emailResponse.data?.id ?? null,
+      error: emailResponse.error?.message ?? null,
+      sent_at: emailResponse.error ? null : new Date().toISOString(),
     });
 
     console.log("Email sent successfully:", emailResponse);
