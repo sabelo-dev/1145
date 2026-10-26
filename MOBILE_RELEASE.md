@@ -27,15 +27,15 @@ The app ID **can never change** after the first store upload.
 
 ## 3. Icon and splash screen
 
-Put a 1024×1024 PNG icon (no transparency) at `resources/icon.png` and a
-2732×2732 splash at `resources/splash.png`, then:
+Every icon and splash image of the website and the three apps is generated
+from the logo in `public/logo.png` (the 1145 sphere):
 
 ```bash
-npx capacitor-assets generate --iconBackgroundColor '#1e3a5f' --splashBackgroundColor '#1e3a5f'
+node scripts/generate-brand-assets.mjs
 ```
 
-The launcher icon now points at `@mipmap/ic_launcher` (it previously used
-the splash image).
+For a new logo, replace `public/logo.png` (keep its background transparent)
+and run the script again.
 
 ## 4. Supabase settings (once)
 

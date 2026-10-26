@@ -4,10 +4,10 @@
 // all match:
 //   node scripts/generate-brand-assets.mjs
 //
-// The source is public/logo.png (1024×1072, the round logo on white). The
-// circle is cut out exactly (no redrawing) with transparent corners and
-// scaled down with Lanczos resampling for each size. Swap in a larger or
-// vector-exported logo.png and update LOGO_CIRCLE to raise the quality further.
+// The source is public/logo.png: the 1145 sphere on a transparent background
+// (1261×1247). Its transparent margin is trimmed and the sphere centred on a
+// square, then scaled down with Lanczos resampling for each size. For a new
+// logo, replace logo.png (keep the background transparent) and run this again.
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
@@ -15,25 +15,19 @@ import sharp from "sharp";
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")), "..");
 const at = (...p) => path.join(root, ...p);
 
-// Where the circle sits in public/logo.png (measured from the blue pixels).
-const LOGO_CIRCLE = { cx: 505, cy: 517, r: 419 };
-// The logo's own navy: the circle's edge colour, so icon backgrounds blend in.
-export const BRAND_NAVY = "#03144b";
+// The sphere's near-black, so icon backgrounds blend into its edge.
+export const BRAND_DARK = "#04070f";
 
 const resize = (img, size) => img.clone().resize(size, size, { kernel: "lanczos3" });
 
 async function logoMark() {
-  const { cx, cy, r } = LOGO_CIRCLE;
-  const d = r * 2;
-  // Mask just inside the edge so no white from the background shows.
-  const mask = Buffer.from(`<svg width="${d}" height="${d}"><circle cx="${r}" cy="${r}" r="${r - 1.5}" fill="#fff"/></svg>`);
-  const png = await sharp(at("public/logo.png"))
-    .extract({ left: cx - r, top: cy - r, width: d, height: d })
-    .ensureAlpha()
-    .composite([{ input: mask, blend: "dest-in" }])
+  const trimmed = await sharp(at("public/logo.png")).ensureAlpha().trim({ threshold: 8 }).png().toBuffer({ resolveWithObject: true });
+  const side = Math.max(trimmed.info.width, trimmed.info.height);
+  const square = await sharp({ create: { width: side, height: side, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([{ input: trimmed.data, gravity: "centre" }])
     .png()
     .toBuffer();
-  return sharp(png);
+  return sharp(square);
 }
 
 /** Logo centred on a square (or w×h) canvas, `scale` of the shorter side. */
@@ -42,7 +36,7 @@ async function onCanvas(mark, w, h, scale, background) {
   const logo = await resize(mark, size).png().toBuffer();
   const base = background === "gradient"
     ? sharp(Buffer.from(`<svg width="${w}" height="${h}"><defs><radialGradient id="g" cx="50%" cy="45%" r="75%">
-        <stop offset="0" stop-color="#0b2b86"/><stop offset=".55" stop-color="${BRAND_NAVY}"/><stop offset="1" stop-color="#010a2a"/>
+        <stop offset="0" stop-color="#0b2a63"/><stop offset=".55" stop-color="${BRAND_DARK}"/><stop offset="1" stop-color="#000000"/>
       </radialGradient></defs><rect width="100%" height="100%" fill="url(#g)"/></svg>`))
     : sharp({ create: { width: w, height: h, channels: 4, background: background ?? { r: 0, g: 0, b: 0, alpha: 0 } } });
   return base.composite([{ input: logo, gravity: "centre" }]).png({ compressionLevel: 9 });
@@ -83,11 +77,14 @@ for (const s of [96, 192, 512]) await save(resize(mark, s).png({ compressionLeve
 await save(resize(mark, 192).png({ compressionLevel: 9 }), at("public/pwa-icon-192x192.png"));
 await save(resize(mark, 512).png({ compressionLevel: 9 }), at("public/pwa-icon-512.png"));
 await save(resize(mark, 1024).png({ compressionLevel: 9 }), at("public/pwa-icon-192.png"));
-await save(await onCanvas(mark, 512, 512, 0.86, BRAND_NAVY), at("public/pwa-icon-maskable-512.png"));
+await save(await onCanvas(mark, 512, 512, 0.86, BRAND_DARK), at("public/pwa-icon-maskable-512.png"));
 // iOS fills transparent corners with black, so the touch icon is on navy.
-await save(await onCanvas(mark, 180, 180, 0.96, BRAND_NAVY), at("public/apple-touch-icon.png"));
+await save(await onCanvas(mark, 180, 180, 0.96, BRAND_DARK), at("public/apple-touch-icon.png"));
 await writeIco(mark, at("public/favicon.ico"), [16, 32, 48]);
 written.push("public/favicon.ico");
+
+// Link previews (og:image): the logo on the dark gradient.
+await save(await onCanvas(mark, 1200, 630, 0.78, "gradient"), at("public/og-image.png"));
 
 // Android: the same launcher icons and splash for all three apps.
 const densities = { ldpi: 0.75, mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
@@ -117,7 +114,7 @@ for (const app of ["android", "android-driver", "android-orders"]) {
     if (existsSync(path.dirname(file))) { writeFileSync(file, adaptiveXml); written.push(path.relative(root, file)); }
   }
   const colorFile = path.join(res, "values/ic_launcher_background.xml");
-  writeFileSync(colorFile, `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">${BRAND_NAVY.toUpperCase()}</color>\n</resources>\n`);
+  writeFileSync(colorFile, `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">${BRAND_DARK.toUpperCase()}</color>\n</resources>\n`);
   written.push(path.relative(root, colorFile));
   // Every existing splash.png, at its current size.
   for (const dir of readdirSync(res).filter((d) => d.startsWith("drawable"))) {
@@ -130,7 +127,7 @@ for (const app of ["android", "android-driver", "android-orders"]) {
 
 // iOS (main app).
 const iosIcon = at("ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png");
-if (existsSync(iosIcon)) await save(await onCanvas(mark, 1024, 1024, 0.96, BRAND_NAVY).then((p) => p.flatten({ background: BRAND_NAVY })), iosIcon);
+if (existsSync(iosIcon)) await save(await onCanvas(mark, 1024, 1024, 0.96, BRAND_DARK).then((p) => p.flatten({ background: BRAND_DARK })), iosIcon);
 const iosSplash = at("ios/App/App/Assets.xcassets/Splash.imageset");
 if (existsSync(iosSplash)) {
   for (const name of readdirSync(iosSplash).filter((f) => f.endsWith(".png"))) {

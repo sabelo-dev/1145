@@ -1,7 +1,7 @@
 <!--
   1145 load animation, injected right after <div id="root"></div> of every
   app build by vite-plugins/brandLoader.ts. It paints before any JavaScript
-  bundle loads: a clock in the logo's navy spins for as long as the page is
+  bundle loads: a clock in the logo's black and blue spins for as long as the page is
   loading, then winds down to 11:45, becomes the 1145 logo and fades out.
   "Loaded" means the window has loaded and the app has rendered something
   that is not a loading placeholder (elements marked data-app-loading).
@@ -15,17 +15,17 @@
     <svg class="bl-clock" viewBox="0 0 200 200" width="200" height="200">
       <defs>
         <radialGradient id="bl-face" cx="32%" cy="28%" r="80%">
-          <stop offset="0" stop-color="#0a3aa8" />
-          <stop offset=".45" stop-color="#02206a" />
-          <stop offset="1" stop-color="#03144b" />
+          <stop offset="0" stop-color="#1c2a44" />
+          <stop offset=".45" stop-color="#070b16" />
+          <stop offset="1" stop-color="#000000" />
         </radialGradient>
         <linearGradient id="bl-trail" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#fff" stop-opacity="0" />
-          <stop offset="1" stop-color="#fff" stop-opacity=".22" />
+          <stop offset="0" stop-color="#1f8fff" stop-opacity="0" />
+          <stop offset="1" stop-color="#1f8fff" stop-opacity=".45" />
         </linearGradient>
       </defs>
       <circle cx="100" cy="100" r="98" fill="url(#bl-face)" />
-      <circle cx="100" cy="100" r="91" fill="none" stroke="#fff" stroke-width="1.6" opacity=".95" />
+      <circle cx="100" cy="100" r="96" fill="none" stroke="#1f8fff" stroke-width="2.4" opacity=".9" />
       <g class="bl-dial">
         <g stroke="#fff" stroke-linecap="round">
           <line x1="100" y1="17" x2="100" y2="29" stroke-width="3.2" />
@@ -47,7 +47,7 @@
         <g class="bl-hour" transform="rotate(240 100 100)"><rect x="96.8" y="54" width="6.4" height="52" rx="3.2" fill="#fff" /></g>
         <g class="bl-minute" transform="rotate(0 100 100)"><rect x="98" y="30" width="4" height="76" rx="2" fill="#fff" /></g>
         <circle cx="100" cy="100" r="6" fill="#fff" />
-        <circle cx="100" cy="100" r="2.4" fill="#02206a" />
+        <circle cx="100" cy="100" r="3" fill="#009bfe" />
       </g>
     </svg>
     <img class="bl-logo" src="/logo-mark-512.png" alt="" width="200" height="200" decoding="async" />
@@ -59,19 +59,19 @@
   #brand-loader.bl-on {
     position: fixed; inset: 0; z-index: 2147483000; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 28px; overflow: hidden;
-    background: radial-gradient(120% 90% at 50% 42%, #0b2b86 0%, #03144b 52%, #010a2a 100%);
+    background: radial-gradient(120% 90% at 50% 42%, #0b2a63 0%, #04070f 55%, #000 100%);
     transition: opacity .45s ease, transform .45s ease;
   }
   #brand-loader.bl-out { opacity: 0; transform: scale(1.04); pointer-events: none; }
   #brand-loader .bl-stage { position: relative; width: min(46vw, 200px); aspect-ratio: 1; }
   #brand-loader .bl-clock, #brand-loader .bl-logo { position: absolute; inset: 0; width: 100%; height: 100%; }
-  #brand-loader .bl-clock { filter: drop-shadow(0 18px 40px rgba(0, 6, 30, .55)); animation: bl-in .5s cubic-bezier(.2, .8, .2, 1) both; }
+  #brand-loader .bl-clock { filter: drop-shadow(0 0 18px rgba(31, 143, 255, .45)) drop-shadow(0 18px 40px rgba(0, 0, 0, .6)); animation: bl-in .5s cubic-bezier(.2, .8, .2, 1) both; }
   #brand-loader .bl-halo {
     position: absolute; inset: -40%; border-radius: 50%;
-    background: radial-gradient(circle, rgba(70, 120, 255, .35) 0%, rgba(70, 120, 255, 0) 62%);
+    background: radial-gradient(circle, rgba(0, 140, 255, .32) 0%, rgba(0, 140, 255, 0) 62%);
     animation: bl-breathe 2.4s ease-in-out infinite;
   }
-  #brand-loader .bl-ripple { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); opacity: 0; }
+  #brand-loader .bl-ripple { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(31, 143, 255, .85); opacity: 0; }
   #brand-loader .bl-trail { opacity: 0; }
   #brand-loader .bl-logo { opacity: 0; transform: scale(.94); }
   #brand-loader .bl-time {

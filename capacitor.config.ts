@@ -36,7 +36,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 1500,
       launchAutoHide: false, // hidden by initNative() once the app has rendered
-      backgroundColor: '#03144b',
+      backgroundColor: '#04070f',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',
     },
@@ -67,7 +67,7 @@ const ordersConfig: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 800,
       launchAutoHide: true,
-      backgroundColor: '#03144b',
+      backgroundColor: '#04070f',
       showSpinner: false,
     },
     Keyboard: {
@@ -82,7 +82,7 @@ const driverConfig: CapacitorConfig = {
   android: { path: 'android-driver', allowMixedContent: false, useLegacyBridge: true },
   ios: { path: 'ios-driver' },
   plugins: {
-    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#03144b' },
+    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#04070f' },
     PushNotifications: { presentationOptions: ['badge', 'sound', 'alert'] },
     CapacitorHttp: { enabled: true },
     Keyboard: { resize: 'body', resizeOnFullScreen: true },
