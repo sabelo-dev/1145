@@ -11,13 +11,13 @@ type Service = { name: string; description: string; icon: typeof Car; route: str
 const everyday: Service[] = [
   { name: "Shop", description: "Browse and buy from local merchants and the 1145 store.", icon: ShoppingBag, route: "/shop", tag: "Popular" },
   { name: "Ride", description: "Get a lift anywhere in the city, now or scheduled.", icon: Car, route: "/rides/request" },
-  { name: "Food", description: "Order from local eateries, delivered by a 1145 driver.", icon: UtensilsCrossed, route: "/food", tag: "New" },
+  { name: "Eat", description: "Order from local eateries, delivered by a 1145 driver.", icon: UtensilsCrossed, route: "/food", tag: "New" },
   { name: "Hire a pro", description: "Fixed-price services from approved freelancers and businesses.", icon: Briefcase, route: "/hire", tag: "New" },
   { name: "Send", description: "Courier parcels across town with live tracking.", icon: Package, route: "/package/send" },
   { name: "Wallet", description: "Pay, top up, withdraw and hold value in gold.", icon: Wallet, route: "/wallet" },
   { name: "Lease", description: "Rent-to-own electronics, vehicles and equipment.", icon: KeyRound, route: "/lease/marketplace", tag: "New" },
   { name: "Stay", description: "Book hotels, lodges and holiday rentals.", icon: Building2, route: "/stays", tag: "New" },
-  { name: "1145 Pay", description: "Scan a merchant QR code and pay with your phone.", icon: Wallet, route: "/scan-pay" },
+  { name: "Pay", description: "Scan a merchant QR code and pay with your phone.", icon: Wallet, route: "/scan-pay" },
   { name: "UCoin", description: "Spend and trade the rewards you earn on 1145.", icon: Coins, route: "/ucoin-market" },
 ];
 

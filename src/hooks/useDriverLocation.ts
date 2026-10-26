@@ -37,7 +37,9 @@ export function useDriverLocation(driverId?: string, status?: string) {
     };
     const start = async () => {
       try {
-        if (Capacitor.isNativePlatform()) {
+        // Only the Driver app ships the background plugin; the main app tracks
+        // through the web view while it is open.
+        if (Capacitor.isNativePlatform() && Capacitor.isPluginAvailable("BackgroundGeolocation")) {
           if (Capacitor.getPlatform() === "android") {
             const { PushNotifications } = await import("@capacitor/push-notifications");
             await PushNotifications.requestPermissions();

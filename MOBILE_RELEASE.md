@@ -163,3 +163,41 @@ website install from Play (or the reverse) without uninstalling first.
 
 Keep the Android upload keystore and its passwords safe: losing them
 means you cannot update the app.
+
+The Driver and Orders apps work the same way: `android-driver/` and
+`android-orders/` each have their own `keystore.properties` (keys
+`1145-driver-release.jks` and `1145-orders-release.jks` in
+`~/.android`). Build them after `npm run driver:sync` / `npm run orders:sync`.
+
+## 10. Direct downloads (1145.io/downloads)
+
+The downloads page offers the three Android APKs and the iPhone TestFlight
+links, and gives every signed-in user a share link
+(`1145.io/downloads?ref=<referral code>`). Inside the store apps the download
+buttons are hidden (Play and Apple do not allow offering installs from
+outside the store); only the share link shows.
+
+1. Run `20261026120000_app_install_referrals.sql`. It creates the public
+   `app-downloads` bucket (admins upload), the `app_install_referral` reward
+   rule (200 UC, at most 20 a day per sharer) and `claim_app_install`.
+2. After each release build, upload the signed APKs to the `app-downloads`
+   bucket (Supabase → Storage), replacing the old files:
+
+   | Upload | Built at |
+   | --- | --- |
+   | `1145.apk` | `android/app/build/outputs/apk/release/app-release.apk` |
+   | `1145-driver.apk` | `android-driver/app/build/outputs/apk/release/app-release.apk` |
+   | `1145-orders.apk` | `android-orders/app/build/outputs/apk/release/app-release.apk` |
+
+3. iPhone: in App Store Connect → TestFlight, create an external group with a
+   public link, then set `VITE_TESTFLIGHT_URL` (1145) and
+   `VITE_DRIVER_TESTFLIGHT_URL` (1145 Driver) for the website build. Without
+   them the page shows "iPhone: coming soon". TestFlight builds expire after
+   90 days, so upload a new one before then.
+
+**The reward.** A download cannot be verified, so the sharer is paid when the
+friend signs in on any of the apps for the first time: the app calls
+`claim_app_install`, which pays once per account and once per device, only
+for accounts created in the last 14 days. A friend who signed up with the
+sharer's code is credited automatically; anyone else is asked once for an
+invite code after signing in.

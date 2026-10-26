@@ -1,8 +1,9 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+// data-app-loading keeps the load animation (src/brand/loader.html) going.
 export function PageLoader() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-app-loading>
       <div className="container mx-auto px-4 py-8 space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -1,0 +1,185 @@
+<!--
+  1145 load animation, injected right after <div id="root"></div> of every
+  app build by vite-plugins/brandLoader.ts. It paints before any JavaScript
+  bundle loads: a clock in the logo's navy spins for as long as the page is
+  loading, then winds down to 11:45, becomes the 1145 logo and fades out.
+  "Loaded" means the window has loaded and the app has rendered something
+  that is not a loading placeholder (elements marked data-app-loading).
+  Shown only on 1145's own hosts and in the native apps (never on a merchant's
+  custom domain). With reduced motion the hands do not spin.
+-->
+<div id="brand-loader" aria-hidden="true">
+  <div class="bl-stage">
+    <div class="bl-halo"></div>
+    <div class="bl-ripple"></div>
+    <svg class="bl-clock" viewBox="0 0 200 200" width="200" height="200">
+      <defs>
+        <radialGradient id="bl-face" cx="32%" cy="28%" r="80%">
+          <stop offset="0" stop-color="#0a3aa8" />
+          <stop offset=".45" stop-color="#02206a" />
+          <stop offset="1" stop-color="#03144b" />
+        </radialGradient>
+        <linearGradient id="bl-trail" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#fff" stop-opacity="0" />
+          <stop offset="1" stop-color="#fff" stop-opacity=".22" />
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="100" r="98" fill="url(#bl-face)" />
+      <circle cx="100" cy="100" r="91" fill="none" stroke="#fff" stroke-width="1.6" opacity=".95" />
+      <g class="bl-dial">
+        <g stroke="#fff" stroke-linecap="round">
+          <line x1="100" y1="17" x2="100" y2="29" stroke-width="3.2" />
+          <line x1="183" y1="100" x2="171" y2="100" stroke-width="3.2" />
+          <line x1="100" y1="183" x2="100" y2="171" stroke-width="3.2" />
+          <line x1="17" y1="100" x2="29" y2="100" stroke-width="3.2" />
+          <g stroke-width="1.8" opacity=".8">
+            <line x1="141.5" y1="28.1" x2="138" y2="34.2" />
+            <line x1="171.9" y1="58.5" x2="165.8" y2="62" />
+            <line x1="171.9" y1="141.5" x2="165.8" y2="138" />
+            <line x1="141.5" y1="171.9" x2="138" y2="165.8" />
+            <line x1="58.5" y1="171.9" x2="62" y2="165.8" />
+            <line x1="28.1" y1="141.5" x2="34.2" y2="138" />
+            <line x1="28.1" y1="58.5" x2="34.2" y2="62" />
+            <line x1="58.5" y1="28.1" x2="62" y2="34.2" />
+          </g>
+        </g>
+        <g class="bl-trail"><path d="M100 100 L100 26 A74 74 0 0 0 36 63 Z" fill="url(#bl-trail)" /></g>
+        <g class="bl-hour" transform="rotate(240 100 100)"><rect x="96.8" y="54" width="6.4" height="52" rx="3.2" fill="#fff" /></g>
+        <g class="bl-minute" transform="rotate(0 100 100)"><rect x="98" y="30" width="4" height="76" rx="2" fill="#fff" /></g>
+        <circle cx="100" cy="100" r="6" fill="#fff" />
+        <circle cx="100" cy="100" r="2.4" fill="#02206a" />
+      </g>
+    </svg>
+    <img class="bl-logo" src="/logo-mark-512.png" alt="" width="200" height="200" decoding="async" />
+  </div>
+  <p class="bl-time"><span>11</span><i>:</i><span>45</span></p>
+</div>
+<style>
+  #brand-loader { display: none; }
+  #brand-loader.bl-on {
+    position: fixed; inset: 0; z-index: 2147483000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 28px; overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 42%, #0b2b86 0%, #03144b 52%, #010a2a 100%);
+    transition: opacity .45s ease, transform .45s ease;
+  }
+  #brand-loader.bl-out { opacity: 0; transform: scale(1.04); pointer-events: none; }
+  #brand-loader .bl-stage { position: relative; width: min(46vw, 200px); aspect-ratio: 1; }
+  #brand-loader .bl-clock, #brand-loader .bl-logo { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #brand-loader .bl-clock { filter: drop-shadow(0 18px 40px rgba(0, 6, 30, .55)); animation: bl-in .5s cubic-bezier(.2, .8, .2, 1) both; }
+  #brand-loader .bl-halo {
+    position: absolute; inset: -40%; border-radius: 50%;
+    background: radial-gradient(circle, rgba(70, 120, 255, .35) 0%, rgba(70, 120, 255, 0) 62%);
+    animation: bl-breathe 2.4s ease-in-out infinite;
+  }
+  #brand-loader .bl-ripple { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); opacity: 0; }
+  #brand-loader .bl-trail { opacity: 0; }
+  #brand-loader .bl-logo { opacity: 0; transform: scale(.94); }
+  #brand-loader .bl-time {
+    margin: 0; color: #fff; font: 600 15px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: .5em; text-indent: .5em; opacity: 0; transform: translateY(6px);
+  }
+  #brand-loader .bl-time i { font-style: normal; animation: bl-blink 1s steps(1) infinite; }
+  /* At 11:45: the clock ticks, a ring ripples out, and the logo takes over. */
+  #brand-loader.bl-done .bl-clock { animation: bl-tick .32s ease-out both; }
+  #brand-loader.bl-done .bl-ripple { animation: bl-ripple .9s ease-out both; }
+  #brand-loader.bl-done .bl-dial { transition: opacity .4s ease .18s; opacity: 0; }
+  #brand-loader.bl-done .bl-logo { transition: opacity .5s ease .15s, transform .6s cubic-bezier(.2, .8, .2, 1) .15s; opacity: 1; transform: none; }
+  #brand-loader.bl-done .bl-time { transition: opacity .4s ease .2s, transform .4s ease .2s; opacity: .85; transform: none; }
+  @keyframes bl-in { from { opacity: 0; transform: scale(.86); } }
+  @keyframes bl-tick { 0% { transform: scale(1); } 40% { transform: scale(1.05); } 100% { transform: scale(1); } }
+  @keyframes bl-ripple { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.7); } }
+  @keyframes bl-breathe { 0%, 100% { opacity: .7; transform: scale(.96); } 50% { opacity: 1; transform: scale(1.04); } }
+  @keyframes bl-blink { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) {
+    #brand-loader .bl-halo, #brand-loader .bl-clock { animation: none; }
+  }
+</style>
+<script>
+  (function () {
+    var el = document.getElementById("brand-loader");
+    var host = location.hostname;
+    var cap = window.Capacitor;
+    var native = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+    var ours = native || /(^|\.)1145\.io$/.test(host) || host === "localhost" || host === "127.0.0.1";
+    if (!ours) { el.remove(); return; }
+    el.className = "bl-on";
+
+    // Hand over from the native splash screen straight away, so the clock is seen.
+    try {
+      var hidden = native && cap.Plugins && cap.Plugins.SplashScreen && cap.Plugins.SplashScreen.hide({ fadeOutDuration: 150 });
+      if (hidden && hidden.catch) hidden.catch(function () {});
+    } catch (e) {}
+
+    var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var hour = el.querySelector(".bl-hour"), minute = el.querySelector(".bl-minute"), trail = el.querySelector(".bl-trail");
+    var SPEED = 0.42;      // minute hand at full speed, degrees per ms (a turn in ~0.86 s)
+    var SPIN_UP = 450;     // ms to reach full speed
+    var MIN_SPIN = 900;    // spin at least this long, even on a fast load
+    var start = performance.now(), last = start;
+    var m = 0, h = 240;    // the clock starts at 8:00
+    var settle = null;     // the wind-down to 11:45, once loaded
+    var ready = false, finished = false;
+
+    function draw(trailOpacity) {
+      minute.setAttribute("transform", "rotate(" + m + " 100 100)");
+      hour.setAttribute("transform", "rotate(" + h + " 100 100)");
+      trail.setAttribute("transform", "rotate(" + m + " 100 100)");
+      trail.style.opacity = trailOpacity;
+    }
+
+    function frame(now) {
+      if (finished) return;
+      var dt = Math.min(now - last, 64);
+      last = now;
+      if (!settle) {
+        var v = SPEED * Math.min(1, (now - start) / SPIN_UP);
+        m += v * dt;
+        h += v * dt / 12;
+        draw(v / SPEED);
+        if (ready && now - start >= MIN_SPIN) {
+          // Wind down from the current speed and stop exactly on 11:45: the
+          // minute hand at 270°, at least a quarter turn ahead, and the hour
+          // hand at 352.5°, moving forward to get there.
+          var mEnd = m + 90 + ((270 - m - 90) % 360 + 360) % 360;
+          var hEnd = h + ((352.5 - h) % 360 + 360) % 360;
+          settle = { t0: now, m0: m, h0: h, mEnd: mEnd, hEnd: hEnd, d: Math.max(600, 2 * (mEnd - m) / SPEED) };
+        }
+      } else {
+        var p = Math.min(1, (now - settle.t0) / settle.d);
+        var k = 1 - (1 - p) * (1 - p); // constant deceleration from full speed to rest
+        m = settle.m0 + (settle.mEnd - settle.m0) * k;
+        h = settle.h0 + (settle.hEnd - settle.h0) * k;
+        draw(1 - p);
+        if (p >= 1) { reveal(); return; }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function reveal() {
+      el.classList.add("bl-done");
+      setTimeout(finish, 750); // let the logo be seen
+    }
+    function finish() {
+      if (finished) return;
+      finished = true;
+      el.classList.add("bl-out");
+      setTimeout(function () { el.remove(); }, 500);
+    }
+
+    if (reduced) { m = 270; h = 352.5; draw(0); } else requestAnimationFrame(frame);
+
+    // Loaded: the window has loaded and the app shows a real page, not a placeholder.
+    var root = document.getElementById("root");
+    var windowLoaded = document.readyState === "complete";
+    function check() {
+      if (ready || !windowLoaded || !root || !root.childElementCount || root.querySelector("[data-app-loading]")) return;
+      ready = true;
+      if (reduced) reveal();
+    }
+    window.addEventListener("load", function () { windowLoaded = true; check(); });
+    if (root && window.MutationObserver) new MutationObserver(check).observe(root, { childList: true, subtree: true });
+    var poll = setInterval(function () { check(); if (ready) clearInterval(poll); }, 250);
+    setTimeout(function () { ready = true; if (reduced) reveal(); }, 12000); // never wait longer
+    setTimeout(finish, 16000);
+  })();
+</script>

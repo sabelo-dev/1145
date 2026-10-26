@@ -148,7 +148,7 @@ const MerchantDashboard = () => {
   const { current: storeAccess } = useMerchantAccess();
   const merchantAiItems = [
     canUse(storeAccess, "orders", "order_console") && { id: "order-console", title: "Order Console", icon: MonitorSmartphone },
-    canUse(storeAccess, "payments", "payment_requests") && { id: "payment-requests", title: "1145 Pay", icon: QrCode },
+    canUse(storeAccess, "payments", "payment_requests") && { id: "payment-requests", title: "Pay", icon: QrCode },
     storeAccess?.features.includes("ai_assistant") && (canUse(storeAccess, "insights") || canUse(storeAccess, "catalog"))
       && { id: "assistant", title: "Ask 1145 AI", icon: Sparkles },
     canUse(storeAccess, "settings") && (storeAccess?.features.length ?? 0) > 0 && { id: "team", title: "Team", icon: Users },

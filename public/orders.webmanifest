@@ -8,7 +8,7 @@
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],
   "orientation": "any",
-  "background_color": "#0f2a4d",
+  "background_color": "#03144b",
   "theme_color": "#0f2a4d",
   "lang": "en-ZA",
   "categories": ["business", "productivity"],

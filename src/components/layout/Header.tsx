@@ -26,10 +26,10 @@ import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 /** Primary destinations, always visible from md up. Keep this list short. */
 const primaryNav = [
   { label: "Shop", path: "/shop" },
-  { label: "Food Court", path: "/food" },
+  { label: "Eat", path: "/food" },
   { label: "Ride", path: "/rides/request" },
   { label: "Stays", path: "/stays" },
-  { label: "1145 Pay", path: "/1145pay" },
+  { label: "Pay", path: "/1145pay" },
 ];
 
 /** Secondary destinations, grouped under "More" so the bar stays calm. */

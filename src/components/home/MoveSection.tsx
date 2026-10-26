@@ -12,7 +12,7 @@ import { haversineDistance } from "@/services/dispatch/geoUtils";
 type Mode = "ride" | "food" | "shop" | "stay";
 const modes: { id: Mode; label: string; icon: typeof Car }[] = [
   { id: "ride", label: "Ride", icon: Car },
-  { id: "food", label: "Food Court", icon: UtensilsCrossed },
+  { id: "food", label: "Eat", icon: UtensilsCrossed },
   { id: "shop", label: "Shop", icon: ShoppingBag },
   { id: "stay", label: "Stay", icon: Building2 },
 ];
@@ -275,10 +275,10 @@ const MoveSection: React.FC = () => {
               <form onSubmit={handleFoodSearch} className="space-y-3">
                 <div className="relative">
                   <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-                  <input value={foodSearch} onChange={(e) => setFoodSearch(e.target.value)} placeholder="Eatery, cuisine or city" aria-label="Search the Food Court" className={fieldClass} />
+                  <input value={foodSearch} onChange={(e) => setFoodSearch(e.target.value)} placeholder="Eatery, cuisine or city" aria-label="Search eateries" className={fieldClass} />
                 </div>
                 <Button type="submit" variant="cta" className="h-12 w-full rounded-xl text-base font-semibold">
-                  {foodSearch.trim() ? "Find food" : "Browse the Food Court"} <ArrowRight className="ml-1 h-4 w-4" />
+                  {foodSearch.trim() ? "Find food" : "Browse eateries"} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </form>
             )}

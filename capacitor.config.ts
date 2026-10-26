@@ -1,11 +1,33 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+// Every installed plugin except background geolocation, for the apps that do
+// not track drivers (keep in step with package.json).
+const withoutBackgroundLocation = [
+  '@capacitor/app',
+  '@capacitor/browser',
+  '@capacitor/camera',
+  '@capacitor/geolocation',
+  '@capacitor/haptics',
+  '@capacitor/keyboard',
+  '@capacitor/network',
+  '@capacitor/preferences',
+  '@capacitor/push-notifications',
+  '@capacitor/share',
+  '@capacitor/splash-screen',
+  '@capacitor/status-bar',
+  '@capgo/capacitor-native-biometric',
+];
+
 // Native app (iOS / Android). The web build in `dist` is bundled into the app.
 // The app ID can never change after the first store upload.
 const config: CapacitorConfig = {
   appId: 'io.lifestyle1145.app',
   appName: '1145',
   webDir: 'dist',
+  // Every installed plugin except background geolocation, which only the
+  // Driver app needs. Leaving it out keeps the background-location foreground
+  // service (and Play's extra location review) out of the main app.
+  includePlugins: withoutBackgroundLocation,
   android: {
     // Mixed content is never needed: every API is https.
     allowMixedContent: false,
@@ -14,7 +36,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 1500,
       launchAutoHide: false, // hidden by initNative() once the app has rendered
-      backgroundColor: '#1e3a5f',
+      backgroundColor: '#03144b',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',
     },
@@ -36,6 +58,7 @@ const ordersConfig: CapacitorConfig = {
   appId: 'io.lifestyle1145.orders',
   appName: '1145 Orders',
   webDir: 'dist-orders',
+  includePlugins: withoutBackgroundLocation,
   android: {
     path: 'android-orders',
     allowMixedContent: false,
@@ -44,7 +67,7 @@ const ordersConfig: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 800,
       launchAutoHide: true,
-      backgroundColor: '#0f2a4d',
+      backgroundColor: '#03144b',
       showSpinner: false,
     },
     Keyboard: {
@@ -59,7 +82,7 @@ const driverConfig: CapacitorConfig = {
   android: { path: 'android-driver', allowMixedContent: false, useLegacyBridge: true },
   ios: { path: 'ios-driver' },
   plugins: {
-    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#1e3a5f' },
+    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#03144b' },
     PushNotifications: { presentationOptions: ['badge', 'sound', 'alert'] },
     CapacitorHttp: { enabled: true },
     Keyboard: { resize: 'body', resizeOnFullScreen: true },

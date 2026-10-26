@@ -98,7 +98,7 @@ export interface ServiceLink {
 export const services: ServiceLink[] = [
   { name: "Shop", desc: "Marketplace", icon: ShoppingBag, href: "/shop" },
   { name: "Ride", desc: "Get a lift", icon: Car, href: "/rides/request" },
-  { name: "Food", desc: "Eateries, delivered", icon: UtensilsCrossed, href: "/food" },
+  { name: "Eat", desc: "Eateries, delivered", icon: UtensilsCrossed, href: "/food" },
   { name: "Send", desc: "Parcels & courier", icon: Package, href: "/package/send" },
   { name: "Wallet", desc: "Money & gold", icon: Wallet, href: "/wallet" },
   { name: "Lease", desc: "Rent-to-own", icon: KeyRound, href: "/lease/marketplace" },

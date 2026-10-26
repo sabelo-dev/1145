@@ -17,7 +17,7 @@
     "driver:sync": "npm run build:driver && node scripts/cap-driver.mjs sync android",
     "driver:open": "node scripts/cap-driver.mjs open android",
     "test:dispatch": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts",
-    "test": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts tests/customer-cancel.test.ts tests/webhook-signature.test.ts tests/refund-requests.test.ts"
+    "test": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts tests/customer-cancel.test.ts tests/webhook-signature.test.ts tests/refund-requests.test.ts tests/app-install-referral.test.ts"
   },
   "overrides": {
     "@opentelemetry/core": "2.8.0",
@@ -46,6 +46,7 @@
     "@capacitor/share": "^8",
     "@capacitor/splash-screen": "^8",
     "@capacitor/status-bar": "^8.0.2",
+    "@capgo/capacitor-native-biometric": "8.8.2",
     "@dnd-kit/core": "6.3.1",
     "@dnd-kit/sortable": "8.0.0",
     "@dnd-kit/utilities": "3.2.2",
@@ -83,7 +84,6 @@
     "@tanstack/react-query": "5.56.2",
     "ajv": "8.20.0",
     "aws-amplify": "^6.18.0",
-    "capacitor-native-biometric": "^4.2.2",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cmdk": "1.0.0",

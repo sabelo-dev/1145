@@ -21,6 +21,7 @@ import { useCustomDomainResolver } from "@/hooks/useCustomDomainResolver";
 // Eagerly loaded (critical path)
 import Layout from "@/components/layout/Layout";
 import PasswordChangeGate from "@/components/auth/PasswordChangeGate";
+import AppInviteClaim from "@/components/downloads/AppInviteClaim";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleDashboardRedirect from "@/components/auth/RoleDashboardRedirect";
 import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
@@ -117,6 +118,7 @@ const UCoinMarketPage = lazyWithRetry(() => import("@/pages/UCoinMarketPage"));
 const UCoinWalletPage = lazyWithRetry(() => import("@/pages/UCoinWalletPage"));
 
 const InstallPage = lazyWithRetry(() => import("@/pages/InstallPage"));
+const DownloadsPage = lazyWithRetry(() => import("@/pages/DownloadsPage"));
 const LeaseApplyPage = lazyWithRetry(() => import("@/pages/LeaseApplyPage"));
 const LeaseMarketplacePage = lazyWithRetry(() => import("@/pages/LeaseMarketplacePage"));
 const AssetOwnerDashboard = lazyWithRetry(() => import("@/pages/AssetOwnerDashboard"));
@@ -158,7 +160,7 @@ function AppRouter() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center" data-app-loading>
         <div className="flex flex-col items-center gap-3">
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
           <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
@@ -218,6 +220,7 @@ function AppRouter() {
           } />
           <Route path="contact" element={<ContactPage />} />
           <Route path="faq" element={<FAQPage />} />
+          <Route path="downloads" element={<DownloadsPage />} />
           <Route path="rewards-guide" element={<RewardsGuidePage />} />
           <Route path="best-sellers" element={<BestSellersPage />} />
           <Route path="new-arrivals" element={<NewArrivalsPage />} />
@@ -443,6 +446,7 @@ function App() {
                       <ScrollToTop />
                       <AppRouter />
                       <PasswordChangeGate />
+                      <AppInviteClaim app="app" />
                       <Toaster />
                       <Sonner />
                       <UpdatePrompt />

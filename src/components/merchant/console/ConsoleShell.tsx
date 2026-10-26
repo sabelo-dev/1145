@@ -36,7 +36,7 @@ function tabsFor(access: StoreAccess | undefined): Tab[] {
   const tabs: Tab[] = [];
   if (canUse(access, "orders", "order_console")) tabs.push({ id: "orders", label: "Orders", icon: MonitorSmartphone });
   if (canUse(access, "operations")) tabs.push({ id: "stock", label: "Stock", icon: Boxes });
-  if (canUse(access, "payments", "payment_requests")) tabs.push({ id: "pay", label: "1145 Pay", icon: QrCode });
+  if (canUse(access, "payments", "payment_requests")) tabs.push({ id: "pay", label: "Pay", icon: QrCode });
   if (canUse(access, "insights")) tabs.push({ id: "insights", label: "Insights", icon: BarChart3 });
   if (access.features.includes("ai_assistant") && (canUse(access, "insights") || canUse(access, "catalog"))) {
     tabs.push({ id: "assistant", label: "Ask 1145 AI", icon: Sparkles });

@@ -1,4 +1,4 @@
-import { NativeBiometric } from "capacitor-native-biometric";
+import { NativeBiometric } from "@capgo/capacitor-native-biometric";
 
 export async function authenticate(reason = "Authenticate") {
   const result = await NativeBiometric.isAvailable();

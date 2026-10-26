@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PasswordChangeGate from "@/components/auth/PasswordChangeGate";
+import AppInviteClaim from "@/components/downloads/AppInviteClaim";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MerchantConsolePage from "@/pages/MerchantConsolePage";
 import "@/index.css";
@@ -32,6 +33,7 @@ createRoot(document.getElementById("root")!).render(
             <MemoryRouter initialEntries={["/merchant/console"]}>
               <MerchantConsolePage />
               <PasswordChangeGate />
+              <AppInviteClaim app="orders" />
               <Toaster />
               <Sonner />
             </MemoryRouter>

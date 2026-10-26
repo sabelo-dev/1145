@@ -3,3 +3,9 @@ include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
 
 apply from: 'capacitor.settings.gradle'
+// Build the background geolocation plugin from our AGP 9 compatible copy of
+// its build file (see background-geolocation.gradle); its sources stay in
+// node_modules.
+def backgroundGeolocation = project(':capacitor-community-background-geolocation')
+backgroundGeolocation.buildFileName = backgroundGeolocation.projectDir.toPath()
+    .relativize(file('background-geolocation.gradle').toPath()).toString()

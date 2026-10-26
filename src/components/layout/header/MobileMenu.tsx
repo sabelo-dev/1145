@@ -26,9 +26,9 @@ type Item = { label: string; path: string; icon: LucideIcon };
 /** Same destinations as the desktop bar and its "More" menu. */
 const shopItems: Item[] = [
   { label: "Get a ride", path: "/rides/request", icon: Car },
-  { label: "1145 Pay", path: "/1145pay", icon: QrCode },
+  { label: "Pay", path: "/1145pay", icon: QrCode },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
-  { label: "Food Court", path: "/food", icon: UtensilsCrossed },
+  { label: "Eat", path: "/food", icon: UtensilsCrossed },
   { label: "Hire a pro", path: "/hire", icon: Briefcase },
   { label: "Marketplace", path: OFFICIAL_STORE_PATH, icon: Store },
   { label: "Stays", path: "/stays", icon: Building2 },

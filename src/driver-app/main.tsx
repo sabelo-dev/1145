@@ -12,6 +12,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PasswordChangeGate from "@/components/auth/PasswordChangeGate";
+import AppInviteClaim from "@/components/downloads/AppInviteClaim";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import DriverDashboardPage from "@/pages/driver/DriverDashboardPage";
@@ -26,7 +27,7 @@ import "@/index.css";
 const queryClient = new QueryClient();
 function DriverGate() {
   const { user, isLoading, isDriver, logout } = useAuth();
-  if (isLoading) return <p className="p-6">Loading 1145 Driver...</p>;
+  if (isLoading) return <p className="p-6" data-app-loading>Loading 1145 Driver...</p>;
   if (!user) return <Navigate to="/driver/login" replace />;
   if (!isDriver) return <div className="space-y-4 p-6"><h1 className="text-xl font-bold">Driver account required</h1><p>Sign in with your approved 1145 driver account.</p><Button onClick={() => void logout()}>Sign out</Button></div>;
   return <DriverDashboardPage />;
@@ -41,7 +42,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/driver/onboarding" element={<DriverOnboardingPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="*" element={<DriverGate />} />
-      </Routes><PasswordChangeGate /><UpdatePrompt /><Toaster /><Sonner /></BrowserRouter>
+      </Routes><PasswordChangeGate /><AppInviteClaim app="driver" /><UpdatePrompt /><Toaster /><Sonner /></BrowserRouter>
     </CartProvider></WishlistProvider></GoldPricingProvider></AuthProvider></QueryClientProvider></ThemeCustomizationProvider>
   </ThemeProvider></ErrorBoundary></HelmetProvider>,
 );

@@ -4,6 +4,7 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
+import { brandLoader } from './vite-plugins/brandLoader'
 
 // Capacitor serves webDir/index.html; the source page is orders.html so it
 // can live next to the main app's index.html.
@@ -17,7 +18,7 @@ const renameEntryToIndex = (): Plugin => ({
 })
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), renameEntryToIndex()],
+  plugins: [react(), brandLoader(), renameEntryToIndex()],
   // The console app never registers for push notifications.
   define: { __ANDROID_PUSH_CONFIGURED__: 'false' },
   resolve: {

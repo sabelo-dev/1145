@@ -22,7 +22,7 @@ const items: Array<{
 }> = [
   { label: "Home", path: "/", icon: House, exact: true },
   { label: "Ride", path: "/rides/request", icon: CarFront },
-  // 1145 Pay sits in the middle, one tap from anywhere (Stays is in the menu).
+  // Pay sits in the middle, one tap from anywhere (Stays is in the menu).
   { label: "Pay", path: "/1145pay", icon: QrCode, featured: true },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
   { label: "Account", path: "/dashboard", icon: UserRound, authRequired: true },
@@ -63,7 +63,7 @@ const MobileBottomNav: React.FC = () => {
       <ul className="grid grid-cols-5" style={{ height: "calc(var(--bottom-nav-h) + 0.2rem)" }}>
         {items.map(({ label, path, icon: Icon, authRequired, exact, featured }) => featured ? (
           <li key={path} className="relative flex min-w-0 justify-center">
-            <NavLink to={path} onClick={tap} aria-label="1145 Pay"
+            <NavLink to={path} onClick={tap} aria-label="Pay"
               className={({ isActive }) => `${itemClass} ${isActive ? "text-brand font-semibold" : "text-text-secondary"}`}>
               <span className="absolute -top-5 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#0f2a4d] to-[#2a78d6] text-white shadow-lg ring-4 ring-background">
                 <Icon className="h-6 w-6" aria-hidden />

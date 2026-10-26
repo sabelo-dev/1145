@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Smartphone, CheckCircle, Share, MoreVertical } from "lucide-react";
+import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -47,7 +48,7 @@ const InstallPage: React.FC = () => {
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 w-20 h-20 rounded-2xl overflow-hidden shadow-lg">
-              <img src="/pwa-icon-512.png" alt="1145 Lifestyle" className="w-full h-full object-cover" />
+              <img src="/logo-mark-512.png" alt="1145 Lifestyle" className="w-full h-full object-cover" />
             </div>
             <CardTitle className="text-2xl">Install 1145 Lifestyle</CardTitle>
             <p className="text-muted-foreground text-sm mt-1">
@@ -114,6 +115,10 @@ const InstallPage: React.FC = () => {
                 <li className="flex items-center gap-2"><CheckCircle className="h-3 w-3 text-green-500" /> Quick access from home screen</li>
               </ul>
             </div>
+
+            <p className="text-center text-sm">
+              Want the full apps? <Link to="/downloads" className="text-primary underline">Download 1145, Driver and Orders</Link>
+            </p>
           </CardContent>
         </Card>
       </div>

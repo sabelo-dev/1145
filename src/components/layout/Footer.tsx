@@ -23,12 +23,12 @@ const shopLinks = [
 const serviceLinks = [
   { to: "/services", label: "All services" },
   { to: "/rides/request", label: "Ride" },
-  { to: "/food", label: "Food delivery" },
+  { to: "/food", label: "Eat" },
   { to: "/hire", label: "Hire a pro" },
   { to: "/package/send", label: "Send a parcel" },
   { to: "/stays", label: "Stays" },
   { to: "/lease/marketplace", label: "Lease" },
-  { to: "/1145pay", label: "1145 Pay" },
+  { to: "/1145pay", label: "Pay" },
   { to: "/wallet", label: "Wallet" },
 ];
 
@@ -39,6 +39,7 @@ const helpLinks = [
   { to: "/shipping", label: "Shipping & delivery" },
   { to: "/returns", label: "Returns & refunds" },
   { to: "/rewards-guide", label: "Rewards guide" },
+  { to: "/downloads", label: "Get the apps" },
 ];
 
 const partnerLinks = [

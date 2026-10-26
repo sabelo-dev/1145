@@ -3,10 +3,12 @@ import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import fs from 'fs'
 import { VitePWA } from 'vite-plugin-pwa'
+import { brandLoader } from './vite-plugins/brandLoader'
 
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    brandLoader(),
     VitePWA({
       registerType: 'prompt', // UpdatePrompt asks before reloading
       injectRegister: false, // we register manually with iframe/preview guards
