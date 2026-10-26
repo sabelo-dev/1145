@@ -9,19 +9,19 @@
 
 export const colors = {
   primary: {
-    900: "#0B1020", // Midnight Navy
-    800: "#11182D", // Deep Navy
-    700: "#18213A", // Navy
-    border: "#33405F",
+    900: "#0B1426", // Midnight Navy
+    800: "#121E36", // Deep Navy
+    700: "#1B2946", // Navy
+    border: "#32405D",
   },
   accent: {
-    cyan: "#00D4FF", // Electric Cyan — interaction
-    cyanSoft: "#E6FAFF",
-    gold: "#D4AF37", // Time Gold — value
+    cyan: "#087BFF", // Electric Blue — interaction
+    cyanSoft: "#EAF3FF",
+    gold: "#D6A84B", // Champagne Gold — value
   },
   surface: {
     white: "#FFFFFF",
-    soft: "#F4F6F9",
+    soft: "#F5F7FB", // Cloud White
     border: "#E4E6EB",
   },
   text: {
@@ -33,7 +33,7 @@ export const colors = {
     success: "#16863F",
     warning: "#F59E0B",
     error: "#DC2626",
-    info: "#2563EB",
+    info: "#006FE6",
     disabled: "#98A2B3",
   },
 } as const;

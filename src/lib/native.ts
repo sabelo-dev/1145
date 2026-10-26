@@ -22,7 +22,7 @@ export async function initNative() {
       const dark = root.classList.contains('dark');
       await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light });
       if (platform() === 'android') {
-        await StatusBar.setBackgroundColor({ color: dark ? '#0b1020' : '#ffffff' });
+        await StatusBar.setBackgroundColor({ color: dark ? '#0b1426' : '#ffffff' });
       }
     };
     await syncStatusBar();

@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 const merchantSchema = z.object({
   businessName: z.string()
@@ -164,6 +165,7 @@ const RegisterMerchantForm: React.FC = () => {
         console.error('Merchant insert error:', merchantError);
         throw merchantError;
       }
+      track("merchant_application");
 
       // Insert sensitive financial / contact details into protected table
       if (merchantResult?.id) {

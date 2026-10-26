@@ -49,6 +49,8 @@ export interface Product {
   merchantId: string;
   merchantName: string;
   merchantSlug?: string;
+  /** Where the merchant fulfils orders (countries/regions); empty or missing means not stated. */
+  shippingRegions?: string[];
   brand?: string;
   /** Out-of-stock items can be pre-ordered (XIXLV on the official Marketplace only). */
   allowPreorder?: boolean;

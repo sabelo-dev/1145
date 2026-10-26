@@ -23,6 +23,7 @@ import ProductImageViewer from "@/components/shop/ProductImageViewer";
 import SEO from "@/components/SEO";
 import { Product, ProductVariation } from "@/types";
 import { fetchProductBySlug, fetchRelatedProducts } from "@/services/products";
+import { rememberInterest, track } from "@/lib/analytics";
 import { getProductSchema, getBreadcrumbSchema } from "@/utils/structuredData";
 import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 
@@ -67,6 +68,8 @@ const ProductPage: React.FC = () => {
 
         if (productData) {
           setProduct(productData);
+          track("product_view", { product: productData.id, category: productData.category });
+          rememberInterest(productData.category);
           
           // Auto-select first variation if available
           if (productData.variations && productData.variations.length > 0) {

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  Briefcase, ChevronDown, Gavel, Grid3X3, LayoutDashboard, LayoutGrid, Percent, LogOut, Menu, Package, Search, Settings,
+  Briefcase, Building2, ChevronDown, Download, Gavel, Grid3X3, LayoutDashboard, Percent, LogOut, Menu, Package, Search, Settings,
   ShoppingCart, Sparkles, Store, TrendingUp, Truck, User, UtensilsCrossed, X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,13 +22,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
+import { track } from "@/lib/analytics";
 
 /** Primary destinations, always visible from md up. Keep this list short. */
+/** The three journeys first — Shop converts, Ride is its own service, Discover holds the rest. */
 const primaryNav = [
   { label: "Shop", path: "/shop" },
-  { label: "Eat", path: "/food" },
   { label: "Ride", path: "/rides/request" },
-  { label: "Stays", path: "/stays" },
+  { label: "Discover", path: "/services" },
+  { label: "Eat", path: "/food" },
   { label: "Pay", path: "/1145pay" },
 ];
 
@@ -36,7 +38,8 @@ const primaryNav = [
 const moreNav = [
   { label: "Hire a pro", path: "/hire", icon: Briefcase },
   { label: "Marketplace", path: OFFICIAL_STORE_PATH, icon: Store },
-  { label: "All services", path: "/services", icon: LayoutGrid },
+  { label: "Stays", path: "/stays", icon: Building2 },
+  { label: "Sell on 1145", path: "/merchant/register", icon: Store },
   { label: "Deals", path: "/deals", icon: Percent },
   { label: "Auctions", path: "/auctions", icon: Gavel },
   { label: "Categories", path: "/categories", icon: Grid3X3 },
@@ -184,6 +187,14 @@ const Header: React.FC = () => {
             <div className="hidden md:block">
               <CurrencyToggle compact />
             </div>
+
+            <Link
+              to="/downloads"
+              onClick={() => track("download_click", { placement: "header" })}
+              className="mx-1 hidden h-10 items-center gap-2 rounded-full bg-brand px-4 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand-hover lg:inline-flex"
+            >
+              <Download className="h-4 w-4" aria-hidden /> Get the app
+            </Link>
 
             {user && <NotificationCenter />}
 

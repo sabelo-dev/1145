@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from "react";
 import { CartItem, Cart } from "@/types";
+import { track } from "@/lib/analytics";
 import { useToast } from "@/components/ui/use-toast";
 
 interface CartContextType {
@@ -31,6 +32,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = useCallback((item: Omit<CartItem, "quantity">, quantity = 1) => {
     const qty = Math.max(1, Math.floor(quantity));
+    track("add_to_cart", { product: item.productId, quantity: qty });
     setCart(prevCart => {
       const existingItemIndex = prevCart.items.findIndex(
         cartItem =>

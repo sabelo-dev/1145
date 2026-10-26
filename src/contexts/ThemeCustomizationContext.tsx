@@ -14,15 +14,15 @@ interface ThemeCustomizationContextType {
   applyPreset: (presetName: string) => void;
 }
 
-/** 1145 defaults — brand navy #1E3A5F, input surface, selected surface. */
+/** 1145 defaults — Electric Blue #006FE6, Cloud White surface, selected surface. */
 const defaultColors: ThemeColors = {
-  primary: "213 52% 24%",
-  secondary: "229 33% 97%",
-  accent: "205 100% 96%",
+  primary: "212 100% 45%",
+  secondary: "220 45% 97%",
+  accent: "214 100% 96%",
 };
 
 const colorPresets = [
-  { name: "1145", colors: { primary: "213 52% 24%", secondary: "229 33% 97%", accent: "205 100% 96%" } },
+  { name: "1145", colors: { primary: "212 100% 45%", secondary: "220 45% 97%", accent: "214 100% 96%" } },
   { name: "Ocean", colors: { primary: "199 89% 34%", secondary: "187 40% 95%", accent: "185 96% 90%" } },
   { name: "Forest", colors: { primary: "142 60% 26%", secondary: "84 30% 95%", accent: "138 60% 90%" } },
   { name: "Sunset", colors: { primary: "25 80% 40%", secondary: "38 50% 96%", accent: "30 100% 90%" } },
@@ -31,7 +31,7 @@ const colorPresets = [
 ];
 
 /** Bump when defaults change so stale saved palettes are dropped. */
-const THEME_STORAGE_KEY = "theme-colors-v2";
+const THEME_STORAGE_KEY = "theme-colors-v3";
 
 
 const ThemeCustomizationContext = createContext<ThemeCustomizationContextType | undefined>(undefined);

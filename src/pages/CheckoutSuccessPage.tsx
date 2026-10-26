@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { track } from "@/lib/analytics";
 import { CheckCircle, Package, Mail } from "lucide-react";
 
 const CheckoutSuccessPage: React.FC = () => {
@@ -15,6 +16,11 @@ const CheckoutSuccessPage: React.FC = () => {
     // Clear cart on successful payment
     clearCart();
   }, [clearCart]);
+
+  // Once per page load; a refresh may count twice, which the funnel tolerates.
+  useEffect(() => {
+    track("purchase", { payment: searchParams.get("pf_payment_id") ?? undefined });
+  }, [searchParams]);
 
   const paymentId = searchParams.get("pf_payment_id");
   const paymentStatus = searchParams.get("payment_status");

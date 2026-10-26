@@ -40,19 +40,21 @@
 @layer base {
   :root {
     /* ── 1145 Unified Color System ─────────────────────────────────
-       Midnight Navy (trust) + Electric Cyan (movement) + Time Gold (value)
-       + Neutral White (simplicity). All values HSL. */
+       Midnight Navy (trust) + Electric Blue (movement) + Champagne Gold
+       (value) + Cloud White (simplicity). All values HSL.
+       `--cyan` keeps its name so existing screens pick up Electric Blue. */
 
     /* Brand scales */
-    --navy-900: 226 49% 8%;     /* #0B1020 */
-    --navy-800: 225 45% 12%;    /* #11182D */
-    --navy-700: 224 41% 16%;    /* #18213A */
-    --navy-border: 222 30% 29%; /* #33405F */
+    --navy-900: 219 55% 10%;    /* #0B1426 Midnight Navy */
+    --navy-800: 220 50% 14%;    /* #121E36 */
+    --navy-700: 220 45% 19%;    /* #1B2946 */
+    --navy-border: 220 30% 28%; /* #32405D */
 
-    --cyan: 190 100% 50%;       /* #00D4FF */
-    --cyan-soft: 192 100% 95%;  /* #E6FAFF */
-    --gold: 46 65% 52%;         /* #D4AF37 — fills, badges, dark-mode text */
-    --gold-ink: 43 85% 30%;     /* #8E690B — gold TEXT on light surfaces (5:1) */
+    --cyan: 212 100% 52%;       /* #087BFF Electric Blue — accents, text on navy */
+    --cyan-soft: 214 100% 96%;  /* #EAF3FF */
+    --gold: 40 63% 57%;         /* #D6A84B Champagne Gold — fills, badges, text on navy */
+    --gold-ink: 38 80% 28%;     /* #80560E — gold TEXT on light surfaces (5.6:1) */
+    --cloud: 220 45% 97%;       /* #F5F7FB Cloud White */
 
     /* Neutral foundation */
     --background: 0 0% 100%;
@@ -65,18 +67,19 @@
     --popover-foreground: 223 22% 16%;
 
     /* ── 1145 interaction-state tokens (single source of truth) ── */
-    --brand: 213 52% 24%;          /* #1E3A5F  brand / selected / focus */
-    --brand-hover: 213 52% 20%;
-    --brand-pressed: 213 52% 15%;
+    /* Electric Blue, one step deeper so white button text passes AA (4.8:1). */
+    --brand: 212 100% 45%;         /* #006FE6  brand / CTA / selected / focus */
+    --brand-hover: 212 100% 40%;
+    --brand-pressed: 212 100% 35%;
     --brand-foreground: 0 0% 100%;
 
     --text-secondary: 217 11% 45%; /* #66707F — 5.0:1 on white, 4.6:1 on muted */
     --text-muted: 217 10% 47%;     /* #6D7685 — 4.6:1 on white */
 
-    --surface-input: 229 33% 97%;  /* #F6F7FB */
-    --surface-hover: 220 27% 96%;  /* #F1F3F7 */
-    --surface-pressed: 213 35% 93%;/* #E8EDF4 */
-    --surface-selected: 205 100% 96%; /* #EAF5FF */
+    --surface-input: var(--cloud);
+    --surface-hover: 220 38% 95%;  /* #EFF2F8 */
+    --surface-pressed: 218 38% 92%;/* #E6EBF4 */
+    --surface-selected: var(--cyan-soft);
 
     --disabled-surface: 225 10% 90%;  /* #E2E4E9 */
     --disabled-foreground: 217 9% 64%;/* #9AA1AD */
@@ -89,10 +92,10 @@
     --primary: var(--brand);
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 229 33% 97%;
+    --secondary: var(--cloud);
     --secondary-foreground: 223 22% 16%;
 
-    --muted: 229 33% 97%;
+    --muted: var(--cloud);
     --muted-foreground: var(--text-secondary);
 
     --accent: var(--surface-selected);
@@ -108,12 +111,12 @@
     --warning-foreground: 226 49% 8%;
     --warning-ink: 32 95% 35%;  /* #B16005 — warning TEXT on light surfaces */
 
-    --info: 221 83% 53%;        /* #2563EB */
+    --info: var(--brand);
     --info-foreground: 0 0% 100%;
 
     --disabled: var(--disabled-foreground);
 
-    --border: 220 11% 91%;      /* #E4E6EB — decorative dividers */
+    --border: 220 20% 90%;      /* #E4E6EB — decorative dividers */
     --input: 220 9% 60%;        /* #8E95A1 — form field outlines, 3:1 */
     --ring: var(--brand);
 
@@ -122,7 +125,7 @@
 
     /* Surfaces used by the app shell (bars, sheets, floating nav) */
     --surface: 0 0% 100%;
-    --surface-muted: 216 29% 97%;
+    --surface-muted: var(--cloud);
 
     /* Dashboard sidebar (was undefined, so it rendered transparent) */
     --sidebar-background: 0 0% 100%;
@@ -154,27 +157,27 @@
 
   .dark {
     /* Same brand identity — never pure black */
-    --background: 226 49% 8%;
+    --background: 219 55% 10%;
     --foreground: 0 0% 100%;
 
-    --card: 225 45% 12%;
+    --card: 220 50% 14%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 225 45% 12%;
+    --popover: 220 50% 14%;
     --popover-foreground: 0 0% 100%;
 
-    --brand: 210 65% 62%;
-    --brand-hover: 210 65% 68%;
-    --brand-pressed: 210 65% 55%;
+    --brand: 213 100% 62%;      /* #3D95FF — navy text on it 6:1 */
+    --brand-hover: 213 100% 68%;
+    --brand-pressed: 213 100% 56%;
     --brand-foreground: 226 49% 8%;
 
     --text-secondary: 218 15% 70%;
     --text-muted: 218 15% 58%;
 
-    --surface-input: 224 41% 16%;
-    --surface-hover: 224 41% 20%;
-    --surface-pressed: 224 41% 24%;
-    --surface-selected: 213 40% 24%;
+    --surface-input: 220 45% 19%;
+    --surface-hover: 220 42% 22%;
+    --surface-pressed: 220 40% 26%;
+    --surface-selected: 214 60% 24%;
 
     --disabled-surface: 224 25% 22%;
     --disabled-foreground: 218 12% 55%;
@@ -185,10 +188,10 @@
     --primary: var(--brand);
     --primary-foreground: 226 49% 8%;
 
-    --secondary: 224 41% 16%;
+    --secondary: 220 45% 19%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 225 45% 12%;
+    --muted: 220 50% 14%;
     --muted-foreground: var(--text-secondary);
 
     --accent: var(--surface-selected);
@@ -204,26 +207,26 @@
     --warning-foreground: 226 49% 8%;
     --warning-ink: 38 92% 50%;
 
-    --gold-ink: 46 65% 52%;
+    --gold-ink: 40 63% 57%;
 
     --info: 221 83% 53%;
     --info-foreground: 0 0% 100%;
 
     --disabled: var(--disabled-foreground);
 
-    --border: 222 30% 29%;
-    --input: 222 28% 47%;
+    --border: 220 30% 26%;
+    --input: 220 28% 47%;
     --ring: var(--brand);
 
 
-    --surface: 225 45% 12%;
-    --surface-muted: 224 41% 16%;
+    --surface: 220 50% 14%;
+    --surface-muted: 220 50% 13%;
 
-    --sidebar-background: 225 45% 12%;
+    --sidebar-background: 220 50% 14%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-accent: 224 41% 20%;
+    --sidebar-accent: 220 42% 22%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 30% 29%;
+    --sidebar-border: 220 30% 26%;
 
     --gradient-sheen: linear-gradient(180deg, hsl(var(--navy-700) / 0.92), hsl(var(--navy-800) / 0.6));
 

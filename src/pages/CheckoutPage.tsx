@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import type { AppliedPromo } from "@/components/checkout/PromoCodePanel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CircleHelp, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +19,12 @@ const CheckoutPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   // Shared so the form and the order summary show the same total.
   const [promo, setPromo] = useState<AppliedPromo | null>(null);
+
+  useEffect(() => {
+    if (cart.items.length) track("checkout_start", { items: cart.items.length });
+    // Once per visit to checkout.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;

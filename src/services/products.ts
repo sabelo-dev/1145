@@ -43,6 +43,7 @@ const mapDatabaseProduct = (dbProduct: any, images: any[] = [], variations: any[
     // Pre-orders: XIXLV products from stores an admin has enabled (the Marketplace).
     allowPreorder: !!store.allow_preorders && String(dbProduct.brand ?? "").toUpperCase() === "XIXLV",
     brand: dbProduct.brand || undefined,
+    shippingRegions: Array.isArray(merchant.shipping_regions) ? merchant.shipping_regions : undefined,
     createdAt: dbProduct.created_at,
     variations: mappedVariations.length > 0 ? mappedVariations : undefined,
     productType: dbProduct.product_type,
@@ -76,7 +77,8 @@ export const fetchDatabaseProducts = async (): Promise<Product[]> => {
           *,
           merchants (
             id,
-            business_name
+            business_name,
+            shipping_regions
           )
         )
       `)

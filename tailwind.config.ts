@@ -89,6 +89,7 @@ export default {
 					soft: 'hsl(var(--cyan-soft))',
 					foreground: 'hsl(var(--navy-900))'
 				},
+				cloud: 'hsl(var(--cloud))',
 				gold: {
 					DEFAULT: 'hsl(var(--gold))',
 					foreground: 'hsl(var(--navy-900))'
