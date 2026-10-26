@@ -2,5 +2,5 @@
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
     ],
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "automatic"
 }
