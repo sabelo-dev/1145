@@ -3,6 +3,7 @@ import {
   ShoppingBag, Sparkles, Store, Truck, UtensilsCrossed, Wallet, type LucideIcon,
 } from "lucide-react";
 import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
+import { competitionTerms, competitionTermsPath } from "@/content/competition";
 
 /**
  * Home-page content. Layout components read from here so campaigns can be
@@ -243,7 +244,8 @@ export const dropCampaign = {
   ],
   cta: { label: "Enter now", to: "/downloads" },
   closes: "2027-02-27T23:59:59+02:00",
-  terms: { label: "Terms apply", to: "/terms" },
+  // Competition rules go live once approved (see content/competition.ts).
+  terms: { label: "Terms apply", to: competitionTerms.approved ? competitionTermsPath : "/terms" },
   image: {
     src: "/images/drop-001/cap_red.webp",
     alt: "Red XIXLV cap from the current drop",

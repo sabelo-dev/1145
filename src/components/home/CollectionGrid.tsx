@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { collections } from "@/content/home";
+import ResponsiveImage from "@/components/ui/responsive-image";
 import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
 /** A small set of current collections, each with its own image and a direct link. */
@@ -19,8 +20,9 @@ const CollectionGrid: React.FC = () => (
         <li key={name} className="min-w-0">
           {/* One link per card; the image is decorative because the link names the destination. */}
           <Link to={to} aria-label={linkLabel} className="group block rounded-2xl">
-            <img
+            <ResponsiveImage
               src={image.src}
+              sizes="(min-width: 1024px) 22vw, 45vw"
               alt=""
               width={image.width}
               height={image.height}

@@ -7,6 +7,7 @@ import { useGoldPricingContext } from "@/contexts/GoldPricingContext";
 import { applyPlatformMarkup } from "@/utils/pricingMarkup";
 import { track } from "@/lib/analytics";
 import { DOWNLOADABLE_APPS } from "@/config/appDownloads";
+import ResponsiveImage from "@/components/ui/responsive-image";
 import type { Product } from "@/types";
 
 /**
@@ -61,8 +62,9 @@ const ValuePropHero: React.FC<{ spotlight?: Product | null }> = ({ spotlight }) 
         <div className="relative mx-auto w-full max-w-md lg:max-w-none">
           <div className="grid grid-cols-[3fr_2fr] items-end gap-3 sm:gap-4">
             <figure className="relative min-w-0 overflow-hidden rounded-[1.75rem] bg-cloud">
-              <img
+              <ResponsiveImage
                 src={image.src}
+                sizes="(min-width: 1024px) 26vw, 55vw"
                 alt={image.alt}
                 width={image.width}
                 height={image.height}
@@ -76,8 +78,9 @@ const ValuePropHero: React.FC<{ spotlight?: Product | null }> = ({ spotlight }) 
               </figcaption>
             </figure>
             <figure className="min-w-0 overflow-hidden rounded-[1.5rem] bg-cloud">
-              <img
+              <ResponsiveImage
                 src={secondaryImage.src}
+                sizes="(min-width: 1024px) 17vw, 37vw"
                 alt={secondaryImage.alt}
                 width={secondaryImage.width}
                 height={secondaryImage.height}

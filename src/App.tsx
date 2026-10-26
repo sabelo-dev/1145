@@ -94,6 +94,7 @@ const AuctionCheckoutSuccessPage = lazyWithRetry(() => import("@/pages/AuctionCh
 const ShippingPage = lazyWithRetry(() => import("@/pages/ShippingPage"));
 const ReturnsPage = lazyWithRetry(() => import("@/pages/ReturnsPage"));
 const TermsPage = lazyWithRetry(() => import("@/pages/TermsPage"));
+const CompetitionTermsPage = lazyWithRetry(() => import("@/pages/CompetitionTermsPage"));
 const PrivacyPage = lazyWithRetry(() => import("@/pages/PrivacyPage"));
 
 // Auth
@@ -234,6 +235,7 @@ function AppRouter() {
           <Route path="shipping" element={<ShippingPage />} />
           <Route path="returns" element={<ReturnsPage />} />
           <Route path="terms" element={<TermsPage />} />
+          <Route path="competitions/xixlv-drop/terms" element={<CompetitionTermsPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
           <Route path="lease/apply/:assetId" element={
             <ProtectedRoute requireAuth requireVerified>

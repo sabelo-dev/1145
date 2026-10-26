@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { dropCampaign, type HomeImage } from "@/content/home";
+import ResponsiveImage from "@/components/ui/responsive-image";
 import { track } from "@/lib/analytics";
 
 interface Campaign {
@@ -110,8 +111,9 @@ const DropCampaign: React.FC = () => {
           </div>
 
           <div className="relative min-h-[14rem] lg:min-h-full">
-            <img
+            <ResponsiveImage
               src={campaign.image.src}
+              sizes="(min-width: 1024px) 38vw, 90vw"
               alt={campaign.image.alt}
               width={campaign.image.width}
               height={campaign.image.height}

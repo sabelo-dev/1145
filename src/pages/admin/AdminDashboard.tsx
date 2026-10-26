@@ -37,6 +37,7 @@ import AdminReviews from "@/components/admin/AdminReviews";
 import AdminCMS from "@/components/admin/AdminCMS";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminGrowth from "@/components/admin/AdminGrowth";
 import AdminAuctionAnalytics from "@/components/admin/AdminAuctionAnalytics";
 import AdminAuditLogs from "@/components/admin/AdminAuditLogs";
 import AdminSettings from "@/components/admin/AdminSettings";
@@ -151,6 +152,7 @@ const AdminDashboard = () => {
     { id: "social-mining", title: "Social Mining", icon: Pickaxe },
     { id: "categories", title: "Categories", icon: FileText },
     { id: "analytics", title: "Reports & Analytics", icon: BarChart3 },
+    { id: "growth", title: "Growth Command Centre", icon: TrendingUp },
     { id: "settings", title: "System Settings", icon: Settings },
     { id: "reviews", title: "Reviews & Complaints", icon: MessageSquare },
     { id: "cms", title: "CMS / Pages", icon: FileText },
@@ -358,6 +360,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="analytics" className="mt-0">
               <AdminAnalytics />
+            </TabsContent>
+            <TabsContent value="growth" className="mt-0">
+              <AdminGrowth />
             </TabsContent>
             <TabsContent value="settings" className="mt-0">
               <AdminSettings />
