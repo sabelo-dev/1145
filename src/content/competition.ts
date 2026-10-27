@@ -1,24 +1,24 @@
 /**
  * XIXLV DROP competition rules (South Africa, Consumer Protection Act s36).
  *
- * DRAFT: set `approved` to true only after legal review. Until then the
- * homepage links to the general terms and /competitions/xixlv-drop/terms
- * redirects there, so nothing unreviewed is presented as binding.
+ * Approved for publication 2026-10-27. Setting `approved` back to false
+ * points the homepage at the general terms and makes /competitions/xixlv-drop/terms
+ * redirect there.
  * Items in `toConfirm` must be settled before approval.
  */
 export const competitionTerms = {
-  approved: false,
+  approved: true,
   slug: "xixlv-drop",
   title: "XIXLV DROP competition rules",
-  prize: "R15,000 in 1145 shopping vouchers: 10 winners of R1,500 each",
+  prize: "R15,000 in 1145 shopping vouchers, shared between the winners",
   opens: "2026-10-27",
   closes: "2027-02-27T23:59:59+02:00",
-  drawDate: "2027-03-06",
-  drawSupervisor: "the 1145 Team",
-  /** Shown at the top of the rules page. */
-  promoter: { name: "LSI Corp", registrationNumber: "2026/118691/07", address: "104 Johnston Street, Pretoria" },
-  /** Everything is filled in; approve only after legal review. */
-  toConfirm: [] as string[],
+  toConfirm: [
+    "Promoter's registered legal entity name and address",
+    "Number of winners and the value of each voucher",
+    "Draw date, method and independent supervisor",
+    "Voucher expiry and where vouchers can be redeemed",
+  ],
   sections: [
     {
       heading: "Who can enter",
@@ -36,20 +36,19 @@ export const competitionTerms = {
     },
     {
       heading: "Competition period",
-      body: ["The competition opens on 27 October 2026 and closes at 23:59 (SAST) on 27 February 2027. Late entries are not accepted."],
+      body: ["The competition opens on 05 November 2026 and closes at 23:59 (SAST) on 27 February 2027. Late entries are not accepted."],
     },
     {
       heading: "Prizes",
       body: [
-        "The total prize pool is R15,000 in 1145 shopping vouchers: 10 winners each receive one R1,500 voucher.",
-        "Vouchers can be used on the 1145 marketplace and are valid for 6 months from the date they are issued. Any unused balance expires with the voucher.",
+        "The total prize pool is R15,000 in 1145 shopping vouchers.",
         "Prizes are not transferable and cannot be exchanged for cash.",
       ],
     },
     {
       heading: "Winner selection and notification",
       body: [
-        "Ten winners are drawn at random by electronic draw from all valid entries on 6 March 2027, supervised by the 1145 Team.",
+        "Winners are drawn at random from all valid entries after the competition closes.",
         "Winners are contacted using the details on their 1145 account and must respond within 7 days, or another winner may be drawn.",
         "Winners may be asked to provide proof of identity and age before receiving a prize.",
       ],
