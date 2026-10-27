@@ -14,7 +14,7 @@ export const competitionTerms = {
   opens: "2026-10-27",
   closes: "2027-02-27T23:59:59+02:00",
   drawDate: "2027-03-06",
-  /** Fill in, then add a "Promoter" section, before approving. */
+  /** Shown at the top of the rules page. Fill in before approving. */
   promoter: { name: "", registrationNumber: "", address: "" },
   toConfirm: [
     "Promoter's registered legal entity name, registration number and address",
