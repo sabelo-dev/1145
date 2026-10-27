@@ -13,13 +13,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { invalidateCatalogueCache } from "@/services/products";
 import { PaymentMethodDialog } from "./dialogs/PaymentMethodDialog";
 import { ChangePasswordDialog } from "./dialogs/ChangePasswordDialog";
+import ProvinceCoverage from "@/components/merchant/ProvinceCoverage";
 import { 
   Store, 
   User, 
   Bell, 
   CreditCard,
   Shield,
-  Save
+  Save,
+  Truck
 } from "lucide-react";
 
 const MerchantSettings = () => {
@@ -27,6 +29,7 @@ const MerchantSettings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [merchantId, setMerchantId] = useState<string | null>(null);
+  const [shippingRegions, setShippingRegions] = useState<string[]>([]);
   // Back from PayFast card verification (?linked=1): reopen the payout dialog.
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(
     () => new URLSearchParams(window.location.search).has("linked"),
@@ -63,12 +66,13 @@ const MerchantSettings = () => {
       // Get merchant data
       const { data: merchant, error: merchantError } = await supabase
         .from('merchants')
-        .select('id')
+        .select('id, shipping_regions')
         .eq('user_id', user.id)
         .single();
 
       if (merchantError) throw merchantError;
       setMerchantId(merchant.id);
+      setShippingRegions(merchant.shipping_regions ?? []);
 
       // Get store data
       const { data: store, error: storeError } = await supabase
@@ -175,6 +179,20 @@ const MerchantSettings = () => {
     }
   };
 
+  const saveCoverage = async () => {
+    if (!merchantId) return;
+    const { error } = await supabase
+      .from('merchants')
+      .update({ shipping_regions: shippingRegions })
+      .eq('id', merchantId);
+    if (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to save delivery coverage" });
+      return;
+    }
+    invalidateCatalogueCache();
+    toast({ title: "Delivery coverage saved", description: "Shoppers now see your products where you deliver." });
+  };
+
   const saveProfileSettings = async () => {
     if (!user?.id) return;
 
@@ -267,6 +285,26 @@ const MerchantSettings = () => {
           <Button onClick={saveStoreSettings}>
             <Save className="h-4 w-4 mr-2" />
             Save Store Settings
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Delivery coverage */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Truck className="h-5 w-5" />
+            Delivery coverage
+          </CardTitle>
+          <CardDescription>
+            Choose where in South Africa you deliver.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ProvinceCoverage regions={shippingRegions} onChange={setShippingRegions} />
+          <Button onClick={saveCoverage}>
+            <Save className="h-4 w-4 mr-2" />
+            Save Coverage
           </Button>
         </CardContent>
       </Card>

@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/form";
 import { Store, Loader2, Upload, CheckCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import ProvinceCoverage from "@/components/merchant/ProvinceCoverage";
+import { isProvince } from "@/lib/deliveryCoverage";
 
 const schema = z.object({
   storeName: z.string().trim().min(2, "Required").max(100),
@@ -120,13 +122,24 @@ const StepStoreSetup: React.FC<StepStoreSetupProps> = ({
                   <label key={region} className="flex items-center gap-2 text-sm cursor-pointer">
                     <Checkbox
                       checked={selectedRegions.includes(region)}
-                      onCheckedChange={() => toggleItem(selectedRegions, region, onRegionsChange)}
+                      onCheckedChange={() => onRegionsChange(
+                        region === "South Africa" && selectedRegions.includes(region)
+                          // Dropping South Africa drops its provinces too.
+                          ? selectedRegions.filter((r) => r !== region && !isProvince(r))
+                          : selectedRegions.includes(region)
+                            ? selectedRegions.filter((r) => r !== region)
+                            : [...selectedRegions, region],
+                      )}
                     />
                     {region}
                   </label>
                 ))}
               </div>
             </div>
+
+            {selectedRegions.includes("South Africa") && (
+              <ProvinceCoverage regions={selectedRegions} onChange={onRegionsChange} />
+            )}
 
             {/* Shipping Methods */}
             <div className="space-y-2">

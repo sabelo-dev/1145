@@ -17,6 +17,7 @@ import { helpLinks } from "@/content/home";
 import { Product } from "@/types";
 import { fetchAllProducts, fetchFeaturedProducts, fetchPopularProducts, fetchNewArrivals } from "@/services/products";
 import { useDeliveryArea } from "@/hooks/useDeliveryArea";
+import { deliversTo } from "@/lib/deliveryCoverage";
 import { recentInterests, track } from "@/lib/analytics";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
@@ -44,50 +45,49 @@ const Deferred: React.FC<{ placeholderClassName: string; children: React.ReactNo
   return show ? <Suspense fallback={placeholder}>{children}</Suspense> : placeholder;
 };
 
-/** Products the visitor's merchant can deliver to South Africa (or hasn't restricted). */
-const deliversLocally = (p: Product) =>
-  !p.shippingRegions?.length || p.shippingRegions.some((r) => /south africa/i.test(r));
+type Catalogue = { featured: Product[]; trending: Product[]; fresh: Product[]; all: Product[] };
 
 const Index = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { area } = useDeliveryArea();
   // `null` while loading, so each rail can reserve its space.
-  const [featured, setFeatured] = useState<Product[] | null>(null);
-  const [trending, setTrending] = useState<Product[] | null>(null);
-  const [newArrivals, setNewArrivals] = useState<Product[] | null>(null);
-  const [recommended, setRecommended] = useState<Product[]>([]);
+  const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
 
   useEffect(() => { track("home_impression", { area: area?.label }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     (async () => {
       try {
-        const [f, t, n, all] = await Promise.all([
+        const [featured, trending, fresh, all] = await Promise.all([
           fetchFeaturedProducts(8),
           fetchPopularProducts(12),
           fetchNewArrivals(12),
           fetchAllProducts(),
         ]);
-        // A product appears in one rail only, so a small catalogue never repeats itself down the page.
-        const seen = new Set<string>();
-        const unique = (list: Product[] | null | undefined) => {
-          const fresh = (list || []).filter((p) => deliversLocally(p) && !seen.has(p.id)).slice(0, 4);
-          fresh.forEach((p) => seen.add(p.id));
-          return fresh;
-        };
-        setFeatured(unique(f));
-        setTrending(unique(t));
-        // Recommended: the categories this visitor viewed recently, from real inventory.
-        const interests = recentInterests();
-        setRecommended(interests.length ? unique(all.filter((p) => p.inStock && interests.includes(p.category))) : []);
-        setNewArrivals(unique(n));
+        setCatalogue({ featured: featured || [], trending: trending || [], fresh: fresh || [], all: all || [] });
       } catch (e) {
         console.error("Home load failed", e);
-        setFeatured([]);
-        setTrending([]);
-        setNewArrivals([]);
+        setCatalogue({ featured: [], trending: [], fresh: [], all: [] });
       }
     })();
   }, []);
+
+  // Only products whose merchant delivers to the visitor's province (or nationwide).
+  const { featured, trending, recommended, newArrivals } = useMemo(() => {
+    if (!catalogue) return { featured: null, trending: null, recommended: [] as Product[], newArrivals: null };
+    // A product appears in one rail only, so a small catalogue never repeats itself down the page.
+    const seen = new Set<string>();
+    const unique = (list: Product[]) => {
+      const picked = list.filter((p) => deliversTo(p.shippingRegions, area?.province) && !seen.has(p.id)).slice(0, 4);
+      picked.forEach((p) => seen.add(p.id));
+      return picked;
+    };
+    const featured = unique(catalogue.featured);
+    const trending = unique(catalogue.trending);
+    // Recommended: the categories this visitor viewed recently, from real inventory.
+    const interests = recentInterests();
+    const recommended = interests.length ? unique(catalogue.all.filter((p) => p.inStock && interests.includes(p.category))) : [];
+    return { featured, trending, recommended, newArrivals: unique(catalogue.fresh) };
+  }, [catalogue, area?.province]);
 
   const spotlight = useMemo(() => featured?.find((p) => p.images?.[0] && p.price > 0) ?? null, [featured]);
   const areaNote = area ? `Delivering to ${area.label}, ${area.province}` : undefined;

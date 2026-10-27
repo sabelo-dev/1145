@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, BadgeCheck, Check, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import HomePromoCard from "@/components/home/HomePromoCard";
 import { track } from "@/lib/analytics";
+import { useDeliveryArea } from "@/hooks/useDeliveryArea";
+import { coverageLabel, deliversTo } from "@/lib/deliveryCoverage";
 
 interface Storefront {
   id: string;
@@ -52,11 +54,14 @@ const benefits = [
  * page's secondary conversion path.
  */
 const MerchantShowcase: React.FC = () => {
-  const [stores, setStores] = useState<Storefront[] | null>(null);
+  const [all, setAll] = useState<Storefront[] | null>(null);
+  const { area } = useDeliveryArea();
+  // Only merchants that deliver to the visitor's province (or nationwide).
+  const stores = useMemo(() => all?.filter((s) => deliversTo(s.regions, area?.province)) ?? null, [all, area?.province]);
 
   useEffect(() => {
     let alive = true;
-    loadStorefronts().then((s) => alive && setStores(s)).catch(() => alive && setStores([]));
+    loadStorefronts().then((s) => alive && setAll(s)).catch(() => alive && setAll([]));
     return () => { alive = false; };
   }, []);
 
@@ -98,9 +103,7 @@ const MerchantShowcase: React.FC = () => {
                     {s.category && <span className="text-sm capitalize text-text-secondary">{s.category.replace(/_/g, " ")}</span>}
                     <span className="mt-auto flex items-start gap-2 text-xs text-text-secondary">
                       <Truck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                      {s.methods.length || s.regions.length
-                        ? [s.regions.slice(0, 2).join(", "), s.methods[0]].filter(Boolean).join(" · ")
-                        : "Delivery options at checkout"}
+                      {[coverageLabel(s.regions), s.methods[0]].filter(Boolean).join(" · ")}
                     </span>
                   </Link>
                 </li>
