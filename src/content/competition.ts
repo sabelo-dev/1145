@@ -15,11 +15,10 @@ export const competitionTerms = {
   closes: "2027-02-27T23:59:59+02:00",
   drawDate: "2027-03-06",
   drawSupervisor: "the 1145 Team",
-  /** Shown at the top of the rules page. Fill in before approving. */
-  promoter: { name: "", registrationNumber: "", address: "" },
-  toConfirm: [
-    "Promoter's registered legal entity name, registration number and address",
-  ],
+  /** Shown at the top of the rules page. */
+  promoter: { name: "LSI Corp", registrationNumber: "2026/118691/07", address: "104 Johnston Street, Pretoria" },
+  /** Everything is filled in; approve only after legal review. */
+  toConfirm: [] as string[],
   sections: [
     {
       heading: "Who can enter",
