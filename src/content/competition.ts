@@ -14,11 +14,11 @@ export const competitionTerms = {
   opens: "2026-10-27",
   closes: "2027-02-27T23:59:59+02:00",
   drawDate: "2027-03-06",
+  drawSupervisor: "the 1145 Team",
   /** Shown at the top of the rules page. Fill in before approving. */
   promoter: { name: "", registrationNumber: "", address: "" },
   toConfirm: [
     "Promoter's registered legal entity name, registration number and address",
-    "Name of the independent person who supervises the draw",
   ],
   sections: [
     {
@@ -50,7 +50,7 @@ export const competitionTerms = {
     {
       heading: "Winner selection and notification",
       body: [
-        "Ten winners are drawn at random by electronic draw from all valid entries on 6 March 2027, under the supervision of an independent person.",
+        "Ten winners are drawn at random by electronic draw from all valid entries on 6 March 2027, supervised by the 1145 Team.",
         "Winners are contacted using the details on their 1145 account and must respond within 7 days, or another winner may be drawn.",
         "Winners may be asked to provide proof of identity and age before receiving a prize.",
       ],
