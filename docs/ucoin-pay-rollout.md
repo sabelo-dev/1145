@@ -1,6 +1,6 @@
 # UCoin purchases and 1145 Pay
 
-Apply migrations through `20261022100000_universal_ucoin_and_pay.sql` (including
+Apply migrations through `20261022100001_universal_ucoin_and_pay.sql` (including
 `20261022090000_pay_with_card_and_ucoin.sql`), deploy the updated
 `payfast-payment` edge function, then publish the frontend. Coordinate the
 migration and edge deployment during a payment maintenance window: older edge
