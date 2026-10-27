@@ -10,14 +10,15 @@ export const competitionTerms = {
   approved: false,
   slug: "xixlv-drop",
   title: "XIXLV DROP competition rules",
-  prize: "R15,000 in 1145 shopping vouchers, shared between the winners",
+  prize: "R15,000 in 1145 shopping vouchers: 10 winners of R1,500 each",
   opens: "2026-10-27",
   closes: "2027-02-27T23:59:59+02:00",
+  drawDate: "2027-03-06",
+  /** Fill in, then add a "Promoter" section, before approving. */
+  promoter: { name: "", registrationNumber: "", address: "" },
   toConfirm: [
-    "Promoter's registered legal entity name and address",
-    "Number of winners and the value of each voucher",
-    "Draw date, method and independent supervisor",
-    "Voucher expiry and where vouchers can be redeemed",
+    "Promoter's registered legal entity name, registration number and address",
+    "Name of the independent person who supervises the draw",
   ],
   sections: [
     {
@@ -41,14 +42,15 @@ export const competitionTerms = {
     {
       heading: "Prizes",
       body: [
-        "The total prize pool is R15,000 in 1145 shopping vouchers.",
+        "The total prize pool is R15,000 in 1145 shopping vouchers: 10 winners each receive one R1,500 voucher.",
+        "Vouchers can be used on the 1145 marketplace and are valid for 6 months from the date they are issued. Any unused balance expires with the voucher.",
         "Prizes are not transferable and cannot be exchanged for cash.",
       ],
     },
     {
       heading: "Winner selection and notification",
       body: [
-        "Winners are drawn at random from all valid entries after the competition closes.",
+        "Ten winners are drawn at random by electronic draw from all valid entries on 6 March 2027, under the supervision of an independent person.",
         "Winners are contacted using the details on their 1145 account and must respond within 7 days, or another winner may be drawn.",
         "Winners may be asked to provide proof of identity and age before receiving a prize.",
       ],
