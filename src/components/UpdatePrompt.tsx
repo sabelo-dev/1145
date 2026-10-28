@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { PWA_UPDATE_EVENT, getPendingUpdate } from "@/lib/registerSW";
+import NativeUpdatePrompt from "@/components/NativeUpdatePrompt";
 
-/** Offers a one-tap update when a new release has been downloaded. */
+/** Offers a one-tap update when a new release has been downloaded (web), or a newer APK is published (Android apps). */
 const UpdatePrompt = () => {
   const { toast } = useToast();
 
@@ -27,7 +28,7 @@ const UpdatePrompt = () => {
     return () => window.removeEventListener(PWA_UPDATE_EVENT, show);
   }, [toast]);
 
-  return null;
+  return <NativeUpdatePrompt />;
 };
 
 export default UpdatePrompt;

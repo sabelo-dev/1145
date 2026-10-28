@@ -13,7 +13,7 @@ export interface DownloadableApp {
   testFlightUrl: string | null;
 }
 
-const APK_BASE =
+export const APK_BASE =
   import.meta.env.VITE_APP_DOWNLOADS_URL ||
   "https://hipomusjocacncjsvgfa.supabase.co/storage/v1/object/public/app-downloads";
 

@@ -180,7 +180,12 @@ outside the store); only the share link shows.
 1. Run `20261026120000_app_install_referrals.sql`. It creates the public
    `app-downloads` bucket (admins upload), the `app_install_referral` reward
    rule (200 UC, at most 20 a day per sharer) and `claim_app_install`.
-2. After each release build, upload the signed APKs to the `app-downloads`
+2. Before each release build, bump the app's version (Android refuses to
+   install an update over the old app unless `versionCode` is higher):
+   ```bash
+   npm run android:bump -- driver            # or app / orders; optional versionName after it
+   ```
+   After the build, upload the signed APKs to the `app-downloads`
    bucket (Supabase → Storage), replacing the old files:
 
    | Upload | Built at |
@@ -188,6 +193,28 @@ outside the store); only the share link shows.
    | `1145.apk` | `android/app/build/outputs/apk/release/app-release.apk` |
    | `1145-driver.apk` | `android-driver/app/build/outputs/apk/release/app-release.apk` |
    | `1145-orders.apk` | `android-orders/app/build/outputs/apk/release/app-release.apk` |
+
+   **Then** tell the installed apps about it (after the APKs, so no phone is
+   sent to a file that is not there yet):
+   ```bash
+   npm run android:manifest -- --notes driver="Faster loading"   # add --required driver to force it
+   ```
+   and upload `release/versions.json` to the same bucket. Each Android app
+   checks it on launch, when brought back to the foreground and every 6 hours
+   (`src/lib/nativeUpdate.ts`), and shows "<app> <version> is available" with
+   an **Update** button. Update opens the APK; when it has downloaded, the user
+   taps it and **Install**, and Android replaces the app in place, keeping the
+   sign-in and data. With `--required`, older installs show a dialog that
+   cannot be dismissed until they update; use it for breaking changes only.
+
+   An in-place update only works when the new APK is signed with the same
+   keystore as the installed one. A phone that shows "App not installed" has
+   a copy signed with another key (for example a debug build): uninstall it
+   once, and later updates install over it.
+
+   Play and App Store copies update through their stores. If the apps go on
+   Play with Play App Signing, those installs cannot take the website APK, so
+   hide this prompt for them before publishing there.
 
 3. iPhone: in App Store Connect → TestFlight, create an external group with a
    public link, then set `VITE_TESTFLIGHT_URL` (1145) and

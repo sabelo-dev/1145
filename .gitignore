@@ -41,3 +41,6 @@ dist-orders/
 # Standalone driver app and local dependency cache
 dist-driver/
 .npm-driver-cache/
+
+# Release manifest written by scripts/android-versions.mjs (uploaded, not committed)
+/release/
