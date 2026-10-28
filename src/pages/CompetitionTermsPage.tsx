@@ -7,7 +7,10 @@ import { competitionTerms } from "@/content/competition";
 const closes = new Intl.DateTimeFormat("en-ZA", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Johannesburg" })
   .format(new Date(competitionTerms.closes));
 
-const { promoter } = competitionTerms;
+// Optional: the page must still render if the promoter details are absent.
+const { promoter } = competitionTerms as {
+  promoter?: { name?: string; registrationNumber?: string; address?: string };
+};
 
 /** Official rules of the XIXLV DROP competition. Hidden until approved. */
 const CompetitionTermsPage: React.FC = () => {
@@ -21,7 +24,7 @@ const CompetitionTermsPage: React.FC = () => {
         <p className="eyebrow text-gold">XIXLV DROP</p>
         <h1 className="type-headline mt-3">{competitionTerms.title}</h1>
         <p className="mt-3 text-text-secondary">{competitionTerms.prize}. Closes {closes}.</p>
-        {promoter.name && (
+        {promoter?.name && (
           <p className="mt-2 text-sm text-text-secondary">
             Promoter: {promoter.name}
             {promoter.registrationNumber && ` (Reg. ${promoter.registrationNumber})`}
