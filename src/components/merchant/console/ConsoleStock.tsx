@@ -35,16 +35,17 @@ const StockLine: React.FC<{
 
   return (
     <div className="flex flex-wrap items-center gap-2 py-2">
-      <span className="min-w-0 flex-1 text-sm">{label}</span>
+      {/* Own row on phones; inline beside the controls from sm up. */}
+      <span className="w-full min-w-0 break-words text-sm sm:w-auto sm:flex-1">{label}</span>
       <Input type="number" inputMode="numeric" min={0} value={value} onChange={(e) => setValue(e.target.value)}
-        className="h-10 w-24 text-right" aria-label={`Stock for ${label}`} />
+        className="h-10 w-20 shrink-0 text-right sm:w-24" aria-label={`Stock for ${label}`} />
       <Select value={reason} onValueChange={(v) => setReason(v as StockReason)}>
-        <SelectTrigger className="h-10 w-44" aria-label="Reason"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="h-10 min-w-0 flex-1 sm:w-44 sm:flex-none" aria-label="Reason"><SelectValue /></SelectTrigger>
         <SelectContent>
           {(Object.keys(STOCK_REASONS) as StockReason[]).map((r) => <SelectItem key={r} value={r}>{STOCK_REASONS[r]}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Button className="h-10" disabled={!changed || saving}
+      <Button className="h-10 shrink-0" disabled={!changed || saving}
         onClick={async () => {
           setSaving(true);
           try { await onSave(parsed, reason); } finally { setSaving(false); }
@@ -93,9 +94,9 @@ const ConsoleStock: React.FC<{ storeId: string }> = ({ storeId }) => {
             {stock.data ? `${items.length} products · ${out} out of stock · ${low} low` : "Loading…"}
           </p>
         </div>
-        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); setQuery(search); }}>
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or SKU" className="h-10 w-56" aria-label="Search stock" />
-          <Button type="submit" variant="outline" className="h-10" aria-label="Search"><Search className="h-4 w-4" /></Button>
+        <form className="flex w-full gap-2 sm:w-auto" onSubmit={(e) => { e.preventDefault(); setQuery(search); }}>
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or SKU" className="h-10 min-w-0 flex-1 sm:w-56 sm:flex-none" aria-label="Search stock" />
+          <Button type="submit" variant="outline" className="h-10 shrink-0" aria-label="Search"><Search className="h-4 w-4" /></Button>
         </form>
       </div>
 

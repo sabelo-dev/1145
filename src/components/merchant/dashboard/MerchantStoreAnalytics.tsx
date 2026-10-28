@@ -154,9 +154,9 @@ const MerchantStoreAnalytics: React.FC<{ onNavigate: (tab: string) => void; stor
           </p>
         </div>
         <ToggleGroup type="single" value={String(days)} onValueChange={(v) => v && setDays(Number(v) as Days)}
-          className="rounded-md border p-1" aria-label="Period">
+          className="grid w-full grid-cols-4 rounded-md border p-1 sm:flex sm:w-auto" aria-label="Period">
           {PERIODS.map((p) => (
-            <ToggleGroupItem key={p.days} value={String(p.days)} className="h-8 px-3 text-sm">{p.label}</ToggleGroupItem>
+            <ToggleGroupItem key={p.days} value={String(p.days)} className="h-8 whitespace-nowrap px-2 text-sm sm:px-3">{p.label}</ToggleGroupItem>
           ))}
         </ToggleGroup>
       </div>
@@ -392,18 +392,21 @@ const MerchantStoreAnalytics: React.FC<{ onNavigate: (tab: string) => void; stor
                 </div>
                 <Button variant="outline" size="sm" onClick={() => onNavigate("inventory")}>Manage stock</Button>
               </CardHeader>
-              <CardContent className="grid grid-cols-3 gap-3">
+              <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {[
                   { label: "In stock", n: data.stock.in_stock, Icon: CheckCircle2, color: "var(--viz-good)", note: "more than 5" },
                   { label: "Low stock", n: data.stock.low_stock, Icon: AlertTriangle, color: "var(--viz-warning)", note: "5 or fewer" },
                   { label: "Out of stock", n: data.stock.out_of_stock, Icon: PackageX, color: "var(--viz-critical)", note: "can't be bought" },
                 ].map(({ label, n, Icon, color, note }) => (
-                  <div key={label} className="rounded-lg border p-3">
-                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Icon className="h-4 w-4" style={{ color }} aria-hidden /> {label}
-                    </p>
+                  // One line per status on phones, side-by-side tiles from sm up.
+                  <div key={label} className="flex items-center justify-between gap-3 rounded-lg border p-3 sm:flex-col sm:items-start sm:justify-start sm:gap-0">
+                    <div className="sm:contents">
+                      <p className="flex items-center gap-1.5 whitespace-nowrap text-sm text-muted-foreground">
+                        <Icon className="h-4 w-4 shrink-0" style={{ color }} aria-hidden /> {label}
+                      </p>
+                      <p className="text-xs text-muted-foreground sm:order-last">{note}</p>
+                    </div>
                     <p className="text-2xl font-semibold">{count(n)}</p>
-                    <p className="text-xs text-muted-foreground">{note}</p>
                   </div>
                 ))}
               </CardContent>
