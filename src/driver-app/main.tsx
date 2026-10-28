@@ -20,6 +20,8 @@ import DriverLoginPage from "@/pages/driver/DriverLoginPage";
 import DriverRegisterPage from "@/pages/driver/DriverRegisterPage";
 import DriverOnboardingPage from "@/pages/driver/DriverOnboardingPage";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
+import RegisterPage from "@/pages/RegisterPage";
+import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import { initNative } from "@/lib/native";
 import { Button } from "@/components/ui/button";
 import "@/index.css";
@@ -38,6 +40,8 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter><Routes>
         <Route path="/driver/login" element={<DriverLoginPage />} />
         <Route path="/login" element={<Navigate to="/driver/login" replace />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/driver/register" element={<DriverRegisterPage />} />
         <Route path="/driver/onboarding" element={<DriverOnboardingPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />

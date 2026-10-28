@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -100,6 +100,7 @@ const RoleCard: React.FC<{
 const RegisterPage: React.FC = () => {
   useFrameBreakout();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, register } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [showPw, setShowPw] = useState(false);
@@ -113,7 +114,7 @@ const RegisterPage: React.FC = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "consumer",
+      role: registerSchema.innerType().shape.role.safeParse(searchParams.get("role")).data ?? "consumer",
       terms: false,
     },
   });

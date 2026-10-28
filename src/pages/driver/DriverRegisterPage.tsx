@@ -14,10 +14,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Truck, Car, Bike, Clock, DollarSign, MapPin, Loader2, CheckCircle } from "lucide-react";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
+import { useQuery } from "@tanstack/react-query";
 
 const DriverRegisterPage: React.FC = () => {
   useFrameBreakout();
-  const { user, isDriver, refreshUserProfile } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
+  // The driver role alone is not enough: a role without a driver record still
+  // needs this form, or the dashboard has nothing to show.
+  const { data: hasDriverRecord } = useQuery({
+    queryKey: ["driver-record-exists", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("drivers").select("id").eq("user_id", user!.id).maybeSingle();
+      if (error) throw error;
+      return !!data;
+    },
+    enabled: !!user,
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -107,7 +119,7 @@ const DriverRegisterPage: React.FC = () => {
     }
   };
 
-  if (isDriver) {
+  if (hasDriverRecord) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />

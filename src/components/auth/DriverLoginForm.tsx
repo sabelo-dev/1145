@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,7 +76,15 @@ const DriverLoginForm: React.FC = () => {
             )}
           </Button>
           <p className="text-sm text-muted-foreground text-center">
-            Not a driver yet? Register as a driver from your account settings.
+            Not a driver yet?{" "}
+            <Link to="/register?role=driver" className="font-medium text-primary underline">
+              Create a driver account
+            </Link>
+            <br />
+            Already have a 1145 account?{" "}
+            <Link to="/driver/register" className="font-medium text-primary underline">
+              Apply to drive
+            </Link>
           </p>
         </CardFooter>
       </form>
