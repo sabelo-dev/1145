@@ -15,7 +15,7 @@ export default function RideArrivalEstimate({ rideId, status }: { rideId: string
   return <section className="space-y-1 rounded-xl border bg-card p-4" aria-live="polite">
     <h2 className="font-semibold">{status === "in_progress" ? "Estimated destination arrival" : "Your driver's arrival"}</h2>
     {status === "arrived" ? <p>Your driver is at the pickup.</p> : fresh ? <>
-      <p className="text-lg font-bold">About {value.minutes} min ? {value.distanceKm.toFixed(1)} km by road</p>
+      <p className="text-lg font-bold">About {value.minutes} min · {value.distanceKm.toFixed(1)} km by road</p>
       <p className="text-sm">Around {new Date(value.arrivalAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
       <p className="text-xs text-muted-foreground">Live traffic estimate{value.trafficDelayMinutes > 0 ? ` ? about ${value.trafficDelayMinutes} min traffic delay` : ""}. Updates every 30 seconds; conditions can change.</p>
     </> : <p className="text-sm text-muted-foreground">{estimate.isLoading ? "Checking the road route and traffic..." : "Live arrival estimate unavailable. Waiting for updated location or traffic data."}</p>}

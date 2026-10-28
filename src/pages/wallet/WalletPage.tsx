@@ -114,7 +114,7 @@ const WalletPage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 py-5 max-w-2xl space-y-5">
-        <Button className="w-full h-12" onClick={() => navigate("/scan-pay")}>1145 Pay ? Scan and pay a merchant</Button>
+        <Button className="w-full h-12" onClick={() => navigate("/scan-pay")}>1145 Pay · Scan and pay a merchant</Button>
         {/* Portfolio Card */}
         <UnifiedPortfolioCard
           zarBalance={zarBalance}

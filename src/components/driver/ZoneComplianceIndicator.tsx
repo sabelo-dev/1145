@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, ShoppingCart, Clock } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { zoneComplianceService } from "@/services/zoneComplianceService";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -15,16 +16,47 @@ import {
 
 interface ZoneComplianceIndicatorProps {
   driverId: string;
-  currentLat: number | null;
-  currentLng: number | null;
+  // Omit to locate the device here.
+  currentLat?: number | null;
+  currentLng?: number | null;
+}
+
+async function currentPosition(): Promise<{ lat: number; lng: number }> {
+  if (Capacitor.isNativePlatform()) {
+    const { Geolocation } = await import("@capacitor/geolocation");
+    const p = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15_000 });
+    return { lat: p.coords.latitude, lng: p.coords.longitude };
+  }
+  if (!navigator.geolocation) throw new Error("This device does not support location.");
+  return new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(
+    p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+    reject,
+    { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
+  ));
 }
 
 const ZoneComplianceIndicator: React.FC<ZoneComplianceIndicatorProps> = ({
   driverId,
-  currentLat,
-  currentLng,
+  currentLat: givenLat,
+  currentLng: givenLng,
 }) => {
   const { toast } = useToast();
+  const [located, setLocated] = useState<{ lat: number; lng: number } | null>(null);
+  const [locateError, setLocateError] = useState<string | null>(null);
+  const [locateAttempt, setLocateAttempt] = useState(0);
+  const selfLocating = givenLat == null || givenLng == null;
+  const currentLat = selfLocating ? located?.lat ?? null : givenLat;
+  const currentLng = selfLocating ? located?.lng ?? null : givenLng;
+
+  useEffect(() => {
+    if (!selfLocating) return;
+    let cancelled = false;
+    setLocateError(null);
+    currentPosition()
+      .then(p => { if (!cancelled) setLocated(p); })
+      .catch(() => { if (!cancelled) setLocateError("Allow location access to check which zone you are in."); });
+    return () => { cancelled = true; };
+  }, [selfLocating, locateAttempt]);
   const [zoneStatus, setZoneStatus] = useState<{
     status: 'GREEN' | 'YELLOW' | 'RED';
     zone: string | null;
@@ -67,7 +99,23 @@ const ZoneComplianceIndicator: React.FC<ZoneComplianceIndicatorProps> = ({
     }
   };
 
-  if (!zoneStatus) return null;
+  if (!zoneStatus) {
+    if (!selfLocating) return null;
+    return (
+      <Card>
+        <CardContent className="py-4 text-sm text-muted-foreground" role="status">
+          {locateError ? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>{locateError}</span>
+              <Button size="sm" variant="outline" onClick={() => setLocateAttempt(x => x + 1)}>Retry location</Button>
+            </div>
+          ) : (
+            "Checking your zone..."
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   const statusColors = {
     GREEN: 'bg-green-500',

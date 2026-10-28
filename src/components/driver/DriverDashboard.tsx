@@ -6,7 +6,7 @@ import { useAuthReady } from "@/hooks/useAuthReady";
 import PanicButton from "@/components/emergency/PanicButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   SidebarProvider,
   Sidebar,
@@ -103,7 +103,7 @@ const DriverDashboard: React.FC = () => {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useUrlTab("overview");
 
-  const { data: driver, isLoading: driverLoading, refetch } = useQuery({
+  const { data: driver, isLoading: driverLoading, isError: driverError, refetch } = useQuery({
     queryKey: ["driver-profile", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -141,7 +141,8 @@ const DriverDashboard: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         user={user}
-        driver={driver}
+        driver={driver ?? null}
+        driverError={driverError && driver === undefined}
         onLogout={handleLogout}
         onRefresh={() => refetch()}
       />
@@ -168,6 +169,7 @@ interface DashboardShellProps {
   setActiveTab: (id: string) => void;
   user: any;
   driver: Driver | null;
+  driverError: boolean;
   onLogout: () => void;
   onRefresh: () => void;
 }
@@ -177,6 +179,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
   setActiveTab,
   user,
   driver,
+  driverError,
   onLogout,
   onRefresh,
 }) => {
@@ -288,9 +291,15 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         </header>
 
         <main className="flex-1 p-4 md:p-4 md:p-6 bg-background overflow-auto">
-          <DriverNearbyOffers driver={driver} userId={user.id} onAccepted={kind => { onRefresh(); setActiveTab(kind === "ride" ? "ride-requests" : "active-deliveries"); }} />
-          <div className="mt-4" />
-          <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} session={session} />
+          {driver ? (
+            <>
+              <DriverNearbyOffers driver={driver} userId={user.id} onAccepted={kind => { onRefresh(); setActiveTab(kind === "ride" ? "ride-requests" : "active-deliveries"); }} />
+              <div className="mt-4" />
+              <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} session={session} />
+            </>
+          ) : (
+            <MissingDriverProfile failed={driverError} onRetry={onRefresh} />
+          )}
         </main>
       </SidebarInset>
 
@@ -303,6 +312,29 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     </div>
   );
 };
+
+// Every tab needs a driver profile, so without one they would wait forever.
+function MissingDriverProfile({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
+  return (
+    <div className="mx-auto max-w-md space-y-3 rounded-xl border bg-card p-6 text-center">
+      {failed ? (
+        <>
+          <h2 className="text-lg font-semibold">Could not load your driver profile</h2>
+          <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+          <Button onClick={onRetry}>Try again</Button>
+        </>
+      ) : (
+        <>
+          <h2 className="text-lg font-semibold">Finish your driver application</h2>
+          <p className="text-sm text-muted-foreground">
+            Your account has no driver profile yet. Add your vehicle and licence details to start receiving trips and deliveries.
+          </p>
+          <Button asChild><Link to="/driver/register">Complete application</Link></Button>
+        </>
+      )}
+    </div>
+  );
+}
 
 interface TabContentProps {
   activeTab: string;
@@ -342,7 +374,7 @@ const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh, s
     case "live-tracking":
       return <p className="text-sm text-muted-foreground">Your location is detected automatically while online. Go offline to stop sharing.</p>;
     case "zone-compliance":
-      return <ZoneComplianceIndicator driverId={driver?.id || ""} currentLat={null} currentLng={null} />;
+      return <ZoneComplianceIndicator driverId={driver?.id || ""} />;
     case "ucoin":
       return <UCoinDashboard />;
     case "analytics":

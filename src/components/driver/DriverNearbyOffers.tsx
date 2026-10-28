@@ -32,14 +32,14 @@ export default function DriverNearbyOffers({ driver, userId, onAccepted }: {
     for (const offer of offers.data ?? []) {
       if (seen.current.has(offer.id)) continue;
       seen.current.add(offer.id);
-      toast({ title: DRIVER_SERVICE_LABELS[offer.service_kind] || "Nearby request", description: `${offer.pickup_address} ? ${Number(offer.distance_km).toFixed(1)} km away` });
+      toast({ title: DRIVER_SERVICE_LABELS[offer.service_kind] || "Nearby request", description: `${offer.pickup_address} · ${Number(offer.distance_km).toFixed(1)} km away` });
     }
   }, [offers.data, toast]);
   const live = driver?.status === "available" ? (offers.data ?? []).filter(o => Date.parse(o.expires_at) > now) : [];
   return <section className="space-y-3" aria-label="Nearby work">
     <div className="rounded-xl border bg-card p-3 text-sm" role="status">
-      <strong>1145 Driver</strong> ? {location.online ? location.updated && now-location.updated<90_000 ? "Location sharing active" : "Finding your location..." : "Go online to receive nearby work"}
-      <p className="text-sm">Accepting: {services.data ? (Object.keys(DRIVER_SERVICE_LABELS) as (keyof typeof DRIVER_SERVICE_LABELS)[]).filter(kind => services.data[kind]).map(kind => DRIVER_SERVICE_LABELS[kind]).join(", ") || "No services enabled" : "Loading services..."} <Link className="font-medium text-primary underline" to="/driver/dashboard?tab=services">Change services</Link></p>
+      <strong>1145 Driver</strong> · {location.online ? location.updated && now-location.updated<90_000 ? "Location sharing active" : "Finding your location..." : "Go online to receive nearby work"}
+      <p className="text-sm">Accepting: {services.data ? (Object.keys(DRIVER_SERVICE_LABELS) as (keyof typeof DRIVER_SERVICE_LABELS)[]).filter(kind => services.data[kind]).map(kind => DRIVER_SERVICE_LABELS[kind]).join(", ") || "No services enabled" : services.isError ? "Could not load services" : "Loading services..."} <Link className="font-medium text-primary underline" to="/driver/dashboard?tab=services">Change services</Link></p>
       <p className="text-xs text-muted-foreground">Requests start within 5 km of pickup, expanding to 10 km and then 15 km when needed.</p>
       {location.error && <p className="mt-2 text-destructive">{location.error} <Button size="sm" variant="outline" onClick={location.retry}>Retry location</Button></p>}
     </div>
@@ -47,7 +47,7 @@ export default function DriverNearbyOffers({ driver, userId, onAccepted }: {
     {live.map(offer => <article key={offer.id} className="space-y-3 rounded-xl border-2 border-primary bg-card p-4">
       <div className="flex justify-between gap-2"><strong>{DRIVER_SERVICE_LABELS[offer.service_kind] || "Nearby request"}</strong><span>{Math.max(0, Math.ceil((Date.parse(offer.expires_at)-now)/1000))}s to respond</span></div>
       <p>Pickup: {offer.pickup_address}</p><p>Drop-off: {offer.dropoff_address}</p>
-      <p className="text-sm text-muted-foreground">{Number(offer.distance_km).toFixed(1)} km to pickup ? {offer.radius_km} km search</p>
+      <p className="text-sm text-muted-foreground">{Number(offer.distance_km).toFixed(1)} km to pickup · {offer.radius_km} km search</p>
       <p className="font-semibold">{offer.amount != null ? `${offer.entity_type === "ride" ? "Trip fare" : "Delivery earnings"}: R${Number(offer.amount).toFixed(2)}` : "Payment amount not provided"}</p>
       <div className="flex gap-3">{[true,false].map(accept => <Button key={String(accept)} variant={accept ? "default" : "outline"} disabled={!!busy} onClick={async () => {
         setBusy(offer.id);
