@@ -259,7 +259,7 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Dashboard Overview</h2>
           <p className="text-muted-foreground">
@@ -299,8 +299,8 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
             </div>
           )}
         </div>
-        <div className="text-right space-y-1">
-          <div className="flex items-center gap-2">
+        <div className="sm:text-right space-y-1">
+          <div className="flex items-center gap-2 whitespace-nowrap">
             <Star className="h-4 w-4 fill-gold text-gold" />
             <span className="font-medium">{stats.rating}</span>
             <span className="text-sm text-muted-foreground">({stats.reviewCount} reviews)</span>
@@ -312,9 +312,9 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
       {stats.profileCompletion < 100 && (
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
+            <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3 min-w-0 sm:items-center">
+                <AlertTriangle className="h-5 w-5 shrink-0 text-orange-600" />
                 <div>
                   <h3 className="font-medium">Complete your profile</h3>
                   <p className="text-sm text-muted-foreground">
@@ -322,16 +322,16 @@ const MerchantOverview: React.FC<MerchantOverviewProps> = ({ onNavigate }) => {
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {profileSteps.filter(step => !step.done).map(step => (
-                      <Button key={step.label} variant="outline" size="sm" onClick={() => onNavigate(step.tab)}>
+                      <Button key={step.label} variant="outline" size="sm" className="h-auto min-h-9 whitespace-normal text-left" onClick={() => onNavigate(step.tab)}>
                         {step.label}
                       </Button>
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="flex items-center gap-3 sm:block sm:text-right">
                 <div className="text-lg font-bold">{stats.profileCompletion}%</div>
-                <Progress value={stats.profileCompletion} className="w-24 mt-1" />
+                <Progress value={stats.profileCompletion} className="flex-1 sm:w-24 sm:mt-1" />
               </div>
             </div>
           </CardContent>

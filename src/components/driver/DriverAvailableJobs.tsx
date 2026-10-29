@@ -98,7 +98,7 @@ const DriverAvailableJobs: React.FC<DriverAvailableJobsProps> = ({ driver, onJob
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex items-center gap-2.5">
           <h2 className="text-xl font-bold">Available Jobs</h2>
           {jobs.length > 0 && (

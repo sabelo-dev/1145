@@ -207,7 +207,7 @@ const AdminReviews: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <h2 className="text-2xl font-bold">Reviews & Complaints</h2>
       </div>
 

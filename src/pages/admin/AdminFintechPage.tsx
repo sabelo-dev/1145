@@ -82,8 +82,8 @@ const AdminFintechPage: React.FC = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate("/admin/dashboard")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-bold tracking-tight">Fintech Console</h1>
-          <Badge variant="secondary" className="ml-2 gap-1"><ShieldCheck className="h-3 w-3 text-emerald-500" />Admin</Badge>
+          <h1 className="text-lg font-bold tracking-tight truncate">Fintech Console</h1>
+          <Badge variant="secondary" className="ml-2 hidden gap-1 sm:inline-flex"><ShieldCheck className="h-3 w-3 text-emerald-500" />Admin</Badge>
           <Button size="sm" variant="outline" className="ml-auto" onClick={exportCsv}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
         </div>
       </div>

@@ -148,7 +148,7 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <h2 className="text-xl font-semibold">Active Deliveries</h2>
         <Button variant="outline" onClick={fetchActiveJobs}>
           <RefreshCw className="h-4 w-4 mr-2" />

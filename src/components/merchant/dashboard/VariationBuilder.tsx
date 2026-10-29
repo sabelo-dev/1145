@@ -569,8 +569,8 @@ const VariationBuilder: React.FC<VariationBuilderProps> = ({
                         No sizes added. Click "Add All Sizes" or "Add Size" above.
                       </div>
                     ) : (
-                      <div className="border rounded-lg overflow-hidden">
-                        <table className="w-full text-sm">
+                      <div className="border rounded-lg overflow-x-auto">
+                        <table className="w-full min-w-[26rem] text-sm">
                           <thead className="bg-muted/50">
                             <tr>
                               <th className="text-left p-2 font-medium">Size</th>

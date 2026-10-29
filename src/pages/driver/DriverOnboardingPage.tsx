@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -93,7 +93,7 @@ const initial: FormState = {
 };
 
 const DriverOnboardingPage: React.FC = () => {
-  const { user, refreshUserProfile } = useAuth();
+  const { user, isLoading, refreshUserProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [step, setStep] = useState(0);
@@ -150,7 +150,8 @@ const DriverOnboardingPage: React.FC = () => {
   const folder = useMemo(() => (user ? `${user.id}` : ""), [user]);
 
   if (!user) {
-    return <div className="p-8">Please log in.</div>;
+    if (isLoading) return <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+    return <Navigate to="/driver/login" replace />;
   }
 
   const canNext = (): string | null => {

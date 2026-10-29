@@ -263,7 +263,7 @@ const MerchantLodging = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="properties">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <TabsList className="rounded-xl">
             <TabsTrigger value="properties" className="rounded-lg">Properties ({properties.length})</TabsTrigger>
             <TabsTrigger value="bookings" className="rounded-lg">Bookings ({bookings.length})</TabsTrigger>

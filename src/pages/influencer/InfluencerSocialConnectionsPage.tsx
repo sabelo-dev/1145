@@ -139,7 +139,7 @@ export default function InfluencerSocialConnectionsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h1 className="text-3xl font-bold">Social Connections</h1>
           <p className="text-muted-foreground">Manage the platforms you post from, monitor tokens, and see sync history.</p>

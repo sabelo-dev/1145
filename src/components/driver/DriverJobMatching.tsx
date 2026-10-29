@@ -117,7 +117,7 @@ const DriverJobMatching: React.FC<DriverJobMatchingProps> = ({ driver, onJobClai
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <h2 className="text-xl font-bold">Smart Matching</h2>
         <Button variant="ghost" size="sm" onClick={refreshMatches} disabled={loading} className="rounded-xl">
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh

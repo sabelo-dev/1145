@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -47,7 +47,7 @@ const schema = z.object({
 interface SocialLink { platform: string; handle: string; url: string; }
 
 const InfluencerOnboardingPage: React.FC = () => {
-  const { user, refreshUserProfile } = useAuth();
+  const { user, isLoading, refreshUserProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -97,7 +97,7 @@ const InfluencerOnboardingPage: React.FC = () => {
     })();
   }, [user]);
 
-  if (!user) return <div className="p-8">Please log in.</div>;
+  if (!user) return isLoading ? null : <Navigate to="/login" replace />;
 
   const toggleNiche = (n: string) =>
     setForm((f) => ({

@@ -50,7 +50,7 @@ const AdminAuditLogs: React.FC = () => {
         // Get recent merchant approvals/rejections
         const { data: merchants } = await supabase
           .from('merchants')
-          .select('*, profiles!inner(*)')
+          .select('*')
           .order('updated_at', { ascending: false })
           .limit(20);
 
@@ -173,9 +173,9 @@ const AdminAuditLogs: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between mb-6">
         <h2 className="text-2xl font-bold">Audit Logs</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline">
             <Filter className="h-4 w-4 mr-2" />
             Advanced Filter
@@ -293,7 +293,7 @@ const AdminAuditLogs: React.FC = () => {
           <CardDescription>Complete audit trail of all system activities</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="min-w-[60rem]">
             <TableCaption>Detailed audit log entries</TableCaption>
             <TableHeader>
               <TableRow>

@@ -288,14 +288,14 @@ const MerchantInventory = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Inventory Management</h2>
           <p className="text-muted-foreground">
             Monitor and manage your product inventory levels.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             ref={fileInputRef}
             type="file"

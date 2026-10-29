@@ -411,7 +411,7 @@ const MerchantMessages = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Messages</h2>
           <p className="text-muted-foreground">Communicate with customers and support</p>

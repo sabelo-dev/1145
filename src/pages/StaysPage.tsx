@@ -47,14 +47,14 @@ const StaysPage: React.FC = () => {
 
       {/* Filters & Results */}
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between gap-3 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-foreground">
+            <h2 className="text-lg sm:text-xl font-bold text-foreground whitespace-nowrap">
               {isLoading ? "Loading..." : `${properties?.length || 0} stays available`}
             </h2>
           </div>
           <Select value={filters.type} onValueChange={(v) => setFilters((f) => ({ ...f, type: v === "all" ? "" : v }))}>
-            <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectTrigger className="w-[150px] sm:w-[160px]">
               <SelectValue placeholder="Property type" />
             </SelectTrigger>
             <SelectContent>

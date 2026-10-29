@@ -175,7 +175,7 @@ export default function AdminGoldPricing() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold">Gold Pricing System</h2>
           <p className="text-muted-foreground">Manage gold prices and currency exchange rates</p>

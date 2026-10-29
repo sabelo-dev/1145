@@ -319,7 +319,7 @@ const MerchantShopfront = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Storefront Manager</h2>
           <div className="flex items-center gap-2 mt-1">
@@ -335,7 +335,7 @@ const MerchantShopfront = () => {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {storeData && (
             <Button variant="outline" size="sm" asChild>
               <a href={`/store/${storeData.slug}`} target="_blank">

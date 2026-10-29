@@ -235,7 +235,7 @@ export const AdminShipping = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-3xl font-bold">Shipping Management</h2>
           <p className="text-muted-foreground">Manage shipping zones and rates</p>
@@ -251,7 +251,7 @@ export const AdminShipping = () => {
         <TabsContent value="rates" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                 <div>
                   <CardTitle>Shipping Rates</CardTitle>
                   <CardDescription>Configure shipping rates based on order value, weight, or region</CardDescription>
@@ -416,7 +416,7 @@ export const AdminShipping = () => {
         <TabsContent value="zones" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                 <div>
                   <CardTitle>Shipping Zones</CardTitle>
                   <CardDescription>Define geographic regions for shipping</CardDescription>

@@ -253,7 +253,7 @@ const MerchantCustomDomain = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Custom Domain</h2>
           <p className="text-muted-foreground">Connect your own domain to your storefront</p>

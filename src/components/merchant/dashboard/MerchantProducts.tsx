@@ -328,14 +328,14 @@ const MerchantProducts = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Products</h2>
           <p className="text-muted-foreground">
             Manage your product inventory and listings.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={handleBulkExport}>
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -390,22 +390,22 @@ const MerchantProducts = () => {
           ) : (
             <div className="space-y-4">
               {filteredProducts.map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
+                <div key={product.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg">
+                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
                     <img 
                       src={
                         product.product_images?.[0]?.image_url || 
                         "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=60"
                       } 
                       alt={product.name}
-                      className="w-16 h-16 object-cover rounded-md"
+                      className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 object-cover rounded-md"
                     />
-                    <div className="space-y-1">
-                      <h3 className="font-medium">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="min-w-0 space-y-1">
+                      <h3 className="font-medium line-clamp-2">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground truncate">
                         SKU: {product.sku || 'N/A'}
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline">{product.category}</Badge>
                         <Badge 
                           variant={
@@ -421,8 +421,8 @@ const MerchantProducts = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
+                  <div className="flex shrink-0 items-center gap-1 sm:gap-4">
+                    <div className="text-right whitespace-nowrap">
                       <p className="font-medium">R{product.price}</p>
                       <p className="text-sm text-muted-foreground">
                         Stock: {product.quantity || 0}

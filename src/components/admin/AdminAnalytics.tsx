@@ -304,9 +304,9 @@ const AdminAnalytics: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between mb-6">
         <h2 className="text-2xl font-bold">Analytics & Reports</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">

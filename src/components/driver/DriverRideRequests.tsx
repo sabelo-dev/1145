@@ -324,7 +324,7 @@ const DriverRideRequests: React.FC<DriverRideRequestsProps> = ({ driver, onRideA
       )}
 
       {/* Incoming requests header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex items-center gap-2.5">
           <h2 className="text-xl font-bold">Incoming Requests</h2>
           {rides.length > 0 && (

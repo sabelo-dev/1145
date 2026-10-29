@@ -132,14 +132,14 @@ const AdminInbox = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Email Inbox</h2>
           <p className="text-muted-foreground">
             Emails received at @1145.io
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant={unreadCount > 0 ? "default" : "secondary"}>
             {unreadCount} unread
           </Badge>
@@ -155,9 +155,10 @@ const AdminInbox = () => {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      {/* Phones show the list or the open email, not both */}
+      <div className="flex flex-col gap-4 md:flex-row">
         {/* Email List */}
-        <Card className="flex-1 max-w-md">
+        <Card className={`min-w-0 flex-1 md:max-w-md ${selectedEmail ? "hidden md:block" : ""}`}>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Button
@@ -188,7 +189,7 @@ const AdminInbox = () => {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-[600px]">
+            <ScrollArea className="h-[60vh] md:h-[600px]">
               {isLoading ? (
                 <div className="p-4 text-center text-muted-foreground">
                   Loading emails...
@@ -250,7 +251,7 @@ const AdminInbox = () => {
         </Card>
 
         {/* Email Content */}
-        <Card className="flex-[2]">
+        <Card className={`min-w-0 md:flex-[2] ${selectedEmail ? "" : "hidden md:block"}`}>
           {selectedEmail ? (
             <>
               <CardHeader className="pb-3">

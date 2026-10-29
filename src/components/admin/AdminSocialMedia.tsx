@@ -160,12 +160,12 @@ const AdminSocialMedia: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold">Social Media Management</h2>
           <p className="text-muted-foreground">Manage posts, accounts, and influencers</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             variant="outline" 
             onClick={handleRefreshAuthors}

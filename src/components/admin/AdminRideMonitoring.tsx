@@ -126,7 +126,7 @@ const AdminRideMonitoring: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Ride Monitoring</h2>
           <p className="text-muted-foreground">Real-time oversight of all ride operations</p>

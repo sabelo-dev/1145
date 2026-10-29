@@ -42,7 +42,7 @@ const AdminOrderMonitoringPage = React.forwardRef<HTMLDivElement>((_props, ref) 
     : 0;
 
   return (
-    <div ref={ref} className="space-y-4 min-w-0">
+    <div ref={ref} className="space-y-4 min-w-0 p-4 md:p-6">
       <SEO title="Order monitoring | 1145 Admin" description="Live view of order events, customer messages and payment attempts." />
 
       <div className="header-row">
