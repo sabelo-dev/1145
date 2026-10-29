@@ -77,6 +77,18 @@ export const VerifiedBankForm: React.FC<VerifiedBankFormProps> = ({
 
   useEffect(() => { loadCard(); }, [loadCard]);
 
+  // Coming Back from PayFast restores the page from the back/forward cache with
+  // the button still waiting on the redirect; free it and look for the card again.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      setLoading(false);
+      loadCard();
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, [loadCard]);
+
   const verifyCard = async () => {
     setProblem(null);
     try {
