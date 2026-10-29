@@ -3,6 +3,7 @@ import React, { Suspense } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { refetchOnAppResume } from "@/lib/queryFocus";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/lib/push";
 import { CartProvider } from "@/contexts/CartContext";
@@ -142,16 +143,20 @@ const ServiceOrdersPage = lazyWithRetry(() => import("@/pages/hire/ServiceOrders
 const ServiceOrderPage = lazyWithRetry(() => import("@/pages/hire/ServiceOrderPage"));
 const ProviderDashboardPage = lazyWithRetry(() => import("@/pages/hire/ProviderDashboardPage"));
 
+// Data counts as fresh for 30 seconds and is refetched when someone returns to
+// the tab or app, so an item edited on another screen or device shows up
+// without a reload.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      staleTime: 30_000,
       gcTime: 10 * 60 * 1000,
       retry: 1,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
     },
   },
 });
+refetchOnAppResume();
 
 function AppRouter() {
   const { isCustomDomain, resolvedStoreSlug, loading } = useCustomDomainResolver();

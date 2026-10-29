@@ -12,6 +12,7 @@ import NativeUpdatePrompt from "@/components/NativeUpdatePrompt";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { refetchOnAppResume } from "@/lib/queryFocus";
 import PasswordChangeGate from "@/components/auth/PasswordChangeGate";
 import AppInviteClaim from "@/components/downloads/AppInviteClaim";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -23,6 +24,7 @@ const queryClient = new QueryClient({
     queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: true },
   },
 });
+refetchOnAppResume();
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>

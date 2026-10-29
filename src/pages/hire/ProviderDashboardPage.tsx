@@ -40,6 +40,9 @@ const ORDER_GROUPS: { title: string; states: ServiceOrderState[] }[] = [
 ];
 
 /** Where a provider manages their profile, listings, orders and earnings. */
+// A listing change also shows in the public catalogue and on the listing's own page.
+const LISTING_KEYS = ["provider-listings", "service-listings", "service-listing"];
+
 const ProviderDashboardPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -165,7 +168,7 @@ const ProviderDashboardPage: React.FC = () => {
                   onCancel={() => setEditing(null)}
                   onSave={async (listing, packages) => {
                     await saveListing(profile.id, editing === "new" ? null : editing.id, listing, packages);
-                    await refresh("provider-listings");
+                    await Promise.all(LISTING_KEYS.map(refresh));
                     setEditing(null);
                     toast.success("Listing saved");
                   }}
@@ -195,14 +198,14 @@ const ProviderDashboardPage: React.FC = () => {
                               {listing.status === "published" && <Button asChild variant="ghost" size="sm"><Link to={`/hire/${listing.slug}`}>View <ArrowUpRight aria-hidden /></Link></Button>}
                               {listing.status !== "archived" && <Button variant="outline" size="sm" onClick={() => setEditing(listing)}>Edit</Button>}
                               {(listing.status === "draft" || listing.status === "changes_requested") && (
-                                <Button variant="cta" size="sm" onClick={() => act(() => listingAction(listing.id, "submit"), "Submitted for review", "provider-listings")}>Submit for review</Button>
+                                <Button variant="cta" size="sm" onClick={() => act(() => listingAction(listing.id, "submit"), "Submitted for review", ...LISTING_KEYS)}>Submit for review</Button>
                               )}
-                              {listing.status === "published" && <Button variant="outline" size="sm" onClick={() => act(() => listingAction(listing.id, "pause"), "Listing paused", "provider-listings")}>Pause</Button>}
-                              {listing.status === "paused" && <Button variant="outline" size="sm" onClick={() => act(() => listingAction(listing.id, "resume"), "Listing resumed", "provider-listings")}>Resume</Button>}
+                              {listing.status === "published" && <Button variant="outline" size="sm" onClick={() => act(() => listingAction(listing.id, "pause"), "Listing paused", ...LISTING_KEYS)}>Pause</Button>}
+                              {listing.status === "paused" && <Button variant="outline" size="sm" onClick={() => act(() => listingAction(listing.id, "resume"), "Listing resumed", ...LISTING_KEYS)}>Resume</Button>}
                               {listing.status === "draft" ? (
-                                <Button variant="ghost" size="sm" onClick={() => { if (window.confirm(`Delete the draft "${listing.title}"?`)) void act(() => deleteDraftListing(listing.id), "Draft deleted", "provider-listings"); }}>Delete</Button>
+                                <Button variant="ghost" size="sm" onClick={() => { if (window.confirm(`Delete the draft "${listing.title}"?`)) void act(() => deleteDraftListing(listing.id), "Draft deleted", ...LISTING_KEYS); }}>Delete</Button>
                               ) : listing.status !== "archived" && (
-                                <Button variant="ghost" size="sm" onClick={() => { if (window.confirm(`Archive "${listing.title}"? It will be removed from the catalog. Existing orders continue.`)) void act(() => listingAction(listing.id, "archive"), "Listing archived", "provider-listings"); }}>Archive</Button>
+                                <Button variant="ghost" size="sm" onClick={() => { if (window.confirm(`Archive "${listing.title}"? It will be removed from the catalog. Existing orders continue.`)) void act(() => listingAction(listing.id, "archive"), "Listing archived", ...LISTING_KEYS); }}>Archive</Button>
                               )}
                             </div>
                           </div>

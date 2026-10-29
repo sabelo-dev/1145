@@ -23,10 +23,12 @@ import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import RegisterPage from "@/pages/RegisterPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import { initNative } from "@/lib/native";
+import { refetchOnAppResume } from "@/lib/queryFocus";
 import { Button } from "@/components/ui/button";
 import "@/index.css";
 
 const queryClient = new QueryClient();
+refetchOnAppResume();
 function DriverGate() {
   const { user, isLoading, isDriver, logout } = useAuth();
   if (isLoading) return <p className="p-6" data-app-loading>Loading 1145 Driver...</p>;

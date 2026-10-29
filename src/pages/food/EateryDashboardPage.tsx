@@ -59,7 +59,12 @@ const EateryDashboardPage: React.FC = () => {
     });
   });
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey });
+  // Details and "taking orders" also show on the public food listing and eatery page.
+  const refresh = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey }),
+    queryClient.invalidateQueries({ queryKey: ["eateries"] }),
+    queryClient.invalidateQueries({ queryKey: ["eatery"] }),
+  ]);
 
   if (isLoading || !user) {
     return <div className="page-container py-10" aria-busy><Skeleton className="h-10 w-72" /><Skeleton className="mt-6 h-72 w-full rounded-2xl" /></div>;
