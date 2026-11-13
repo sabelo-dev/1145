@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
     let after: string | undefined;
     for (let page = 0; page < MAX_PAGES; page++) {
       const { data, has_more } = await listReceivedEmails(after);
+      const newBefore = counts.stored + counts.failed;
       for (const email of data) {
         // The list already has the recipients: skip other domains without
         // spending a rate-limited fetch on them.
@@ -50,6 +51,8 @@ Deno.serve(async (req) => {
         await new Promise((r) => setTimeout(r, RESEND_PACING_MS));
       }
       if (!has_more || data.length === 0) break;
+      // Newest first: a page with nothing new means older pages are stored too.
+      if (counts.stored + counts.failed === newBefore) break;
       after = data[data.length - 1].id;
       await new Promise((r) => setTimeout(r, RESEND_PACING_MS));
     }

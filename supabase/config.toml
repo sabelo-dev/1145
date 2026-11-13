@@ -41,6 +41,10 @@ verify_jwt = true
 [functions.resend-inbox-sync]
 verify_jwt = true
 
+# Admin Email Inbox "Sent" tab: emails sent through Resend. The function checks the admin role itself.
+[functions.resend-sent]
+verify_jwt = true
+
 [functions.update-gold-prices]
 verify_jwt = false
 
