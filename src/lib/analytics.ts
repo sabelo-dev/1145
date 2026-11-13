@@ -16,7 +16,11 @@ export type GrowthEvent =
   | "merchant_application"
   | "add_to_cart"
   | "checkout_start"
+  | "checkout_return"
   | "purchase"
+  | "sign_up"
+  | "email_verified"
+  | "login"
   | "campaign_click"
   | "referral_click"
   | "creator_click"
@@ -31,6 +35,11 @@ const FLUSH_MS = 2_000;
 let queue: Array<Record<string, unknown>> = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
 let disabled = false;
+
+/** The visitor's funnel session id; checkout sends it so the server can record the purchase. */
+export function growthSessionId(): string {
+  return sessionId();
+}
 
 function sessionId(): string {
   try {

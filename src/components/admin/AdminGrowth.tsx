@@ -19,6 +19,9 @@ const FUNNEL: { event: string; label: string }[] = [
 ];
 
 const GROWTH: { event: string; label: string }[] = [
+  { event: "sign_up", label: "Sign-ups" },
+  { event: "email_verified", label: "Emails verified" },
+  { event: "login", label: "Logins" },
   { event: "download_click", label: "App download clicks" },
   { event: "merchant_apply_click", label: "Merchant CTA clicks" },
   { event: "merchant_application", label: "Merchant applications" },

@@ -17,9 +17,10 @@ const CheckoutSuccessPage: React.FC = () => {
     clearCart();
   }, [clearCart]);
 
-  // Once per page load; a refresh may count twice, which the funnel tolerates.
+  // Purchases are recorded by the server (payfast-itn / payfast-payment), which
+  // also counts buyers who never come back to this page. This marks the return.
   useEffect(() => {
-    track("purchase", { payment: searchParams.get("pf_payment_id") ?? undefined });
+    track("checkout_return", { payment: searchParams.get("pf_payment_id") ?? undefined });
   }, [searchParams]);
 
   const paymentId = searchParams.get("pf_payment_id");

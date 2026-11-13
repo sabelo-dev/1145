@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { safeRedirect, withRedirect } from "@/lib/authRedirect";
+import { track } from "@/lib/analytics";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import AuthShell from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
@@ -13,6 +15,7 @@ const VerifyEmailPage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { user, verifyEmailOtp, resendVerification, isRestaurateur } = useAuth();
+  const returnTo = safeRedirect(params.get("redirect"));
 
   const [email, setEmail] = useState(params.get("email") || user?.email || "");
   const [code, setCode] = useState("");
@@ -26,7 +29,7 @@ const VerifyEmailPage: React.FC = () => {
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  if (user?.emailVerified) return <Navigate to={isRestaurateur ? "/eatery/dashboard" : "/dashboard"} replace />;
+  if (user?.emailVerified) return <Navigate to={returnTo ?? (isRestaurateur ? "/eatery/dashboard" : "/dashboard")} replace />;
 
   const onVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +37,9 @@ const VerifyEmailPage: React.FC = () => {
     setSubmitting(true);
     try {
       await verifyEmailOtp(email.trim(), code.trim());
-      navigate("/login", { replace: true });
+      track("email_verified", { returning_to: returnTo ?? undefined });
+      // Verifying signs the user in; /login forwards a signed-in user to returnTo.
+      navigate(withRedirect("/login", returnTo), { replace: true });
     } catch {
       /* toast handled */
     } finally {
@@ -62,7 +67,7 @@ const VerifyEmailPage: React.FC = () => {
       footer={
         <span className="text-muted-foreground">
           Wrong email?{" "}
-          <Link to="/register" className="font-medium text-foreground hover:underline">
+          <Link to={withRedirect("/register", returnTo)} className="font-medium text-foreground hover:underline">
             Start over
           </Link>
         </span>

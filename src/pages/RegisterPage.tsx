@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Car, Check, Eye, EyeOff, Loader2, ShoppingBag, Sparkles, Store, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { safeRedirect, withRedirect } from "@/lib/authRedirect";
+import { track } from "@/lib/analytics";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import AuthSplitShell from "@/components/auth/AuthSplitShell";
 import OAuthButtons from "@/components/auth/OAuthButtons";
@@ -102,6 +104,7 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, register } = useAuth();
+  const returnTo = safeRedirect(searchParams.get("redirect"));
   const [submitting, setSubmitting] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -123,14 +126,15 @@ const RegisterPage: React.FC = () => {
   const role = form.watch("role");
   const score = useMemo(() => scorePassword(password || ""), [password]);
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={returnTo ?? "/"} replace />;
 
   const onSubmit = async (values: RegisterFormValues) => {
     setSubmitting(true);
     try {
       const result = await register(values.email, values.password, values.name, values.role);
+      track("sign_up", { role: values.role, returning_to: returnTo ?? undefined });
       navigate(
-        result?.redirectPath || `/verify-email?email=${encodeURIComponent(values.email)}`,
+        withRedirect(result?.redirectPath || `/verify-email?email=${encodeURIComponent(values.email)}`, returnTo),
         { replace: true }
       );
     } catch {
@@ -148,7 +152,7 @@ const RegisterPage: React.FC = () => {
       footer={
         <span className="text-muted-foreground">
           Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-foreground hover:underline">
+          <Link to={withRedirect("/login", returnTo)} className="font-semibold text-foreground hover:underline">
             Sign in
           </Link>
         </span>

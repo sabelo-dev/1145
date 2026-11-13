@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { safeRedirect, withRedirect } from "@/lib/authRedirect";
+import { track } from "@/lib/analytics";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -32,8 +34,10 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   // Where to go back to after signing in (e.g. a 1145 Pay link). Only paths inside this site.
   const [searchParams] = useSearchParams();
-  const requested = searchParams.get("redirect");
-  const returnTo = requested && requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : null;
+  // Also honours router state ({ from }) for older callers.
+  const location = useLocation();
+  const returnTo = safeRedirect(searchParams.get("redirect"))
+    ?? safeRedirect((location.state as { from?: string } | null)?.from);
   const { user, isLoading, isAdmin, isMerchant, isDriver, isInfluencer, isRestaurateur, login } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   // Store staff (added to someone else's store) have no role dashboard: they work in the order console.
@@ -73,6 +77,7 @@ const LoginPage: React.FC = () => {
     setSubmitting(true);
     try {
       const result = await login(values.email, values.password);
+      track("login", { returning_to: returnTo ?? undefined });
       navigate(returnTo || result?.redirectPath || "/dashboard", { replace: true });
     } catch (err) {
       // handled in AuthContext toast
@@ -88,7 +93,7 @@ const LoginPage: React.FC = () => {
       footer={
         <span className="text-muted-foreground">
           New to 1145?{" "}
-          <Link to="/register" className="font-medium text-foreground hover:underline">
+          <Link to={withRedirect("/register", returnTo)} className="font-medium text-foreground hover:underline">
             Create an account
           </Link>
         </span>

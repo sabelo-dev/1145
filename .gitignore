@@ -44,3 +44,7 @@ dist-driver/
 
 # Release manifest written by scripts/android-versions.mjs (uploaded, not committed)
 /release/
+
+# Price re-run previews and backups (scripts/reprice-products.mjs)
+reprice-preview-*.csv
+reprice-backup-*.json

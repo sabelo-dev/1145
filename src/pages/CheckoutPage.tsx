@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CircleHelp, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { track } from "@/lib/analytics";
+import { withRedirect } from "@/lib/authRedirect";
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const CheckoutPage: React.FC = () => {
   }, []);
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return <Navigate to={withRedirect("/login", location.pathname)} replace />;
   }
 
 

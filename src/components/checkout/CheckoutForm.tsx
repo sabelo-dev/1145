@@ -27,6 +27,7 @@ import UCoinPayPanel from "./UCoinPayPanel";
 import PromoCodePanel, { type AppliedPromo } from "./PromoCodePanel";
 import { UCOIN_RAND_VALUE } from "@/types/ucoin";
 import { useNavigate } from "react-router-dom";
+import { growthSessionId } from "@/lib/analytics";
 
 const checkoutSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -207,6 +208,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
             paymentMethod: values.paymentMethod,
             ucoinToApply: ucoinApplied,
             promoCode: promo?.code,
+            // Lets the server log the purchase against this visit's funnel.
+            growthSessionId: growthSessionId(),
             shippingAddress: {
               name: `${values.firstName} ${values.lastName}`,
               street: values.address,

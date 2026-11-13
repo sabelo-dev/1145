@@ -131,7 +131,7 @@ export const valueProp = {
   eyebrow: "Shop · Ride · Discover",
   title: "Everything you need. One app.",
   description:
-    "Shop South African brands and local merchants, request a ride, and discover food, stays and services — paid securely and delivered to your door.",
+    "Shop African brands and local merchants, request a ride, and discover food, stays and services — paid securely and delivered to your door.",
   primary: { label: "Download 1145", to: "/downloads" },
   secondary: { label: "Explore the marketplace", to: "/shop" },
   /** Real product shots from the current drop, priced from the catalogue when it loads. */
