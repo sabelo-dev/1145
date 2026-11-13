@@ -11,8 +11,8 @@
 // `token_expired` / `revoked` / `error` and a user notification is written
 // to public.user_notifications so the influencer knows to reconnect.
 
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { corsHeaders } from "npm:@supabase/supabase-js@2.119.0/cors";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import {
   logConnectionEvent,
   updateConnection,

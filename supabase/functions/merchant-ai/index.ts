@@ -13,7 +13,7 @@
 //     has a daily request allowance and token use is recorded per day.
 //   * No customer names, phone numbers or addresses are sent to the model.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import Anthropic from "npm:@anthropic-ai/sdk@0.133.0";
 
 const corsHeaders = {

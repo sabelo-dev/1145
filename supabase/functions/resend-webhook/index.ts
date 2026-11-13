@@ -7,7 +7,7 @@
 //
 // Requests are verified with the webhook's signing secret (Svix scheme) in
 // RESEND_WEBHOOK_SECRET; without it every request is refused.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { storeReceivedEmail } from "../_shared/resendInbound.ts";
 import { verifyWebhookSignature } from "../_shared/webhookSignature.ts";
 

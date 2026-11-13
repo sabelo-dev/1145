@@ -247,10 +247,10 @@ export const dropCampaign = {
   // Competition rules go live once approved (see content/competition.ts).
   terms: { label: "Terms apply", to: competitionTerms.approved ? competitionTermsPath : "/terms" },
   image: {
-    src: "/images/drop-001/cap_red.webp",
-    alt: "Red XIXLV cap from the current drop",
-    width: 720,
-    height: 720,
+    src: "/images/R15k.png",
+    alt: "Your next great find: stand a chance to win a share of R15,000 in shopping vouchers. Download 1145.",
+    width: 1024,
+    height: 1536,
   } satisfies HomeImage,
 };
 

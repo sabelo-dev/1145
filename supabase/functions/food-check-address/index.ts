@@ -10,7 +10,7 @@
 //   ok, unverified   the address is not on the map; the customer chose a listed area
 //   outside          the address is on the map, outside every area  (order refused)
 //   choose_area      the address is not on the map; ask the customer to choose an area
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { type LocatedAddress, matchZone, nearestZone, normaliseName, zonesFor } from "../_shared/deliveryArea.ts";
 
 const corsHeaders = {

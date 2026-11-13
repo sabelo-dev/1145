@@ -1,7 +1,7 @@
 // Admin-only: import emails Resend has received for @1145.io that are not in
 // inbound_emails yet (mail that arrived before the webhook existed, or while
 // it was failing). Used by the admin Email Inbox "Refresh" button.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { isForOurDomain, isStored, listReceivedEmails, storeReceivedEmail } from "../_shared/resendInbound.ts";
 
 const corsHeaders = {

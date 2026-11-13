@@ -3,7 +3,7 @@
 //                              the paid period ends.
 // Starting / paying a subscription goes through payfast-payment
 // (customStr2 = "tier_subscription") and payfast-itn.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { cancelPayFastSubscription, getPayFastConfig } from "../_shared/payfast.ts";
 
 const corsHeaders = {

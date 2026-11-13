@@ -8,7 +8,7 @@
 // iOS:     Apple Push Notification service directly with a token key
 //          (APNS_KEY_P8 contents, APNS_KEY_ID, APNS_TEAM_ID; APNS_PRODUCTION
 //          "true" for App Store / TestFlight builds).
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 
 const BUNDLE_ID = "io.lifestyle1145.app";
 

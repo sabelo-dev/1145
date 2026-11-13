@@ -70,9 +70,9 @@ const DropCampaign: React.FC = () => {
   return (
     <section aria-labelledby="drop-title" className="section">
       <div className="page-container">
-        <div className="relative isolate grid overflow-hidden rounded-[2rem] bg-navy-900 text-white lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="relative isolate grid overflow-hidden rounded-[2rem] bg-navy-900 text-white lg:grid-cols-[minmax(0,1fr)_27rem]">
           <div aria-hidden className="pointer-events-none absolute -left-20 -top-24 -z-10 h-80 w-80 rounded-full bg-gold/20 blur-3xl" />
-          <div className="min-w-0 p-6 sm:p-10 lg:p-12">
+          <div className="min-w-0 p-6 sm:p-10 lg:self-center lg:p-12">
             <p className="eyebrow inline-flex rounded-full bg-gold px-3 py-1 text-navy-900">{dropCampaign.eyebrow}</p>
             <h2 id="drop-title" className="type-headline mt-5 text-white">{campaign.title}</h2>
 
@@ -110,16 +110,19 @@ const DropCampaign: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative min-h-[14rem] lg:min-h-full">
+          {/* The artwork is a poster (the competition one is 2:3 portrait, with
+              its headline and QR code at the edges), so it is shown whole at its
+              own aspect ratio rather than cropped to fill the column. */}
+          <div className="flex items-center justify-center">
             <ResponsiveImage
               src={campaign.image.src}
-              sizes="(min-width: 1024px) 38vw, 90vw"
+              sizes="(min-width: 1024px) 27rem, (min-width: 640px) 28rem, 100vw"
               alt={campaign.image.alt}
               width={campaign.image.width}
               height={campaign.image.height}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="block h-auto w-full max-w-md"
             />
           </div>
         </div>

@@ -6,7 +6,7 @@
 //   "withdrawals" (default) -> linked_bank_accounts
 //   "transfers"             -> user_linked_bank_accounts (bank transfer dialog)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { checkBankDetails, sha256Hex, VERIFICATION_PROVIDER } from "../_shared/bankVerification.ts";
 
 const corsHeaders = {

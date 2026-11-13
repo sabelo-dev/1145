@@ -1,7 +1,7 @@
 // Link a card by initiating a PayFast tokenization request (3-D Secure check, nothing charged).
 // Returns a PayFast redirect. The ITN callback (payfast-itn) creates the payment_instruments row from the returned token.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {

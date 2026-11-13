@@ -1,7 +1,7 @@
 // Deposit funds into 1145 Wallet via PayFast. Creates a pending ledger row keyed by m_payment_id.
 // payfast-itn credits the wallet on COMPLETE.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { getPayFastConfig, payfastReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {

@@ -2,7 +2,7 @@
 // All state transitions in the social integration flow through here so the
 // audit trail in social_connection_events stays complete.
 
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 
 export type ConnectionStatus =
   | "pending"

@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { getPayFastConfig, safeReturnUrl, signPayFast } from "../_shared/payfast.ts";
 
 const corsHeaders = {
@@ -36,6 +36,8 @@ interface PayFastPaymentData {
   promoCode?: string;
   /** Price the cart (with any promo code) and return the totals without creating an order. */
   quoteOnly?: boolean;
+  /** The shopper's growth-funnel session id, so the purchase is counted against their visit. */
+  growthSessionId?: string;
 }
 
 interface AppliedPromo {
@@ -58,6 +60,29 @@ interface PricedLine {
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Records a completed shop order in the growth funnel. Never throws: analytics
+ * must not affect payment handling. A unique index keeps one row per order.
+ */
+// deno-lint-ignore no-explicit-any
+async function recordPurchaseEvent(db: any, opts: { orderId: string; userId: string | null; amount: number; sessionId?: string | null; source: string }) {
+  try {
+    const sid = typeof opts.sessionId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(opts.sessionId)
+      ? opts.sessionId
+      : `server-${opts.orderId}`.slice(0, 64);
+    const { error } = await db.from("growth_events").insert({
+      event: "purchase",
+      session_id: sid,
+      user_id: opts.userId,
+      path: "/checkout",
+      props: { order_id: opts.orderId, amount: opts.amount, source: opts.source },
+    });
+    if (error && error.code !== "23505") console.error(`growth purchase event for ${opts.orderId}:`, error.message);
+  } catch (e) {
+    console.error(`growth purchase event for ${opts.orderId}:`, e);
+  }
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -572,6 +597,9 @@ serve(async (req) => {
           status: "paid",
           reference: mPaymentId,
         });
+        await recordPurchaseEvent(supabaseAdmin, {
+          orderId, userId: user.id, amount: round2(total), sessionId: paymentData.growthSessionId, source: "ucoin",
+        });
 
         return json({ success: true, paidWithUcoin: true, orderId, ucoinDiscount });
       }
@@ -584,7 +612,7 @@ serve(async (req) => {
         amount: amountDue,
         status: "initiated",
         reference: mPaymentId,
-        metadata: { ucoin_discount: ucoinDiscount, subtotal, shipping, tax, promo_code: promo?.code ?? null, promo_savings: promoSavings },
+        metadata: { ucoin_discount: ucoinDiscount, subtotal, shipping, tax, promo_code: promo?.code ?? null, promo_savings: promoSavings, growth_session: typeof paymentData.growthSessionId === "string" ? paymentData.growthSessionId.slice(0, 64) : null },
       });
 
       await supabaseAdmin.from("orders").update({ payment_gateway: "payfast" }).eq("id", orderId);

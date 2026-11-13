@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.119.0';
 import { INSTAGRAM_OAUTH_URL, INSTAGRAM_SCOPES, instagramAppCredentials, META_GRAPH, META_OAUTH_DIALOG, META_SCOPES, metaAppCredentials, safeAppUrl, safeReturnPath, signState } from '../_shared/meta.ts';
 
 const corsHeaders = {

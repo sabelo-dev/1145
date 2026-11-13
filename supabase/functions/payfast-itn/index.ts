@@ -1,6 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { amountsMatch, cancelPayFastSubscription, getPayFastConfig, validateItn } from "../_shared/payfast.ts";
+
+/**
+ * Records a completed shop order in the growth funnel. Never throws: analytics
+ * must not affect payment handling. A unique index keeps one row per order.
+ */
+// deno-lint-ignore no-explicit-any
+async function recordPurchaseEvent(db: any, opts: { orderId: string; userId: string | null; amount: number; sessionId?: string | null; source: string }) {
+  try {
+    const sid = typeof opts.sessionId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(opts.sessionId)
+      ? opts.sessionId
+      : `server-${opts.orderId}`.slice(0, 64);
+    const { error } = await db.from("growth_events").insert({
+      event: "purchase",
+      session_id: sid,
+      user_id: opts.userId,
+      path: "/checkout",
+      props: { order_id: opts.orderId, amount: opts.amount, source: opts.source },
+    });
+    if (error && error.code !== "23505") console.error(`growth purchase event for ${opts.orderId}:`, error.message);
+  } catch (e) {
+    console.error(`growth purchase event for ${opts.orderId}:`, e);
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -356,7 +379,7 @@ serve(async (req) => {
       if (paymentStatus === "COMPLETE") {
         const { data: order } = await supabaseAdmin
           .from("orders")
-          .select("id, total, ucoin_value_zar, payment_status")
+          .select("id, user_id, total, ucoin_value_zar, payment_status")
           .eq("id", orderId)
           .maybeSingle();
 
@@ -395,6 +418,23 @@ serve(async (req) => {
         // Paid → take the units out of stock (pre-order lines don't consume stock).
         const { error: stockError } = await supabaseAdmin.rpc("apply_paid_order_stock", { p_order_id: orderId });
         if (stockError) console.error(`Stock update failed for order ${orderId}:`, stockError);
+
+        // Count the purchase in the growth funnel against the shopper's visit.
+        const { data: attempt } = await supabaseAdmin
+          .from("order_payment_attempts")
+          .select("metadata")
+          .eq("order_id", orderId)
+          .eq("reference", paymentId)
+          .not("metadata->>growth_session", "is", null)
+          .limit(1)
+          .maybeSingle();
+        await recordPurchaseEvent(supabaseAdmin, {
+          orderId,
+          userId: (order as { user_id?: string | null }).user_id ?? null,
+          amount: Number(order.total || 0),
+          sessionId: (attempt?.metadata as { growth_session?: string } | null)?.growth_session,
+          source: "payfast_itn",
+        });
       } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
         const { error: cancelError } = await supabaseAdmin
           .from("orders")

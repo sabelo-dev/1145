@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { decryptToken } from "../_shared/socialCrypto.ts";
 import { INSTAGRAM_GRAPH, META_GRAPH, META_GRAPH_VERSION } from "../_shared/meta.ts";
 

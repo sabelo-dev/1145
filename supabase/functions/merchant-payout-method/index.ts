@@ -4,7 +4,7 @@
 //
 // merchant_payment_methods and the bank columns of merchant_financial_details are
 // not writable by clients; this function is the only way in.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.0";
 import { checkBankDetails, VERIFICATION_PROVIDER } from "../_shared/bankVerification.ts";
 
 const corsHeaders = {
