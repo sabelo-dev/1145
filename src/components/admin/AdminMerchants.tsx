@@ -101,7 +101,8 @@ const AdminMerchants: React.FC = () => {
         ...merchant,
         status: merchant.status as "pending" | "approved" | "rejected" | "suspended",
         profiles: profilesMap.get(merchant.user_id),
-        business_email: finMap.get(merchant.id)?.business_email,
+        // Fall back to the owner's account email until a business email is saved.
+        business_email: finMap.get(merchant.id)?.business_email || profilesMap.get(merchant.user_id)?.email,
         business_phone: finMap.get(merchant.id)?.business_phone,
         tax_id: finMap.get(merchant.id)?.tax_id,
       }));
@@ -175,7 +176,8 @@ const AdminMerchants: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: `Failed to remove merchant: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        // Supabase returns plain { message } objects, not Error instances.
+        description: `Failed to remove merchant: ${(error as { message?: string } | null)?.message || 'Unknown error'}`,
       });
     }
   };

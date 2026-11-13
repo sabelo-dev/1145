@@ -49,6 +49,9 @@ interface Driver {
   };
 }
 
+/** Status shown for driver-role accounts that have not submitted driver onboarding. */
+const NOT_ONBOARDED = "onboarding";
+
 const AdminDrivers = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,20 +75,49 @@ const AdminDrivers = () => {
 
       if (error) throw error;
 
+      // Accounts that signed up as drivers get the driver role at once, but
+      // their drivers record only exists after the onboarding form. List them
+      // too, so a driver-role user never goes missing from this page.
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("user_id, created_at")
+        .eq("role", "driver");
+      const withRecord = new Set((driversData || []).map(d => d.user_id));
+      const signupOnly = (roleRows || []).filter(r => !withRecord.has(r.user_id));
+
       // Fetch profiles for all drivers
-      const userIds = driversData?.map(d => d.user_id) || [];
+      const userIds = [...withRecord, ...signupOnly.map(r => r.user_id)];
       const { data: profilesData } = await supabase
         .from("profiles")
-        .select("id, email, name")
+        .select("id, email, name, phone, created_at")
         .in("id", userIds);
+      const profileOf = (id: string) => profilesData?.find(p => p.id === id);
 
       // Map profiles to drivers
-      const driversWithProfiles = (driversData || []).map(driver => ({
+      const driversWithProfiles: Driver[] = (driversData || []).map(driver => ({
         ...driver,
-        profile: profilesData?.find(p => p.id === driver.user_id) || undefined
+        profile: profileOf(driver.user_id) || undefined
       }));
 
-      setDrivers(driversWithProfiles);
+      const notOnboarded: Driver[] = signupOnly.map(r => {
+        const p = profileOf(r.user_id);
+        return {
+          id: `signup:${r.user_id}`,
+          user_id: r.user_id,
+          name: p?.name || p?.email || "Unnamed driver",
+          phone: p?.phone ?? null,
+          vehicle_type: null,
+          vehicle_registration: null,
+          license_number: null,
+          status: NOT_ONBOARDED,
+          rating: null,
+          total_deliveries: null,
+          created_at: p?.created_at || r.created_at || new Date().toISOString(),
+          profile: p ? { email: p.email, name: p.name } : undefined,
+        };
+      });
+
+      setDrivers([...driversWithProfiles, ...notOnboarded]);
     } catch (error) {
       console.error("Error fetching drivers:", error);
       toast({
@@ -140,14 +172,17 @@ const AdminDrivers = () => {
         return <Badge variant="destructive">Suspended</Badge>;
       case "pending":
         return <Badge className="bg-gold/10">Pending</Badge>;
+      case NOT_ONBOARDED:
+        return <Badge variant="outline">Onboarding incomplete</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const filteredDrivers = drivers.filter(driver => {
-    const matchesSearch = 
-      driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      (driver.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      driver.profile?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       driver.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       driver.vehicle_registration?.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -157,7 +192,8 @@ const AdminDrivers = () => {
   });
 
   const stats = {
-    total: drivers.length,
+    // Driver records only; accounts still onboarding are listed but not counted.
+    total: drivers.filter(d => d.status !== NOT_ONBOARDED).length,
     active: drivers.filter(d => d.status === "active").length,
     inactive: drivers.filter(d => d.status === "inactive").length,
     pending: drivers.filter(d => d.status === "pending").length,
@@ -255,6 +291,7 @@ const AdminDrivers = () => {
                 <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value={NOT_ONBOARDED}>Onboarding incomplete</SelectItem>
               </SelectContent>
             </Select>
           </div>

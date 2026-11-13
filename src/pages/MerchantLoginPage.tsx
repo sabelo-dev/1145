@@ -13,7 +13,7 @@ const MerchantLoginPage: React.FC = () => {
 
   useEffect(() => {
     const checkOnboarding = async () => {
-      if (!user || !(isMerchant || user.role === "merchant")) return;
+      if (!user || isAdmin || !(isMerchant || user.role === "merchant")) return;
       setChecking(true);
       const { data: merchant } = await supabase
         .from("merchants")
@@ -28,7 +28,7 @@ const MerchantLoginPage: React.FC = () => {
       setChecking(false);
     };
     checkOnboarding();
-  }, [user, isMerchant]);
+  }, [user, isMerchant, isAdmin]);
 
   if (isLoading || checking) {
     return (
@@ -42,11 +42,13 @@ const MerchantLoginPage: React.FC = () => {
   }
 
   if (user) {
+    // Admins first, as on every other login page: an admin who also has an
+    // unfinished merchant record belongs on the admin dashboard, not onboarding.
+    if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
     if (isMerchant || user.role === "merchant") {
       if (merchantRedirect) return <Navigate to={merchantRedirect} replace />;
       return null;
     }
-    if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 

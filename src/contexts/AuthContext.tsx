@@ -322,10 +322,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (data.user) {
+        // Load the profile and role flags into context before returning: callers
+        // navigate on our result straight away, and the SIGNED_IN listener loads
+        // them on its own schedule. Navigating first made the route guards see
+        // "no user" and send people back to a login page.
+        if (data.session) {
+          setSession(data.session);
+          loadingManager.startLoading('login-profile');
+        }
         const [rolesResult, merchantResult, driverResult] = await Promise.all([
           supabase.from('user_roles').select('role').eq('user_id', data.user.id),
           checkMerchantStatus(data.user.id),
-          checkDriverStatus(data.user.id)
+          checkDriverStatus(data.user.id),
+          data.session ? loadUserProfile(data.session, 'login-profile') : Promise.resolve(),
         ]);
         
         const userRoles = rolesResult.data?.map(r => r.role) || [];

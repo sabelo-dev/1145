@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +35,7 @@ const STATUS_TO_STEP: Record<string, number> = {
 
 const MerchantOnboarding: React.FC = () => {
   const { toast } = useToast();
-  const { user, refreshUserProfile } = useAuth();
+  const { user, isAdmin, refreshUserProfile } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,23 +60,39 @@ const MerchantOnboarding: React.FC = () => {
   // Product state
   const [productImage, setProductImage] = useState<string | null>(null);
 
-  // Initialize merchant
+  // Initialize merchant: once per account. The `user` object is replaced on
+  // every profile reload, and two overlapping runs each inserted a merchant row.
+  const initializedFor = useRef<string | null>(null);
   useEffect(() => {
     if (!user) {
       setPageLoading(false);
       return;
     }
+    if (initializedFor.current === user.id) return;
+    initializedFor.current = user.id;
     initMerchant();
   }, [user]);
 
   const initMerchant = async () => {
     if (!user) return;
     try {
-      const { data: merchant } = await supabase
+      // Oldest record first. Not maybeSingle(): with duplicate rows it errors,
+      // and the error used to be read as "no record" and create yet another.
+      const { data: rows, error: lookupError } = await supabase
         .from("merchants")
         .select("*")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .order("created_at", { ascending: true })
+        .limit(1);
+      if (lookupError) throw lookupError;
+      const merchant = rows?.[0];
+
+      // Admins manage merchants (Admin → Merchant Management → Add Merchant);
+      // opening this page must not turn their account into an application.
+      if (!merchant && isAdmin) {
+        navigate("/admin/dashboard", { replace: true });
+        return;
+      }
 
       if (merchant) {
         // Load financial details from separate secure table
