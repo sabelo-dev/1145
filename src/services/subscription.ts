@@ -8,9 +8,9 @@ export const TIER_ORDER: SubscriptionTier[] = ['starter', 'bronze', 'silver', 'g
 
 export const TIER_PRICING: Record<SubscriptionTier, Record<BillingPeriod, number>> = {
   starter: { monthly: 0, yearly: 0 },
-  bronze: { monthly: 99, yearly: 990 },
-  silver: { monthly: 249, yearly: 2490 },
-  gold: { monthly: 499, yearly: 4990 },
+  bronze: { monthly: 100, yearly: 1000 },
+  silver: { monthly: 200, yearly: 2000 },
+  gold: { monthly: 500, yearly: 5000 },
 };
 
 export interface SubscriptionChangeResult {
