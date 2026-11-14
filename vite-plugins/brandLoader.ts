@@ -5,7 +5,9 @@ import type { Plugin } from "vite";
 const ROOT_DIV = '<div id="root"></div>';
 // The logo the clock turns into. The plugin ships its own copy, because not
 // every build copies public/ (the Orders app sets publicDir: false).
-const LOGO_URL = "/brand-loader-logo.png";
+// A 400px WebP (≈40 KB) of logo-mark-512.png; the PNG was ≈480 KB and was the
+// largest thing on screen while a mobile page loaded.
+const LOGO_URL = "/brand-loader-logo.webp";
 
 /**
  * Adds the 1145 clock load animation (src/brand/loader.html) right after the
@@ -14,12 +16,12 @@ const LOGO_URL = "/brand-loader-logo.png";
  */
 export function brandLoader(): Plugin {
   const markup = path.resolve(__dirname, "../src/brand/loader.html");
-  const logo = path.resolve(__dirname, "../public/logo-mark-512.png");
+  const logo = path.resolve(__dirname, "../public/brand-loader-logo.webp");
   return {
     name: "1145-brand-loader",
     configureServer(server) {
       server.middlewares.use(LOGO_URL, (_req, res) => {
-        res.setHeader("Content-Type", "image/png");
+        res.setHeader("Content-Type", "image/webp");
         res.end(fs.readFileSync(logo));
       });
     },

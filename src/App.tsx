@@ -27,11 +27,13 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleDashboardRedirect from "@/components/auth/RoleDashboardRedirect";
 import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
 import ScrollToTop from "@/components/ScrollToTop";
+import PageviewTracker from "@/components/PageviewTracker";
 import { OFFICIAL_STORE_PATH } from "@/lib/officialStore";
 
 // Lazy loaded pages
 const Index = lazyWithRetry(() => import("@/pages/Index"));
 const HomePage = lazyWithRetry(() => import("@/pages/HomePage"));
+const StartPage = lazyWithRetry(() => import("@/pages/StartPage"));
 const ShopPage = lazyWithRetry(() => import("@/pages/ShopPage"));
 const ProductPage = lazyWithRetry(() => import("@/pages/ProductPage"));
 
@@ -190,6 +192,8 @@ function AppRouter() {
       <Routes>
         <Route index element={<Index />} />
         <Route path="home" element={<HomePage />} />
+        {/* Ad landing page: one call to action per audience (?for=shop|vendor|driver). */}
+        <Route path="start" element={<StartPage />} />
         <Route path="install" element={<InstallPage />} />
         <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="pay" element={<PayBridgePage />} />
@@ -451,6 +455,7 @@ function App() {
                     <FoodCartProvider>
                     <Router>
                       <ScrollToTop />
+                      <PageviewTracker />
                       <AppRouter />
                       <PasswordChangeGate />
                       <AppInviteClaim app="app" />

@@ -50,7 +50,7 @@
         <circle cx="100" cy="100" r="3" fill="#009bfe" />
       </g>
     </svg>
-    <img class="bl-logo" src="/brand-loader-logo.png" alt="" width="200" height="200" decoding="async" onerror="this.remove()" />
+    <img class="bl-logo" src="/brand-loader-logo.webp" alt="" width="200" height="200" loading="lazy" decoding="async" onerror="this.remove()" />
   </div>
   <p class="bl-time"><span>11</span><i>:</i><span>45</span></p>
 </div>
@@ -101,7 +101,9 @@
     var cap = window.Capacitor;
     var native = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
     var ours = native || /(^|\.)1145\.io$/.test(host) || host === "localhost" || host === "127.0.0.1";
-    if (!ours) { el.remove(); return; }
+    // Ad landing pages show their call to action straight away, never the clock.
+    var landing = /^\/start\/?$/.test(location.pathname);
+    if (!ours || landing) { el.remove(); return; }
     el.className = "bl-on";
 
     // Hand over from the native splash screen straight away, so the clock is seen.
@@ -168,18 +170,18 @@
 
     if (reduced) { m = 270; h = 352.5; draw(0); } else requestAnimationFrame(frame);
 
-    // Loaded: the window has loaded and the app shows a real page, not a placeholder.
+    // Loaded: the app shows a real page, not a placeholder. It does not wait for
+    // the window's load event: that waits for every image (product photos
+    // included), which on mobile data kept the page hidden for many seconds.
     var root = document.getElementById("root");
-    var windowLoaded = document.readyState === "complete";
     function check() {
-      if (ready || !windowLoaded || !root || !root.childElementCount || root.querySelector("[data-app-loading]")) return;
+      if (ready || !root || !root.childElementCount || root.querySelector("[data-app-loading]")) return;
       ready = true;
       if (reduced) reveal();
     }
-    window.addEventListener("load", function () { windowLoaded = true; check(); });
     if (root && window.MutationObserver) new MutationObserver(check).observe(root, { childList: true, subtree: true });
     var poll = setInterval(function () { check(); if (ready) clearInterval(poll); }, 250);
-    setTimeout(function () { ready = true; if (reduced) reveal(); }, 12000); // never wait longer
-    setTimeout(finish, 16000);
+    setTimeout(function () { ready = true; if (reduced) reveal(); }, 6000); // never wait longer
+    setTimeout(finish, 8000);
   })();
 </script>

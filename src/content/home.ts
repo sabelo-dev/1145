@@ -247,10 +247,11 @@ export const dropCampaign = {
   // Competition rules go live once approved (see content/competition.ts).
   terms: { label: "Terms apply", to: competitionTerms.approved ? competitionTermsPath : "/terms" },
   image: {
-    src: "/images/R15k.png",
+    // 864px WebP (≈120 KB) of the 1.8 MB R15k.png poster.
+    src: "/images/R15k.webp",
     alt: "Your next great find: stand a chance to win a share of R15,000 in shopping vouchers. Download 1145.",
-    width: 1024,
-    height: 1536,
+    width: 864,
+    height: 1296,
   } satisfies HomeImage,
 };
 

@@ -89,6 +89,53 @@ interface SocialPost {
 
 const SITE_URL = (Deno.env.get("APP_URL") || Deno.env.get("SITE_URL") || "https://1145.io").replace(/\/+$/, "");
 
+/* -------------------------------------------------------------------------- */
+/* UTM tagging                                                                */
+/* -------------------------------------------------------------------------- */
+
+const SITE_HOSTS = new Set(["1145.io", "www.1145.io", new URL(SITE_URL).hostname]);
+
+/**
+ * Adds utm_source/medium/campaign/content to a link to our own site, so
+ * analytics can tell which platform and which post a visitor came from.
+ * Other sites' links and UTM values already on the link are left alone.
+ */
+function tagLink(link: string, platform: string, post: SocialPost): string {
+  let url: URL;
+  try {
+    url = new URL(link);
+  } catch {
+    return link;
+  }
+  if (!SITE_HOSTS.has(url.hostname)) return link;
+  const tags: Record<string, string> = {
+    utm_source: platform,
+    utm_medium: "social",
+    utm_campaign: post.product_id ? "product_promo" : "social_post",
+    utm_content: post.id,
+  };
+  for (const [key, value] of Object.entries(tags)) {
+    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+  }
+  return url.toString();
+}
+
+/** The post as published on one platform: its share link and every site link in its text tagged. */
+function withUtm(post: SocialPost, platform: string): SocialPost {
+  const content = post.content
+    ? post.content.replace(/https?:\/\/[^\s<>"')\]]+/gi, (match) => {
+      // Keep sentence punctuation that follows a link out of the URL.
+      const [, link, trailing] = match.match(/^(.*?)([.,!?;:]*)$/) ?? [match, match, ""];
+      return tagLink(link, platform, post) + trailing;
+    })
+    : post.content;
+  return {
+    ...post,
+    content,
+    share_link: post.share_link ? tagLink(post.share_link, platform, post) : post.share_link,
+  };
+}
+
 function postMedia(post: SocialPost): string[] {
   return Array.isArray(post.media_urls) ? post.media_urls.filter(Boolean) : [];
 }
@@ -1139,6 +1186,8 @@ async function publishPlatform(
   tokenData: OAuthToken,
   supabase?: any,
 ): Promise<PlatformResult> {
+  // Every link to the site carries this platform's UTM tags.
+  post = withUtm(post, platform);
   switch (platform) {
     case "facebook":
       return await publishToFacebook(

@@ -97,6 +97,12 @@ export function track(event: GrowthEvent, props: Props = {}): void {
   if (!timer) timer = setTimeout(flush, FLUSH_MS);
 }
 
+/** Sends what's queued now; await it before a full page navigation. */
+export function flushNow(): Promise<void> {
+  if (timer) clearTimeout(timer);
+  return flush();
+}
+
 // Send what's queued when the tab is hidden, so exits still count.
 if (typeof document !== "undefined") {
   document.addEventListener("visibilitychange", () => {

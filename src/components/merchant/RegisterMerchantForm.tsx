@@ -96,7 +96,8 @@ const RegisterMerchantForm: React.FC = () => {
     // If user is not logged in, redirect to main registration with merchant role
     if (!user) {
       console.log('No user found, redirecting to /register');
-      navigate('/register', { state: { role: 'merchant', businessName: values.businessName, description: values.description } });
+      // RegisterPage reads the role from the URL, not router state.
+      navigate('/register?role=merchant&redirect=%2Fmerchant%2Fonboarding');
       return;
     }
 

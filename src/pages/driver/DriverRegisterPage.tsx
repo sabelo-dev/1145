@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +16,7 @@ import { Truck, Car, Bike, Clock, DollarSign, MapPin, Loader2, CheckCircle } fro
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import { useQuery } from "@tanstack/react-query";
 
-const DriverRegisterPage: React.FC = () => {
+const DriverRegisterForm: React.FC = () => {
   useFrameBreakout();
   const { user, refreshUserProfile } = useAuth();
   // The driver role alone is not enough: a role without a driver record still
@@ -322,6 +322,20 @@ const DriverRegisterPage: React.FC = () => {
       <Footer />
     </div>
   );
+};
+
+/** Where a signed-out visitor goes: create a driver account, then driver onboarding. */
+const DRIVER_SIGNUP_PATH = "/register?role=driver&redirect=%2Fdriver%2Fonboarding";
+
+/**
+ * Signed-out visitors used to fill in this whole form, then be told to log in
+ * and lose it. They now create their driver account first.
+ */
+const DriverRegisterPage: React.FC = () => {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!user) return <Navigate to={DRIVER_SIGNUP_PATH} replace />;
+  return <DriverRegisterForm />;
 };
 
 export default DriverRegisterPage;

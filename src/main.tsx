@@ -1,16 +1,16 @@
-import { createRoot } from 'react-dom/client';
-import { HelmetProvider } from 'react-helmet-async';
-import App from './App.tsx';
 import './index.css';
-import { initNative } from './lib/native';
-import { registerServiceWorker } from './lib/registerSW';
+import { captureAttribution } from './lib/attribution';
 
-createRoot(document.getElementById('root')!).render(
-  <HelmetProvider>
-    <App />
-  </HelmetProvider>
-);
+const root = document.getElementById('root')!;
 
-// Native + PWA bootstrap (both no-op when not applicable)
-initNative();
-registerServiceWorker();
+// Remember which ad, post or site first brought this visitor (lib/attribution).
+captureAttribution();
+
+// The ad landing page (/start) boots on its own, without the app shell, so
+// visitors on mobile data see its call to action first. Keep the path in step
+// with src/brand/loader.html and the /start route in App.tsx.
+if (/^\/start\/?$/.test(window.location.pathname)) {
+  import('./landing').then(({ mountLanding }) => mountLanding(root));
+} else {
+  import('./bootApp').then(({ mountApp }) => mountApp(root));
+}

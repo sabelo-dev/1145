@@ -48,7 +48,16 @@
   <body>
     <div id="root"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <!-- The Lovable editor script, loaded only inside its preview frame: visitors
+         never run in a frame, so they no longer download a third-party script. -->
+    <script>
+      if (window.self !== window.top) {
+        var gpt = document.createElement("script");
+        gpt.type = "module";
+        gpt.src = "https://cdn.gpteng.co/gptengineer.js";
+        document.body.appendChild(gpt);
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

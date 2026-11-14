@@ -7,6 +7,7 @@ import { Car, Check, Eye, EyeOff, Loader2, ShoppingBag, Sparkles, Store, Utensil
 import { useAuth } from "@/contexts/AuthContext";
 import { safeRedirect, withRedirect } from "@/lib/authRedirect";
 import { track } from "@/lib/analytics";
+import { plausibleEvent } from "@/lib/plausible";
 import { useFrameBreakout } from "@/hooks/useFrameBreakout";
 import AuthSplitShell from "@/components/auth/AuthSplitShell";
 import OAuthButtons from "@/components/auth/OAuthButtons";
@@ -133,6 +134,7 @@ const RegisterPage: React.FC = () => {
     try {
       const result = await register(values.email, values.password, values.name, values.role);
       track("sign_up", { role: values.role, returning_to: returnTo ?? undefined });
+      plausibleEvent("Signup", { props: { role: values.role } });
       navigate(
         withRedirect(result?.redirectPath || `/verify-email?email=${encodeURIComponent(values.email)}`, returnTo),
         { replace: true }

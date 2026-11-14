@@ -28,7 +28,8 @@ export const BioLinkCard: React.FC = () => {
 
   if (!code) return null;
 
-  const link = getAppUrl(`/shop?ref=${encodeURIComponent(code)}`);
+  // UTM tags so analytics credits Instagram bio visits to Instagram (social-publish tags post links the same way).
+  const link = getAppUrl(`/shop?ref=${encodeURIComponent(code)}&utm_source=instagram&utm_medium=social&utm_campaign=bio_link`);
 
   const copy = async () => {
     try {

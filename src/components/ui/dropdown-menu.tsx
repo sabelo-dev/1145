@@ -4,7 +4,16 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const DropdownMenu = DropdownMenuPrimitive.Root
+/**
+ * Non-modal by default. A modal menu sets `pointer-events: none` on <body>;
+ * when one of its items opens a Dialog (Edit, View, Delete…), Radix can leave
+ * that style behind after the dialog closes, and the whole page stops
+ * responding until a reload (e.g. editing a second product in the merchant
+ * dashboard). Pass `modal` explicitly where a modal menu is really wanted.
+ */
+const DropdownMenu = ({ modal = false, ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) => (
+  <DropdownMenuPrimitive.Root modal={modal} {...props} />
+)
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 
