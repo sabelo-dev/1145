@@ -617,6 +617,35 @@ serve(async (req) => {
       return ok();
     }
 
+    // Handle Founders Passes — FPASS-{orderId}
+    if (customStr2 === "founders_pass" && customStr1 && paymentId === `FPASS-${customStr1}`) {
+      if (paymentStatus === "COMPLETE") {
+        // The database function checks the amount, assigns the next founder number and is safe to call again for a repeated ITN.
+        const { data: outcome, error: passError } = await supabaseAdmin.rpc("founder_pass_complete", {
+          p_order_id: customStr1,
+          p_payfast_payment_id: pfPaymentId,
+          p_amount: amountGross,
+        });
+        if (passError) {
+          console.error("Failed to issue Founders Pass:", passError);
+          return new Response("Database error", { status: 500, headers: corsHeaders });
+        }
+        if (outcome === "amount_mismatch" || outcome === "not_found" || outcome === "refund_due") {
+          // refund_due: paid, but sold out or already a member. Refund it from the PayFast dashboard.
+          console.error(`Founders Pass order ${customStr1}: ${outcome} (paid R${amountGross})`);
+        } else {
+          console.log(`Founders Pass order ${customStr1}: ${outcome}`);
+        }
+      } else if (paymentStatus === "CANCELLED" || paymentStatus === "FAILED") {
+        await supabaseAdmin
+          .from("founder_pass_orders")
+          .update({ status: paymentStatus.toLowerCase(), payfast_payment_id: pfPaymentId })
+          .eq("id", customStr1)
+          .eq("status", "pending");
+      }
+      return ok();
+    }
+
     // Handle card linking — LINKCARD-{userId}-{ts}
     if (paymentId.startsWith("LINKCARD-") && customStr1 === "link_card" && customStr2
         && paymentId.startsWith(`LINKCARD-${customStr2}-`)) {

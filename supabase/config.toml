@@ -97,6 +97,10 @@ verify_jwt = true
 [functions.ad-credits-purchase]
 verify_jwt = true
 
+# Founders Pass: starts the once-off PayFast payment. Signed-in users only.
+[functions.founder-pass]
+verify_jwt = true
+
 # Merchant AI: the store assistant. Signed-in merchants and staff; the function checks store access itself.
 [functions.merchant-ai]
 verify_jwt = true

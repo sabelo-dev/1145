@@ -27,6 +27,7 @@ import {
 import AdminOverview from "@/components/admin/AdminOverview";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminDeletionRequests from "@/components/admin/AdminDeletionRequests";
+import AdminFounderPasses from "@/components/admin/AdminFounderPasses";
 import AdminMerchants from "@/components/admin/AdminMerchants";
 import AdminMerchantAI from "@/components/admin/AdminMerchantAI";
 import AdminProducts from "@/components/admin/AdminProducts";
@@ -132,6 +133,7 @@ const AdminDashboard = () => {
     { id: "support", title: "Support Tickets", icon: Headphones },
     { id: "users", title: "User Management", icon: Users },
     { id: "deletion-requests", title: "Deletion Requests", icon: UserX },
+    { id: "founder-passes", title: "Founders Passes", icon: Crown },
     { id: "merchants", title: "Merchant Management", icon: Store },
     { id: "merchant-ai", title: "Merchant AI", icon: Sparkles },
     { id: "drivers", title: "Driver Management", icon: Truck },
@@ -321,6 +323,9 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
             </TabsContent>
             <TabsContent value="deletion-requests" className="mt-0">
               <AdminDeletionRequests />
+            </TabsContent>
+            <TabsContent value="founder-passes" className="mt-0">
+              <AdminFounderPasses />
             </TabsContent>
             <TabsContent value="merchants" className="mt-0">
               <AdminMerchants />

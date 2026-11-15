@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
+import FounderBadge from "@/components/account/FounderBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -542,6 +543,8 @@ const ConsumerProfile: React.FC = () => {
             <CardTitle>Account Status</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <FounderBadge />
+
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium">Account Type</h4>
