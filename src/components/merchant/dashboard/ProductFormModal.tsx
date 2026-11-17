@@ -49,7 +49,7 @@ const productSchema = z.object({
 
 const variationSchema = z.object({
   id: z.string(),
-  attributes: z.record(z.string()),
+  attributes: z.record(z.string(), z.string()),
   price: z.number().min(0.01, "Price must be greater than 0"),
   quantity: z.number().min(0, "Quantity cannot be negative"),
   sku: z.string().optional(),
@@ -298,6 +298,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         quantity: product.quantity || 0,
         category: product.category || "",
         subcategories: subcategoriesArray,
+        // Keep the product's listing type when editing (was silently reset to "sale").
+        listingType: (["sale", "lease", "both", "lease_to_own"].includes(product.listing_type) ? product.listing_type : "sale") as "sale" | "lease" | "both" | "lease_to_own",
         productType: product.product_type || 'simple',
       });
       
@@ -325,6 +327,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         category: "",
         subcategories: [],
         productType: 'simple',
+        listingType: 'sale',
       });
       setImages([]);
       setVariations([]);
@@ -996,9 +999,9 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0]] = err.message;
+        error.issues.forEach((err) => {
+          if (err.path[0] != null) {
+            fieldErrors[String(err.path[0])] = err.message;
           }
         });
         setErrors(fieldErrors);

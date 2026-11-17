@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import DriverOverview from "./DriverOverview";
 import DriverActiveDeliveries from "./DriverActiveDeliveries";
+import DriverRouteRun from "./DriverRouteRun";
 import DriverAnalytics from "./DriverAnalytics";
 import DriverSettings from "./DriverSettings";
 import DriverVerification from "./DriverVerification";
@@ -60,6 +61,7 @@ import {
   History,
   PieChart,
   MapPinned,
+  Route as RouteIcon,
 } from "lucide-react";
 
 interface Driver {
@@ -84,6 +86,7 @@ const SIDEBAR_ITEMS = [
   { id: "overview", title: "Overview", icon: LayoutDashboard },
   { id: "nearby", title: "Nearby requests", icon: MapPin },
   { id: "services", title: "Services I accept", icon: Settings },
+  { id: "my-route", title: "My Route", icon: RouteIcon },
   { id: "ride-requests", title: "Ride Requests", icon: Car },
   { id: "ride-history", title: "Ride History", icon: History },
   { id: "ride-analytics", title: "Ride Analytics", icon: PieChart },
@@ -369,6 +372,8 @@ const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh, s
       return <p className="text-sm text-muted-foreground">Nearby trip and delivery offers appear above while you are online.</p>;
     case "available-jobs":
       return <p className="text-sm text-muted-foreground">Nearby delivery offers appear above. Accept an offer to start a delivery.</p>;
+    case "my-route":
+      return <DriverRouteRun driver={driver} onStatusUpdate={onRefresh} />;
     case "active-deliveries":
       return <DriverActiveDeliveries driver={driver} onStatusUpdate={onRefresh} />;
     case "live-tracking":

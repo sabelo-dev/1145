@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +50,17 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ job, onDelivered }) =
   const [isDrawing, setIsDrawing] = useState(false);
   const { toast } = useToast();
 
-  // Expected OTP (in real app, this comes from customer/backend)
-  const expectedOtp = job.order_id ? job.order_id.slice(-4) : "1234";
+  // What the server requires for this job (OTP lives on the linked shipment,
+  // which drivers can't read directly — it is verified server-side).
+  const [requirements, setRequirements] = useState<{ require_otp: boolean; otp_available: boolean } | null>(null);
+  useEffect(() => {
+    if (!dialogOpen) return;
+    supabase.rpc("driver_job_requirements" as never, { p_job_id: job.id } as never).then(({ data }) => {
+      const r = data as { require_otp: boolean; otp_available: boolean } | null;
+      setRequirements(r ?? { require_otp: false, otp_available: false });
+      if (r?.require_otp) setSelectedProof("otp");
+    });
+  }, [dialogOpen, job.id]);
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,15 +74,11 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ job, onDelivered }) =
   };
 
   const handleOtpVerification = async () => {
-    if (otp === expectedOtp || otp === "1234") {
-      await completeDelivery("otp");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Invalid OTP",
-        description: "The OTP doesn't match. Please ask the customer again.",
-      });
+    if (!/^\d{4}$/.test(otp)) {
+      toast({ variant: "destructive", title: "Enter the 4-digit code", description: "Ask the recipient for the code in their SMS." });
+      return;
     }
+    await completeDelivery("otp");
   };
 
   const handleSignatureSubmit = async () => {
@@ -100,19 +105,45 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ job, onDelivered }) =
     await completeDelivery("photo");
   };
 
+  // Upload a captured data URL (photo or signature) to the private proofs bucket.
+  const uploadProof = async (dataUrl: string, kind: "photo" | "signature"): Promise<string> => {
+    const { data: auth } = await supabase.auth.getUser();
+    const blob = await (await fetch(dataUrl)).blob();
+    const ext = blob.type === "image/png" ? "png" : blob.type === "image/webp" ? "webp" : "jpg";
+    const path = `${auth.user?.id}/jobs/${job.id}-${kind}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("delivery-proofs").upload(path, blob, { contentType: blob.type || "image/jpeg" });
+    if (error) throw error;
+    return path;
+  };
+
   const completeDelivery = async (proofType: ProofType) => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from("delivery_jobs")
-        .update({
-          status: "delivered",
-          actual_delivery_time: new Date().toISOString(),
-        })
-        .eq("id", job.id);
+      const proof: Record<string, string> = {};
+      if (proofType === "photo" && photo) proof.photo_path = await uploadProof(photo, "photo");
+      if (proofType === "signature" && signature) proof.signature_path = await uploadProof(signature, "signature");
 
-      if (error) throw error;
+      // Server checks the driver owns the job and, for OTP, that the code matches.
+      const { data: result, error } = await supabase.rpc("driver_complete_job" as never, {
+        p_job_id: job.id,
+        p_method: proofType,
+        p_otp: proofType === "otp" ? otp : null,
+        p_proof: proof,
+      } as never);
+
+      if (error) {
+        const msg = error.message || "";
+        if (msg.includes("invalid_otp")) throw new Error("That code doesn't match. Ask the recipient to check their SMS.");
+        if (msg.includes("otp_required")) throw new Error("This parcel needs the recipient's OTP.");
+        if (msg.includes("otp_not_available")) throw new Error("No OTP was issued for this delivery. Use a photo or signature.");
+        throw error;
+      }
+      const res = result as { ok?: boolean; error?: string; attempts_left?: number } | null;
+      if (res && res.ok === false) {
+        if (res.error === "otp_locked") throw new Error("Too many wrong codes. This parcel is locked, so call dispatch to reset the code.");
+        throw new Error(`That code doesn't match. ${res.attempts_left ?? 0} tries left.`);
+      }
 
       toast({
         title: "Delivery Completed!",
@@ -123,8 +154,8 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ job, onDelivered }) =
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to complete delivery. Please try again.",
+        title: "Couldn't complete delivery",
+        description: error instanceof Error ? error.message : "Please try again.",
       });
     }
 
@@ -238,6 +269,12 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ job, onDelivered }) =
           </div>
 
           {/* Proof Type Selection */}
+          {requirements?.require_otp && (
+            <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+              <KeyRound className="h-4 w-4 mt-0.5 shrink-0" />
+              This parcel needs the recipient's 4-digit code from their SMS. Photo or signature alone won't complete it.
+            </div>
+          )}
           <Tabs value={selectedProof} onValueChange={(v) => setSelectedProof(v as ProofType)}>
             <TabsList className="flex w-full overflow-x-auto no-scrollbar justify-start sm:grid sm:grid-cols-3">
               <TabsTrigger value="photo" className="flex gap-1">

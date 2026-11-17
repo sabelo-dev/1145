@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import ShipmentTrackingCard from "@/logistics/components/ShipmentTrackingCard";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SEO from "@/components/SEO";
@@ -36,8 +37,13 @@ interface OrderData {
 
 const TrackOrderPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const initialTracking = searchParams.get("tracking") || "";
+  const initialTracking = searchParams.get("tracking") || searchParams.get("shipment") || "";
   const [trackingNumber, setTrackingNumber] = useState(initialTracking);
+  // 1145 Logistics parcels (LX + 12–14 chars) are tracked via the logistics timeline.
+  const isShipmentCode = (v: string) => /^LX[0-9A-Z]{12,14}$/i.test(v.trim());
+  const [shipmentCode, setShipmentCode] = useState<string | null>(
+    isShipmentCode(initialTracking) ? initialTracking.trim().toUpperCase() : null,
+  );
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -52,6 +58,14 @@ const TrackOrderPage: React.FC = () => {
       });
       return;
     }
+
+    if (isShipmentCode(trackingNumber)) {
+      setOrder(null);
+      setSearched(false);
+      setShipmentCode(trackingNumber.trim().toUpperCase());
+      return;
+    }
+    setShipmentCode(null);
 
     setLoading(true);
     setSearched(true);
@@ -164,6 +178,12 @@ const TrackOrderPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+
+          {shipmentCode && (
+            <div className="mb-8 space-y-6">
+              <ShipmentTrackingCard trackingNumber={shipmentCode} />
+            </div>
+          )}
 
           {/* Order Details */}
           {order && (

@@ -115,3 +115,18 @@ verify_jwt = true
 
 [functions.ride-arrival]
 verify_jwt = false # JWT is verified inside the function before reading any trip data.
+
+[functions.logistics-dispatch]
+verify_jwt = true
+
+[functions.logistics-notify]
+verify_jwt = false
+
+[functions.logistics-api]
+verify_jwt = false
+
+[functions.logistics-invoice-email]
+verify_jwt = true
+
+[functions.logistics-billing-run]
+verify_jwt = false

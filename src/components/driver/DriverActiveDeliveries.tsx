@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { extractCoords, formatAddress as formatAddressLine, openDirections } from "@/lib/navigation";
+import { FailStopDialog } from "./DriverRouteRun";
+import ProofOfDelivery from "./ProofOfDelivery";
 
 // Navigate to the exact drop pin when coordinates are stored on the job,
 // otherwise fall back to the formatted address string.
@@ -46,6 +48,7 @@ interface ActiveJob {
   pickup_time: string | null;
   estimated_delivery_time: string | null;
   notes: string | null;
+  attempt_count?: number | null;
 }
 
 interface DriverActiveDeliveriesProps {
@@ -57,6 +60,7 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
   const [jobs, setJobs] = useState<ActiveJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [failJob, setFailJob] = useState<ActiveJob | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -74,6 +78,8 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
       .select("*")
       .eq("driver_id", driver.id)
       .in("status", ["accepted", "picked_up", "in_transit"])
+      // Jobs on a multi-stop route are worked from the My Route tab.
+      .is("route_id", null)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -121,6 +127,27 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
     }
 
     setUpdating(null);
+  };
+
+  const markFailed = async (job: ActiveJob, reason: string) => {
+    setUpdating(job.id);
+    const { error } = await supabase
+      .from("delivery_jobs")
+      .update({
+        status: "failed",
+        failure_reason: reason,
+        attempt_count: (job.attempt_count ?? 0) + 1,
+      } as never)
+      .eq("id", job.id);
+    setUpdating(null);
+    if (error) {
+      toast({ variant: "destructive", title: "Update failed", description: "Could not record the failed attempt." });
+      return;
+    }
+    toast({ title: "Attempt recorded", description: "Dispatch will re-schedule this delivery." });
+    setFailJob(null);
+    onStatusUpdate();
+    fetchActiveJobs();
   };
 
   const getStatusConfig = (status: string) => {
@@ -247,7 +274,17 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
                     )}
 
                     <div className="flex flex-wrap gap-3">
-                      {statusConfig.nextAction && (
+                      {statusConfig.nextStatus === "delivered" ? (
+                        <div className="flex-1">
+                          <ProofOfDelivery
+                            job={job}
+                            onDelivered={() => {
+                              onStatusUpdate();
+                              fetchActiveJobs();
+                            }}
+                          />
+                        </div>
+                      ) : statusConfig.nextAction && (
                         <Button
                           onClick={() => updateJobStatus(job.id, statusConfig.nextStatus)}
                           disabled={updating === job.id}
@@ -263,6 +300,16 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
                           {statusConfig.nextAction}
                         </Button>
                       )}
+                      {(job.status === "picked_up" || job.status === "in_transit") && (
+                        <Button
+                          variant="outline"
+                          className="text-orange-700 border-orange-300"
+                          disabled={updating === job.id}
+                          onClick={() => setFailJob(job)}
+                        >
+                          Can't deliver
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -271,6 +318,15 @@ const DriverActiveDeliveries: React.FC<DriverActiveDeliveriesProps> = ({ driver,
           })}
         </div>
       )}
+
+      <FailStopDialog
+        stop={failJob ? { contact_name: formatAddress(failJob.delivery_address) } : null}
+        busy={!!updating}
+        onClose={() => setFailJob(null)}
+        onSubmit={async (reason) => {
+          if (failJob) await markFailed(failJob, reason);
+        }}
+      />
     </div>
   );
 };
