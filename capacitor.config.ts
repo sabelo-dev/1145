@@ -24,6 +24,7 @@ const config: CapacitorConfig = {
   appId: 'io.lifestyle1145.app',
   appName: '1145',
   webDir: 'dist',
+  backgroundColor: '#04070f', // web view behind the load animation, no white flash
   // Every installed plugin except background geolocation, which only the
   // Driver app needs. Leaving it out keeps the background-location foreground
   // service (and Play's extra location review) out of the main app.
@@ -34,6 +35,7 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
+      androidSplashResourceName: 'launch_splash', // plain dark start-up, no logo
       launchShowDuration: 1500,
       launchAutoHide: false, // hidden by initNative() once the app has rendered
       backgroundColor: '#04070f',
@@ -58,6 +60,7 @@ const ordersConfig: CapacitorConfig = {
   appId: 'io.lifestyle1145.orders',
   appName: '1145 Orders',
   webDir: 'dist-orders',
+  backgroundColor: '#04070f', // web view behind the load animation, no white flash
   includePlugins: withoutBackgroundLocation,
   android: {
     path: 'android-orders',
@@ -65,6 +68,7 @@ const ordersConfig: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
+      androidSplashResourceName: 'launch_splash', // plain dark start-up, no logo
       launchShowDuration: 800,
       launchAutoHide: true,
       backgroundColor: '#04070f',
@@ -78,11 +82,11 @@ const ordersConfig: CapacitorConfig = {
 };
 
 const driverConfig: CapacitorConfig = {
-  appId: 'io.lifestyle1145.driver', appName: '1145 Driver', webDir: 'dist-driver',
+  appId: 'io.lifestyle1145.driver', appName: '1145 Driver', webDir: 'dist-driver', backgroundColor: '#04070f',
   android: { path: 'android-driver', allowMixedContent: false, useLegacyBridge: true },
   ios: { path: 'ios-driver' },
   plugins: {
-    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#04070f' },
+    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#04070f', androidSplashResourceName: 'launch_splash' },
     PushNotifications: { presentationOptions: ['badge', 'sound', 'alert'] },
     CapacitorHttp: { enabled: true },
     Keyboard: { resize: 'body', resizeOnFullScreen: true },
@@ -96,6 +100,7 @@ const logisticsConfig: CapacitorConfig = {
   appId: 'io.lifestyle1145.logistics',
   appName: '1145 Logistics',
   webDir: 'dist-logistics',
+  backgroundColor: '#04070f', // web view behind the load animation, no white flash
   includePlugins: withoutBackgroundLocation,
   android: {
     path: 'android-logistics',
@@ -103,6 +108,7 @@ const logisticsConfig: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
+      androidSplashResourceName: 'launch_splash', // plain dark start-up, no logo
       launchShowDuration: 800,
       launchAutoHide: true,
       backgroundColor: '#04070f',
