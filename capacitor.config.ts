@@ -69,7 +69,8 @@ const ordersConfig: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       androidSplashResourceName: 'launch_splash', // plain dark start-up, no logo
-      launchShowDuration: 800,
+      // Kept up until the load animation hides it (src/brand/loader.html), at most 6 s.
+      launchShowDuration: 6000,
       launchAutoHide: true,
       backgroundColor: '#04070f',
       showSpinner: false,
@@ -86,7 +87,7 @@ const driverConfig: CapacitorConfig = {
   android: { path: 'android-driver', allowMixedContent: false, useLegacyBridge: true },
   ios: { path: 'ios-driver' },
   plugins: {
-    SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: '#04070f', androidSplashResourceName: 'launch_splash' },
+    SplashScreen: { launchShowDuration: 6000, launchAutoHide: true, backgroundColor: '#04070f', androidSplashResourceName: 'launch_splash' },
     PushNotifications: { presentationOptions: ['badge', 'sound', 'alert'] },
     CapacitorHttp: { enabled: true },
     Keyboard: { resize: 'body', resizeOnFullScreen: true },
@@ -109,7 +110,8 @@ const logisticsConfig: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       androidSplashResourceName: 'launch_splash', // plain dark start-up, no logo
-      launchShowDuration: 800,
+      // Kept up until the load animation hides it (src/brand/loader.html), at most 6 s.
+      launchShowDuration: 6000,
       launchAutoHide: true,
       backgroundColor: '#04070f',
       showSpinner: false,

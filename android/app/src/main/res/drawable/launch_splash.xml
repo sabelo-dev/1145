@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Plain start-up screen (no logo): the web load animation is the only branding shown. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/launch_background" />
-</shape>
+<!-- Older Android (before 12): the load animation's background and first frame. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/launch_background" />
+    <item android:drawable="@drawable/launch_clock" android:gravity="center"
+        android:width="288dp" android:height="288dp" />
+</layer-list>

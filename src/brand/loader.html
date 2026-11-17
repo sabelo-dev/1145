@@ -93,6 +93,20 @@
   @media (prefers-reduced-motion: reduce) {
     #brand-loader .bl-halo, #brand-loader .bl-clock { animation: none; }
   }
+  /* In the apps the launch screen already shows this clock natively (the
+     launch_clock drawable: 180dp, centred, 8:00, on #04070f), so the web loader
+     picks up from exactly that frame: same size and place, no zoom-in, and the
+     glow fades in over the launch colour. */
+  #brand-loader.bl-native { background: #04070f; }
+  #brand-loader.bl-native::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 50% 42%, #0b2a63 0%, #04070f 55%, #000 100%);
+    animation: bl-glow-in .6s ease both;
+  }
+  #brand-loader.bl-native .bl-stage { width: 180px; }
+  #brand-loader.bl-native .bl-clock { animation: none; }
+  #brand-loader.bl-native .bl-time { position: absolute; top: calc(50% + 90px + 28px); }
+  @keyframes bl-glow-in { from { opacity: 0; } }
 </style>
 <script>
   (function () {
@@ -104,7 +118,7 @@
     // Ad landing pages show their call to action straight away, never the clock.
     var landing = /^\/start\/?$/.test(location.pathname);
     if (!ours || landing) { el.remove(); return; }
-    el.className = "bl-on";
+    el.className = native ? "bl-on bl-native" : "bl-on";
 
     // Hand over from the native splash screen straight away, so the clock is seen.
     try {
