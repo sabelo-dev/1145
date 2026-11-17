@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The 1145 load animation's first frame (src/brand/loader.html): the clock at 8:00
-     with its halo. 288dp canvas (Android 12+ splash icon size); the clock is 180dp,
-     the size the loader draws it in the apps, so the hand-over is seamless. -->
+<!-- The 1145 load animation (src/brand/loader.html) drawn natively: 288dp canvas
+     (Android 12+ splash icon size), the clock 180dp. Named groups are animated by
+     launch_clock_animated.xml; static, it is the animation's first frame (8:00). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="288dp" android:height="288dp"
     android:viewportWidth="288" android:viewportHeight="288">
-    <group android:name="halo" android:pivotX="144" android:pivotY="144">
-        <path android:name="halo_fill" android:pathData="M44,144 a100,100 0 1,0 200,0 a100,100 0 1,0 -200,0">
+    <group android:name="halo" android:pivotX="144" android:pivotY="144" android:scaleX="0.96" android:scaleY="0.96">
+        <path android:name="halo_fill" android:pathData="M44,144 a100,100 0 1,0 200,0 a100,100 0 1,0 -200,0" android:fillAlpha="0.7">
             <aapt:attr name="android:fillColor">
                 <gradient android:type="radial" android:centerX="144" android:centerY="144" android:gradientRadius="100">
                     <item android:offset="0" android:color="#52008CFF" />
@@ -31,10 +31,22 @@
             android:strokeColor="#FFFFFF" android:strokeWidth="3.2" android:strokeLineCap="round" />
         <path android:pathData="M141.5,28.1 L138,34.2 M171.9,58.5 L165.8,62 M171.9,141.5 L165.8,138 M141.5,171.9 L138,165.8 M58.5,171.9 L62,165.8 M28.1,141.5 L34.2,138 M28.1,58.5 L34.2,62 M58.5,28.1 L62,34.2" android:strokeColor="#FFFFFF" android:strokeAlpha="0.8"
             android:strokeWidth="1.8" android:strokeLineCap="round" />
-        <group android:rotation="240" android:pivotX="100" android:pivotY="100">
+        <group android:name="trail" android:rotation="0" android:pivotX="100" android:pivotY="100">
+            <path android:name="trail_fill" android:pathData="M100,100 L100,26 A74,74 0 0,0 36,63 Z" android:fillAlpha="0">
+                <aapt:attr name="android:fillColor">
+                    <gradient android:type="linear" android:startX="36" android:startY="63" android:endX="100" android:endY="63">
+                        <item android:offset="0" android:color="#001F8FFF" />
+                        <item android:offset="1" android:color="#731F8FFF" />
+                    </gradient>
+                </aapt:attr>
+            </path>
+        </group>
+        <group android:name="hour" android:rotation="240" android:pivotX="100" android:pivotY="100">
             <path android:pathData="M96.8,57.2 a3.2,3.2 0 0 1 6.4,0 L103.2,102.8 a3.2,3.2 0 0 1 -6.4,0 Z" android:fillColor="#FFFFFF" />
         </group>
-        <path android:pathData="M98,32 a2,2 0 0 1 4,0 L102,104 a2,2 0 0 1 -4,0 Z" android:fillColor="#FFFFFF" />
+        <group android:name="minute" android:rotation="0" android:pivotX="100" android:pivotY="100">
+            <path android:pathData="M98,32 a2,2 0 0 1 4,0 L102,104 a2,2 0 0 1 -4,0 Z" android:fillColor="#FFFFFF" />
+        </group>
         <path android:pathData="M94,100 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" android:fillColor="#FFFFFF" />
         <path android:pathData="M97,100 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" android:fillColor="#009BFE" />
     </group>

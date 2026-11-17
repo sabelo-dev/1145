@@ -120,11 +120,15 @@
     if (!ours || landing) { el.remove(); return; }
     el.className = native ? "bl-on bl-native" : "bl-on";
 
-    // Hand over from the native splash screen straight away, so the clock is seen.
-    try {
-      var hidden = native && cap.Plugins && cap.Plugins.SplashScreen && cap.Plugins.SplashScreen.hide({ fadeOutDuration: 150 });
-      if (hidden && hidden.catch) hidden.catch(function () {});
-    } catch (e) {}
+    // In the apps the launch screen already runs this animation natively
+    // (launch_clock_animated). The web clock takes over from the same frame,
+    // then the native screen is lifted; see begin() below.
+    function hideSplash() {
+      try {
+        var hidden = native && cap.Plugins && cap.Plugins.SplashScreen && cap.Plugins.SplashScreen.hide({ fadeOutDuration: 150 });
+        if (hidden && hidden.catch) hidden.catch(function () {});
+      } catch (e) {}
+    }
 
     var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     var hour = el.querySelector(".bl-hour"), minute = el.querySelector(".bl-minute"), trail = el.querySelector(".bl-trail");
@@ -182,7 +186,30 @@
       setTimeout(function () { el.remove(); }, 500);
     }
 
-    if (reduced) { m = 270; h = 352.5; draw(0); } else requestAnimationFrame(frame);
+    // Start the clock `elapsed` ms into the animation: the position the native
+    // launch animation has reached (same motion: spin-up over SPIN_UP, then SPEED).
+    function begin(elapsed) {
+      var e = Math.max(0, elapsed || 0), now = performance.now();
+      start = now - e; last = now;
+      m = e < SPIN_UP ? SPEED * e * e / (2 * SPIN_UP) : SPEED * SPIN_UP / 2 + SPEED * (e - SPIN_UP);
+      h = 240 + m / 12;
+      var halo = el.querySelector(".bl-halo");
+      if (halo && e) halo.style.animationDelay = "-" + Math.round(e % 2400) + "ms"; // same breath as the native halo
+      draw(Math.min(1, e / SPIN_UP));
+      requestAnimationFrame(frame);
+      // Lift the native launch screen once this frame is on screen.
+      requestAnimationFrame(function () { requestAnimationFrame(hideSplash); });
+    }
+
+    var launchClock = native && cap.Plugins && cap.Plugins.LaunchClock;
+    if (reduced) { m = 270; h = 352.5; draw(0); hideSplash(); }
+    else if (launchClock && launchClock.elapsed) {
+      var asked = performance.now(), begun = false;
+      // No answer: time since the page started is the closest estimate (it trails slightly).
+      var go = function (ms) { if (begun) return; begun = true; begin(ms == null ? performance.now() : ms + (performance.now() - asked)); };
+      try { launchClock.elapsed().then(function (r) { go(r && r.ms); }, function () { go(null); }); } catch (e) { go(null); }
+      setTimeout(function () { go(null); }, 300); // never hold the launch screen for the answer
+    } else begin(0);
 
     // Loaded: the app shows a real page, not a placeholder. It does not wait for
     // the window's load event: that waits for every image (product photos

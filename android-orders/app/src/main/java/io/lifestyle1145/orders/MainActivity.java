@@ -8,6 +8,8 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Lets the web load animation continue from the native launch animation.
+        registerPlugin(LaunchClockPlugin.class);
         super.onCreate(savedInstanceState);
         // A shop tablet runs the order console all day: never let the screen sleep,
         // or new-order alerts would go unseen.
