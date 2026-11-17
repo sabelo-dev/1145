@@ -1,7 +1,7 @@
 import ScanPayPage from "@/pages/ScanPayPage";
 import React, { Suspense } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { refetchOnAppResume } from "@/lib/queryFocus";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -345,6 +345,8 @@ function AppRouter() {
           </ProtectedRoute>
         } />
         <Route path="track-order" element={<TrackOrderPage />} />
+        {/* Parcel links in 1145 Logistics SMS/emails: /track/LX… */}
+        <Route path="track/:code" element={<TrackCodeRedirect />} />
         
         <Route path="auth/confirm" element={<AuthConfirmPage />} />
         <Route path="login" element={<LoginPage />} />
@@ -478,3 +480,9 @@ function App() {
 }
 
 export default App;
+
+/** /track/LX… → the tracking page with the code filled in. */
+function TrackCodeRedirect() {
+  const { code = "" } = useParams();
+  return <Navigate to={`/track-order?tracking=${encodeURIComponent(code)}`} replace />;
+}

@@ -22,7 +22,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 const GOOGLE_KEY = Deno.env.get("GOOGLE_MAPS_API_KEY") ?? Deno.env.get("GOOGLE_API_KEY") ?? "";
-const TRACK_BASE = (Deno.env.get("LOGISTICS_TRACK_URL") || "https://logistics.1145.io/track").replace(/\/+$/, "");
+const TRACK_BASE = (Deno.env.get("LOGISTICS_TRACK_URL") || "https://1145.io/track").replace(/\/+$/, "");
 const SERVICE_LEVELS = ["express", "same_day", "next_day", "standard"];
 const SIZES = ["small", "medium", "large", "xl"];
 const WINDOWS: Record<string, [string, string]> = { morning: ["08:00", "12:00"], afternoon: ["12:00", "17:00"], evening: ["17:00", "20:00"] };

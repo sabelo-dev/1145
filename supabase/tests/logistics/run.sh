@@ -43,7 +43,7 @@ select json_build_object(
  'tables', (select json_object_agg(table_name, cols) from (select table_name, json_agg(column_name order by ordinal_position) cols from information_schema.columns where table_schema='public' group by table_name) t),
  'procs', (select json_object_agg(proname, defs) from (select p.proname, json_agg(json_build_object('args', coalesce(p.proargnames[1:p.pronargs], '{}'), 'required', p.pronargs - p.pronargdefaults)) defs from pg_proc p where p.pronamespace='public'::regnamespace group by p.proname) x))" > "$WORK/schema.json"
 contract_ok=0
-( cd "$REPO" && node "$HERE/contract-check.mjs" "$WORK/schema.json"     $(ls src/logistics/*.tsx src/logistics/*/*.ts* src/components/driver/DriverRouteRun.tsx src/components/driver/routeOfflineQueue.ts src/components/driver/DriverDashboard.tsx src/components/merchant/dashboard/MerchantOrders.tsx src/components/driver/ProofOfDelivery.tsx src/components/driver/DriverActiveDeliveries.tsx          src/pages/PackageSendPage.tsx src/pages/TrackOrderPage.tsx supabase/functions/logistics-*/index.ts 2>/dev/null) ) || contract_ok=1
+( cd "$REPO" && node "$HERE/contract-check.mjs" "$WORK/schema.json"     $(ls src/logistics/*.tsx src/logistics/*/*.ts* src/components/driver/DriverRouteRun.tsx src/components/driver/routeOfflineQueue.ts src/components/driver/DriverDashboard.tsx src/components/driver/ProofOfDelivery.tsx src/components/driver/DriverActiveDeliveries.tsx          src/pages/PackageSendPage.tsx src/pages/TrackOrderPage.tsx supabase/functions/logistics-*/index.ts 2>/dev/null) ) || contract_ok=1
 
 # Route optimiser: bundle logistics-dispatch with its helpers exported.
 COPY="$REPO/supabase/functions/logistics-dispatch/__opt_test_copy.ts"

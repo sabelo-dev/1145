@@ -17,8 +17,6 @@ interface RequestDeliveryButtonProps {
   orderId: string;
   shippingAddress: any;
   storeName?: string;
-  /** Merchant's collection address; geocoded so the driver gets an exact pin. */
-  pickupAddressText?: string | null;
   onDeliveryRequested?: () => void;
 }
 
@@ -26,7 +24,6 @@ export const RequestDeliveryButton: React.FC<RequestDeliveryButtonProps> = ({
   orderId,
   shippingAddress,
   storeName,
-  pickupAddressText,
   onDeliveryRequested,
 }) => {
   const { toast } = useToast();
@@ -49,14 +46,12 @@ export const RequestDeliveryButton: React.FC<RequestDeliveryButtonProps> = ({
   const requestDelivery = async () => {
     setLoading(true);
     try {
-      const pickupAddress = pickupAddressText?.trim()
-        ? { street: pickupAddressText.trim(), name: storeName || undefined, country: "South Africa" }
-        : {
-            street: storeName || "Store Pickup",
-            city: "Johannesburg",
-            province: "Gauteng",
-            country: "South Africa",
-          };
+      const pickupAddress = {
+        street: storeName || "Store Pickup",
+        city: "Johannesburg",
+        province: "Gauteng",
+        country: "South Africa",
+      };
 
       const deliveryAddress = typeof shippingAddress === "string"
         ? { street: shippingAddress }

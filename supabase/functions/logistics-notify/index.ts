@@ -17,7 +17,7 @@ const INFOBIP_BASE = (Deno.env.get("INFOBIP_BASE_URL") || "").replace(/\/+$/, ""
 const INFOBIP_KEY = Deno.env.get("INFOBIP_API_KEY") || "";
 const SMS_SENDER = Deno.env.get("INFOBIP_SMS_SENDER") || "1145";
 const RESEND_KEY = Deno.env.get("RESEND_API_KEY") || "";
-const TRACK_BASE = (Deno.env.get("LOGISTICS_TRACK_URL") || "https://logistics.1145.io/track").replace(/\/+$/, "");
+const TRACK_BASE = (Deno.env.get("LOGISTICS_TRACK_URL") || "https://1145.io/track").replace(/\/+$/, "");
 const EMAIL_FROM = Deno.env.get("LOGISTICS_EMAIL_FROM") || "1145 Logistics <no-reply@1145.io>";
 
 const NOTIFY_STATUSES = ["awaiting_pickup", "out_for_delivery", "delivered", "failed_attempt", "returning", "ready_for_collection"];
