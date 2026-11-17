@@ -55,6 +55,7 @@ const VendorOrders = () => {
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [storeName, setStoreName] = useState("");
+  const [pickupAddressText, setPickupAddressText] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -69,7 +70,7 @@ const VendorOrders = () => {
       // Get vendor data first
       const { data: vendor, error: vendorError } = await supabase
         .from('vendors')
-        .select('id, business_name')
+        .select('id, business_name, business_address')
         .eq('user_id', user.id)
         .single();
 
@@ -89,6 +90,7 @@ const VendorOrders = () => {
       }
 
       setStoreName(stores[0]?.name || vendor.business_name);
+      setPickupAddressText(vendor.business_address || null);
       const storeIds = stores.map(store => store.id);
 
       // Paid orders only: a checkout becomes an order once payment succeeds
@@ -469,6 +471,7 @@ const VendorOrders = () => {
                                 orderId={order.id}
                                 shippingAddress={order.shippingAddress}
                                 storeName={storeName}
+                                pickupAddressText={pickupAddressText}
                                 onDeliveryRequested={fetchOrders}
                               />
                             </div>

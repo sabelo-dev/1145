@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { offerTone } from "./offerAlert/tonePlayer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,8 @@ const DriverOverview: React.FC<DriverOverviewProps> = ({ driver, onRefresh }) =>
 
   const toggleStatus = async (newStatus: string) => {
     if (!driver) return;
+    // "Go online" is the user gesture that unlocks the offer alert tone.
+    if (newStatus === "available") await offerTone.unlock();
 
     await supabase
       .from("drivers")

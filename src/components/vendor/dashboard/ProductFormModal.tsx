@@ -48,7 +48,7 @@ const productSchema = z.object({
 
 const variationSchema = z.object({
   id: z.string(),
-  attributes: z.record(z.string()),
+  attributes: z.record(z.string(), z.string()),
   price: z.number().min(0.01, "Price must be greater than 0"),
   quantity: z.number().min(0, "Quantity cannot be negative"),
   sku: z.string().optional(),
@@ -954,9 +954,9 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0]] = err.message;
+        error.issues.forEach((err) => {
+          if (err.path[0] != null) {
+            fieldErrors[String(err.path[0])] = err.message;
           }
         });
         setErrors(fieldErrors);

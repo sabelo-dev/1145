@@ -17,7 +17,7 @@ export const registerSchema = z
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
     role: z.enum(["consumer", "vendor"], {
-      required_error: "Please select an account type",
+      error: "Please select an account type",
     }),
     terms: z.boolean().refine((val) => val, {
       message: "You must agree to the terms and conditions",

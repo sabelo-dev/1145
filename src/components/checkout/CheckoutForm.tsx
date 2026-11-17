@@ -35,7 +35,7 @@ const checkoutSchema = z.object({
   postalCode: z.string().min(1, "Postal code is required"),
   phone: z.string().min(1, "Phone number is required"),
   paymentMethod: z.enum(["cc", "ef", "mp", "mc", "sc", "ss"], {
-    required_error: "Please select a payment method",
+    error: "Please select a payment method",
   }),
 });
 

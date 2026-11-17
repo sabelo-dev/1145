@@ -31,6 +31,8 @@ import { supabase } from "@/integrations/supabase/client";
 import DriverOverview from "./DriverOverview";
 import DriverAvailableJobs from "./DriverAvailableJobs";
 import DriverActiveDeliveries from "./DriverActiveDeliveries";
+import DriverRouteRun from "./DriverRouteRun";
+import OfferAlertHost from "./offerAlert/OfferAlertHost";
 import DriverAnalytics from "./DriverAnalytics";
 import DriverSettings from "./DriverSettings";
 import DriverVerification from "./DriverVerification";
@@ -58,6 +60,7 @@ import {
   History,
   PieChart,
   MapPinned,
+  Route as RouteIcon,
 } from "lucide-react";
 
 interface Driver {
@@ -79,6 +82,7 @@ interface Driver {
 
 const SIDEBAR_ITEMS = [
   { id: "overview", title: "Overview", icon: LayoutDashboard },
+  { id: "my-route", title: "My Route", icon: RouteIcon },
   { id: "ride-requests", title: "Ride Requests", icon: Car },
   { id: "ride-history", title: "Ride History", icon: History },
   { id: "ride-analytics", title: "Ride Analytics", icon: PieChart },
@@ -280,6 +284,15 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         </header>
 
         <main className="flex-1 p-4 md:p-4 md:p-6 bg-background overflow-auto">
+          <OfferAlertHost
+            driverId={driver?.id}
+            online={!!driver && driver.status !== "offline" && driver.status !== "pending"}
+            onAccepted={(kind) => {
+              onRefresh();
+              setActiveTab(kind === "ride" ? "ride-requests" : "active-deliveries");
+            }}
+            onStatusChanged={onRefresh}
+          />
           <TabContent activeTab={activeTab} driver={driver} onRefresh={onRefresh} />
         </main>
       </SidebarInset>
@@ -307,6 +320,8 @@ const TabContent: React.FC<TabContentProps> = ({ activeTab, driver, onRefresh })
       return <DriverJobMatching driver={driver} onJobClaimed={onRefresh} />;
     case "available-jobs":
       return <DriverAvailableJobs driver={driver} onJobClaimed={onRefresh} />;
+    case "my-route":
+      return <DriverRouteRun driver={driver} onStatusUpdate={onRefresh} />;
     case "active-deliveries":
       return <DriverActiveDeliveries driver={driver} onStatusUpdate={onRefresh} />;
     case "live-tracking":

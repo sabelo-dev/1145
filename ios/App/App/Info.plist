@@ -50,7 +50,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>1145 uses your location to show nearby stores, rides and deliveries.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to your camera to take profile photos.</string>
+	<string>1145 uses the camera for profile photos, scanning parcel barcodes and proof-of-delivery photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to save photos to your gallery.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

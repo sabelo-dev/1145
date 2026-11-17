@@ -75,3 +75,18 @@ verify_jwt = true
 
 [functions.maps-config]
 verify_jwt = false
+
+[functions.logistics-dispatch]
+verify_jwt = true
+
+[functions.logistics-notify]
+verify_jwt = false
+
+[functions.logistics-api]
+verify_jwt = false
+
+[functions.logistics-invoice-email]
+verify_jwt = true
+
+[functions.logistics-billing-run]
+verify_jwt = false

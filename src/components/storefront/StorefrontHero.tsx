@@ -98,17 +98,30 @@ const StorefrontHero: React.FC<StorefrontHeroProps> = ({
                 {ctaText}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
-              {ctaUrl && (
-                <Link to={ctaUrl}>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="rounded-full px-6 border-white/30 text-white hover:bg-white/10"
-                  >
-                    Learn More
-                  </Button>
-                </Link>
-              )}
+              {ctaUrl &&
+                (/^https?:\/\//i.test(ctaUrl) ? (
+                  // Merchant-entered external link: a plain anchor, not an in-app route.
+                  <a href={ctaUrl} target="_blank" rel="noopener noreferrer">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="rounded-full px-6 border-white/30 text-white hover:bg-white/10"
+                    >
+                      Learn More
+                    </Button>
+                  </a>
+                ) : (
+                  // Always absolute, so it resolves the same under the custom-domain "*" route.
+                  <Link to={ctaUrl.startsWith("/") ? ctaUrl : `/${ctaUrl}`}>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="rounded-full px-6 border-white/30 text-white hover:bg-white/10"
+                    >
+                      Learn More
+                    </Button>
+                  </Link>
+                ))}
             </div>
           </motion.div>
         </div>
