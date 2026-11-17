@@ -88,4 +88,32 @@ const driverConfig: CapacitorConfig = {
     Keyboard: { resize: 'body', resizeOnFullScreen: true },
   },
 };
-export default process.env.CAP_APP === 'driver' ? driverConfig : process.env.CAP_APP === 'orders' ? ordersConfig : config;
+// The "1145 Logistics" app: the logistics operations console (shipments,
+// dispatch, routes, scanning). Selected with CAP_APP=logistics
+// (scripts/cap-logistics.mjs); its Android project is android-logistics/ and
+// its web build dist-logistics/ (vite.logistics.config.ts).
+const logisticsConfig: CapacitorConfig = {
+  appId: 'io.lifestyle1145.logistics',
+  appName: '1145 Logistics',
+  webDir: 'dist-logistics',
+  includePlugins: withoutBackgroundLocation,
+  android: {
+    path: 'android-logistics',
+    allowMixedContent: false,
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 800,
+      launchAutoHide: true,
+      backgroundColor: '#04070f',
+      showSpinner: false,
+    },
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
+    },
+  },
+};
+
+const apps: Record<string, CapacitorConfig> = { driver: driverConfig, orders: ordersConfig, logistics: logisticsConfig };
+export default apps[process.env.CAP_APP ?? ''] ?? config;

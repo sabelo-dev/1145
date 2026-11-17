@@ -11,6 +11,8 @@
     "build:dev": "vite build --mode development",
     "dev:logistics": "vite --config vite.logistics.config.ts",
     "build:logistics": "vite build --config vite.logistics.config.ts",
+    "logistics:sync": "npm run build:logistics && node scripts/cap-logistics.mjs sync android",
+    "logistics:open": "node scripts/cap-logistics.mjs open android",
     "preview:logistics": "vite preview --config vite.logistics.config.ts --port 8091",
     "seed:marketplace": "node scripts/seed-marketplace.mjs",
     "build:orders": "vite build --config vite.orders.config.ts",

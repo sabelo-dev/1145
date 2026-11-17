@@ -343,4 +343,16 @@ INSERT INTO shipment_events (shipment_id, status, event_type) VALUES (:'ship1', 
 SELECT logistics_trigger_billing_run();
 SELECT t_ok((SELECT count(*) FROM net.calls) = :calls_before, 'empty functions URL disables outbound calls cleanly');
 
+-- ---------- 10. internal helpers are not public API ----------------------------
+SELECT t_ok(NOT EXISTS (
+  SELECT 1 FROM pg_proc p
+   WHERE p.pronamespace = 'public'::regnamespace
+     AND p.proname IN ('route_refresh_etas', 'logistics_shipment_on_hold', 'logistics_eta_params')
+     AND (has_function_privilege('anon', p.oid, 'EXECUTE') OR has_function_privilege('authenticated', p.oid, 'EXECUTE'))),
+  'internal helpers cannot be called by anon or signed-in users');
+SELECT t_ok((SELECT bool_and(has_function_privilege('service_role', p.oid, 'EXECUTE')) FROM pg_proc p
+              WHERE p.pronamespace = 'public'::regnamespace
+                AND p.proname IN ('route_refresh_etas', 'logistics_shipment_on_hold', 'logistics_eta_params')),
+  'service role (edge functions) can still call them');
+
 \echo ALL E2E CHECKS PASSED

@@ -47,6 +47,12 @@ parts.push(
   "",
   "COMMIT;",
   "",
+  "-- After the commit: make the running pg_cron scheduler load the new jobs.",
+  "-- Jobs created inside one large transaction were not picked up on the live",
+  "-- project (2026-11-17) until each was touched with cron.alter_job.",
+  "SELECT cron.alter_job(jobid, schedule := schedule, active := true)",
+  "  FROM cron.job WHERE jobname LIKE 'logistics-%';",
+  "",
 );
 const out = path.join(here, "logistics_apply.sql");
 fs.writeFileSync(out, parts.join("\n"));

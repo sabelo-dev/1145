@@ -19,13 +19,17 @@ are applied (merchant rename, nearby dispatch, wallets), that `pg_net` and
 
 SQL Editor → paste `logistics_apply.sql` → Run.
 
-- It runs all ten logistics migrations as **one transaction**: if any
+- It runs all the logistics migrations as **one transaction**: if any
   statement fails, nothing is changed. Fix the cause and run it again.
 - It refuses to run a second time once logistics is installed.
-- It records the ten migrations in `supabase_migrations.schema_migrations`,
+- It records the migrations in `supabase_migrations.schema_migrations`,
   so `supabase db push` never runs them again.
 - It waits at most 15 s for a table lock and then stops, rather than queueing
   behind live traffic. If that happens, run it again at a quieter time.
+- After the commit it re-registers the six `logistics-*` cron jobs with
+  `cron.alter_job`. Without that the running scheduler didn't pick them up on
+  the live project. Check they run:
+  `select jobname, status, start_time from cron.job_run_details join cron.job using (jobid) where jobname like 'logistics-%' order by start_time desc limit 10;`
 
 `logistics_apply.sql` is generated from `supabase/migrations/2026111*_logistics_*.sql`:
 
