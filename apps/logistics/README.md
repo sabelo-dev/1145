@@ -276,6 +276,10 @@ replays **all** migrations, and then runs:
 - `route-optimizer.test.mjs`: pickup-before-delivery and window ordering on 300 random routes,
   savings against random order, and the gap to the brute-force optimum on 7-stop routes
 - a strict type-check of the five logistics edge functions (Deno globals stubbed)
+- `edge-functions.test.mjs`: runs the real edge-function handlers in Node, with Supabase and
+  outbound HTTP mocked in-process. It covers CORS, API-key auth (revoked, expired, IP allowlist/CIDR,
+  scopes), 429 rate limiting, input validation, dispatch role checks, the billing cron secret,
+  owner-only invoice email, and webhook routing, HMAC signature, redirect and private-target blocking
 
 `perf.sql` measures the cost of row-level security on a large shipments table.
 Policies wrap per-query constants in `(SELECT …)` so they're evaluated once per query, not per row.

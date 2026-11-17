@@ -55,6 +55,16 @@ export { optimizeOrder, isValidOrder, pathKm, windowBounds, co2FactorFor, havers
 opt_ok=0
 node "$HERE/route-optimizer.test.mjs" "$(cd "$WORK" && pwd -W 2>/dev/null || pwd)/dispatch.mjs" | tail -1 || opt_ok=1
 
+# Edge functions at runtime (HTTP behaviour; Supabase + outbound HTTP mocked in-process).
+mkdir -p "$WORK/fn"
+for f in logistics-api logistics-dispatch logistics-billing-run logistics-invoice-email logistics-notify; do
+  T="$REPO/supabase/functions/$f/__node_test_copy.ts"
+  sed 's#"https://esm.sh/@supabase/supabase-js@2.49.4"#"@supabase/supabase-js"#' "$REPO/supabase/functions/$f/index.ts" > "$T"
+  ( cd "$REPO" && npx --yes esbuild "$T" --bundle --platform=node --format=esm --outfile="$WORK/fn/$f.mjs" --log-level=error ); rm -f "$T"
+done
+http_ok=0
+node "$HERE/edge-functions.test.mjs" "$(cd "$WORK/fn" && pwd -W 2>/dev/null || pwd)" | tail -1 || http_ok=1
+
 # Edge functions: strict type-check (Deno globals stubbed, esm.sh mapped to node_modules).
 WREPO="$(cd "$REPO" && pwd -W 2>/dev/null || pwd)"
 cat > "$WORK/deno.d.ts" <<'TSEOF'
@@ -73,4 +83,4 @@ JSONEOF
 fn_ok=0
 ( cd "$REPO" && npx tsc -p "$WORK/tsconfig.fn.json" ) && echo "edge functions type-check: ok" || fn_ok=1
 
-grep -q "ALL E2E CHECKS PASSED" "$WORK/e2e.out" && [ "$errs" = 0 ] && [ "$contract_ok" = 0 ] && [ "$opt_ok" = 0 ] && [ "$fn_ok" = 0 ]
+grep -q "ALL E2E CHECKS PASSED" "$WORK/e2e.out" && [ "$errs" = 0 ] && [ "$contract_ok" = 0 ] && [ "$opt_ok" = 0 ] && [ "$fn_ok" = 0 ] && [ "$http_ok" = 0 ]
