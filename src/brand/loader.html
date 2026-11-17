@@ -50,7 +50,7 @@
         <circle cx="100" cy="100" r="3" fill="#009bfe" />
       </g>
     </svg>
-    <img class="bl-logo" src="/brand-loader-logo.webp" alt="" width="200" height="200" loading="lazy" decoding="async" onerror="this.remove()" />
+    <img class="bl-logo" src="/brand-loader-logo.webp" alt="" width="200" height="200" decoding="async" />
   </div>
   <p class="bl-time"><span>11</span><i>:</i><span>45</span></p>
 </div>
@@ -82,8 +82,10 @@
   /* At 11:45: the clock ticks, a ring ripples out, and the logo takes over. */
   #brand-loader.bl-done .bl-clock { animation: bl-tick .32s ease-out both; }
   #brand-loader.bl-done .bl-ripple { animation: bl-ripple .9s ease-out both; }
-  #brand-loader.bl-done .bl-dial { transition: opacity .4s ease .18s; opacity: 0; }
-  #brand-loader.bl-done .bl-logo { transition: opacity .5s ease .15s, transform .6s cubic-bezier(.2, .8, .2, 1) .15s; opacity: 1; transform: none; }
+  /* The dial gives way to the logo only once the logo has really loaded
+     (bl-logo-ok); otherwise the clock simply stays on 11:45. */
+  #brand-loader.bl-done.bl-logo-ok .bl-dial { transition: opacity .4s ease .18s; opacity: 0; }
+  #brand-loader.bl-done.bl-logo-ok .bl-logo { transition: opacity .5s ease .15s, transform .6s cubic-bezier(.2, .8, .2, 1) .15s; opacity: 1; transform: none; }
   #brand-loader.bl-done .bl-time { transition: opacity .4s ease .2s, transform .4s ease .2s; opacity: .85; transform: none; }
   @keyframes bl-in { from { opacity: 0; transform: scale(.86); } }
   @keyframes bl-tick { 0% { transform: scale(1); } 40% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -128,6 +130,18 @@
         var hidden = native && cap.Plugins && cap.Plugins.SplashScreen && cap.Plugins.SplashScreen.hide({ fadeOutDuration: 150 });
         if (hidden && hidden.catch) hidden.catch(function () {});
       } catch (e) {}
+    }
+
+    // The logo: shown only if it has decoded into a real image. A missing file
+    // (an app build older than the logo), a slow download or a blocked inline
+    // handler must never leave a broken-image frame on the clock.
+    var logo = el.querySelector(".bl-logo");
+    function logoOk() { return logo && logo.complete && logo.naturalWidth > 0; }
+    function logoFailed() { if (logo) { logo.remove(); logo = null; } }
+    if (logo) {
+      logo.addEventListener("load", function () { if (logoOk()) el.classList.add("bl-logo-ok"); else logoFailed(); });
+      logo.addEventListener("error", logoFailed);
+      if (logo.complete) { if (logoOk()) el.classList.add("bl-logo-ok"); else logoFailed(); }
     }
 
     var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -176,6 +190,8 @@
     }
 
     function reveal() {
+      // Still loading at 11:45: keep the clock rather than show a half-loaded image.
+      if (!logoOk()) logoFailed();
       el.classList.add("bl-done");
       setTimeout(finish, 750); // let the logo be seen
     }
