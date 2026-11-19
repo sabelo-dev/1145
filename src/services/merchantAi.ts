@@ -32,7 +32,7 @@ const rpc = async <T = void>(name: string, args: Record<string, unknown> = {}): 
 };
 
 export type StorePermission = "orders" | "catalog" | "payments" | "insights" | "operations" | "settings";
-export type MerchantFeature = "order_console" | "payment_requests" | "ai_assistant";
+export type MerchantFeature = "order_console" | "payment_requests" | "ai_assistant" | "pos";
 export type StoreRole = "owner" | "manager" | "operator" | "cashier";
 
 export interface StoreAccess {
@@ -409,12 +409,20 @@ export const STOCK_REASONS: Record<StockReason, string> = {
   other: "Other",
 };
 
+/** Labels for stock history, including changes made by the till (1145 POS). */
+export const STOCK_HISTORY_LABELS: Record<StockReason | "pos_sale" | "pos_refund" | "pos_void", string> = {
+  ...STOCK_REASONS,
+  pos_sale: "Sold at the till",
+  pos_refund: "Refund at the till",
+  pos_void: "Sale voided",
+};
+
 export interface StockChange {
   id: string;
   created_at: string;
   old_quantity: number;
   new_quantity: number;
-  reason: StockReason;
+  reason: keyof typeof STOCK_HISTORY_LABELS;
   note: string | null;
   product_name: string;
   variation_sku: string | null;

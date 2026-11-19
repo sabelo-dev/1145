@@ -24,7 +24,7 @@
     "android:bump": "node scripts/android-versions.mjs bump",
     "android:manifest": "node scripts/android-versions.mjs manifest",
     "test:dispatch": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts",
-    "test": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts tests/customer-cancel.test.ts tests/webhook-signature.test.ts tests/refund-requests.test.ts tests/app-install-referral.test.ts tests/delivery-coverage.test.ts tests/app-release.test.ts"
+    "test": "node --experimental-strip-types --test tests/dispatch.test.ts tests/ride-arrival.test.ts tests/driver-push.test.ts tests/customer-cancel.test.ts tests/webhook-signature.test.ts tests/refund-requests.test.ts tests/app-install-referral.test.ts tests/delivery-coverage.test.ts tests/app-release.test.ts tests/pos.test.ts tests/pos-cart.test.ts"
   },
   "overrides": {
     "@opentelemetry/core": "2.8.0",

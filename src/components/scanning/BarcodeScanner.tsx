@@ -17,11 +17,13 @@ interface BarcodeDetectorLike {
 }
 type BarcodeDetectorCtor = new (opts: { formats: string[] }) => BarcodeDetectorLike;
 
-function getDetector(): BarcodeDetectorLike | null {
+const DEFAULT_FORMATS = ["code_128", "qr_code", "code_39", "ean_13"];
+
+function getDetector(formats: string[]): BarcodeDetectorLike | null {
   const Ctor = (window as unknown as { BarcodeDetector?: BarcodeDetectorCtor }).BarcodeDetector;
   if (!Ctor) return null;
   try {
-    return new Ctor({ formats: ["code_128", "qr_code", "code_39", "ean_13"] });
+    return new Ctor({ formats });
   } catch {
     return null;
   }
@@ -43,7 +45,14 @@ const BarcodeScanner: React.FC<{
   title?: string;
   description?: string;
   continuous?: boolean;
-}> = ({ open, onClose, onDetect, title = "Scan barcode", description, continuous = false }) => {
+  /** Barcode formats to look for (defaults suit parcel labels). */
+  formats?: string[];
+  /** Hint in the typed-code box. */
+  placeholder?: string;
+  /** Upper-case typed codes (parcel labels are); off for product codes. */
+  uppercase?: boolean;
+}> = ({ open, onClose, onDetect, title = "Scan barcode", description, continuous = false,
+  formats = DEFAULT_FORMATS, placeholder = "or type LX…-1", uppercase = true }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState("");
@@ -78,7 +87,7 @@ const BarcodeScanner: React.FC<{
     let stream: MediaStream | null = null;
     let raf = 0;
     let stopped = false;
-    const detector = getDetector();
+    const detector = getDetector(formats);
     (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
@@ -156,7 +165,7 @@ const BarcodeScanner: React.FC<{
             setManual("");
           }}
         >
-          <Input value={manual} onChange={(e) => setManual(e.target.value.toUpperCase())} placeholder="or type LX…-1" className="font-mono" autoComplete="off" />
+          <Input value={manual} onChange={(e) => setManual(uppercase ? e.target.value.toUpperCase() : e.target.value)} placeholder={placeholder} className="font-mono" autoComplete="off" />
           <Button type="submit" variant="outline" disabled={!manual.trim()}>
             Enter
           </Button>
