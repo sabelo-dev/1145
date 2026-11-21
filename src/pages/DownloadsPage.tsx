@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Apple, Car, Check, Copy, Download, ShieldCheck, Smartphone, Store } from "lucide-react";
+import { Apple, Car, Check, Copy, Download, ShieldCheck, Smartphone, Store, Truck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
@@ -15,6 +15,7 @@ const badges: Record<AppKey, ReactNode> = {
   app: null,
   driver: <Car className="h-3.5 w-3.5" />,
   orders: <Store className="h-3.5 w-3.5" />,
+  logistics: <Truck className="h-3.5 w-3.5" />,
 };
 
 /**
@@ -49,7 +50,7 @@ export default function DownloadsPage() {
     <>
       <SEO
         title="Download the 1145 apps"
-        description="Download 1145, 1145 Driver and 1145 Orders for Android, or join the iPhone beta on TestFlight."
+        description="Download 1145, 1145 Driver, 1145 Orders and 1145 Logistics for Android, or join the iPhone beta on TestFlight."
       />
       <div className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
         <header className="space-y-2">
@@ -79,7 +80,7 @@ export default function DownloadsPage() {
         )}
 
         {!native && (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             {DOWNLOADABLE_APPS.map((app) => (
               <Card key={app.key} className="flex flex-col">
                 <CardHeader className="space-y-3">

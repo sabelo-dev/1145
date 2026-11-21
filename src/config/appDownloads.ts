@@ -3,7 +3,7 @@
 // iOS installs go through TestFlight, because Apple does not allow installing
 // apps straight from a website. An app without a link shows "Coming soon".
 
-export type AppKey = "app" | "driver" | "orders";
+export type AppKey = "app" | "driver" | "orders" | "logistics";
 
 export interface DownloadableApp {
   key: AppKey;
@@ -37,8 +37,15 @@ export const DOWNLOADABLE_APPS: DownloadableApp[] = [
   {
     key: "orders",
     name: "1145 Orders",
-    description: "For shops: the order console on its own, for a counter tablet.",
+    description: "For shops: a till with card, cash and 1145 Pay, barcode scanning and receipts, plus the order console.",
     apkUrl: `${APK_BASE}/1145-orders.apk`,
+    testFlightUrl: null,
+  },
+  {
+    key: "logistics",
+    name: "1145 Logistics",
+    description: "For logistics teams and business shippers: dispatch, scan parcels, track shipments and book deliveries.",
+    apkUrl: `${APK_BASE}/1145-logistics.apk`,
     testFlightUrl: null,
   },
 ];
