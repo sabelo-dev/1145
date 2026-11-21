@@ -71,6 +71,8 @@ beforeEach(async () => {
 const as = (u: string) => db.query("SELECT set_config('test.user',$1,false)", [u]);
 let keyN = 0;
 const key = () => `k${++keyN}`;
+// Database results are loose JSON; the tests assert on them field by field.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = Record<string, any>;
 const one = async (sql: string, args: unknown[] = []) => (await db.query<{ r: Json }>(sql, args)).rows[0].r;
 const openShift = (floatMinor = 50000, register = "Till 1") =>
