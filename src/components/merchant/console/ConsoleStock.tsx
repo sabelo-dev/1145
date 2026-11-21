@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  fetchStock, fetchStockHistory, setStock, STOCK_REASONS, variationLabel, type StockReason,
+  fetchStock, fetchStockHistory, setStock, STOCK_HISTORY_LABELS, STOCK_REASONS, variationLabel, type StockReason,
 } from "@/services/merchantAi";
 
 const LOW = 5;
@@ -147,7 +147,7 @@ const ConsoleStock: React.FC<{ storeId: string }> = ({ storeId }) => {
                   <span className="min-w-0">
                     <span className="font-medium">{h.product_name}</span>
                     {(h.variation_sku || h.variation_attributes) && <span className="text-muted-foreground"> · {variationLabel(h.variation_attributes, h.variation_sku)}</span>}
-                    <span className="text-muted-foreground"> · {h.old_quantity} → <span className="font-medium text-foreground">{h.new_quantity}</span> · {STOCK_REASONS[h.reason]}</span>
+                    <span className="text-muted-foreground"> · {h.old_quantity} → <span className="font-medium text-foreground">{h.new_quantity}</span> · {STOCK_HISTORY_LABELS[h.reason] ?? h.reason}</span>
                     {h.note && <span className="text-muted-foreground"> · “{h.note}”</span>}
                   </span>
                   <span className="text-xs text-muted-foreground">{h.changed_by ?? "Someone"} · {formatDistanceToNowStrict(new Date(h.created_at))} ago</span>

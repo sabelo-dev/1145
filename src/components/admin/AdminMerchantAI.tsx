@@ -18,6 +18,7 @@ const FEATURES: Array<{ key: MerchantFeature; label: string }> = [
   { key: "order_console", label: "Order console" },
   { key: "payment_requests", label: "1145 Pay" },
   { key: "ai_assistant", label: "1145 AI" },
+  { key: "pos", label: "POS (till)" },
 ];
 
 interface FlagRow { merchant_id: string; flag_key: MerchantFeature; enabled: boolean; rollout_cohort: string | null }
