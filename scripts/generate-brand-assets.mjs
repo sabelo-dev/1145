@@ -94,7 +94,7 @@ const adaptiveXml = `<?xml version="1.0" encoding="utf-8"?>
     <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
 </adaptive-icon>
 `;
-for (const app of ["android", "android-driver", "android-orders", "android-logistics"]) {
+for (const app of ["android", "android-driver", "android-orders", "android-logistics", "android-merchant"]) {
   const res = at(app, "app/src/main/res");
   if (!existsSync(res)) continue;
   for (const [density, k] of Object.entries(densities)) {

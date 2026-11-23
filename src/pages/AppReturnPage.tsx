@@ -15,8 +15,9 @@ const safePath = (value: string | null) =>
 const AppReturnPage: React.FC = () => {
   const target = useMemo(() => {
     const to = safePath(new URLSearchParams(window.location.search).get("to"));
-    const driverApp = new URLSearchParams(window.location.search).get("app") === "driver";
-    return { to, link: driverApp ? `io.lifestyle1145.driver://app${to}` : appDeepLink(to) };
+    const app = new URLSearchParams(window.location.search).get("app");
+    const scheme = app === "driver" || app === "merchant" ? `io.lifestyle1145.${app}` : null;
+    return { to, link: scheme ? `${scheme}://app${to}` : appDeepLink(to) };
   }, []);
 
   useEffect(() => {

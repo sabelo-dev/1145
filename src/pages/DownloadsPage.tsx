@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Apple, Car, Check, Copy, Download, ShieldCheck, Smartphone, Store, Truck } from "lucide-react";
+import { Apple, Car, Check, Copy, Download, ShieldCheck, Smartphone, Store, Truck, LayoutDashboard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
@@ -16,6 +16,7 @@ const badges: Record<AppKey, ReactNode> = {
   driver: <Car className="h-3.5 w-3.5" />,
   orders: <Store className="h-3.5 w-3.5" />,
   logistics: <Truck className="h-3.5 w-3.5" />,
+  merchant: <LayoutDashboard className="h-3.5 w-3.5" />,
 };
 
 /**
@@ -50,7 +51,7 @@ export default function DownloadsPage() {
     <>
       <SEO
         title="Download the 1145 apps"
-        description="Download 1145, 1145 Driver, 1145 Orders and 1145 Logistics for Android, or join the iPhone beta on TestFlight."
+        description="Download 1145, 1145 Driver, 1145 Orders, 1145 Logistics and 1145 Merchant for Android, or join the iPhone beta on TestFlight."
       />
       <div className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
         <header className="space-y-2">

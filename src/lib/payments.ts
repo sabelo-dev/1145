@@ -14,7 +14,8 @@ export const PAYFAST_PROCESS_URLS = [
  */
 export function paymentReturnUrl(path: string): string {
   if (!isNative()) return getAppUrl(path);
-  return getAppUrl(`/app-return?to=${encodeURIComponent(path)}${APP_SCHEME === "io.lifestyle1145.driver" ? "&app=driver" : ""}`);
+  const app = APP_SCHEME === "io.lifestyle1145.driver" ? "&app=driver" : APP_SCHEME === "io.lifestyle1145.merchant" ? "&app=merchant" : "";
+  return getAppUrl(`/app-return?to=${encodeURIComponent(path)}${app}`);
 }
 
 const toBase64Url = (text: string) =>

@@ -1,6 +1,6 @@
 // Android release versions for the three apps (MOBILE_RELEASE.md §10).
 //
-//   node scripts/android-versions.mjs bump <app|driver|orders|logistics> [versionName]
+//   node scripts/android-versions.mjs bump <app|driver|orders|logistics|merchant> [versionName]
 //     +1 versionCode (Android only installs an update over the old app when it
 //     is higher) and sets versionName (default: next patch, 1.0.2 -> 1.0.3).
 //
@@ -11,7 +11,7 @@
 //     the update. --required makes every older install update before use.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
-const GRADLE = { app: "android/app/build.gradle", driver: "android-driver/app/build.gradle", orders: "android-orders/app/build.gradle", logistics: "android-logistics/app/build.gradle" };
+const GRADLE = { app: "android/app/build.gradle", driver: "android-driver/app/build.gradle", orders: "android-orders/app/build.gradle", logistics: "android-logistics/app/build.gradle", merchant: "android-merchant/app/build.gradle" };
 const BASE = process.env.VITE_APP_DOWNLOADS_URL || "https://hipomusjocacncjsvgfa.supabase.co/storage/v1/object/public/app-downloads";
 
 const fail = (message) => { console.error(message); process.exit(1); };
