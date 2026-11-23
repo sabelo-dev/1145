@@ -19,6 +19,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleOnboardingGate from "@/components/auth/RoleOnboardingGate";
 import PasswordChangeGate from "@/components/auth/PasswordChangeGate";
+import NativeUpdatePrompt from "@/components/NativeUpdatePrompt";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -121,6 +122,7 @@ createRoot(document.getElementById("root")!).render(
                           </Routes>
                         </Suspense>
                         <PasswordChangeGate />
+                        <NativeUpdatePrompt />
                         <Toaster />
                         <Sonner />
                       </BrowserRouter>

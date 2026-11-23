@@ -30,6 +30,7 @@ const APP_KEYS: Record<string, AppKey> = {
   'io.lifestyle1145.driver': 'driver',
   'io.lifestyle1145.orders': 'orders',
   'io.lifestyle1145.logistics': 'logistics',
+  'io.lifestyle1145.merchant': 'merchant',
 };
 
 const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;

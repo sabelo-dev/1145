@@ -201,6 +201,7 @@ outside the store); only the share link shows.
    | `1145-driver.apk` | `android-driver/app/build/outputs/apk/release/app-release.apk` |
    | `1145-orders.apk` | `android-orders/app/build/outputs/apk/release/app-release.apk` |
    | `1145-logistics.apk` | `android-logistics/app/build/outputs/apk/release/app-release.apk` |
+   | `1145-merchant.apk` | `android-merchant/app/build/outputs/apk/release/app-release.apk` |
 
    **Then** tell the installed apps about it (after the APKs, so no phone is
    sent to a file that is not there yet):
