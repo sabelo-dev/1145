@@ -27,7 +27,7 @@ The app ID **can never change** after the first store upload.
 
 ## 3. Icon and splash screen
 
-Every icon and splash image of the website and the three apps is generated
+Every icon and splash image of the website and the apps is generated
 from the logo in `public/logo.png` (the 1145 sphere):
 
 ```bash
@@ -168,6 +168,13 @@ The Driver and Orders apps work the same way: `android-driver/` and
 `android-orders/` each have their own `keystore.properties` (keys
 `1145-driver-release.jks` and `1145-orders-release.jks` in
 `~/.android`). Build them after `npm run driver:sync` / `npm run orders:sync`.
+
+The Logistics and Merchant apps keep their key next to the project:
+`android-logistics/` and `android-merchant/` each hold `release.jks` and
+`keystore.properties` (both git-ignored, so back them up). Build them after
+`npm run logistics:sync` / `npm run merchant:sync`. 1145 Merchant
+(`io.lifestyle1145.merchant`) is the full merchant dashboard with the order
+console and POS; links to the rest of 1145 open the website.
 
 ## 10. Direct downloads (1145.io/downloads)
 

@@ -123,5 +123,41 @@ const logisticsConfig: CapacitorConfig = {
   },
 };
 
-const apps: Record<string, CapacitorConfig> = { driver: driverConfig, orders: ordersConfig, logistics: logisticsConfig };
+// The "1145 Merchant" app: the full merchant dashboard (shopfront, products,
+// orders, POS console, payouts, team, insights). Selected with CAP_APP=merchant
+// (scripts/cap-merchant.mjs); its Android project is android-merchant/ and its
+// web build dist-merchant/ (vite.merchant.config.ts).
+// Like the others, this app ID can never change after the first store upload.
+const merchantConfig: CapacitorConfig = {
+  appId: 'io.lifestyle1145.merchant',
+  appName: '1145 Merchant',
+  webDir: 'dist-merchant',
+  backgroundColor: '#04070f', // web view behind the load animation, no white flash
+  includePlugins: withoutBackgroundLocation,
+  android: {
+    path: 'android-merchant',
+    allowMixedContent: false,
+  },
+  plugins: {
+    SplashScreen: {
+      androidSplashResourceName: 'launch_splash', // plain dark start-up, no logo
+      // Kept up until the load animation hides it (src/brand/loader.html), at most 6 s.
+      launchShowDuration: 6000,
+      launchAutoHide: true,
+      backgroundColor: '#04070f',
+      showSpinner: false,
+    },
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
+    },
+  },
+};
+
+const apps: Record<string, CapacitorConfig> = {
+  driver: driverConfig,
+  orders: ordersConfig,
+  logistics: logisticsConfig,
+  merchant: merchantConfig,
+};
 export default apps[process.env.CAP_APP ?? ''] ?? config;

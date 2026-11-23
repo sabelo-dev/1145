@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Start-up colour: the background of the 1145 load animation (src/brand/loader.html). -->
+    <color name="launch_background">#04070F</color>
+</resources>
